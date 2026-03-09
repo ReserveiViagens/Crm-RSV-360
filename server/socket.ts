@@ -35,10 +35,10 @@ export function emitEstadoGrupo(excursaoId: string, estado: unknown): void {
   broadcast(excursaoId, { type: "estado_grupo", payload: estado });
 }
 
-export function emitPixExpirado(excursaoId: string, reservaId: string): void {
-  broadcast(excursaoId, { type: "pix_expirado", payload: { reservaId } });
+export function emitPixExpirado(excursaoId: string, dados: unknown): void {
+  broadcast(excursaoId, { type: "pix_expirado", payload: dados });
 }
 
-export function emitVigilancia(excursaoId: string, dados: unknown): void {
-  broadcast(excursaoId, { type: "vigilancia", payload: dados });
+export function emitVigilancia(excursaoId: string, tipo: string, dados?: unknown): void {
+  broadcast(excursaoId, { type: "vigilancia", payload: { tipo, ...(dados && typeof dados === "object" ? dados : {}) } });
 }

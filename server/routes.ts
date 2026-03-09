@@ -4,7 +4,6 @@ import { type Server } from "http";
 import { getOpcionais } from "./opcionais";
 import {
   criarReserva,
-  getReserva,
   getReservasPorExcursao,
   chamarProximoDaFila,
 } from "./reservas";
@@ -434,7 +433,7 @@ export async function registerRoutes(
       return res.status(404).json({ error: "NOT_FOUND", message: "Excursão não encontrada", code: "EXCURSAO_NOT_FOUND" });
     }
     const reservas = await getReservasPorExcursao(String(req.params.id));
-    const ocupados = reservas.filter((r) => r.status === "PAGO").length;
+    const ocupados = reservas.filter((r) => r.status === "confirmada").length;
     const precoBase = 450;
     const totalPassagens = ocupados * precoBase;
     const totalOpcionais = 0;
@@ -464,9 +463,17 @@ export async function registerRoutes(
       rg: p.rg,
       cpf: p.cpf,
     }));
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="manifesto-antt-${req.params.id}.pdf"`);
-    gerarManifestoANTT(item.nome, passageiros, res);
+    const manifesto = gerarManifestoANTT(
+      item.id,
+      (item as unknown as Record<string, string>).destino ?? "Caldas Novas",
+      item.dataIda,
+      item.dataVolta,
+      item.veiculoTipo ?? "Ônibus",
+      passageiros
+    );
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="manifesto-antt-${req.params.id}.json"`);
+    res.json(manifesto);
   });
 
   app.get("/api/excursoes/:id/fnrh", async (req: Request, res: Response) => {
@@ -480,10 +487,16 @@ export async function registerRoutes(
       rg: p.rg,
       cpf: p.cpf,
     }));
-    const json = gerarFNRH(item.nome, passageiros);
+    const fnrh = gerarFNRH(
+      item.id,
+      item.nome,
+      item.dataIda,
+      item.dataVolta,
+      passageiros
+    );
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Content-Disposition", `attachment; filename="fnrh-${req.params.id}.json"`);
-    res.send(json);
+    res.json(fnrh);
   });
 
   app.get("/api/excursoes/:id/relatorio-contabil", async (req: Request, res: Response) => {
@@ -491,9 +504,18 @@ export async function registerRoutes(
     if (!item) {
       return res.status(404).json({ error: "NOT_FOUND", message: "Excursão não encontrada", code: "EXCURSAO_NOT_FOUND" });
     }
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="relatorio-contabil-${req.params.id}.pdf"`);
-    await gerarRelatorioContabil(item.nome, item.id, item.dataIda, item.dataVolta, res);
+    const reservas = await getReservasPorExcursao(item.id);
+    const dados = reservas.map((r) => ({
+      passageiroId: r.passageiroId,
+      passageiroNome: r.passageiroNome,
+      valorTotal: 450,
+      valorPago: r.status === "confirmada" ? 450 : 0,
+      status: r.status === "confirmada" ? "pago" as const : r.status === "cancelada" ? "cancelado" as const : "pendente" as const,
+    }));
+    const relatorio = gerarRelatorioContabil(item.id, item.dataIda, item.dataVolta, dados);
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="relatorio-contabil-${req.params.id}.json"`);
+    res.json(relatorio);
   });
 
   app.get("/api/excursoes/:id/voucher/:passageiroIndex", async (req: Request, res: Response) => {
@@ -515,20 +537,18 @@ export async function registerRoutes(
         code: "VOUCHER_FORBIDDEN",
       });
     }
-    const reserva = await getReserva(String(req.params.id), String(idx));
     const group = await ensureGroupForExcursao(item.id, item.nome, item.capacidade);
     const voucherStatus = await recalculateVoucherForGroup(group.id);
-    if (!voucherStatus.released) {
+    if (!voucherStatus) {
       return res.status(403).json({
         error: "VOUCHER_LOCKED",
-        message: `Voucher bloqueado até atingir 80% de pagamento do grupo (atual: ${voucherStatus.threshold.toFixed(1)}%).`,
-        threshold: voucherStatus.threshold,
+        message: "Voucher bloqueado: pagamento mínimo do grupo não atingido (R$500 em pagamentos).",
       });
     }
-    const ipAceite = reserva?.logAceite?.ipAceite;
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="voucher-${req.params.id}-${idx}.pdf"`);
-    gerarVoucherVIP(item.nome, { nome: p.nome, contato: p.contato, rg: p.rg, cpf: p.cpf }, [], ipAceite, res);
+    const voucher = gerarVoucherVIP(item.id, String(idx), p.nome);
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="voucher-${req.params.id}-${idx}.json"`);
+    res.json({ voucher, voucherCode: voucherStatus.voucherCode, discount: voucherStatus.discount });
   });
 
   /** Dispara estado do grupo (votação, lista de espera, passageiros) para a sala da excursão via Socket. Alternativa HTTP ao emit "atualizar-estado-grupo". */
@@ -560,12 +580,7 @@ export async function registerRoutes(
     const excursao = await findExcursao(String(req.params.id));
     if (!excursao) return res.status(404).json({ error: "NOT_FOUND", message: "Excursão não encontrada" });
     const group = await ensureGroupForExcursao(excursao.id, excursao.nome, excursao.capacidade);
-    const body = (req.body as { maxUses?: number; expiresAt?: string }) || {};
-    const maxUses = Number(body.maxUses ?? 200);
-    const invite = await createInvite(group.id, {
-      maxUses: Number.isFinite(maxUses) ? maxUses : 200,
-      expiresAt: typeof body.expiresAt === "string" ? body.expiresAt : undefined,
-    });
+    const invite = await createInvite(group.id);
     const joinUrl = `${req.protocol}://${req.get("host")}/join?code=${encodeURIComponent(invite.code)}`;
     return res.status(201).json({ invite, joinUrl });
   });
@@ -573,18 +588,17 @@ export async function registerRoutes(
   app.post("/api/invites/validate", async (req: Request, res: Response) => {
     const code = String((req.body as { code?: string })?.code ?? "");
     const result = await validateInvite(code);
-    if (!result.ok || !result.invite) return res.status(400).json(result);
+    if (!result.valid || !result.invite) return res.status(400).json({ ok: false, reason: result.reason });
     return res.json({
       ok: true,
       invite: result.invite,
-      vagasRestantes: Math.max(result.invite.maxUses - result.invite.usedCount, 0),
     });
   });
 
   app.get("/api/invites/:code", async (req: Request, res: Response) => {
     const code = String(req.params.code ?? "");
     const result = await validateInvite(code);
-    if (!result.ok || !result.invite) return res.status(400).json(result);
+    if (!result.valid || !result.invite) return res.status(400).json({ ok: false, reason: result.reason });
     const group = await getGroupById(result.invite.groupId);
     if (!group) return res.status(404).json({ ok: false, reason: "GROUP_NOT_FOUND" });
     const excursao = await findExcursao(group.excursaoId);
@@ -597,7 +611,6 @@ export async function registerRoutes(
         excursaoId: group.excursaoId,
       },
       excursao,
-      vagasRestantes: Math.max(result.invite.maxUses - result.invite.usedCount, 0),
     });
   });
 
@@ -607,7 +620,7 @@ export async function registerRoutes(
       return res.status(400).json({ ok: false, reason: "INVALID_PAYLOAD" });
     }
     const result = await validateInvite(body.code);
-    if (!result.ok || !result.invite) return res.status(400).json(result);
+    if (!result.valid || !result.invite) return res.status(400).json({ ok: false, reason: result.reason });
     const group = await getGroupById(result.invite.groupId);
     if (!group) return res.status(404).json({ ok: false, reason: "GROUP_NOT_FOUND" });
     await consumeInvite(body.code);
@@ -621,7 +634,7 @@ export async function registerRoutes(
     const body = (req.body as { userId?: string; nome?: string }) || {};
     if (!body.userId || !body.nome) return res.status(400).json({ error: "BAD_REQUEST", message: "userId e nome obrigatórios" });
     const group = await ensureGroupForExcursao(excursao.id, excursao.nome, excursao.capacidade);
-    const membership = await upsertMembership(group.id, body.userId, body.nome, "PENDENTE");
+    const membership = await upsertMembership(group.id, body.userId, body.nome, "PENDING");
     return res.status(201).json({ ok: true, membership });
   });
 
@@ -1026,9 +1039,8 @@ export async function registerRoutes(
     const group = await ensureGroupForExcursao(excursao.id, excursao.nome, excursao.capacidade);
     const body = (req.body as { totalAmount?: number; paidAmount?: number; hotelId?: string }) || {};
     const order = await upsertOrder(group.id, String(req.params.userId), {
-      totalAmount: body.totalAmount,
-      paidAmount: body.paidAmount,
-      hotelId: body.hotelId,
+      totalAmount: body.totalAmount ?? 0,
+      paidAmount: body.paidAmount ?? 0,
     });
     const voucher = await recalculateVoucherForGroup(group.id);
     return res.json({ order, voucher });

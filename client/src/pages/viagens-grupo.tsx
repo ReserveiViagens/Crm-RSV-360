@@ -49,7 +49,7 @@ import {
 import { Link, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query"
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
-import { subscribeExcursao, getSocket } from "@/lib/socket"
+import { subscribeExcursao, socketEmit } from "@/lib/socket"
 import { toast } from "@/hooks/use-toast"
 import { obterMensagemUpsell, deveExibirFomoEscassez, obterFraseUrgencia } from "@/lib/caldas-ai-regras"
 import { TEXTO_TERMO_EXCURSAO_CALDAS, TERMO_VERSAO } from "@/constants/termos"
@@ -763,12 +763,12 @@ export default function ViagensGrupoPage() {
           card: upsellRegra.preco
             ? {
                 type: "attraction" as const,
-                title: upsellRegra.titulo,
+                title: upsellRegra.titulo ?? "Oferta Especial",
                 subtitle: "Vagas limitadas",
-                price: upsellRegra.preco,
-                oldPrice: upsellRegra.precoAntigo,
-                discount: upsellRegra.desconto,
-                cta: upsellRegra.cta,
+                price: `R$ ${upsellRegra.preco}`,
+                oldPrice: upsellRegra.precoAntigo ? `R$ ${upsellRegra.precoAntigo}` : undefined,
+                discount: upsellRegra.desconto ? `${upsellRegra.desconto}%` : undefined,
+                cta: upsellRegra.cta ?? "Ver oferta",
               }
             : undefined,
         }
@@ -855,14 +855,14 @@ export default function ViagensGrupoPage() {
       onPixExpirado: (data) => {
         toast({
           title: "Pix expirando",
-          description: data.message,
+          description: String(data.message ?? "Pix prestes a expirar"),
           variant: "destructive",
         })
       },
       onVigilancia: (data) => {
         toast({
-          title: data.tipo === "crianca" ? "Vigilância: criança" : "Vigilância: idoso",
-          description: data.message,
+          title: String(data.tipo) === "crianca" ? "Vigilância: criança" : "Vigilância: idoso",
+          description: String(data.message ?? ""),
           variant: "default",
         })
       },
@@ -880,7 +880,6 @@ export default function ViagensGrupoPage() {
           }))
           setPassageiros(normalized)
         }
-        // Quando o payload trouxer listaEspera e houver state setListaEspera, atualizar aqui.
       },
       onAiIntervention: (data) => {
         if (data.mensagem) {
@@ -889,12 +888,12 @@ export default function ViagensGrupoPage() {
             {
               id: Date.now(),
               sender: "CaldasAI",
-              text: data.mensagem,
+              text: String(data.mensagem),
               time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
               isMe: false,
               isBot: true,
               isAiIntervention: true,
-            },
+            } as ChatMessage,
           ])
         }
       },
@@ -996,8 +995,7 @@ export default function ViagensGrupoPage() {
     setVoteAnimating(idx)
     setTimeout(() => setVoteAnimating(null), 1200)
     if (excursaoId) {
-      const s = getSocket()
-      if (s) s.emit("atualizar-estado-grupo", { excursaoId, votacao: newVotes })
+      socketEmit("atualizar-estado-grupo", { excursaoId, votacao: newVotes })
     }
   }
 
@@ -1640,8 +1638,7 @@ export default function ViagensGrupoPage() {
                           setNovoPassageiroRg("")
                           setNovoPassageiroCpf("")
                           if (excursaoId) {
-                            const s = getSocket()
-                            if (s) s.emit("atualizar-estado-grupo", { excursaoId, passageirosCount: novaLista.length, passageiros: novaLista })
+                            socketEmit("atualizar-estado-grupo", { excursaoId, passageirosCount: novaLista.length, passageiros: novaLista })
                           }
                         }}
                         style={{
@@ -2025,7 +2022,7 @@ export default function ViagensGrupoPage() {
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <HotelSelector
             hotels={HOTEL_OPTIONS}
-            selectedHotelId={selectedHotelId}
+            selectedHotelId={selectedHotelId ?? undefined}
             checkIn={selectedCheckIn}
             checkOut={selectedCheckOut}
             onSelect={async (hotelId, total) => {

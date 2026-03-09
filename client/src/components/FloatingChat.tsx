@@ -13,10 +13,14 @@ interface Message {
 interface FloatingChatProps {
   excursaoId?: string;
   excursaoNome?: string;
+  isOpen?: boolean;
+  unreadCount?: number;
+  onToggle?: () => void;
 }
 
-export function FloatingChat({ excursaoId, excursaoNome }: FloatingChatProps) {
-  const [open, setOpen] = useState(false);
+export function FloatingChat({ excursaoId, excursaoNome, isOpen: isOpenProp, unreadCount = 0, onToggle }: FloatingChatProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpenProp !== undefined ? isOpenProp : internalOpen;
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -30,118 +34,162 @@ export function FloatingChat({ excursaoId, excursaoNome }: FloatingChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (open && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, open]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
+  const toggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalOpen((v) => !v);
+    }
+  };
 
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: text,
+      content: input,
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 800));
-
-    const responses: string[] = [
-      "Boa pergunta! Vou verificar as informações da excursão para você.",
-      "Para detalhes sobre pagamentos, você pode consultar a aba Financeiro do grupo.",
-      "O roteiro completo está disponível na aba Roteiro. Lá você vê todos os atrativos!",
-      "Para adicionar um acompanhante, compartilhe o link de convite com a pessoa.",
-      "Dúvidas sobre o hotel? Veja a seleção de hospedagem no roteiro oficial.",
-    ];
-    const reply = responses[Math.floor(Math.random() * responses.length)];
-
-    const assistantMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: reply,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, assistantMsg]);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/caldas-ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, excursaoId }),
+      });
+      let botContent = "Desculpe, não consegui processar sua mensagem.";
+      if (res.ok) {
+        const data = await res.json() as { response?: string; message?: string };
+        botContent = data.response ?? data.message ?? botContent;
+      }
+      const botMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: botContent,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch {
+      const errMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Não consegui me conectar ao servidor. Tente novamente.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
+    <div data-testid="floating-chat" style={{ position: "fixed", bottom: 80, right: 16, zIndex: 1000 }}>
       {open && (
-        <div
-          data-testid="floating-chat-window"
-          className="fixed bottom-20 right-4 w-80 h-96 bg-card border border-card-border rounded-xl shadow-xl flex flex-col z-50"
-        >
-          <div className="flex items-center justify-between px-3 py-2 border-b">
-            <div className="flex items-center gap-2">
+        <div style={{
+          width: 320,
+          maxHeight: 400,
+          background: "#fff",
+          border: "1px solid #E5E7EB",
+          borderRadius: 12,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+          display: "flex",
+          flexDirection: "column",
+          marginBottom: 8,
+        }}>
+          <div style={{ padding: "10px 14px", borderBottom: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Bot className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Assistente RSV</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Assistente de Viagem</span>
             </div>
-            <Button size="icon" variant="ghost" onClick={() => setOpen(false)} data-testid="button-close-chat">
-              <X className="w-4 h-4" />
-            </Button>
+            <button onClick={toggle} style={{ background: "none", border: "none", cursor: "pointer" }}>
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", minHeight: 200, maxHeight: 280, display: "flex", flexDirection: "column", gap: 8 }}>
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-              >
-                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${msg.role === "assistant" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                  {msg.role === "assistant" ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
+              <div key={msg.id} style={{ display: "flex", gap: 6, alignItems: "flex-start", flexDirection: msg.role === "user" ? "row-reverse" : "row" }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: msg.role === "user" ? "#2563EB" : "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {msg.role === "user" ? <User className="w-3 h-3 text-white" /> : <Bot className="w-3 h-3 text-primary" />}
                 </div>
-                <div
-                  className={`max-w-[70%] rounded-lg px-2.5 py-1.5 text-xs ${msg.role === "assistant" ? "bg-muted" : "bg-primary text-primary-foreground"}`}
-                >
+                <div style={{ background: msg.role === "user" ? "#2563EB" : "#F9FAFB", color: msg.role === "user" ? "#fff" : "#111827", borderRadius: 8, padding: "6px 10px", fontSize: 12, maxWidth: "80%" }}>
                   {msg.content}
                 </div>
               </div>
             ))}
             {loading && (
-              <div className="flex gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-3 h-3" />
+              <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Bot className="w-3 h-3 text-primary" />
                 </div>
-                <div className="bg-muted rounded-lg px-2.5 py-1.5 text-xs flex gap-1">
-                  <span className="animate-bounce">·</span>
-                  <span className="animate-bounce" style={{ animationDelay: "0.1s" }}>·</span>
-                  <span className="animate-bounce" style={{ animationDelay: "0.2s" }}>·</span>
-                </div>
+                <div style={{ background: "#F9FAFB", borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>...</div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="flex gap-2 p-2 border-t">
+          <div style={{ padding: "8px 12px", borderTop: "1px solid #F3F4F6", display: "flex", gap: 6 }}>
             <Input
-              data-testid="input-chat-message"
+              data-testid="input-chat"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Digite sua pergunta..."
-              className="text-xs h-8"
+              placeholder="Enviar mensagem..."
+              style={{ fontSize: 12, height: 32 }}
             />
-            <Button size="icon" onClick={sendMessage} disabled={loading || !input.trim()} data-testid="button-send-chat" className="h-8 w-8">
+            <Button size="icon" onClick={sendMessage} disabled={loading} data-testid="button-send-chat" style={{ height: 32, width: 32 }}>
               <Send className="w-3 h-3" />
             </Button>
           </div>
         </div>
       )}
 
-      <Button
-        data-testid="button-open-chat"
-        size="icon"
-        className="fixed bottom-4 right-4 rounded-full shadow-lg z-50 h-12 w-12"
-        onClick={() => setOpen((v) => !v)}
+      <button
+        data-testid="button-toggle-chat"
+        onClick={toggle}
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: "50%",
+          background: "#2563EB",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 16px rgba(37,99,235,0.3)",
+          position: "relative",
+        }}
       >
-        {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-      </Button>
-    </>
+        <MessageCircle className="w-5 h-5 text-white" />
+        {unreadCount > 0 && (
+          <div style={{
+            position: "absolute",
+            top: -4,
+            right: -4,
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            background: "#EF4444",
+            color: "#fff",
+            fontSize: 10,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 700,
+          }}>
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </div>
+        )}
+      </button>
+    </div>
   );
 }

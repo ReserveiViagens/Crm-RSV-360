@@ -2,17 +2,23 @@ import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 
 interface CountdownTimerProps {
-  targetDate: Date | string;
+  targetDate?: Date | string;
+  endDate?: Date | string;
   onExpire?: () => void;
   label?: string;
   className?: string;
 }
 
-export function CountdownTimer({ targetDate, onExpire, label = "Expira em", className = "" }: CountdownTimerProps) {
+export function CountdownTimer({ targetDate, endDate, onExpire, label = "Expira em", className = "" }: CountdownTimerProps) {
+  const resolvedDate = targetDate ?? endDate;
   const [timeLeft, setTimeLeft] = useState({ minutes: 0, seconds: 0, expired: false });
 
   useEffect(() => {
-    const target = new Date(targetDate).getTime();
+    if (!resolvedDate) {
+      setTimeLeft({ minutes: 0, seconds: 0, expired: true });
+      return;
+    }
+    const target = new Date(resolvedDate).getTime();
 
     const update = () => {
       const now = Date.now();
@@ -30,7 +36,7 @@ export function CountdownTimer({ targetDate, onExpire, label = "Expira em", clas
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [targetDate, onExpire]);
+  }, [resolvedDate, onExpire]);
 
   if (timeLeft.expired) {
     return (

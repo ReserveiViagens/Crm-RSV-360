@@ -1,6 +1,9 @@
 export interface TimeSlot {
-  inicio: string;
-  fim: string;
+  id?: string;
+  inicio?: string;
+  fim?: string;
+  startsAt?: string;
+  endsAt?: string;
   diaViagem?: string;
 }
 
@@ -11,14 +14,29 @@ export function calculateNights(dataIda: string, dataVolta: string): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-export function hasScheduleConflict(slotA: TimeSlot, slotB: TimeSlot): boolean {
+function getSlotStart(slot: TimeSlot): string {
+  return slot.inicio ?? slot.startsAt ?? "00:00";
+}
+
+function getSlotEnd(slot: TimeSlot): string {
+  return slot.fim ?? slot.endsAt ?? "23:59";
+}
+
+export function hasScheduleConflict(
+  slotAOrArray: TimeSlot | TimeSlot[],
+  slotB: TimeSlot
+): boolean {
+  if (Array.isArray(slotAOrArray)) {
+    return slotAOrArray.some((existing) => hasScheduleConflict(existing, slotB));
+  }
+  const slotA = slotAOrArray;
   if (slotA.diaViagem && slotB.diaViagem && slotA.diaViagem !== slotB.diaViagem) {
     return false;
   }
-  const startA = timeToMinutes(slotA.inicio);
-  const endA = timeToMinutes(slotA.fim);
-  const startB = timeToMinutes(slotB.inicio);
-  const endB = timeToMinutes(slotB.fim);
+  const startA = timeToMinutes(getSlotStart(slotA));
+  const endA = timeToMinutes(getSlotEnd(slotA));
+  const startB = timeToMinutes(getSlotStart(slotB));
+  const endB = timeToMinutes(getSlotEnd(slotB));
   return startA < endB && startB < endA;
 }
 

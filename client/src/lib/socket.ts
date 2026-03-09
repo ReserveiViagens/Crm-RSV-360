@@ -5,6 +5,12 @@ export function getSocket(): WebSocket | null {
   return socket;
 }
 
+export function socketEmit(type: string, payload: unknown): void {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type, ...((payload && typeof payload === "object") ? payload : { payload }) }));
+  }
+}
+
 export function connectSocket(): WebSocket {
   if (socket && socket.readyState === WebSocket.OPEN) return socket;
 
@@ -36,7 +42,18 @@ export function connectSocket(): WebSocket {
   return socket;
 }
 
-export function subscribeExcursao(excursaoId: string, onMessage: (data: unknown) => void): () => void {
+export interface ExcursaoHandlers {
+  onPixExpirado?: (data: Record<string, unknown>) => void;
+  onVigilancia?: (data: Record<string, unknown>) => void;
+  onEstadoGrupo?: (data: unknown) => void;
+  onAiIntervention?: (data: Record<string, unknown>) => void;
+  onMessage?: (data: unknown) => void;
+}
+
+export function subscribeExcursao(
+  excursaoId: string,
+  handlersOrFn: ExcursaoHandlers | ((data: unknown) => void)
+): () => void {
   const sock = connectSocket();
 
   const sendSubscribe = () => {
@@ -51,7 +68,25 @@ export function subscribeExcursao(excursaoId: string, onMessage: (data: unknown)
     sock.addEventListener("open", sendSubscribe, { once: true });
   }
 
-  const handler = (data: unknown) => onMessage(data);
+  const handler = (rawMsg: unknown) => {
+    if (typeof handlersOrFn === "function") {
+      handlersOrFn(rawMsg);
+      return;
+    }
+    const msg = rawMsg as { type?: string; payload?: unknown };
+    const payload = (msg?.payload ?? {}) as Record<string, unknown>;
+    if (msg?.type === "pix_expirado") {
+      handlersOrFn.onPixExpirado?.(payload);
+    } else if (msg?.type === "vigilancia") {
+      handlersOrFn.onVigilancia?.(payload);
+    } else if (msg?.type === "estado_grupo") {
+      handlersOrFn.onEstadoGrupo?.(payload);
+    } else if (msg?.type === "ai_intervention") {
+      handlersOrFn.onAiIntervention?.(payload);
+    }
+    handlersOrFn.onMessage?.(rawMsg);
+  };
+
   if (!listeners.has("*")) listeners.set("*", new Set());
   listeners.get("*")!.add(handler);
 

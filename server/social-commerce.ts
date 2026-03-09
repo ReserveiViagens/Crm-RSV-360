@@ -14,8 +14,10 @@ export interface Membership {
   groupId: string;
   userId: string;
   nome: string;
-  status: "ADMIN" | "MEMBER" | "PENDING";
+  status: "ADMIN" | "MEMBER" | "PENDING" | "PENDENTE" | "REJEITADO";
   criadoEm: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Order {
@@ -68,10 +70,12 @@ export async function getGroupById(id: string): Promise<Group | undefined> {
   });
 }
 
-export async function listMemberships(groupId: string): Promise<Membership[]> {
+export async function listMemberships(groupId: string, statusFilter?: string): Promise<Membership[]> {
   return mutateDb((db) => {
     const mems = (db.membershipStore as Membership[]) ?? [];
-    return mems.filter((m) => m.groupId === groupId);
+    const byGroup = mems.filter((m) => m.groupId === groupId);
+    if (statusFilter) return byGroup.filter((m) => m.status === statusFilter);
+    return byGroup;
   });
 }
 
@@ -79,7 +83,7 @@ export async function upsertMembership(
   groupId: string,
   userId: string,
   nome: string,
-  status: "ADMIN" | "MEMBER" | "PENDING"
+  status: Membership["status"]
 ): Promise<Membership> {
   return mutateDb((db) => {
     const mems = (db.membershipStore as Membership[]) ?? [];
