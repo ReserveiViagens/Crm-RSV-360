@@ -1,10 +1,67 @@
+
 import { useState, useEffect, useRef } from "react"
-import { ArrowLeft, Users, Send, Calendar, MapPin, UserPlus, Star, Check, Clock, ChevronRight, Share2, DollarSign, ThumbsUp, Sparkles, Bell, Crown, Minus, Plus, TrendingDown, Percent, ChevronDown, ChevronUp, Bot, Lightbulb, User, Plane, Hotel, UtensilsCrossed, Map, MessageCircle, Gift, TreePine, Waves, Bus, Shield, QrCode, AlertTriangle, Download, X, Copy, ShoppingCart, Trash2, Coffee, Sunset, Mountain, Fish, Anchor, ChevronLeft } from "lucide-react"
-import { Link } from "wouter"
+import {
+  ArrowLeft,
+  Settings,
+  Users,
+  Send,
+  FileText,
+  Ticket,
+  Calendar,
+  Camera,
+  MapPin,
+  UserPlus,
+  Smile,
+  Star,
+  Check,
+  Clock,
+  ChevronRight,
+  Share2,
+  Vote,
+  DollarSign,
+  ThumbsUp,
+  Sparkles,
+  Bell,
+  Crown,
+  ImageIcon,
+  Minus,
+  Plus,
+  TrendingDown,
+  Percent,
+  ChevronDown,
+  ChevronUp,
+  Bot,
+  Lightbulb,
+  BarChart3,
+  User,
+  Plane,
+  Hotel,
+  UtensilsCrossed,
+  Map,
+  MessageCircle,
+  Gift,
+  Utensils,
+  TreePine,
+  Waves,
+  Copy,
+  ExternalLink,
+} from "lucide-react"
+import { Link, useRoute } from "wouter";
+import { useQuery } from "@tanstack/react-query"
+import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
+import { subscribeExcursao, getSocket } from "@/lib/socket"
+import { toast } from "@/hooks/use-toast"
+import { obterMensagemUpsell, deveExibirFomoEscassez, obterFraseUrgencia } from "@/lib/caldas-ai-regras"
+import { TEXTO_TERMO_EXCURSAO_CALDAS, TERMO_VERSAO } from "@/constants/termos"
+import { BarraFinanceira } from "@/components/BarraFinanceira"
+import { CountdownTimer } from "@/components/CountdownTimer"
+import { QRCodeSVG } from "qrcode.react"
+import { HotelSelector } from "@/components/HotelSelector"
+import { FloatingChat } from "@/components/FloatingChat"
+import { calculateNights, hasScheduleConflict, sortByMarginAndScore, type TimeSlot } from "@/utils/social-commerce"
 const WHATSAPP = "5564993197555"
 
 interface Member {
-  id: string
   name: string
   color: string
   isOrganizer?: boolean
@@ -12,43 +69,95 @@ interface Member {
   paid: number
 }
 
-interface GroupData {
-  id: string
-  name: string
-  code: string
-  destination: string
-  status: "planning" | "confirmed" | "finished"
-  createdBy: string
-  members: Member[]
-  dates: { checkIn: string | null; checkOut: string | null }
-  selectedHotel: number | null
-  itinerary: ItineraryItem[]
-  orders: OrderItem[]
-  messages: ChatMessage[]
-  voucherReleased: boolean
-}
+const MEMBERS: Member[] = [
+  { name: "Você", color: "#2563EB", isOrganizer: true, expenses: 578, paid: 578 },
+  { name: "Cate Plotar", color: "#8B5CF6", expenses: 578, paid: 400 },
+  { name: "Mario Paxvango", color: "#EC4899", expenses: 578, paid: 578 },
+  { name: "Viete Perruoiras", color: "#F59E0B", expenses: 578, paid: 300 },
+]
 
-interface ItineraryItem {
-  id: string
-  category: string
-  name: string
-  price: number
-  duration: string
-  time: string
-  day: number
-  icon: string
-}
+const TABS = [
+  { icon: FileText, label: "Vouchers" },
+  { icon: Ticket, label: "Ingressos" },
+  { icon: Calendar, label: "Programação" },
+  { icon: ImageIcon, label: "Fotos" },
+]
 
-interface OrderItem {
-  id: string
-  memberId: string
-  memberName: string
-  item: string
-  type: string
-  value: number
-  status: "confirmed" | "pending" | "cancelled"
-  date: string
-}
+const TIMELINE = [
+  {
+    day: "Dia 1",
+    label: "Check-in & Piscinas",
+    icon: Hotel,
+    status: "done",
+    details: "14h check-in, tarde livre nas piscinas termais",
+    time: "14:00 - 20:00",
+  },
+  {
+    day: "Dia 2",
+    label: "Parque Aquático",
+    icon: Waves,
+    status: "done",
+    details: "Hot Park o dia inteiro, almoço incluso",
+    time: "09:00 - 18:00",
+  },
+  {
+    day: "Dia 3",
+    label: "City Tour",
+    icon: Map,
+    status: "current",
+    details: "Visita guiada + almoço regional",
+    time: "08:30 - 16:00",
+  },
+  {
+    day: "Dia 4",
+    label: "Spa & Compras",
+    icon: TreePine,
+    status: "upcoming",
+    details: "Manhã no spa, tarde para compras",
+    time: "10:00 - 17:00",
+  },
+  {
+    day: "Dia 5",
+    label: "Check-out",
+    icon: Plane,
+    status: "upcoming",
+    details: "Café da manhã e partida às 12h",
+    time: "07:00 - 12:00",
+  },
+]
+
+const VOTE_OPTIONS = [
+  { name: "Resort Termas Paradise", votes: 3, total: 5, img: Hotel, tags: ["Piscina termal", "Buffet"] },
+  { name: "Hotel Lago Azul", votes: 2, total: 5, img: Star, tags: ["Vista lago", "Spa"] },
+  { name: "Pousada Recanto", votes: 1, total: 5, img: MapPin, tags: ["Econômico", "Central"] },
+]
+
+const AI_ITINERARIES = [
+  {
+    name: "Roteiro Relax",
+    icon: Star,
+    color: "#8B5CF6",
+    days: ["Spa & Termas", "Lago Corumbá", "Compras", "Dia Livre"],
+    savings: 320,
+    basePP: 489,
+  },
+  {
+    name: "Roteiro Aventura",
+    icon: Plane,
+    color: "#2563EB",
+    days: ["Hot Park", "Rapel & Trilha", "Rafting", "City Tour"],
+    savings: 450,
+    basePP: 629,
+  },
+  {
+    name: "Roteiro Família",
+    icon: Users,
+    color: "#22C55E",
+    days: ["Parque Aquático", "Zoo & Passeio", "Piscinas", "Compras"],
+    savings: 380,
+    basePP: 539,
+  },
+]
 
 interface ChatMessage {
   id: number
@@ -60,7 +169,7 @@ interface ChatMessage {
   tag?: string
   isOrganizer?: boolean
   card?: {
-    type: "hotel" | "attraction" | "voucher"
+    type: "hotel" | "attraction"
     title: string
     subtitle: string
     price: string
@@ -68,1152 +177,2405 @@ interface ChatMessage {
     discount?: string
     cta: string
   }
+  typing?: boolean
+  /** Mensagem de mediação em empate (CaldasAI) — estilo laranja/âmbar */
+  isAiIntervention?: boolean
 }
 
-interface HotelOption {
-  id: number
-  name: string
-  stars: number
-  pricePerNight: number
-  location: string
-  rating: number
-  amenities: string[]
-  recommended?: boolean
-  popular?: boolean
-  gradient: string
+const INITIAL_MESSAGES: ChatMessage[] = [
+  { id: 1, sender: "Cate Plotar", text: "Pessoal, encontrei umas opções incríveis!", time: "10:30", isMe: false },
+  { id: 2, sender: "Você", text: "Vamos! Já apliquei o desconto do grupo, muito bom!", time: "10:32", isMe: true, isOrganizer: true },
+  { id: 3, sender: "Mario Paxvango", text: "Fechado! Pode contar comigo.", time: "10:35", isMe: false, tag: "Confirmado" },
+  {
+    id: 4,
+    sender: "CaldasAI",
+    text: "Analisei as melhores opções em Caldas Novas para o grupo e selecionei esta hospedagem com ótimo custo-benefício.",
+    time: "10:40",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "hotel",
+      title: "Resort Termas Paradise",
+      subtitle: "Caldas Novas - 4 estrelas - Nota 9.1",
+      price: "R$ 289",
+      oldPrice: "R$ 450",
+      discount: "-36%",
+      cta: "Reservar pelo Grupo",
+    },
+  },
+  { id: 5, sender: "Viete Perruoiras", text: "Já vi as opções! Vamos com o Resort Termas mesmo.", time: "10:45", isMe: false },
+  { id: 6, sender: "Cate Plotar", text: "Alguém sabe se tem café da manhã incluso?", time: "10:50", isMe: false },
+  {
+    id: 7,
+    sender: "CaldasAI",
+    text: "Sim. O Resort Termas Paradise inclui café da manhã completo. Para o grupo, também recomendo este combo de parques com desconto:",
+    time: "10:52",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Hot Park - Ingresso Grupo",
+      subtitle: "Desconto especial para 4 ou mais pessoas",
+      price: "R$ 139/pessoa",
+      oldPrice: "R$ 189",
+      discount: "-26%",
+      cta: "Ver Ingressos",
+    },
+  },
+  { id: 8, sender: "Mario Paxvango", text: "Esse desconto tá ótimo! Bora fechar logo!", time: "10:55", isMe: false },
+  { id: 9, sender: "Você", text: "Fechado! Vou reservar pra todo mundo. Dividindo fica barato demais!", time: "11:00", isMe: true, isOrganizer: true },
+  { id: 10, sender: "Viete Perruoiras", text: "Perfeito! Não esqueçam o protetor solar!", time: "11:05", isMe: false },
+]
+
+const BOT_RESPONSES: Record<string, ChatMessage> = {
+  hotel: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Para o grupo em Caldas Novas, esta hospedagem oferece ótimo custo-benefício. Com quatro ou mais pessoas o desconto aumenta.",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "hotel",
+      title: "Pousada Recanto das Águas",
+      subtitle: "Caldas Novas - Nota 9.2 - Wi-Fi incluso",
+      price: "R$ 199/noite",
+      oldPrice: "R$ 320",
+      discount: "-38%",
+      cta: "Reservar com desconto",
+    },
+  },
+  restaurante: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Para jantar em grupo na região, recomendo restaurantes com mesas amplas e boa avaliação. Segue uma opção em destaque:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Restaurante Fogão Mineiro",
+      subtitle: "Culinária regional - Nota 9.4",
+      price: "R$ 65/pessoa",
+      oldPrice: "R$ 89",
+      discount: "-27%",
+      cta: "Reservar mesa",
+    },
+  },
+  parque: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Os parques aquáticos em Caldas Novas têm condições especiais para grupos. Esta é uma das melhores ofertas no momento:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Hot Park - Combo grupo",
+      subtitle: "Ingresso + almoço - até 6 pessoas",
+      price: "R$ 149/pessoa",
+      oldPrice: "R$ 220",
+      discount: "-32%",
+      cta: "Ver combo grupo",
+    },
+  },
+  spa: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Programas de spa em grupo costumam sair mais em conta. Encontrei um pacote termal ideal para o grupo:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Spa Termal Premium",
+      subtitle: "Massagem + piscina termal - grupo",
+      price: "R$ 189/pessoa",
+      oldPrice: "R$ 280",
+      discount: "-33%",
+      cta: "Reservar spa",
+    },
+  },
+  ingresso: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Ingressos para parques e atrações em grupo têm desconto. Segue uma promoção válida para a excursão:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Combo 3 parques",
+      subtitle: "Hot Park + diRoma + Lagoa Quente",
+      price: "R$ 329/pessoa",
+      oldPrice: "R$ 499",
+      discount: "-34%",
+      cta: "Ver ingressos",
+    },
+  },
+  transfer: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Transfer compartilhado para grupo reduz bastante o custo por pessoa. Veja esta opção de van:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Transfer aeroporto - Van",
+      subtitle: "Ida e volta - até 8 pessoas",
+      price: "R$ 45/pessoa",
+      oldPrice: "R$ 120",
+      discount: "-63%",
+      cta: "Reservar transfer",
+    },
+  },
+  mapaAssentos: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "O mapa de assentos fica na página desta viagem em grupo. O organizador pode ver e definir os lugares na área administrativa do CRM. Quando os assentos forem liberados, você poderá escolher o seu aqui mesmo. Quer que eu avise quando o mapa estiver disponível?",
+    time: "",
+    isMe: false,
+    isBot: true,
+  },
+  urgencia: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "As vagas desta excursão estão se esgotando. Recomendo fechar o pacote em até 48 horas para garantir preço e assento. Deixar para a última hora pode significar perder o desconto de grupo. Posso ajudar a fechar agora?",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "attraction",
+      title: "Fechar pacote agora",
+      subtitle: "Garanta preço e vaga — oferta por tempo limitado",
+      price: "Ver opções",
+      oldPrice: "",
+      discount: "",
+      cta: "Fechar com desconto",
+    },
+  },
+  default: {
+    id: 0,
+    sender: "CaldasAI",
+    text: "Posso ajudar o grupo a encontrar as melhores opções em Caldas Novas. Segue uma sugestão que combina hospedagem, parque e transfer:",
+    time: "",
+    isMe: false,
+    isBot: true,
+    card: {
+      type: "hotel",
+      title: "Combo grupo especial",
+      subtitle: "Hotel + parque + transfer",
+      price: "R$ 459/pessoa",
+      oldPrice: "R$ 680",
+      discount: "-33%",
+      cta: "Ver combo",
+    },
+  },
 }
 
-interface CatalogItem {
+type ExcursaoStatus = "rascunho" | "aberta" | "fechada"
+
+interface Excursao {
   id: string
-  category: string
-  name: string
-  price: number
-  duration: string
-  suggestedTime: string
-  iconName: string
+  nome: string
+  dataIda: string
+  dataVolta: string
+  destino: string
+  localSaida?: string
+  capacidade: number
+  veiculoTipo: string
+  status: ExcursaoStatus
+  wizard?: {
+    roteiroOficial?: RoteiroOficial
+  }
 }
 
-const CATALOG: CatalogItem[] = [
-  { id: "a1", category: "Atrações", name: "Hot Park", price: 189, duration: "8h", suggestedTime: "09:00", iconName: "waves" },
-  { id: "a2", category: "Atrações", name: "DiRoma", price: 149, duration: "6h", suggestedTime: "10:00", iconName: "waves" },
-  { id: "a3", category: "Atrações", name: "Lagoa Quente", price: 120, duration: "5h", suggestedTime: "09:00", iconName: "waves" },
-  { id: "a4", category: "Atrações", name: "Náutico Praia Clube", price: 99, duration: "6h", suggestedTime: "10:00", iconName: "anchor" },
-  { id: "a5", category: "Atrações", name: "Jardim Japonês", price: 35, duration: "2h", suggestedTime: "16:00", iconName: "tree" },
-  { id: "p1", category: "Parques Aquáticos", name: "Hot Park Completo", price: 220, duration: "10h", suggestedTime: "08:30", iconName: "waves" },
-  { id: "p2", category: "Parques Aquáticos", name: "DiRoma Acqua Park", price: 169, duration: "8h", suggestedTime: "09:00", iconName: "waves" },
-  { id: "p3", category: "Parques Aquáticos", name: "Lagoa Termas Parque", price: 139, duration: "7h", suggestedTime: "09:30", iconName: "waves" },
-  { id: "ps1", category: "Passeios", name: "City Tour Guiado", price: 85, duration: "4h", suggestedTime: "08:30", iconName: "map" },
-  { id: "ps2", category: "Passeios", name: "Trilha Ecológica", price: 65, duration: "3h", suggestedTime: "07:00", iconName: "mountain" },
-  { id: "ps3", category: "Passeios", name: "Pesca Esportiva", price: 120, duration: "5h", suggestedTime: "06:00", iconName: "fish" },
-  { id: "ps4", category: "Passeios", name: "Passeio de Barco", price: 95, duration: "3h", suggestedTime: "15:00", iconName: "anchor" },
-  { id: "r1", category: "Refeições", name: "Café da Manhã (hotel)", price: 0, duration: "1h", suggestedTime: "07:00", iconName: "coffee" },
-  { id: "r2", category: "Refeições", name: "Almoço - Fogão Mineiro", price: 65, duration: "1h30", suggestedTime: "12:00", iconName: "utensils" },
-  { id: "r3", category: "Refeições", name: "Almoço - Churrascaria Boi", price: 79, duration: "1h30", suggestedTime: "12:30", iconName: "utensils" },
-  { id: "r4", category: "Refeições", name: "Almoço - Restaurante Lago", price: 55, duration: "1h", suggestedTime: "12:00", iconName: "utensils" },
-  { id: "r5", category: "Refeições", name: "Jantar - Pizzaria Italia", price: 49, duration: "1h30", suggestedTime: "19:00", iconName: "utensils" },
-  { id: "r6", category: "Refeições", name: "Jantar - Restaurante Termal", price: 89, duration: "2h", suggestedTime: "19:30", iconName: "utensils" },
-  { id: "r7", category: "Refeições", name: "Jantar - Sushi Caldas", price: 72, duration: "1h30", suggestedTime: "20:00", iconName: "utensils" },
-  { id: "r8", category: "Refeições", name: "Jantar - Espetaria Grill", price: 59, duration: "1h30", suggestedTime: "19:00", iconName: "utensils" },
-  { id: "t1", category: "Transfers", name: "Aeroporto → Hotel", price: 45, duration: "40min", suggestedTime: "14:00", iconName: "bus" },
-  { id: "t2", category: "Transfers", name: "Hotel → Parque", price: 25, duration: "20min", suggestedTime: "08:30", iconName: "bus" },
-  { id: "t3", category: "Transfers", name: "Hotel → Restaurante", price: 20, duration: "15min", suggestedTime: "19:00", iconName: "bus" },
+type RoteiroOficial = {
+  veiculoTipo?: string
+  veiculoAutomatico?: boolean
+  manualVehicleOverride?: boolean
+  hotelPrincipal?: string
+  atracoes: string[]
+  passeios: string[]
+  parquesAquaticos: string[]
+  hoteis?: RoteiroCard[]
+  atracoesCards?: RoteiroCard[]
+  passeiosCards?: RoteiroCard[]
+  parquesAquaticosCards?: RoteiroCard[]
+  notas?: string
+}
+
+type RoteiroCard = {
+  id: string
+  titulo: string
+  descricaoBreve?: string
+  galeriaImagens: string[]
+  galeriaVideos: string[]
+  precoPorPessoa?: number
+  duracaoHoras?: number
+  horarioSaida?: string
+  diasDisponiveis?: string[]
+  badgeTipo?: "ia" | "popular"
+}
+
+type SugestaoRoteiro = {
+  id: string
+  nomeAutor: string
+  categoria: "veiculo" | "hotel" | "atracao" | "passeio" | "parque" | "outro"
+  valor: string
+  descricao?: string
+  status: "PENDENTE" | "APROVADA" | "REJEITADA"
+  publishedForVoting?: boolean
+}
+
+type VotacaoRoteiroItem = {
+  id: string
+  categoria: "veiculo" | "hotel" | "atracao" | "passeio" | "parque" | "outro"
+  valor: string
+  votos: number
+}
+
+function getCurrentUser() {
+  const existingId = localStorage.getItem("rsv_user_id")
+  const existingName = localStorage.getItem("rsv_user_name")
+  const userId = existingId || `u-${Math.random().toString(36).slice(2, 10)}`
+  const nome = existingName || "Convidado"
+  localStorage.setItem("rsv_user_id", userId)
+  localStorage.setItem("rsv_user_name", nome)
+  return { userId, nome }
+}
+
+const SAVINGS_COMPARISON = [
+  { item: "Hospedagem (4 noites)", individual: 1800, group: 1156, icon: Hotel },
+  { item: "Hot Park (ingresso)", individual: 756, group: 556, icon: Ticket },
+  { item: "Transfer Aeroporto", individual: 400, group: 200, icon: Plane },
+  { item: "Jantar Regional", individual: 356, group: 240, icon: UtensilsCrossed },
+  { item: "City Tour Guiado", individual: 280, group: 160, icon: Map },
 ]
 
-const HOTELS: HotelOption[] = [
-  { id: 1, name: "Resort Termas Paradise", stars: 4, pricePerNight: 289, location: "Av. Principal, 500", rating: 9.1, amenities: ["Piscina Termal", "Buffet", "Wi-Fi", "Estacionamento", "Spa"], recommended: true, gradient: "linear-gradient(135deg, #2563EB, #1D4ED8)" },
-  { id: 2, name: "Hotel Lago Azul", stars: 4, pricePerNight: 249, location: "Rua do Lago, 120", rating: 8.8, amenities: ["Vista Lago", "Spa", "Wi-Fi", "Café incluído"], gradient: "linear-gradient(135deg, #0EA5E9, #0284C7)" },
-  { id: 3, name: "Pousada Recanto das Águas", stars: 3, pricePerNight: 199, location: "Rua das Fontes, 85", rating: 9.2, amenities: ["Econômico", "Central", "Wi-Fi", "Café incluído"], popular: true, gradient: "linear-gradient(135deg, #22C55E, #16A34A)" },
-  { id: 4, name: "DiRoma Resort", stars: 5, pricePerNight: 389, location: "Rod. GO-139, km 2", rating: 9.4, amenities: ["Parque Aquático", "All Inclusive", "Kids Club", "Spa", "Academia"], gradient: "linear-gradient(135deg, #8B5CF6, #7C3AED)" },
-  { id: 5, name: "Hotel Privé Boulevard", stars: 4, pricePerNight: 269, location: "Av. Orcalino Santos, 400", rating: 8.6, amenities: ["Piscina", "Restaurante", "Wi-Fi", "Estacionamento"], gradient: "linear-gradient(135deg, #F59E0B, #D97706)" },
-  { id: 6, name: "Pousada Solar das Águas", stars: 3, pricePerNight: 169, location: "Rua Beira Rio, 45", rating: 8.3, amenities: ["Econômico", "Café incluído", "Wi-Fi", "Quintal"], gradient: "linear-gradient(135deg, #EC4899, #DB2777)" },
-]
-
-const generateCode = () => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-  let code = "RSV-"
-  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)]
-  return code
-}
-
-const INITIAL_GROUPS: GroupData[] = [
-  {
-    id: "g1", name: "Caldas Novas - Amigos", code: "RSV-A7K2", destination: "Caldas Novas - GO",
-    status: "planning", createdBy: "Você",
-    members: [
-      { id: "m1", name: "Você", color: "#2563EB", isOrganizer: true, expenses: 578, paid: 578 },
-      { id: "m2", name: "Cate Plotar", color: "#8B5CF6", expenses: 578, paid: 400 },
-      { id: "m3", name: "Mario Paxvango", color: "#EC4899", expenses: 578, paid: 578 },
-      { id: "m4", name: "Viete Perruoiras", color: "#F59E0B", expenses: 578, paid: 300 },
-    ],
-    dates: { checkIn: null, checkOut: null },
-    selectedHotel: null,
-    itinerary: [],
-    orders: [
-      { id: "PED-G1-001", memberId: "m1", memberName: "Você", item: "Resort Termas Paradise", type: "Hotel", value: 1156, status: "confirmed", date: "2026-03-01" },
-      { id: "PED-G1-002", memberId: "m2", memberName: "Cate Plotar", item: "Hot Park Ingresso", type: "Ingresso", value: 189, status: "pending", date: "2026-03-02" },
-      { id: "PED-G1-003", memberId: "m3", memberName: "Mario Paxvango", item: "Transfer Aeroporto", type: "Transfer", value: 45, status: "confirmed", date: "2026-03-01" },
-    ],
-    messages: [
-      { id: 1, sender: "Cate Plotar", text: "Pessoal, encontrei umas opções incríveis!", time: "10:30", isMe: false },
-      { id: 2, sender: "Você", text: "Vamos! Já apliquei o desconto do grupo!", time: "10:32", isMe: true, isOrganizer: true },
-      { id: 3, sender: "Mario Paxvango", text: "Fechado! Pode contar comigo.", time: "10:35", isMe: false, tag: "Confirmado" },
-      { id: 4, sender: "CaldasAI BOT", text: "Analisei os preços da região e encontrei a melhor opção para o grupo!", time: "10:40", isMe: false, isBot: true,
-        card: { type: "hotel", title: "Resort Termas Paradise", subtitle: "Caldas Novas - 4 estrelas - Nota 9.1", price: "R$ 289", oldPrice: "R$ 450", discount: "-36%", cta: "Reservar pelo Grupo" }
-      },
-    ],
-    voucherReleased: false,
-  },
-  {
-    id: "g2", name: "Férias Família 2026", code: "RSV-F3P8", destination: "Caldas Novas - GO",
-    status: "confirmed", createdBy: "Você",
-    members: [
-      { id: "m1", name: "Você", color: "#2563EB", isOrganizer: true, expenses: 1200, paid: 1200 },
-      { id: "m5", name: "Ana Silva", color: "#22C55E", expenses: 1200, paid: 1200 },
-      { id: "m6", name: "João Jr.", color: "#F97316", expenses: 600, paid: 600 },
-    ],
-    dates: { checkIn: "2026-04-10", checkOut: "2026-04-14" },
-    selectedHotel: 3,
-    itinerary: [],
-    orders: [],
-    messages: [
-      { id: 1, sender: "Você", text: "Família, reservei tudo! Saímos dia 10/04.", time: "14:00", isMe: true, isOrganizer: true },
-      { id: 2, sender: "Ana Silva", text: "Perfeito! Já separei as malas!", time: "14:05", isMe: false },
-    ],
-    voucherReleased: true,
-  },
-  {
-    id: "g3", name: "Excursão Empresa XYZ", code: "RSV-E9W1", destination: "Caldas Novas - GO",
-    status: "planning", createdBy: "RH Empresa",
-    members: [
-      { id: "m1", name: "Você", color: "#2563EB", expenses: 450, paid: 0 },
-      { id: "m7", name: "Fernanda Lima", color: "#DC2626", expenses: 450, paid: 450 },
-      { id: "m8", name: "Ricardo Costa", color: "#0891B2", expenses: 450, paid: 225 },
-      { id: "m9", name: "Patrícia Souza", color: "#7C3AED", expenses: 450, paid: 450 },
-      { id: "m10", name: "Lucas Mendes", color: "#059669", expenses: 450, paid: 0 },
-      { id: "m11", name: "Carla Dias", color: "#DB2777", expenses: 450, paid: 300 },
-    ],
-    dates: { checkIn: null, checkOut: null },
-    selectedHotel: null,
-    itinerary: [],
-    orders: [],
-    messages: [
-      { id: 1, sender: "Fernanda Lima", text: "Pessoal do RH, quando saem as datas?", time: "09:00", isMe: false },
-    ],
-    voucherReleased: false,
-  },
-]
-
-const BOT_RESPONSES: Record<string, { text: string; card: ChatMessage["card"] }> = {
-  hotel: { text: "Encontrei uma opção incrível para o grupo!", card: { type: "hotel", title: "Pousada Recanto das Águas", subtitle: "Caldas Novas - Nota 9.2", price: "R$ 199/noite", oldPrice: "R$ 320", discount: "-38%", cta: "Reservar com Desconto" } },
-  restaurante: { text: "Para jantar em grupo, recomendo:", card: { type: "attraction", title: "Restaurante Fogão Mineiro", subtitle: "Comida regional - Nota 9.4", price: "R$ 65/pessoa", oldPrice: "R$ 89", discount: "-27%", cta: "Reservar Mesa" } },
-  parque: { text: "Parques aquáticos em grupo têm descontos!", card: { type: "attraction", title: "Hot Park - Combo Grupo", subtitle: "Ingresso + Almoço - Até 6 pessoas", price: "R$ 149/pessoa", oldPrice: "R$ 220", discount: "-32%", cta: "Ver Combo" } },
-  spa: { text: "Day spa em grupo é ótimo!", card: { type: "attraction", title: "Spa Termal Premium", subtitle: "Massagem + Piscina Termal", price: "R$ 189/pessoa", oldPrice: "R$ 280", discount: "-33%", cta: "Reservar Spa" } },
-  ingresso: { text: "Ingressos em grupo saem mais baratos!", card: { type: "attraction", title: "Combo 3 Parques", subtitle: "Hot Park + diRoma + Lagoa Quente", price: "R$ 329/pessoa", oldPrice: "R$ 499", discount: "-34%", cta: "Ver Ingressos" } },
-  transfer: { text: "Transfer compartilhado fica barato!", card: { type: "attraction", title: "Transfer Van", subtitle: "Ida e volta - Até 8 pessoas", price: "R$ 45/pessoa", oldPrice: "R$ 120", discount: "-63%", cta: "Reservar Transfer" } },
-  default: { text: "Posso ajudar! Aqui vai uma sugestão:", card: { type: "hotel", title: "Combo Grupo Especial", subtitle: "Hotel + Parque + Transfer", price: "R$ 459/pessoa", oldPrice: "R$ 680", discount: "-33%", cta: "Ver Combo" } },
-}
-
-const getCatalogIcon = (iconName: string) => {
-  const map: Record<string, any> = { waves: Waves, map: Map, mountain: Mountain, fish: Fish, anchor: Anchor, coffee: Coffee, utensils: UtensilsCrossed, bus: Bus, tree: TreePine, sunset: Sunset }
-  return map[iconName] || Star
-}
-
-const getGroupDiscount = (size: number) => {
-  if (size >= 8) return 20
-  if (size >= 6) return 12
-  if (size >= 5) return 7
-  return 0
+function getPerPersonPrice(base: number, groupSize: number): number {
+  if (groupSize >= 8) return Math.round(base * 0.8)
+  if (groupSize >= 6) return Math.round(base * 0.88)
+  if (groupSize >= 5) return Math.round(base * 0.93)
+  return base
 }
 
 export default function ViagensGrupoPage() {
-  const [groups, setGroups] = useState<GroupData[]>(INITIAL_GROUPS)
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
-  const [joinCode, setJoinCode] = useState("")
-  const [showCreateGroup, setShowCreateGroup] = useState(false)
-  const [newGroupName, setNewGroupName] = useState("")
-  const [newGroupDestination, setNewGroupDestination] = useState("Caldas Novas - GO")
-  const [activeSection, setActiveSection] = useState<"overview" | "calendar" | "hotel" | "itinerary" | "orders">("overview")
-  const [chatOpen, setChatOpen] = useState(false)
   const [message, setMessage] = useState("")
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES)
   const [showTyping, setShowTyping] = useState(false)
-  const [voucherModalOpen, setVoucherModalOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-  const [catalogCategory, setCatalogCategory] = useState("Atrações")
-  const [compareHotels, setCompareHotels] = useState<number[]>([])
-  const [showCompare, setShowCompare] = useState(false)
-  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth())
-  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear())
+  const [activeTab, setActiveTab] = useState(0)
+  const [votes, setVotes] = useState([3, 2, 1])
+  const [hasVoted, setHasVoted] = useState(false)
+  const [showNotification, setShowNotification] = useState(true)
+  const [expandedTimeline, setExpandedTimeline] = useState<number | null>(2)
+  const [showCostSplit, setShowCostSplit] = useState(false)
+  const [selectedItinerary, setSelectedItinerary] = useState(0)
+  const [showSavings, setShowSavings] = useState(false)
+  const [animatedSavings, setAnimatedSavings] = useState(0)
+  const [groupSize, setGroupSize] = useState(4)
+  const [voteAnimating, setVoteAnimating] = useState<number | null>(null)
+  const [itineraryApplied, setItineraryApplied] = useState(false)
   const chatRef = useRef<HTMLDivElement>(null)
-  const botTimersRef = useRef<number[]>([])
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastActivityRef = useRef(Date.now())
+  const contextRef = useRef({ groupSize: 4, adicionaisSelecionados: { cafe: true, roupaCama: false, ingressosParque: true }, excursao: null as Excursao | null })
 
-  const selectedGroup = groups.find(g => g.id === selectedGroupId) || null
+  const [wizardStep, setWizardStep] = useState<"onde" | "como" | "conforto" | "quem">("onde")
+  const [localSaida, setLocalSaida] = useState("Goiânia - Rodoviária Central")
+  const [destinoFinal, setDestinoFinal] = useState("Caldas Novas - Hot Park")
+  const [atracoesSelecionadas, setAtracoesSelecionadas] = useState<string[]>([])
+  const [adicionaisSelecionados, setAdicionaisSelecionados] = useState({
+    cafe: true,
+    roupaCama: false,
+    ingressosParque: true,
+  })
+  const [passageiros, setPassageiros] = useState<{ nome: string; contato: string; rg?: string; cpf?: string }[]>([
+    { nome: "Você", contato: "WhatsApp principal" },
+    { nome: "Cate Plotar", contato: "64 99999-0001" },
+  ])
+  const [novoPassageiroNome, setNovoPassageiroNome] = useState("")
+  const [novoPassageiroContato, setNovoPassageiroContato] = useState("")
+  const [novoPassageiroRg, setNovoPassageiroRg] = useState("")
+  const [novoPassageiroCpf, setNovoPassageiroCpf] = useState("")
+  const [wizardSaving, setWizardSaving] = useState(false)
+  const [wizardSaved, setWizardSaved] = useState(false)
+  const [wizardError, setWizardError] = useState<string | null>(null)
+  const [linkCopiedId, setLinkCopiedId] = useState<string | null>(null)
+  const [aceiteTermos, setAceiteTermos] = useState(false)
+  const [reservaExpiracaoByIdx, setReservaExpiracaoByIdx] = useState<Record<number, string>>({})
+  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null)
+  const [selectedCheckIn, setSelectedCheckIn] = useState("2026-03-12")
+  const [selectedCheckOut, setSelectedCheckOut] = useState("2026-03-15")
+  const [inviteCode, setInviteCode] = useState("RSV-DEMO")
+  const [inviteLink, setInviteLink] = useState("")
+  const [chatOpen, setChatOpen] = useState(false)
+  const [agendaSlots, setAgendaSlots] = useState<TimeSlot[]>([])
+  const currentUser = getCurrentUser()
+  const [isAdminRoteiro, setIsAdminRoteiro] = useState(false)
+  const [roteiroOficial, setRoteiroOficial] = useState<RoteiroOficial | null>(null)
+  const [sugestoesRoteiro, setSugestoesRoteiro] = useState<SugestaoRoteiro[]>([])
+  const [votacaoRoteiro, setVotacaoRoteiro] = useState<VotacaoRoteiroItem[]>([])
+  const [novaSugestaoCategoria, setNovaSugestaoCategoria] = useState<"veiculo" | "hotel" | "atracao" | "passeio" | "parque" | "outro">("atracao")
+  const [novaSugestaoValor, setNovaSugestaoValor] = useState("")
+  const [novaSugestaoDescricao, setNovaSugestaoDescricao] = useState("")
+
+  const ADICIONAIS_CONFORTO = [
+    { id: "cafe", label: "Café da manhã incluso", preco: 35, fomo: "Últimas 8 vagas para este adicional", key: "cafe" as const },
+    { id: "roupaCama", label: "Roupa de cama extra", preco: 20, fomo: null, key: "roupaCama" as const },
+    { id: "ingressosParque", label: "Ingressos Hot Park/DiRoma", preco: 129, fomo: "Últimas 12 vagas com desconto", key: "ingressosParque" as const },
+  ]
+  const HOTEL_OPTIONS = sortByMarginAndScore([
+    { id: "termas", nome: "Resort Termas Paradise", precoNoite: 289, imagem: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=900&auto=format&fit=crop", recommended: true, highMargin: true, margin: 190, score: 9 },
+    { id: "lago-azul", nome: "Hotel Lago Azul", precoNoite: 219, imagem: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=900&auto=format&fit=crop", margin: 120, score: 8 },
+    { id: "recanto", nome: "Pousada Recanto", precoNoite: 179, imagem: "https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=900&auto=format&fit=crop", margin: 85, score: 7 },
+  ])
+
+  const [, params] = useRoute<{ id: string }>("/viagens-grupo/:id")
+  const excursaoId = params?.id ?? null
+
+  const { data: excursao } = useQuery<Excursao | null>({
+    queryKey: ["excursao-grupo", excursaoId],
+    enabled: !!excursaoId,
+    queryFn: async () => {
+      if (!excursaoId) return null
+      const res = await fetch(`/api/excursoes/${excursaoId}`)
+      if (res.status === 404) return null
+      if (!res.ok) throw new Error("Erro ao carregar excursão")
+      return (await res.json()) as Excursao
+    },
+  })
+  useEffect(() => {
+    if (!excursaoId) return
+    const base = `${window.location.origin}/join?code=`
+    fetch(`/api/excursoes/${excursaoId}/invites`, { method: "POST", headers: { "Content-Type": "application/json" } })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: { invite?: { code?: string }; joinUrl?: string } | null) => {
+        if (!data) return
+        const code = data.invite?.code ?? "RSV-DEMO"
+        setInviteCode(code)
+        setInviteLink(data.joinUrl ?? `${base}${encodeURIComponent(code)}`)
+      })
+      .catch(() => {
+        setInviteCode("RSV-DEMO")
+        setInviteLink(`${base}RSV-DEMO`)
+      })
+  }, [excursaoId])
 
   useEffect(() => {
-    if (toast) {
-      const t = setTimeout(() => setToast(null), 3000)
-      return () => clearTimeout(t)
-    }
-  }, [toast])
+    if (!excursaoId) return
+    fetch(`/api/excursoes/${excursaoId}/me-role`, {
+      headers: {
+        "x-user-id": currentUser.userId,
+        "x-user-name": currentUser.nome,
+      },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { isAdmin?: boolean } | null) => setIsAdminRoteiro(Boolean(data?.isAdmin)))
+      .catch(() => setIsAdminRoteiro(false))
+
+    fetch(`/api/excursoes/${excursaoId}/roteiro`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { roteiro?: RoteiroOficial } | null) => {
+        if (data?.roteiro) setRoteiroOficial(data.roteiro)
+      })
+      .catch(() => null)
+
+    fetch(`/api/excursoes/${excursaoId}/votacao-roteiro`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { items?: VotacaoRoteiroItem[] } | null) => {
+        setVotacaoRoteiro(data?.items ?? [])
+      })
+      .catch(() => setVotacaoRoteiro([]))
+  }, [excursaoId, currentUser.nome, currentUser.userId])
+
+  const refreshSugestoesRoteiro = async () => {
+    if (!excursaoId || !isAdminRoteiro) return
+    const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro`, {
+      headers: {
+        "x-user-id": currentUser.userId,
+        "x-user-name": currentUser.nome,
+      },
+    })
+    if (!res.ok) return
+    const data = (await res.json()) as { items?: SugestaoRoteiro[] }
+    setSugestoesRoteiro(data.items ?? [])
+  }
 
   useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
-  }, [selectedGroup?.messages, showTyping, chatOpen])
+    void refreshSugestoesRoteiro()
+  }, [isAdminRoteiro])
 
-  useEffect(() => {
-    return () => {
-      botTimersRef.current.forEach(t => clearTimeout(t))
-      botTimersRef.current = []
+  const handleEnviarSugestaoRoteiro = async () => {
+    if (!excursaoId || !novaSugestaoValor.trim()) return
+    const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": currentUser.userId,
+        "x-user-name": currentUser.nome,
+      },
+      body: JSON.stringify({
+        categoria: novaSugestaoCategoria,
+        valor: novaSugestaoValor.trim(),
+        descricao: novaSugestaoDescricao.trim() || undefined,
+      }),
+    })
+    if (!res.ok) {
+      toast({ title: "Sugestão não enviada", description: "Verifique se você está aprovado no grupo.", variant: "destructive" })
+      return
     }
-  }, [selectedGroupId])
-
-  useEffect(() => {
-    if (!selectedGroup || selectedGroup.voucherReleased) return
-    const membersCount = selectedGroup.members.length
-    const paidCount = selectedGroup.members.filter(m => m.paid >= m.expenses).length
-    if (paidCount / membersCount >= 0.8) {
-      const timer = setTimeout(() => {
-        setGroups(prev => prev.map(g => {
-          if (g.id !== selectedGroupId) return g
-          const botMsg: ChatMessage = {
-            id: Date.now(), sender: "CaldasAI BOT",
-            text: "Seu grupo está quase completo! Aqui está o Voucher exclusivo com condições especiais válidas por 24h!",
-            time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-            isMe: false, isBot: true,
-            card: { type: "voucher", title: "Voucher Exclusivo do Grupo", subtitle: "Desconto extra de 10% — Válido por 24h", price: "LIBERADO", cta: "Ver Voucher Completo" }
-          }
-          return { ...g, voucherReleased: true, messages: [...g.messages, botMsg] }
-        }))
-        setChatOpen(true)
-      }, 15000)
-      return () => clearTimeout(timer)
-    }
-  }, [selectedGroup?.members, selectedGroupId])
-
-  const handleCreateGroup = () => {
-    if (!newGroupName.trim()) return
-    const newGroup: GroupData = {
-      id: `g${Date.now()}`, name: newGroupName, code: generateCode(),
-      destination: newGroupDestination, status: "planning", createdBy: "Você",
-      members: [{ id: "m1", name: "Você", color: "#2563EB", isOrganizer: true, expenses: 0, paid: 0 }],
-      dates: { checkIn: null, checkOut: null }, selectedHotel: null,
-      itinerary: [], orders: [], messages: [
-        { id: 1, sender: "CaldasAI BOT", text: `Grupo "${newGroupName}" criado! Convide seus amigos com o código acima. Posso ajudar a planejar a viagem!`, time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), isMe: false, isBot: true }
-      ], voucherReleased: false,
-    }
-    setGroups(prev => [newGroup, ...prev])
-    setSelectedGroupId(newGroup.id)
-    setShowCreateGroup(false)
-    setNewGroupName("")
-    setToast(`Grupo "${newGroupName}" criado! Código: ${newGroup.code}`)
+    setNovaSugestaoValor("")
+    setNovaSugestaoDescricao("")
+    toast({ title: "Sugestão enviada", description: "O admin vai analisar e publicar para votação." })
   }
 
-  const handleJoinGroup = () => {
-    const code = joinCode.trim().toUpperCase()
-    const group = groups.find(g => g.code === code)
-    if (group) {
-      if (group.members.find(m => m.name === "Você")) {
-        setSelectedGroupId(group.id)
-        setJoinCode("")
-        return
-      }
-      setGroups(prev => prev.map(g => {
-        if (g.id !== group.id) return g
-        return { ...g, members: [...g.members, { id: `m${Date.now()}`, name: "Você", color: "#2563EB", expenses: 0, paid: 0 }] }
-      }))
-      setSelectedGroupId(group.id)
-      setJoinCode("")
-      setToast(`Você entrou no grupo "${group.name}"!`)
-    } else {
-      setToast("Código não encontrado. Verifique e tente novamente.")
+  const handleModerarSugestao = async (sugestaoId: string, status: "APROVADA" | "REJEITADA", publishForVoting: boolean) => {
+    if (!excursaoId) return
+    const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro/${encodeURIComponent(sugestaoId)}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": currentUser.userId,
+        "x-user-name": currentUser.nome,
+      },
+      body: JSON.stringify({ status, publishForVoting }),
+    })
+    if (!res.ok) {
+      toast({ title: "Falha na moderação", description: "Não foi possível atualizar a sugestão.", variant: "destructive" })
+      return
+    }
+    await refreshSugestoesRoteiro()
+    const voteRes = await fetch(`/api/excursoes/${excursaoId}/votacao-roteiro`)
+    if (voteRes.ok) {
+      const voteData = (await voteRes.json()) as { items?: VotacaoRoteiroItem[] }
+      setVotacaoRoteiro(voteData.items ?? [])
     }
   }
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !selectedGroupId) return
-    const newMsg: ChatMessage = {
-      id: Date.now(), sender: "Você", text: message,
-      time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-      isMe: true, isOrganizer: true
+  const handleVotarRoteiro = async (itemId: string) => {
+    if (!excursaoId) return
+    const res = await fetch(`/api/excursoes/${excursaoId}/votacao-roteiro`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": currentUser.userId,
+        "x-user-name": currentUser.nome,
+      },
+      body: JSON.stringify({ itemId }),
+    })
+    if (!res.ok) return
+    const data = (await res.json()) as { items?: VotacaoRoteiroItem[] }
+    setVotacaoRoteiro(data.items ?? [])
+  }
+
+  const renderRoteiroCards = (cards: RoteiroCard[] | undefined, emptyText: string, testId: string, categoria: RoteiroActivityCategoria) => {
+    if (!cards || cards.length === 0) {
+      return <div style={{ fontSize: 12, color: "#6B7280" }}>{emptyText}</div>
     }
-    setGroups(prev => prev.map(g => g.id === selectedGroupId ? { ...g, messages: [...g.messages, newMsg] } : g))
-    const userText = message.toLowerCase()
-    setMessage("")
-
-    const typingTimer = window.setTimeout(() => setShowTyping(true), 800)
-    const responseTimer = window.setTimeout(() => {
-      setShowTyping(false)
-      let resp = BOT_RESPONSES.default
-      if (userText.match(/hotel|hospedagem|pousada/)) resp = BOT_RESPONSES.hotel
-      else if (userText.match(/restaurante|jantar|comer|almoço/)) resp = BOT_RESPONSES.restaurante
-      else if (userText.match(/parque|aquático|hot park/)) resp = BOT_RESPONSES.parque
-      else if (userText.match(/spa|massagem|relax/)) resp = BOT_RESPONSES.spa
-      else if (userText.match(/ingresso|entrada|ticket/)) resp = BOT_RESPONSES.ingresso
-      else if (userText.match(/transfer|transporte|aeroporto|van/)) resp = BOT_RESPONSES.transfer
-      const botMsg: ChatMessage = {
-        id: Date.now() + 1, sender: "CaldasAI BOT", text: resp.text,
-        time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-        isMe: false, isBot: true, card: resp.card ? { ...resp.card } : undefined
-      }
-      setGroups(prev => prev.map(g => g.id === selectedGroupId ? { ...g, messages: [...g.messages, botMsg] } : g))
-    }, 2500)
-    botTimersRef.current.push(typingTimer, responseTimer)
-  }
-
-  const handleSelectHotel = (hotelId: number) => {
-    if (!selectedGroupId) return
-    const hotel = HOTELS.find(h => h.id === hotelId)
-    if (!hotel) return
-    setGroups(prev => prev.map(g => {
-      if (g.id !== selectedGroupId) return g
-      const ordersWithoutHotel = g.orders.filter(o => o.type !== "Hotel" || o.status === "confirmed")
-      const order: OrderItem = {
-        id: `PED-${g.code}-${(g.orders.length + 1).toString().padStart(3, "0")}`,
-        memberId: "m1", memberName: "Você", item: hotel.name,
-        type: "Hotel", value: hotel.pricePerNight * 4, status: "pending",
-        date: new Date().toISOString().split("T")[0]
-      }
-      return { ...g, selectedHotel: hotelId, orders: [...ordersWithoutHotel, order] }
-    }))
-    setToast(`${hotel.name} selecionado!`)
-  }
-
-  const handleAddToItinerary = (catalogItem: CatalogItem, day: number) => {
-    if (!selectedGroupId) return
-    const itinItem: ItineraryItem = {
-      id: `itin-${Date.now()}`, category: catalogItem.category,
-      name: catalogItem.name, price: catalogItem.price,
-      duration: catalogItem.duration, time: catalogItem.suggestedTime,
-      day, icon: catalogItem.iconName,
-    }
-    setGroups(prev => prev.map(g => {
-      if (g.id !== selectedGroupId) return g
-      const order: OrderItem = {
-        id: `PED-${g.code}-${(g.orders.length + 1).toString().padStart(3, "0")}`,
-        memberId: "m1", memberName: "Você", item: catalogItem.name,
-        type: catalogItem.category, value: catalogItem.price, status: "pending",
-        date: new Date().toISOString().split("T")[0]
-      }
-      return { ...g, itinerary: [...g.itinerary, itinItem], orders: [...g.orders, order] }
-    }))
-    setToast(`${catalogItem.name} adicionado ao Dia ${day}!`)
-  }
-
-  const handleRemoveFromItinerary = (itemId: string) => {
-    if (!selectedGroupId) return
-    setGroups(prev => prev.map(g => {
-      if (g.id !== selectedGroupId) return g
-      const item = g.itinerary.find(i => i.id === itemId)
-      const updatedOrders = item
-        ? g.orders.filter(o => !(o.item === item.name && o.type === item.category && o.status === "pending"))
-        : g.orders
-      return { ...g, itinerary: g.itinerary.filter(i => i.id !== itemId), orders: updatedOrders }
-    }))
-  }
-
-  const handleSelectDates = (day: number) => {
-    if (!selectedGroupId || !selectedGroup) return
-    const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-    setGroups(prev => prev.map(g => {
-      if (g.id !== selectedGroupId) return g
-      if (!g.dates.checkIn || (g.dates.checkIn && g.dates.checkOut)) {
-        return { ...g, dates: { checkIn: dateStr, checkOut: null } }
-      }
-      if (dateStr > g.dates.checkIn) {
-        return { ...g, dates: { ...g.dates, checkOut: dateStr } }
-      }
-      return { ...g, dates: { checkIn: dateStr, checkOut: null } }
-    }))
-  }
-
-  const getDateAvailability = (day: number) => {
-    const d = new Date(calendarYear, calendarMonth, day)
-    if (d < new Date()) return "past"
-    const seed = (day * 7 + calendarMonth * 31) % 10
-    if (seed < 2) return "full"
-    if (seed < 4) return "few"
-    return "available"
-  }
-
-  const formatDate = (dateStr: string) => {
-    const [y, m, d] = dateStr.split("-")
-    return `${d}/${m}/${y}`
-  }
-
-  const getDaysInMonth = (month: number, year: number) => new Date(year, month + 1, 0).getDate()
-  const getFirstDayOfMonth = (month: number, year: number) => new Date(year, month, 1).getDay()
-  const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
-  if (!selectedGroupId) {
     return (
-      <div style={{ background: "#F9FAFB", minHeight: "100vh" }}>
-        {toast && (
-          <div data-testid="toast-notification" style={{
-            position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)", zIndex: 100,
-            background: toast.includes("não encontrado") ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff",
-            padding: "10px 20px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-            display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-            maxWidth: 400,
-          }}>
-            {toast.includes("não encontrado") ? <AlertTriangle style={{ width: 16, height: 16 }} /> : <Check style={{ width: 16, height: 16 }} />}
-            {toast}
-          </div>
-        )}
-        <div style={{ background: "linear-gradient(135deg, #1e3a5f, #2563EB)", padding: "14px 16px", color: "#fff" }}>
-          <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: 12 }}>
-            <Link href="/" style={{ color: "#fff", display: "flex" }}>
-              <ArrowLeft style={{ width: 24, height: 24 }} data-testid="button-back" />
-            </Link>
-            <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Meus Grupos de Viagem</h1>
-              <p style={{ fontSize: 12, opacity: 0.8, margin: 0 }}>{groups.length} grupos</p>
-            </div>
-            <button data-testid="button-create-group" onClick={() => setShowCreateGroup(true)} style={{
-              padding: "8px 14px", borderRadius: 8, border: "none",
-              background: "#22C55E", color: "#fff", fontSize: 12, fontWeight: 700,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-            }}>
-              <Plus style={{ width: 14, height: 14 }} /> Criar Grupo
-            </button>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: 1400, margin: "0 auto", padding: 16 }}>
-          <div style={{
-            display: "flex", gap: 8, marginBottom: 20, padding: 12, borderRadius: 12,
-            background: "#fff", border: "1px solid #E5E7EB",
-          }}>
-            <input data-testid="input-join-code" value={joinCode} onChange={e => setJoinCode(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleJoinGroup()}
-              placeholder="Código do grupo (ex: RSV-A7K2)"
-              style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, outline: "none" }}
-            />
-            <button data-testid="button-join-group" onClick={handleJoinGroup} style={{
-              padding: "10px 16px", borderRadius: 8, border: "none",
-              background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff",
-              fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-            }}>
-              Entrar no Grupo
-            </button>
-          </div>
-
-          {showCreateGroup && (
-            <div style={{
-              marginBottom: 20, padding: 20, borderRadius: 12,
-              background: "#fff", border: "2px solid #2563EB", boxShadow: "0 4px 20px rgba(37,99,235,0.15)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>Criar Novo Grupo</h3>
-                <button onClick={() => setShowCreateGroup(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B7280" }}>
-                  <X style={{ width: 20, height: 20 }} />
-                </button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <input data-testid="input-group-name" value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
-                  placeholder="Nome do grupo (ex: Viagem com Amigos)"
-                  style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, outline: "none" }}
-                />
-                <input data-testid="input-group-destination" value={newGroupDestination} onChange={e => setNewGroupDestination(e.target.value)}
-                  placeholder="Destino"
-                  style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, outline: "none" }}
-                />
-                <button data-testid="button-confirm-create" onClick={handleCreateGroup} style={{
-                  padding: "12px 0", borderRadius: 8, border: "none",
-                  background: "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff",
-                  fontSize: 14, fontWeight: 700, cursor: "pointer",
-                }}>
-                  Criar Grupo
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 12 }}>
-            {groups.map(group => (
-              <button key={group.id} data-testid={`card-group-${group.id}`}
-                onClick={() => { setSelectedGroupId(group.id); setActiveSection("overview") }}
-                style={{
-                  padding: 16, borderRadius: 12, border: "1px solid #E5E7EB",
-                  background: "#fff", cursor: "pointer", textAlign: "left",
-                  transition: "all 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1F2937", margin: 0 }}>{group.name}</h3>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
-                    color: group.status === "confirmed" ? "#22C55E" : group.status === "finished" ? "#6B7280" : "#2563EB",
-                    background: group.status === "confirmed" ? "#F0FDF4" : group.status === "finished" ? "#F3F4F6" : "#EBF5FF",
-                  }}>
-                    {group.status === "planning" ? "Planejando" : group.status === "confirmed" ? "Confirmado" : "Finalizado"}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: 12, color: "#6B7280" }}>
-                  <MapPin style={{ width: 12, height: 12 }} /> {group.destination}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: 12, color: "#6B7280" }}>
-                  <Copy style={{ width: 12, height: 12 }} /> Código: <span style={{ fontWeight: 700, color: "#2563EB" }}>{group.code}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {group.members.slice(0, 5).map((m, i) => (
-                    <div key={i} style={{
-                      width: 28, height: 28, borderRadius: "50%", background: m.color,
-                      border: "2px solid #fff", marginLeft: i > 0 ? -8 : 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 10, fontWeight: 700, color: "#fff", zIndex: 5 - i,
-                    }}>{m.name.charAt(0)}</div>
-                  ))}
-                  {group.members.length > 5 && (
-                    <span style={{ fontSize: 11, color: "#6B7280", marginLeft: 4 }}>+{group.members.length - 5}</span>
-                  )}
-                  <span style={{ fontSize: 11, color: "#6B7280", marginLeft: "auto" }}>{group.members.length} membros</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8 }} data-testid={testId}>
+        {cards.map((card) => (
+          <RoteiroActivityCard
+            key={card.id}
+            id={card.id}
+            titulo={card.titulo}
+            descricaoBreve={card.descricaoBreve}
+            galeriaImagens={card.galeriaImagens}
+            galeriaVideos={card.galeriaVideos}
+            categoria={categoria}
+            precoPorPessoa={card.precoPorPessoa}
+            duracaoHoras={card.duracaoHoras}
+            horarioSaida={card.horarioSaida}
+            diasDisponiveis={card.diasDisponiveis}
+            badgeTipo={card.badgeTipo}
+            dataTestId={testId}
+          />
+        ))}
       </div>
     )
   }
 
-  const group = selectedGroup!
-  const groupSize = group.members.length
-  const discount = getGroupDiscount(groupSize)
-  const whatsappInvite = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Junte-se ao meu grupo "${group.name}"! Use o código ${group.code} em reserveiviagens.com/viagens-grupo`)}`
-  const totalOrders = group.orders.reduce((sum, o) => o.status !== "cancelled" ? sum + o.value : sum, 0)
-  const confirmedOrders = group.orders.filter(o => o.status === "confirmed").length
-  const pendingOrders = group.orders.filter(o => o.status === "pending").length
-  const unreadCount = group.messages.length > 0 ? Math.min(group.messages.length, 3) : 0
+  contextRef.current = { groupSize, adicionaisSelecionados, excursao: excursao ?? null }
 
-  const SECTIONS = [
-    { key: "overview", label: "Visão Geral", icon: Users },
-    { key: "calendar", label: "Datas", icon: Calendar },
-    { key: "hotel", label: "Hotéis", icon: Hotel },
-    { key: "itinerary", label: "Roteiro", icon: Map },
-    { key: "orders", label: "Pedidos", icon: ShoppingCart },
-  ] as const
+  const CONCIERGE_UPSELL_MESSAGES: Omit<ChatMessage, "id" | "time">[] = [
+    {
+      sender: "CaldasAI",
+      text: "Incluir café da manhã no pacote sai mais em conta e todo o grupo começa o dia bem. As vagas com essa condição são limitadas.",
+      isMe: false,
+      isBot: true,
+      card: {
+        type: "attraction",
+        title: "Café da manhã incluso - Grupo",
+        subtitle: "Resort Termas - Buffet completo",
+        price: "R$ 35/pessoa",
+        oldPrice: "R$ 55",
+        discount: "-36%",
+        cta: "Incluir no pacote",
+      },
+    },
+    {
+      sender: "CaldasAI",
+      text: "Os ingressos dos parques em grupo saem com desconto. Restam poucas vagas no combo Hot Park + DiRoma neste preço.",
+      isMe: false,
+      isBot: true,
+      card: {
+        type: "attraction",
+        title: "Combo 2 parques - Excursão",
+        subtitle: "Hot Park + DiRoma - Vagas limitadas",
+        price: "R$ 129/pessoa",
+        oldPrice: "R$ 199",
+        discount: "-35%",
+        cta: "Garantir ingressos",
+      },
+    },
+    {
+      sender: "CaldasAI",
+      text: "Nesta excursão restam poucas vagas no veículo. Quem ainda não fechou pode perder o preço atual quando o grupo completar.",
+      isMe: false,
+      isBot: true,
+    },
+  ]
+
+  const scheduleSilenceConcierge = useRef(() => {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    silenceTimerRef.current = setTimeout(() => {
+      lastActivityRef.current = Date.now()
+      const ctx = contextRef.current
+      const contextoGrupo = {
+        groupSize: ctx.groupSize,
+        capacidade: ctx.excursao?.capacidade,
+        vagasRestantes: ctx.excursao ? ctx.excursao.capacidade - ctx.groupSize : undefined,
+        cafeIncluso: ctx.adicionaisSelecionados.cafe,
+        ingressosParqueIncluso: ctx.adicionaisSelecionados.ingressosParque,
+        roupaCamaIncluso: ctx.adicionaisSelecionados.roupaCama,
+      }
+      const upsellRegra = obterMensagemUpsell(contextoGrupo)
+      const fomo = deveExibirFomoEscassez(contextoGrupo) ? " " + obterFraseUrgencia() : ""
+      let template: Omit<ChatMessage, "id" | "time">
+      if (upsellRegra) {
+        template = {
+          sender: "CaldasAI",
+          text: upsellRegra.texto + fomo,
+          isMe: false,
+          isBot: true,
+          card: upsellRegra.preco
+            ? {
+                type: "attraction" as const,
+                title: upsellRegra.titulo,
+                subtitle: "Vagas limitadas",
+                price: upsellRegra.preco,
+                oldPrice: upsellRegra.precoAntigo,
+                discount: upsellRegra.desconto,
+                cta: upsellRegra.cta,
+              }
+            : undefined,
+        }
+      } else {
+        template = CONCIERGE_UPSELL_MESSAGES[Math.floor(Math.random() * CONCIERGE_UPSELL_MESSAGES.length)]
+        if (fomo) template = { ...template, text: template.text + fomo }
+      }
+      const conciergeMsg: ChatMessage = {
+        ...template,
+        id: Date.now(),
+        time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        card: template.card ? { ...template.card } : undefined,
+      }
+      setMessages((prev) => [...prev, conciergeMsg])
+      scheduleSilenceConcierge.current()
+    }, 120000)
+  })
+
+  useEffect(() => {
+    scheduleSilenceConcierge.current()
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!excursao) return
+    if (excursao.localSaida) setLocalSaida(excursao.localSaida)
+    if (excursao.destino) setDestinoFinal(excursao.destino)
+    if (excursao.capacidade) {
+      const sugestao = Math.min(excursao.capacidade, Math.max(4, Math.round(excursao.capacidade * 0.6)))
+      setGroupSize(sugestao)
+    }
+    if (excursao.dataIda) setSelectedCheckIn(excursao.dataIda)
+    if (excursao.dataVolta) setSelectedCheckOut(excursao.dataVolta)
+  }, [excursao])
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => setShowTyping(true), 4000)
+    const timer2 = setTimeout(() => {
+      setShowTyping(false)
+      const botMsg: ChatMessage = {
+        id: 11,
+        sender: "CaldasAI",
+        text: "Com base no perfil do grupo, esta hospedagem em Caldas Novas combina bem com o roteiro e o orçamento:",
+        time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        isMe: false,
+        isBot: true,
+        card: {
+          type: "hotel",
+          title: "Pousada Recanto das Águas",
+          subtitle: "Caldas Novas - Nota 9.2",
+          price: "R$ 199/noite",
+          oldPrice: "R$ 320",
+          discount: "-38%",
+          cta: "Reservar com desconto",
+        },
+      }
+      lastActivityRef.current = Date.now()
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      scheduleSilenceConcierge.current()
+      setMessages(prev => [...prev, botMsg])
+    }, 7000)
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
+  }, [messages, showTyping])
+
+  useEffect(() => {
+    if (showNotification) {
+      const t = setTimeout(() => setShowNotification(false), 5000)
+      return () => clearTimeout(t)
+    }
+  }, [showNotification])
+
+  useEffect(() => {
+    if (!excursaoId) return
+    return subscribeExcursao(excursaoId, {
+      onPixExpirado: (data) => {
+        toast({
+          title: "Pix expirando",
+          description: data.message,
+          variant: "destructive",
+        })
+      },
+      onVigilancia: (data) => {
+        toast({
+          title: data.tipo === "crianca" ? "Vigilância: criança" : "Vigilância: idoso",
+          description: data.message,
+          variant: "default",
+        })
+      },
+      onEstadoGrupo: (dataUnknown) => {
+        const data = dataUnknown as { votacao?: number[]; passageirosCount?: number; passageiros?: { nome: string; contato: string; rg?: string; cpf?: string }[]; listaEspera?: unknown }
+        if (Array.isArray(data.votacao) && data.votacao.length > 0) {
+          setVotes(data.votacao)
+        }
+        if (Array.isArray(data.passageiros)) {
+          const normalized = data.passageiros.map((p) => ({
+            nome: typeof p?.nome === "string" ? p.nome : "",
+            contato: typeof p?.contato === "string" ? p.contato : "",
+            rg: typeof p?.rg === "string" ? p.rg : undefined,
+            cpf: typeof p?.cpf === "string" ? p.cpf : undefined,
+          }))
+          setPassageiros(normalized)
+        }
+        // Quando o payload trouxer listaEspera e houver state setListaEspera, atualizar aqui.
+      },
+      onAiIntervention: (data) => {
+        if (data.mensagem) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              sender: "CaldasAI",
+              text: data.mensagem,
+              time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+              isMe: false,
+              isBot: true,
+              isAiIntervention: true,
+            },
+          ])
+        }
+      },
+    })
+  }, [excursaoId])
+
+  useEffect(() => {
+    if (showSavings) {
+      const target = SAVINGS_COMPARISON.reduce((sum, s) => sum + (s.individual - s.group), 0)
+      let current = 0
+      const step = Math.ceil(target / 30)
+      const interval = setInterval(() => {
+        current += step
+        if (current >= target) {
+          current = target
+          clearInterval(interval)
+        }
+        setAnimatedSavings(current)
+      }, 40)
+      return () => clearInterval(interval)
+    }
+  }, [showSavings])
+
+  const handleSend = () => {
+    if (!message.trim()) return
+    lastActivityRef.current = Date.now()
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    scheduleSilenceConcierge.current()
+    const newMsg: ChatMessage = {
+      id: Date.now(),
+      sender: "Você",
+      text: message,
+      time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      isMe: true,
+      isOrganizer: true,
+    }
+    setMessages(prev => [...prev, newMsg])
+    const userText = message.toLowerCase()
+    setMessage("")
+
+    setTimeout(() => setShowTyping(true), 800)
+    setTimeout(() => {
+      setShowTyping(false)
+      let responseTemplate: ChatMessage
+      const isMapaAssentos =
+        userText.includes("mapa de assentos") ||
+        userText.includes("mapa de assento") ||
+        userText.includes("onde sentar") ||
+        userText.includes("qual meu assento") ||
+        (userText.includes("assentos") && (userText.includes("ônibus") || userText.includes("onibus") || userText.includes("lugar")))
+      if (isMapaAssentos) {
+        responseTemplate = { ...BOT_RESPONSES.mapaAssentos }
+      } else if (
+        userText.includes("urgência") ||
+        userText.includes("urgente") ||
+        userText.includes("rápido") ||
+        userText.includes("rapido") ||
+        userText.includes("prazo") && (userText.includes("pagamento") || userText.includes("pagar") || userText.includes("fechar")) ||
+        userText.includes("tempo") && (userText.includes("limite") || userText.includes("fechar"))
+      ) {
+        responseTemplate = { ...BOT_RESPONSES.urgencia }
+      } else if (userText.includes("hotel") || userText.includes("hospedagem") || userText.includes("pousada")) {
+        responseTemplate = { ...BOT_RESPONSES.hotel }
+      } else if (
+        userText.includes("restaurante") ||
+        userText.includes("jantar") ||
+        userText.includes("comer") ||
+        userText.includes("almoço")
+      ) {
+        responseTemplate = { ...BOT_RESPONSES.restaurante }
+      } else if (userText.includes("parque") || userText.includes("aquático")) {
+        responseTemplate = { ...BOT_RESPONSES.parque }
+      } else if (userText.includes("spa") || userText.includes("massagem")) {
+        responseTemplate = { ...BOT_RESPONSES.spa }
+      } else if (userText.includes("ingresso") || userText.includes("parques")) {
+        responseTemplate = { ...BOT_RESPONSES.ingresso }
+      } else if (userText.includes("transfer") || userText.includes("van") || userText.includes("aeroporto")) {
+        responseTemplate = { ...BOT_RESPONSES.transfer }
+      } else {
+        responseTemplate = { ...BOT_RESPONSES.default }
+      }
+      responseTemplate.id = Date.now() + 1
+      responseTemplate.time = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      if (responseTemplate.card) {
+        responseTemplate.card = { ...responseTemplate.card }
+      }
+      lastActivityRef.current = Date.now()
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      scheduleSilenceConcierge.current()
+      setMessages(prev => [...prev, responseTemplate])
+    }, 2500)
+  }
+
+  const handleVote = (idx: number) => {
+    if (hasVoted || voteAnimating !== null) return
+    const newVotes = votes.map((v, i) => (i === idx ? v + 1 : v))
+    setVotes(newVotes)
+    setHasVoted(true)
+    setVoteAnimating(idx)
+    setTimeout(() => setVoteAnimating(null), 1200)
+    if (excursaoId) {
+      const s = getSocket()
+      if (s) s.emit("atualizar-estado-grupo", { excursaoId, votacao: newVotes })
+    }
+  }
+
+  const totalVotes = votes.reduce((a, b) => a + b, 0)
+
+  const totalGroupCost = 2312
+  const extrasAdicionais =
+    (adicionaisSelecionados.cafe ? 35 : 0) * groupSize +
+    (adicionaisSelecionados.roupaCama ? 20 : 0) * groupSize +
+    (adicionaisSelecionados.ingressosParque ? 129 : 0) * groupSize
+  const valorTotalBarra = totalGroupCost + extrasAdicionais
+  const valorPorPessoaBarra = groupSize > 0 ? Math.round(valorTotalBarra / groupSize) : 0
+  const perPersonCost = Math.round(totalGroupCost / groupSize)
+  const totalIndividual = SAVINGS_COMPARISON.reduce((sum, s) => sum + s.individual, 0)
+  const totalGroup = SAVINGS_COMPARISON.reduce((sum, s) => sum + s.group, 0)
+  const totalSaved = totalIndividual - totalGroup
+
+  const whatsappInvite = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+    "Junte-se ao nosso grupo de viagem para Caldas Novas! Reserve pelo RSV360 e ganhe descontos exclusivos para grupos!",
+  )}`
+
+  const appliedItinerary = AI_ITINERARIES[selectedItinerary]
+
+  const discountLabel =
+    groupSize >= 8 ? "Desconto grupo 8+ (-20%)" : groupSize >= 6 ? "Desconto grupo 6+ (-12%)" : groupSize >= 5 ? "Grupo 5+ (-7%)" : "Grupo base"
+
+  const appliedPerPerson = getPerPersonPrice(appliedItinerary.basePP, groupSize)
+
+  const progressPercent = (() => {
+    const done = TIMELINE.filter(t => t.status === "done").length
+    const current = TIMELINE.filter(t => t.status === "current").length
+    const total = TIMELINE.length
+    return Math.round(((done + current * 0.5) / total) * 100)
+  })()
+
+  const handleSaveWizard = async () => {
+    if (!excursaoId) return
+    try {
+      setWizardSaving(true)
+      setWizardError(null)
+      const res = await fetch(`/api/excursoes/${excursaoId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          localSaida,
+          destino: destinoFinal,
+          wizard: {
+            onde: { localSaida, destinoFinal },
+            como: { atracoes: atracoesSelecionadas },
+            conforto: {
+              cafe: adicionaisSelecionados.cafe,
+              roupaCama: adicionaisSelecionados.roupaCama,
+              ingressosParque: adicionaisSelecionados.ingressosParque,
+            },
+            quem: { passageiros },
+          },
+        }),
+      })
+      if (!res.ok) {
+        throw new Error("Erro ao salvar wizard")
+      }
+      setWizardSaved(true)
+      setTimeout(() => setWizardSaved(false), 4000)
+    } catch {
+      setWizardError("Não foi possível salvar o resumo do grupo agora.")
+    } finally {
+      setWizardSaving(false)
+    }
+  }
 
   return (
     <div style={{ background: "#F9FAFB", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {toast && (
-        <div data-testid="toast-notification" style={{
-          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)", zIndex: 200,
-          background: "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff",
-          padding: "10px 20px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-          display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 20px rgba(34,197,94,0.4)",
-          maxWidth: 400,
-        }}>
-          <Check style={{ width: 16, height: 16 }} /> {toast}
+      {showNotification && (
+        <div
+          data-testid="notification-member-joined"
+          style={{
+            position: "fixed",
+            top: 12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 100,
+            background: "linear-gradient(135deg, #22C55E, #16A34A)",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: 12,
+            fontSize: 13,
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            boxShadow: "0 4px 20px rgba(34,197,94,0.4)",
+            animation: "slideDown 0.5s ease-out",
+            maxWidth: 360,
+          }}
+        >
+          <Bell style={{ width: 16, height: 16 }} />
+          Mario confirmou presença no grupo!
         </div>
       )}
 
-      {voucherModalOpen && group.voucherReleased && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div data-testid="modal-voucher" style={{ background: "#fff", borderRadius: 16, maxWidth: 440, width: "100%", maxHeight: "90vh", overflowY: "auto", padding: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: 0 }}>Voucher Exclusivo</h2>
-              <button data-testid="button-close-voucher" onClick={() => setVoucherModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X style={{ width: 20, height: 20, color: "#6B7280" }} /></button>
-            </div>
-            <div style={{ border: "2px dashed #2563EB", borderRadius: 12, padding: 16, background: "linear-gradient(135deg, #FAFBFF, #EBF5FF)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#2563EB", letterSpacing: 1 }}>VOUCHER RSV360</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#1F2937", marginTop: 2 }}>{group.name}</div>
-                </div>
-                <div style={{ width: 56, height: 56, borderRadius: 8, background: "#fff", border: "1px solid #E5E7EB", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <QrCode style={{ width: 32, height: 32, color: "#1F2937" }} />
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-                <div><div style={{ fontSize: 10, color: "#6B7280" }}>Destino</div><div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{group.destination}</div></div>
-                <div><div style={{ fontSize: 10, color: "#6B7280" }}>Membros</div><div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{groupSize} pessoas</div></div>
-                {group.dates.checkIn && <div><div style={{ fontSize: 10, color: "#6B7280" }}>Check-in</div><div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{formatDate(group.dates.checkIn)}</div></div>}
-                {group.dates.checkOut && <div><div style={{ fontSize: 10, color: "#6B7280" }}>Check-out</div><div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{formatDate(group.dates.checkOut)}</div></div>}
-                {group.selectedHotel && <div><div style={{ fontSize: 10, color: "#6B7280" }}>Hotel</div><div style={{ fontSize: 12, fontWeight: 700, color: "#374151" }}>{HOTELS.find(h => h.id === group.selectedHotel)?.name}</div></div>}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Participantes:</div>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
-                {group.members.map((m, i) => (
-                  <span key={i} style={{ fontSize: 10, fontWeight: 600, color: "#fff", background: m.color, padding: "2px 8px", borderRadius: 4 }}>{m.name}</span>
-                ))}
-              </div>
-              <div style={{ padding: "8px 10px", borderRadius: 6, background: "#FEF3C7", border: "1px solid #FDE68A", fontSize: 10, color: "#92400E", lineHeight: 1.5, marginBottom: 12 }}>
-                Desconto extra de 10% válido por 24h. Cancelamento: até 30 dias = devolução -10% | 29-8 dias = multa 30% | &lt;7 dias = sem devolução. Seguro GTA incluso.
-              </div>
-              <button data-testid="button-download-voucher" onClick={() => { setToast("Voucher gerado com sucesso!"); setVoucherModalOpen(false) }} style={{
-                width: "100%", padding: "10px 0", borderRadius: 8, border: "none",
-                background: "linear-gradient(135deg, #F57C00, #E65100)", color: "#fff",
-                fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              }}>
-                <Download style={{ width: 14, height: 14 }} /> Baixar Voucher PDF
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ background: "linear-gradient(135deg, #1e3a5f, #2563EB)", padding: "14px 16px", color: "#fff" }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: 12 }}>
-          <button data-testid="button-back-to-groups" onClick={() => setSelectedGroupId(null)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", display: "flex" }}>
-            <ArrowLeft style={{ width: 24, height: 24 }} />
-          </button>
+      {/* HEADER 1 com wrapper interno */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #1e3a5f, #2563EB)",
+          padding: "14px 16px",
+          color: "#fff",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1400,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <Link href="/" style={{ color: "#fff", display: "flex" }}>
+            <ArrowLeft style={{ width: 24, height: 24 }} data-testid="button-back" />
+          </Link>
           <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{group.name}</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11, opacity: 0.85 }}>{groupSize} membros</span>
-              <span style={{ fontSize: 10, background: "rgba(255,255,255,0.2)", padding: "1px 6px", borderRadius: 4, fontWeight: 600 }}>{group.code}</span>
-              {discount > 0 && <span style={{ fontSize: 10, background: "rgba(245,158,0,0.3)", padding: "1px 6px", borderRadius: 4, fontWeight: 700, color: "#FDE68A" }}>-{discount}%</span>}
+            <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Excursão em Grupo</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, opacity: 0.85 }}>Saída • Destino • Roteiros • Adicionais</span>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22C55E" }} />
+              <span style={{ fontSize: 11, opacity: 0.85 }}>{groupSize} membros online</span>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: -4 }}>
-            {group.members.slice(0, 4).map((m, i) => (
-              <div key={i} style={{
-                width: 28, height: 28, borderRadius: "50%", background: m.color,
-                border: "2px solid #1e3a5f", marginLeft: i > 0 ? -8 : 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 10, fontWeight: 700, color: "#fff", zIndex: 4 - i, position: "relative",
-              }}>{m.name.charAt(0)}</div>
+          <div style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
+            {MEMBERS.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  background: m.color,
+                  border: "2px solid #1e3a5f",
+                  marginLeft: i > 0 ? -10 : 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#fff",
+                  zIndex: MEMBERS.length - i,
+                  position: "relative",
+                }}
+              >
+                {m.name.charAt(0)}
+              </div>
             ))}
           </div>
-          <button data-testid="button-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
-            padding: "6px 10px", borderRadius: 8, border: "none",
-            background: "#22C55E", color: "#fff", fontSize: 11, fontWeight: 700,
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-          }}>
-            <UserPlus style={{ width: 12, height: 12 }} /> Convidar
+          <button
+            data-testid="button-settings"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              border: "none",
+              background: "rgba(255,255,255,0.15)",
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Settings style={{ width: 16, height: 16 }} />
           </button>
         </div>
       </div>
 
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E7EB", overflowX: "auto" }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", gap: 0 }}>
-          {SECTIONS.map(sec => {
-            const Icon = sec.icon
-            const isActive = activeSection === sec.key
-            return (
-              <button key={sec.key} data-testid={`tab-${sec.key}`} onClick={() => setActiveSection(sec.key as any)} style={{
-                flex: 1, minWidth: 70, padding: "10px 8px", border: "none", borderBottom: isActive ? "3px solid #2563EB" : "3px solid transparent",
-                background: "transparent", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                transition: "all 0.2s",
-              }}>
-                <Icon style={{ width: 16, height: 16, color: isActive ? "#2563EB" : "#9CA3AF" }} />
-                <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? "#2563EB" : "#6B7280" }}>{sec.label}</span>
-              </button>
-            )
-          })}
+      {/* HEADER 2 com wrapper interno */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #1e3a5f, #0D47A1)",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1400,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 12,
+              overflow: "hidden",
+              flexShrink: 0,
+              background: "linear-gradient(135deg, #2563EB, #1e3a5f)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Hotel style={{ width: 24, height: 24, color: "rgba(255,255,255,0.6)" }} />
+          </div>
+          <div style={{ flex: 1, color: "#fff" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+              <span
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  fontSize: 10,
+                  fontWeight: 700,
+                }}
+              >
+                Em Grupo com Amigos
+              </span>
+              <span
+                style={{
+                  background: "rgba(34,197,94,0.2)",
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: "#86EFAC",
+                }}
+              >
+                {groupSize} pessoas
+              </span>
+            </div>
+            <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Resort Termas Paradise</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+              <MapPin style={{ width: 10, height: 10, opacity: 0.7 }} />
+              <span style={{ fontSize: 12, opacity: 0.7 }}>Caldas Novas - 15-19 Mar</span>
+            </div>
+          </div>
+          <button
+            data-testid="button-invite"
+            onClick={() => window.open(inviteLink || whatsappInvite, "_blank")}
+            style={{
+              padding: "6px 10px",
+              borderRadius: 8,
+              border: "none",
+              background: "#22C55E",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <UserPlus style={{ width: 12, height: 12 }} />
+            Convidar
+          </button>
+        </div>
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, color: "#fff", flexWrap: "wrap" }}>
+          <div style={{ background: "#fff", borderRadius: 8, padding: 6 }}>
+            <QRCodeSVG value={inviteLink || whatsappInvite} size={56} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, opacity: 0.8 }}>Código de convite</div>
+            <div style={{ fontWeight: 800, letterSpacing: 0.5 }}>{inviteCode}</div>
+            <div style={{ fontSize: 10, opacity: 0.7 }}>RSV-XXXX válido por vagas</div>
+          </div>
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", padding: 16 }}>
+      <div style={{ overflowY: "auto", flex: 1 }}>
 
-          {activeSection === "overview" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-                <div style={{ background: "linear-gradient(135deg, #EBF5FF, #DBEAFE)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>Membros</div>
-                  <div data-testid="text-member-count" style={{ fontSize: 22, fontWeight: 800, color: "#2563EB" }}>{groupSize}</div>
-                </div>
-                <div style={{ background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>Pedidos</div>
-                  <div data-testid="text-order-count" style={{ fontSize: 22, fontWeight: 800, color: "#22C55E" }}>{group.orders.length}</div>
-                </div>
-                <div style={{ background: "linear-gradient(135deg, #FEF3C7, #FDE68A)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>Total</div>
-                  <div data-testid="text-total-value" style={{ fontSize: 22, fontWeight: 800, color: "#D97706" }}>R$ {totalOrders.toLocaleString("pt-BR")}</div>
-                </div>
+        <div style={{ background: "#F3F4F6", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sparkles style={{ width: 18, height: 18, color: "#7C3AED" }} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Monte sua excursão</span>
               </div>
+              <span style={{ fontSize: 11, color: "#6B7280" }}>Onde → Como → Conforto → Quem</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {([
+                { id: "onde", label: "Onde?", desc: "Saída e destino" },
+                { id: "como", label: "Como?", desc: "Roteiro e atrações" },
+                { id: "conforto", label: "Conforto?", desc: "Adicionais" },
+                { id: "quem", label: "Quem?", desc: "Passageiros" },
+              ] as const).map((step, index) => {
+                const isActive = wizardStep === step.id
+                return (
+                  <button
+                    key={step.id}
+                    type="button"
+                    onClick={() => setWizardStep(step.id)}
+                    style={{
+                      flex: 1,
+                      minWidth: 140,
+                      padding: "8px 10px",
+                      borderRadius: 999,
+                      border: isActive ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                      background: isActive ? "#EEF2FF" : "#FFFFFF",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      justifyContent: "flex-start",
+                    }}
+                    data-testid={`wizard-step-${step.id}`}
+                  >
+                    <div
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: "999px",
+                        background: isActive ? "#2563EB" : "#E5E7EB",
+                        color: "#fff",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: isActive ? "#1F2937" : "#4B5563" }}>{step.label}</div>
+                      <div style={{ fontSize: 11, color: "#6B7280" }}>{step.desc}</div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
 
-              {discount > 0 && (
-                <div style={{ padding: "8px 12px", borderRadius: 8, background: "linear-gradient(135deg, #FEF3C7, #FDE68A)", border: "1px solid #FDE68A", fontSize: 12, fontWeight: 600, color: "#92400E", display: "flex", alignItems: "center", gap: 6 }}>
-                  <Gift style={{ width: 14, height: 14, color: "#D97706" }} />
-                  Desconto de {discount}% aplicado por ter {groupSize}+ membros!
+            <div style={{ marginTop: 12, borderRadius: 12, background: "#FFFFFF", padding: 12, boxShadow: "0 4px 12px rgba(15,23,42,0.04)" }}>
+              {wizardStep === "onde" && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#4B5563", display: "block", marginBottom: 4 }}>Local de saída</label>
+                    <select
+                      value={localSaida}
+                      onChange={(e) => setLocalSaida(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        border: "1px solid #E5E7EB",
+                        fontSize: 13,
+                      }}
+                      data-testid="wizard-onde-saida"
+                    >
+                      <option>Goiânia - Rodoviária Central</option>
+                      <option>Goiânia - Shopping Flamboyant</option>
+                      <option>Brasília - Saída Norte</option>
+                      <option>Anápolis - Posto BR</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#4B5563", display: "block", marginBottom: 4 }}>Destino final</label>
+                    <select
+                      value={destinoFinal}
+                      onChange={(e) => setDestinoFinal(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        border: "1px solid #E5E7EB",
+                        fontSize: 13,
+                      }}
+                      data-testid="wizard-onde-destino"
+                    >
+                      <option>Caldas Novas - Hot Park</option>
+                      <option>Caldas Novas - DiRoma</option>
+                      <option>Rio Quente - Resorts</option>
+                    </select>
+                  </div>
                 </div>
               )}
 
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", padding: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Users style={{ width: 16, height: 16, color: "#2563EB" }} /> Membros do Grupo
-                </h3>
-                {group.members.map((member, i) => {
-                  const paidPercent = member.expenses > 0 ? Math.round((member.paid / member.expenses) * 100) : 0
-                  return (
-                    <div key={i} data-testid={`card-member-${i}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < group.members.length - 1 ? "1px solid #F3F4F6" : "none" }}>
-                      <div style={{ width: 32, height: 32, borderRadius: "50%", background: member.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{member.name.charAt(0)}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>
-                            {member.name}
-                            {member.isOrganizer && <Crown style={{ width: 10, height: 10, color: "#F59E0B", display: "inline", marginLeft: 4, verticalAlign: "middle" }} />}
-                          </span>
-                          {member.expenses > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: paidPercent >= 100 ? "#22C55E" : "#D97706" }}>R$ {member.paid}/{member.expenses}</span>}
-                        </div>
-                        {member.expenses > 0 && (
-                          <div style={{ marginTop: 4, height: 5, borderRadius: 3, background: "#E5E7EB", overflow: "hidden" }}>
-                            <div style={{ height: "100%", borderRadius: 3, width: `${Math.min(paidPercent, 100)}%`, background: paidPercent >= 100 ? "#22C55E" : "linear-gradient(90deg, #F59E0B, #D97706)", transition: "width 0.8s ease" }} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div style={{ padding: "12px 16px", borderRadius: 12, background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", border: "1px solid #BBF7D0", display: "flex", alignItems: "center", gap: 10 }}>
-                <Share2 style={{ width: 18, height: 18, color: "#22C55E", flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
-                  <div style={{ fontSize: 11, color: "#6B7280" }}>Código: <strong>{group.code}</strong> — Quanto mais pessoas, maior o desconto</div>
-                </div>
-                <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>WhatsApp</button>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "calendar" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                  <button data-testid="button-prev-month" onClick={() => { if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(y => y - 1) } else setCalendarMonth(m => m - 1) }}
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ChevronLeft style={{ width: 20, height: 20, color: "#6B7280" }} /></button>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>{monthNames[calendarMonth]} {calendarYear}</h3>
-                  <button data-testid="button-next-month" onClick={() => { if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(y => y + 1) } else setCalendarMonth(m => m + 1) }}
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}><ChevronRight style={{ width: 20, height: 20, color: "#6B7280" }} /></button>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 8 }}>
-                  {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => (
-                    <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 600, color: "#9CA3AF", padding: 4 }}>{d}</div>
-                  ))}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-                  {Array.from({ length: getFirstDayOfMonth(calendarMonth, calendarYear) }).map((_, i) => (
-                    <div key={`empty-${i}`} />
-                  ))}
-                  {Array.from({ length: getDaysInMonth(calendarMonth, calendarYear) }).map((_, i) => {
-                    const day = i + 1
-                    const avail = getDateAvailability(day)
-                    const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-                    const isCheckIn = group.dates.checkIn === dateStr
-                    const isCheckOut = group.dates.checkOut === dateStr
-                    const isInRange = group.dates.checkIn && group.dates.checkOut && dateStr > group.dates.checkIn && dateStr < group.dates.checkOut
-                    const isClickable = avail === "available" || avail === "few"
-                    const bgColor = isCheckIn || isCheckOut ? "#2563EB" : isInRange ? "#DBEAFE" : avail === "available" ? "#F0FDF4" : avail === "few" ? "#FEF3C7" : avail === "full" ? "#FEE2E2" : "#F3F4F6"
-                    const textColor = isCheckIn || isCheckOut ? "#fff" : avail === "past" ? "#D1D5DB" : avail === "full" ? "#EF4444" : "#374151"
+              {wizardStep === "como" && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                  {[
+                    { id: "hot-park", label: "Hot Park", desc: "Parque aquático o dia inteiro" },
+                    { id: "city-tour", label: "City Tour", desc: "Centro + comprinhas + pontos turísticos" },
+                    { id: "spa-dia", label: "Dia de Spa", desc: "Relax nas águas termais" },
+                  ].map((a) => {
+                    const selected = atracoesSelecionadas.includes(a.id)
                     return (
-                      <button key={day} data-testid={`cal-day-${day}`}
-                        onClick={() => isClickable && handleSelectDates(day)}
-                        disabled={!isClickable}
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() =>
+                          setAtracoesSelecionadas((prev) =>
+                            prev.includes(a.id) ? prev.filter((x) => x !== a.id) : [...prev, a.id],
+                          )
+                        }
                         style={{
-                          padding: "8px 4px", borderRadius: 8, border: "none",
-                          background: bgColor, cursor: isClickable ? "pointer" : "default",
-                          textAlign: "center", fontSize: 13, fontWeight: isCheckIn || isCheckOut ? 800 : 500,
-                          color: textColor, transition: "all 0.2s", position: "relative",
-                        }}>
-                        {day}
-                        {avail === "few" && !isCheckIn && !isCheckOut && <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#F59E0B", margin: "2px auto 0" }} />}
+                          textAlign: "left",
+                          padding: 10,
+                          borderRadius: 10,
+                          border: selected ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                          background: selected ? "linear-gradient(135deg,#EEF2FF,#DBEAFE)" : "#FFFFFF",
+                          cursor: "pointer",
+                        }}
+                        data-testid={`wizard-como-${a.id}`}
+                      >
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{a.label}</div>
+                        <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{a.desc}</div>
                       </button>
                     )
                   })}
                 </div>
-                <div style={{ display: "flex", gap: 12, marginTop: 12, fontSize: 10, color: "#6B7280", flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: "#F0FDF4", border: "1px solid #BBF7D0" }} /> Disponível</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: "#FEF3C7", border: "1px solid #FDE68A" }} /> Poucas vagas</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: "#FEE2E2", border: "1px solid #FECACA" }} /> Lotado</div>
+              )}
+
+              {wizardStep === "conforto" && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+                  {ADICIONAIS_CONFORTO.map((ad) => {
+                    const checked = adicionaisSelecionados[ad.key]
+                    return (
+                      <button
+                        key={ad.id}
+                        type="button"
+                        onClick={() => setAdicionaisSelecionados((prev) => ({ ...prev, [ad.key]: !checked }))}
+                        style={{
+                          textAlign: "left",
+                          padding: 12,
+                          borderRadius: 12,
+                          border: checked ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                          background: checked ? "linear-gradient(135deg,#EEF2FF,#DBEAFE)" : "#FFFFFF",
+                          cursor: "pointer",
+                          position: "relative",
+                        }}
+                        data-testid={`wizard-conforto-${ad.id}`}
+                      >
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            readOnly
+                            style={{ marginTop: 2 }}
+                          />
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{ad.label}</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: "#2563EB", marginTop: 4 }}>
+                              R$ {ad.preco}/pessoa
+                            </div>
+                            {ad.fomo && (
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  marginTop: 6,
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: "#D97706",
+                                  padding: "2px 6px",
+                                  borderRadius: 6,
+                                  background: "rgba(245,158,11,0.15)",
+                                }}
+                              >
+                                {ad.fomo}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
-              </div>
-              {(group.dates.checkIn || group.dates.checkOut) && (
-                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", padding: 16 }}>
-                  <h4 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 10px" }}>Datas Selecionadas</h4>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <div style={{ padding: 10, borderRadius: 8, background: "#EBF5FF", textAlign: "center" }}>
-                      <div style={{ fontSize: 10, color: "#6B7280" }}>Check-in</div>
-                      <div data-testid="text-checkin" style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>{group.dates.checkIn ? formatDate(group.dates.checkIn) : "—"}</div>
+              )}
+
+              {wizardStep === "quem" && (
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1fr)", gap: 12 }}>
+                  <div>
+                    <details style={{ marginBottom: 12, borderRadius: 8, border: "1px solid #E5E7EB", overflow: "hidden" }}>
+                      <summary style={{ padding: "8px 12px", fontSize: 12, fontWeight: 600, color: "#4B5563", cursor: "pointer" }}>
+                        Termo de responsabilidade (Excursão Caldas Novas)
+                      </summary>
+                      <pre style={{ margin: 0, padding: 12, fontSize: 11, color: "#374151", whiteSpace: "pre-wrap", fontFamily: "inherit", maxHeight: 200, overflowY: "auto" }}>
+                        {TEXTO_TERMO_EXCURSAO_CALDAS}
+                      </pre>
+                    </details>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontSize: 13, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        id="aceite-termos"
+                        checked={aceiteTermos}
+                        onChange={(e) => setAceiteTermos(e.target.checked)}
+                        data-testid="aceite-termos"
+                      />
+                      <span>Li e aceito o termo de responsabilidade</span>
+                    </label>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 4 }}>Passageiros e link de pagamento</div>
+                    <div style={{ borderRadius: 8, border: "1px solid #E5E7EB", padding: 8, maxHeight: 220, overflowY: "auto" }}>
+                      {passageiros.map((p, idx) => {
+                        const linkMock = `https://pay.rsv360.com/mock/${excursaoId || "grupo"}/${encodeURIComponent(p.nome)}?valor=578`
+                        const copyId = `link-${idx}-${p.nome}`
+                        return (
+                          <div
+                            key={`${p.nome}-${idx}`}
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              gap: 8,
+                              padding: "8px 0",
+                              borderBottom: idx < passageiros.length - 1 ? "1px solid #F3F4F6" : "none",
+                              fontSize: 12,
+                            }}
+                            data-testid={`wizard-quem-passageiro-${idx}`}
+                          >
+                            <div>
+                              <span style={{ fontWeight: 600, color: "#111827" }}>{p.nome}</span>
+                              <span style={{ color: "#6B7280", marginLeft: 6 }}>{p.contato}</span>
+                              {reservaExpiracaoByIdx[idx] && (
+                                <div style={{ marginTop: 4 }}>
+                                  <CountdownTimer
+                                    endDate={new Date(reservaExpiracaoByIdx[idx])}
+                                    label="Pix expira em"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              disabled={!aceiteTermos}
+                              onClick={async () => {
+                                if (!aceiteTermos) return
+                                if (excursaoId) {
+                                  try {
+                                    const res = await fetch(`/api/excursoes/${excursaoId}/reservas`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        passageiroId: String(idx),
+                                        passageiroNome: p.nome,
+                                        aceitouTermos: true,
+                                        termoVersao: TERMO_VERSAO,
+                                      }),
+                                    })
+                                    if (res.ok) {
+                                      const data = await res.json()
+                                      if (data.dataExpiracaoPix) {
+                                        setReservaExpiracaoByIdx((prev) => ({ ...prev, [idx]: data.dataExpiracaoPix }))
+                                      }
+                                    }
+                                  } catch {
+                                    // fallback: copy link without API
+                                  }
+                                }
+                                navigator.clipboard.writeText(linkMock).then(() => {
+                                  setLinkCopiedId(copyId)
+                                  setTimeout(() => setLinkCopiedId(null), 2000)
+                                })
+                              }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                padding: "4px 8px",
+                                borderRadius: 8,
+                                border: "1px solid " + (aceiteTermos ? "#22C55E" : "#D1D5DB"),
+                                background: !aceiteTermos ? "#F3F4F6" : linkCopiedId === copyId ? "#DCFCE7" : "#F0FDF4",
+                                color: !aceiteTermos ? "#9CA3AF" : "#16A34A",
+                                fontSize: 11,
+                                fontWeight: 600,
+                                cursor: aceiteTermos ? "pointer" : "not-allowed",
+                              }}
+                              data-testid={`wizard-quem-link-pagamento-${idx}`}
+                            >
+                              {linkCopiedId === copyId ? (
+                                <>Copiado!</>
+                              ) : !aceiteTermos ? (
+                                <>Aceite o termo</>
+                              ) : (
+                                <>
+                                  <Copy style={{ width: 12, height: 12 }} />
+                                  Link Pix
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )
+                      })}
+                      {passageiros.length === 0 && <div style={{ fontSize: 12, color: "#9CA3AF" }}>Nenhum passageiro adicionado ainda.</div>}
                     </div>
-                    <div style={{ padding: 10, borderRadius: 8, background: "#EBF5FF", textAlign: "center" }}>
-                      <div style={{ fontSize: 10, color: "#6B7280" }}>Check-out</div>
-                      <div data-testid="text-checkout" style={{ fontSize: 14, fontWeight: 700, color: "#2563EB" }}>{group.dates.checkOut ? formatDate(group.dates.checkOut) : "—"}</div>
+                    <p style={{ fontSize: 11, color: "#6B7280", marginTop: 6 }}>
+                      Cada passageiro recebe um link exclusivo para pagamento (Pix). Em produção, integração com Mercado Pago ou gateway.
+                    </p>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 4 }}>Adicionar passageiro</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <input
+                        type="text"
+                        placeholder="Nome"
+                        value={novoPassageiroNome}
+                        onChange={(e) => setNovoPassageiroNome(e.target.value)}
+                        style={{ padding: "6px 8px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13 }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Contato (WhatsApp)"
+                        value={novoPassageiroContato}
+                        onChange={(e) => setNovoPassageiroContato(e.target.value)}
+                        style={{ padding: "6px 8px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13 }}
+                      />
+                      <div style={{ fontSize: 11, color: "#6B7280", marginTop: 4 }}>
+                        Dados documentação (opcional, LGPD — criptografia em implementação)
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="RG (opcional)"
+                        value={novoPassageiroRg}
+                        onChange={(e) => setNovoPassageiroRg(e.target.value)}
+                        style={{ padding: "6px 8px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13 }}
+                        data-testid="wizard-quem-rg"
+                      />
+                      <input
+                        type="text"
+                        placeholder="CPF (opcional)"
+                        value={novoPassageiroCpf}
+                        onChange={(e) => setNovoPassageiroCpf(e.target.value)}
+                        style={{ padding: "6px 8px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13 }}
+                        data-testid="wizard-quem-cpf"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!novoPassageiroNome.trim()) return
+                          const novoPassageiro = {
+                            nome: novoPassageiroNome.trim(),
+                            contato: novoPassageiroContato || "WhatsApp",
+                            rg: novoPassageiroRg.trim() || undefined,
+                            cpf: novoPassageiroCpf.trim() || undefined,
+                          }
+                          const novaLista = [...passageiros, novoPassageiro]
+                          setPassageiros(novaLista)
+                          setNovoPassageiroNome("")
+                          setNovoPassageiroContato("")
+                          setNovoPassageiroRg("")
+                          setNovoPassageiroCpf("")
+                          if (excursaoId) {
+                            const s = getSocket()
+                            if (s) s.emit("atualizar-estado-grupo", { excursaoId, passageirosCount: novaLista.length, passageiros: novaLista })
+                          }
+                        }}
+                        style={{
+                          marginTop: 4,
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: "#2563EB",
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        data-testid="wizard-quem-add"
+                      >
+                        Adicionar passageiro
+                      </button>
                     </div>
                   </div>
-                  {group.dates.checkIn && group.dates.checkOut && (
-                    <div style={{ marginTop: 8, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#22C55E" }}>
-                      {Math.round((new Date(group.dates.checkOut).getTime() - new Date(group.dates.checkIn).getTime()) / (1000 * 60 * 60 * 24))} noites
+                </div>
+              )}
+              {excursaoId && (
+                <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
+                  <button
+                    type="button"
+                    onClick={handleSaveWizard}
+                    disabled={wizardSaving}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 999,
+                      border: "none",
+                      background: wizardSaving ? "#93C5FD" : "#2563EB",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: wizardSaving ? "default" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                    data-testid="wizard-salvar-excursao"
+                  >
+                    <Sparkles style={{ width: 14, height: 14 }} />
+                    {wizardSaving ? "Salvando..." : "Salvar grupo nesta excursão"}
+                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 16 }}>
+                    {wizardSaved && (
+                      <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 600 }}>
+                        Resumo do grupo salvo com sucesso.
+                      </span>
+                    )}
+                    {wizardError && (
+                      <span style={{ fontSize: 11, color: "#DC2626" }}>
+                        {wizardError}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 12, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, padding: 12 }} data-testid="roteiro-governanca-widget">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }} data-testid="roteiro-governanca-title">Roteiro oficial da excursão</div>
+              <div style={{ fontSize: 12, color: "#6B7280" }}>Convidados analisam e sugerem. Admin aprova/reprova e publica para votação.</div>
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: isAdminRoteiro ? "#1D4ED8" : "#6B7280", background: isAdminRoteiro ? "#DBEAFE" : "#F3F4F6", padding: "4px 8px", borderRadius: 999 }} data-testid="roteiro-governanca-role-badge">
+              {isAdminRoteiro ? "Modo admin" : "Modo convidado"}
+            </span>
+          </div>
+
+          <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 8 }}>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8 }} data-testid="roteiro-governanca-veiculo">
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Veículo</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{roteiroOficial?.veiculoTipo || excursao?.veiculoTipo || "A definir"}</div>
+            </div>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8 }} data-testid="roteiro-governanca-hotel">
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Hotel</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{roteiroOficial?.hotelPrincipal || "A definir"}</div>
+            </div>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8 }} data-testid="roteiro-governanca-atracoes">
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Atrações</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{(roteiroOficial?.atracoes || []).join(", ") || "A definir"}</div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Cards de hotel</div>
+              {renderRoteiroCards(roteiroOficial?.hoteis, "Sem hotel cadastrado em cards.", "roteiro-governanca-hoteis-cards", "hotel")}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Cards de atrações</div>
+              {renderRoteiroCards(roteiroOficial?.atracoesCards, "Sem atrações em cards.", "roteiro-governanca-atracoes-cards", "atracao")}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Cards de passeios</div>
+              {renderRoteiroCards(roteiroOficial?.passeiosCards, "Sem passeios em cards.", "roteiro-governanca-passeios-cards", "passeio")}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Cards de parques aquáticos</div>
+              {renderRoteiroCards(roteiroOficial?.parquesAquaticosCards, "Sem parques em cards.", "roteiro-governanca-parques-cards", "parque")}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-sugestao-widget">
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-sugestao-title">Enviar sugestão de roteiro</div>
+            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr auto", gap: 8 }}>
+              <select value={novaSugestaoCategoria} onChange={(e) => setNovaSugestaoCategoria(e.target.value as typeof novaSugestaoCategoria)} style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-categoria">
+                <option value="veiculo">Veículo</option>
+                <option value="hotel">Hotel</option>
+                <option value="atracao">Atração</option>
+                <option value="passeio">Passeio</option>
+                <option value="parque">Parque aquático</option>
+                <option value="outro">Outro</option>
+              </select>
+              <input value={novaSugestaoValor} onChange={(e) => setNovaSugestaoValor(e.target.value)} placeholder="Sugestão principal" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-valor" />
+              <input value={novaSugestaoDescricao} onChange={(e) => setNovaSugestaoDescricao(e.target.value)} placeholder="Descrição opcional" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-descricao" />
+              <button onClick={handleEnviarSugestaoRoteiro} style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "#1e3a8a", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-enviar">
+                Enviar
+              </button>
+            </div>
+          </div>
+
+          {isAdminRoteiro && (
+            <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-moderacao-widget">
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-moderacao-title">Moderação de sugestões (admin)</div>
+              {(sugestoesRoteiro.length === 0) && <div style={{ fontSize: 12, color: "#6B7280" }}>Nenhuma sugestão pendente.</div>}
+              <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-moderacao-list">
+                {sugestoesRoteiro.map((s) => (
+                  <div key={s.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "grid", gap: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 12 }}>
+                        <strong>{s.nomeAutor}</strong> sugeriu <strong>{s.valor}</strong> ({s.categoria})
+                      </div>
+                      <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: "#F3F4F6", color: "#374151" }}>{s.status}</span>
+                    </div>
+                    {s.descricao ? <div style={{ fontSize: 12, color: "#6B7280" }}>{s.descricao}</div> : null}
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button onClick={() => handleModerarSugestao(s.id, "APROVADA", true)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#16A34A", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-aprovar">
+                        Aprovar + publicar votação
+                      </button>
+                      <button onClick={() => handleModerarSugestao(s.id, "REJEITADA", false)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-reprovar">
+                        Reprovar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-votacao-widget">
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-votacao-title">Votação do roteiro (itens publicados pelo admin)</div>
+            {votacaoRoteiro.length === 0 ? (
+              <div style={{ fontSize: 12, color: "#6B7280" }}>Sem itens publicados para votação.</div>
+            ) : (
+              <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-votacao-list">
+                {votacaoRoteiro.map((item) => (
+                  <div key={item.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontSize: 12 }}>
+                      <strong>{item.valor}</strong> <span style={{ color: "#6B7280" }}>({item.categoria})</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "#1F2937", fontWeight: 700 }}>{item.votos} votos</span>
+                      <button onClick={() => handleVotarRoteiro(item.id)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#2563EB", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-votacao-votar">
+                        Votar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <DollarSign style={{ width: 18, height: 18, color: "#2563EB" }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Resumo de Custos</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 11, color: "#6B7280" }}>Membros:</span>
+              <button data-testid="button-decrease-members" onClick={() => setGroupSize(s => Math.max(2, s - 1))} style={{
+                width: 24, height: 24, borderRadius: 6, border: "1px solid #E5E7EB",
+                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Minus style={{ width: 12, height: 12, color: "#6B7280" }} />
+              </button>
+              <span data-testid="text-group-size" style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", minWidth: 20, textAlign: "center" }}>{groupSize}</span>
+              <button data-testid="button-increase-members" onClick={() => setGroupSize(s => Math.min(10, s + 1))} style={{
+                width: 24, height: 24, borderRadius: 6, border: "1px solid #E5E7EB",
+                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Plus style={{ width: 12, height: 12, color: "#6B7280" }} />
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{
+              flex: 1, background: "linear-gradient(135deg, #EBF5FF, #DBEAFE)",
+              borderRadius: 10, padding: "10px 12px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 500 }}>Total do Grupo</div>
+              <div data-testid="text-total-cost" style={{ fontSize: 20, fontWeight: 800, color: "#2563EB" }}>R$ {totalGroupCost.toLocaleString("pt-BR")}</div>
+            </div>
+            <div style={{
+              flex: 1, background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
+              borderRadius: 10, padding: "10px 12px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 500 }}>Por Pessoa</div>
+              <div data-testid="text-per-person-cost" style={{ fontSize: 20, fontWeight: 800, color: "#22C55E" }}>R$ {perPersonCost}</div>
+            </div>
+            <div style={{
+              flex: 1, background: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
+              borderRadius: 10, padding: "10px 12px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 500 }}>Economia</div>
+              <div data-testid="text-savings" style={{ fontSize: 20, fontWeight: 800, color: "#D97706" }}>R$ 488</div>
+            </div>
+          </div>
+          <button data-testid="button-toggle-cost-split" onClick={() => setShowCostSplit(!showCostSplit)} style={{
+            width: "100%", marginTop: 10, padding: "8px 0", borderRadius: 8,
+            border: "1px solid #E5E7EB", background: "#F9FAFB", cursor: "pointer",
+            fontSize: 12, fontWeight: 600, color: "#2563EB",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            <Users style={{ width: 14, height: 14 }} />
+            {showCostSplit ? "Ocultar divisão" : "Ver divisão por pessoa"}
+            {showCostSplit ? <ChevronUp style={{ width: 14, height: 14 }} /> : <ChevronDown style={{ width: 14, height: 14 }} />}
+          </button>
+          {showCostSplit && (
+            <div style={{ marginTop: 10 }}>
+              {MEMBERS.map((member, i) => {
+                const paidPercent = Math.round((member.paid / member.expenses) * 100)
+                return (
+                  <div key={i} data-testid={`card-member-${i}`} style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
+                    borderBottom: i < MEMBERS.length - 1 ? "1px solid #F3F4F6" : "none",
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%", background: member.color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0,
+                    }}>
+                      {member.name.charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>
+                          {member.name}
+                          {member.isOrganizer && <Crown style={{ width: 10, height: 10, color: "#F59E0B", display: "inline", marginLeft: 4, verticalAlign: "middle" }} />}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: paidPercent >= 100 ? "#22C55E" : "#D97706" }}>
+                          R$ {member.paid}/{member.expenses}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: 4, height: 6, borderRadius: 3, background: "#E5E7EB", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: 3,
+                          width: `${Math.min(paidPercent, 100)}%`,
+                          background: paidPercent >= 100 ? "#22C55E" : "linear-gradient(90deg, #F59E0B, #D97706)",
+                          transition: "width 0.8s ease",
+                        }} />
+                      </div>
+                      <span style={{ fontSize: 10, color: paidPercent >= 100 ? "#22C55E" : "#D97706", fontWeight: 600, marginTop: 2, display: "block" }}>
+                        {paidPercent >= 100 ? "Pago" : `Falta R$ ${member.expenses - member.paid}`}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Sparkles style={{ width: 18, height: 18, color: "#F57C00" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Planejador IA</span>
+            <span style={{
+              fontSize: 9, fontWeight: 700, color: "#fff",
+              background: "linear-gradient(135deg, #F57C00, #E65100)", padding: "2px 8px", borderRadius: 4,
+            }}>NOVO</span>
+          </div>
+          <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 10px" }}>
+            Roteiros sugeridos para {groupSize} pessoas baseados em IA:
+          </p>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+            {AI_ITINERARIES.map((itin, i) => {
+              const isSelected = selectedItinerary === i
+              const IconComp = itin.icon
+              return (
+                <button key={i} data-testid={`button-itinerary-${i}`} onClick={() => setSelectedItinerary(i)} style={{
+                  minWidth: 150, padding: 12, borderRadius: 12, cursor: "pointer", textAlign: "left",
+                  border: isSelected ? `2px solid ${itin.color}` : "1px solid #E5E7EB",
+                  background: isSelected ? `${itin.color}08` : "#fff",
+                  flexShrink: 0, position: "relative",
+                }}>
+                  {isSelected && (
+                    <div style={{
+                      position: "absolute", top: -6, right: -6,
+                      width: 20, height: 20, borderRadius: "50%", background: itin.color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Check style={{ width: 12, height: 12, color: "#fff" }} />
                     </div>
                   )}
+                  <IconComp style={{ width: 20, height: 20, color: itin.color, marginBottom: 6 }} />
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 4 }}>{itin.name}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: itin.color }}>R$ {itin.basePP}</div>
+                  <div style={{ fontSize: 10, color: "#6B7280" }}>/pessoa</div>
+                  <div style={{
+                    marginTop: 6, fontSize: 10, fontWeight: 700, color: "#22C55E",
+                    background: "#F0FDF4", padding: "2px 6px", borderRadius: 4,
+                    display: "inline-flex", alignItems: "center", gap: 2,
+                  }}>
+                    <TrendingDown style={{ width: 10, height: 10 }} />
+                    Economia R$ {itin.savings}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+          {selectedItinerary !== null && (
+            <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937", marginBottom: 8 }}>
+                Programação - {AI_ITINERARIES[selectedItinerary].name}
+              </div>
+              {AI_ITINERARIES[selectedItinerary].days.map((day, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < AI_ITINERARIES[selectedItinerary].days.length - 1 ? 6 : 0 }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: "50%",
+                    background: AI_ITINERARIES[selectedItinerary].color, color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10, fontWeight: 700, flexShrink: 0,
+                  }}>{i + 1}</div>
+                  <span style={{ fontSize: 12, color: "#374151" }}>{day}</span>
                 </div>
-              )}
+              ))}
+              <button
+                data-testid="button-apply-itinerary"
+                onClick={() => {
+                  const slot: TimeSlot = {
+                    id: `it-${selectedItinerary}`,
+                    startsAt: selectedItinerary === 0 ? "09:00" : selectedItinerary === 1 ? "10:00" : "14:00",
+                    endsAt: selectedItinerary === 0 ? "11:00" : selectedItinerary === 1 ? "12:00" : "16:00",
+                  }
+                  if (hasScheduleConflict(agendaSlots, slot)) {
+                    toast({
+                      title: "Conflito de horário detectado",
+                      description: "Escolha outro roteiro para evitar sobreposição no calendário.",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  setAgendaSlots((prev) => [...prev, slot])
+                  setItineraryApplied(true)
+                  toast({
+                    title: "Roteiro aplicado",
+                    description: "Roteiro adicionado sem conflitos e sincronizado com o calendário.",
+                  })
+                }}
+                style={{
+                width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 8,
+                border: "none", background: `linear-gradient(135deg, ${AI_ITINERARIES[selectedItinerary].color}, ${AI_ITINERARIES[selectedItinerary].color}CC)`,
+                color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}>
+                <Lightbulb style={{ width: 14, height: 14 }} />
+                Aplicar este Roteiro
+              </button>
             </div>
           )}
+        </div>
 
-          {activeSection === "hotel" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {showCompare && compareHotels.length === 2 && (
-                <div style={{ background: "#fff", borderRadius: 12, border: "2px solid #2563EB", padding: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: 0 }}>Comparação</h3>
-                    <button onClick={() => { setShowCompare(false); setCompareHotels([]) }} style={{ background: "none", border: "none", cursor: "pointer" }}><X style={{ width: 16, height: 16, color: "#6B7280" }} /></button>
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <HotelSelector
+            hotels={HOTEL_OPTIONS}
+            selectedHotelId={selectedHotelId}
+            checkIn={selectedCheckIn}
+            checkOut={selectedCheckOut}
+            onSelect={async (hotelId, total) => {
+              setSelectedHotelId(hotelId)
+              if (excursaoId) {
+                try {
+                  await fetch(`/api/excursoes/${excursaoId}/orders/0`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ hotelId, totalAmount: total, paidAmount: 0 }),
+                  })
+                } catch {
+                  // fallback silencioso para manter UX
+                }
+              }
+            }}
+          />
+          <div style={{ marginTop: 8, fontSize: 12, color: "#475569" }}>
+            Total por hospedagem: <strong>R$ {(selectedHotelId ? (HOTEL_OPTIONS.find((h) => h.id === selectedHotelId)?.precoNoite ?? 0) * (calculateNights(selectedCheckIn, selectedCheckOut) || 1) : 0).toLocaleString("pt-BR")}</strong>
+          </div>
+        </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Vote style={{ width: 18, height: 18, color: "#8B5CF6" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Votação do Grupo</span>
+            {hasVoted && <span style={{ fontSize: 10, color: "#22C55E", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}><Check style={{ width: 10, height: 10 }} /> Você votou</span>}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {VOTE_OPTIONS.map((opt, i) => {
+              const pct = totalVotes > 0 ? Math.round((votes[i] / totalVotes) * 100) : 0
+              const isWinning = pct === Math.max(...votes.map((v, j) => Math.round((v / totalVotes) * 100)))
+              const IconComp = opt.img
+              return (
+                <button key={i} data-testid={`button-vote-${i}`} onClick={() => handleVote(i)} style={{
+                  width: "100%", padding: "12px 14px", borderRadius: 12, cursor: hasVoted ? "default" : "pointer",
+                  border: isWinning ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                  background: "#fff", textAlign: "left", position: "relative", overflow: "hidden",
+                  display: "flex", alignItems: "center", gap: 12,
+                }}>
+                  <div style={{
+                    position: "absolute", left: 0, top: 0, bottom: 0,
+                    width: `${pct}%`, background: isWinning ? "rgba(37,99,235,0.06)" : "rgba(139,92,246,0.04)",
+                    transition: "width 1s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }} />
+                  <div style={{
+                    position: "relative", zIndex: 1,
+                    width: 40, height: 40, borderRadius: 10,
+                    background: isWinning ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "linear-gradient(135deg, #8B5CF6, #7C3AED)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <IconComp style={{ width: 18, height: 18, color: "#fff" }} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    {compareHotels.map(hId => {
-                      const h = HOTELS.find(x => x.id === hId)!
-                      return (
-                        <div key={hId} style={{ textAlign: "center" }}>
-                          <div style={{ height: 50, borderRadius: 8, background: h.gradient, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                            <Hotel style={{ width: 20, height: 20, color: "rgba(255,255,255,0.5)" }} />
-                          </div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{h.name}</div>
-                          <div style={{ fontSize: 11, color: "#6B7280" }}>{"⭐".repeat(h.stars)} — {h.rating}</div>
-                          <div style={{ fontSize: 16, fontWeight: 800, color: "#22C55E", marginTop: 4 }}>R$ {h.pricePerNight}/noite</div>
-                          <div style={{ display: "flex", gap: 3, flexWrap: "wrap", justifyContent: "center", marginTop: 6 }}>
-                            {h.amenities.map((a, j) => (
-                              <span key={j} style={{ fontSize: 8, background: "#F3F4F6", padding: "2px 4px", borderRadius: 3, color: "#6B7280" }}>{a}</span>
-                            ))}
-                          </div>
+                  <div style={{ position: "relative", zIndex: 1, flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{opt.name}</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: isWinning ? "#2563EB" : "#8B5CF6" }}>{pct}%</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
+                      {opt.tags.map((tag, j) => (
+                        <span key={j} style={{
+                          fontSize: 9, fontWeight: 600, color: "#6B7280",
+                          background: "#F3F4F6", padding: "2px 6px", borderRadius: 4,
+                        }}>{tag}</span>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 6, height: 6, borderRadius: 3, background: "#E5E7EB", overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 3,
+                        width: `${pct}%`,
+                        background: isWinning ? "linear-gradient(90deg, #2563EB, #1D4ED8)" : "linear-gradient(90deg, #8B5CF6, #7C3AED)",
+                        transition: "width 1s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: "#6B7280", marginTop: 4 }}>{votes[i]} de {totalVotes} votos</div>
+                  </div>
+                  {isWinning && (
+                    <div style={{ position: "relative", zIndex: 1 }}>
+                      <ThumbsUp style={{ width: 16, height: 16, color: "#2563EB" }} />
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Calendar style={{ width: 18, height: 18, color: "#F59E0B" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Timeline do Planejamento</span>
+          </div>
+          <div style={{ position: "relative", paddingLeft: 20 }}>
+            <div style={{
+              position: "absolute", left: 11, top: 0, bottom: 0, width: 2,
+              background: "linear-gradient(180deg, #22C55E 40%, #2563EB 60%, #E5E7EB 80%)",
+            }} />
+            {TIMELINE.map((item, i) => {
+              const isExpanded = expandedTimeline === i
+              const IconComp = item.icon
+              return (
+                <div key={i} data-testid={`card-timeline-${i}`} onClick={() => setExpandedTimeline(isExpanded ? null : i)} style={{
+                  position: "relative", paddingLeft: 20, marginBottom: i < TIMELINE.length - 1 ? 8 : 0,
+                  cursor: "pointer",
+                }}>
+                  <div style={{
+                    position: "absolute", left: -4, top: 8,
+                    width: 24, height: 24, borderRadius: "50%",
+                    background: item.status === "done" ? "#22C55E" : item.status === "current" ? "#2563EB" : "#D1D5DB",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "3px solid #fff", boxShadow: "0 0 0 2px " + (item.status === "done" ? "#22C55E" : item.status === "current" ? "#2563EB" : "#D1D5DB"),
+                  }}>
+                    {item.status === "done" ? (
+                      <Check style={{ width: 10, height: 10, color: "#fff" }} />
+                    ) : item.status === "current" ? (
+                      <Clock style={{ width: 10, height: 10, color: "#fff" }} />
+                    ) : (
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />
+                    )}
+                  </div>
+                  <div style={{
+                    padding: "10px 14px", borderRadius: 10,
+                    background: item.status === "current" ? "#EBF5FF" : item.status === "done" ? "#F0FDF4" : "#F9FAFB",
+                    border: item.status === "current" ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <IconComp style={{
+                          width: 16, height: 16,
+                          color: item.status === "done" ? "#22C55E" : item.status === "current" ? "#2563EB" : "#9CA3AF",
+                        }} />
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: item.status === "current" ? "#2563EB" : item.status === "done" ? "#22C55E" : "#374151" }}>{item.day}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>{item.label}</div>
                         </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
-                {HOTELS.map(hotel => {
-                  const isSelected = group.selectedHotel === hotel.id
-                  const isComparing = compareHotels.includes(hotel.id)
-                  return (
-                    <div key={hotel.id} data-testid={`card-hotel-${hotel.id}`} style={{
-                      borderRadius: 12, overflow: "hidden", background: "#fff",
-                      border: isSelected ? "2px solid #22C55E" : isComparing ? "2px solid #2563EB" : "1px solid #E5E7EB",
-                      transition: "all 0.2s", position: "relative",
-                    }}>
-                      {isSelected && <div style={{ position: "absolute", top: 8, left: 8, zIndex: 2, fontSize: 9, fontWeight: 700, color: "#fff", background: "#22C55E", padding: "2px 8px", borderRadius: 4 }}>Selecionado</div>}
-                      {hotel.recommended && <div style={{ position: "absolute", top: 8, right: 8, zIndex: 2, fontSize: 9, fontWeight: 700, color: "#fff", background: "linear-gradient(135deg, #F57C00, #E65100)", padding: "2px 8px", borderRadius: 4 }}>Recomendado IA</div>}
-                      {hotel.popular && !hotel.recommended && <div style={{ position: "absolute", top: 8, right: 8, zIndex: 2, fontSize: 9, fontWeight: 700, color: "#fff", background: "#8B5CF6", padding: "2px 8px", borderRadius: 4 }}>Mais Popular</div>}
-                      <div style={{ height: 80, background: hotel.gradient, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Hotel style={{ width: 28, height: 28, color: "rgba(255,255,255,0.4)" }} />
                       </div>
-                      <div style={{ padding: 12 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>{hotel.name}</div>
-                        <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{"⭐".repeat(hotel.stars)} — Nota {hotel.rating}</div>
-                        <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
-                          <MapPin style={{ width: 10, height: 10 }} /> {hotel.location}
-                        </div>
-                        <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 6 }}>
-                          {hotel.amenities.slice(0, 4).map((a, j) => (
-                            <span key={j} style={{ fontSize: 9, background: "#F3F4F6", padding: "2px 6px", borderRadius: 4, color: "#6B7280" }}>{a}</span>
-                          ))}
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
-                          <div>
-                            <div style={{ fontSize: 18, fontWeight: 800, color: "#22C55E" }}>R$ {hotel.pricePerNight}</div>
-                            <div style={{ fontSize: 10, color: "#6B7280" }}>/noite</div>
-                          </div>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button data-testid={`button-compare-${hotel.id}`}
-                              onClick={() => setCompareHotels(prev => {
-                                if (prev.includes(hotel.id)) return prev.filter(id => id !== hotel.id)
-                                if (prev.length >= 2) return [prev[1], hotel.id]
-                                return [...prev, hotel.id]
-                              })}
-                              style={{ padding: "6px 10px", borderRadius: 6, border: isComparing ? "2px solid #2563EB" : "1px solid #E5E7EB", background: isComparing ? "#EBF5FF" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, color: isComparing ? "#2563EB" : "#6B7280" }}>
-                              Comparar
-                            </button>
-                            <button data-testid={`button-select-hotel-${hotel.id}`}
-                              onClick={() => handleSelectHotel(hotel.id)}
-                              style={{ padding: "6px 12px", borderRadius: 6, border: "none", background: isSelected ? "#22C55E" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", cursor: "pointer", fontSize: 10, fontWeight: 700 }}>
-                              {isSelected ? "Selecionado ✓" : "Selecionar"}
-                            </button>
-                          </div>
-                        </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        {item.status === "done" && <span style={{ fontSize: 9, fontWeight: 600, color: "#22C55E", background: "#F0FDF4", padding: "2px 6px", borderRadius: 4 }}>Concluído</span>}
+                        {item.status === "current" && <span style={{ fontSize: 9, fontWeight: 600, color: "#2563EB", background: "#EBF5FF", padding: "2px 6px", borderRadius: 4 }}>Hoje</span>}
+                        {item.status === "upcoming" && <span style={{ fontSize: 9, fontWeight: 600, color: "#9CA3AF", background: "#F3F4F6", padding: "2px 6px", borderRadius: 4 }}>Em breve</span>}
                       </div>
                     </div>
-                  )
-                })}
-              </div>
-              {compareHotels.length === 2 && !showCompare && (
-                <button data-testid="button-show-compare" onClick={() => setShowCompare(true)} style={{
-                  width: "100%", padding: "10px 0", borderRadius: 8, border: "none",
-                  background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff",
-                  fontSize: 12, fontWeight: 700, cursor: "pointer",
-                }}>Comparar 2 Hotéis Selecionados</button>
-              )}
-            </div>
-          )}
-
-          {activeSection === "itinerary" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", padding: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Sparkles style={{ width: 16, height: 16, color: "#F57C00" }} /> Catálogo de Atividades
-                </h3>
-                <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto", paddingBottom: 4 }}>
-                  {["Atrações", "Parques Aquáticos", "Passeios", "Refeições", "Transfers"].map(cat => (
-                    <button key={cat} data-testid={`button-cat-${cat}`} onClick={() => setCatalogCategory(cat)} style={{
-                      padding: "6px 12px", borderRadius: 8, border: catalogCategory === cat ? "2px solid #2563EB" : "1px solid #E5E7EB",
-                      background: catalogCategory === cat ? "#EBF5FF" : "#fff", cursor: "pointer",
-                      fontSize: 11, fontWeight: catalogCategory === cat ? 700 : 500,
-                      color: catalogCategory === cat ? "#2563EB" : "#6B7280", whiteSpace: "nowrap",
-                    }}>{cat}</button>
-                  ))}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                  {CATALOG.filter(c => c.category === catalogCategory).map(item => {
-                    const Icon = getCatalogIcon(item.iconName)
-                    const alreadyAdded = group.itinerary.some(i => i.name === item.name)
-                    return (
-                      <div key={item.id} data-testid={`catalog-item-${item.id}`} style={{
-                        padding: 12, borderRadius: 10, border: alreadyAdded ? "1px solid #BBF7D0" : "1px solid #E5E7EB",
-                        background: alreadyAdded ? "#F0FDF4" : "#fff",
+                    {isExpanded && (
+                      <div style={{
+                        marginTop: 8, paddingTop: 8, borderTop: "1px solid #E5E7EB",
+                        fontSize: 12, color: "#6B7280", lineHeight: 1.5,
                       }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                          <Icon style={{ width: 16, height: 16, color: "#2563EB" }} />
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "#1F2937" }}>{item.name}</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, fontSize: 11, color: "#6B7280" }}>
-                          <span>{item.price > 0 ? `R$ ${item.price}/pessoa` : "Incluído"}</span>
-                          <span>·</span>
-                          <span>{item.duration}</span>
-                          <span>·</span>
-                          <span>{item.suggestedTime}</span>
-                        </div>
-                        <div style={{ display: "flex", gap: 4 }}>
-                          {[1, 2, 3, 4, 5].map(day => (
-                            <button key={day} data-testid={`add-${item.id}-day-${day}`}
-                              onClick={() => handleAddToItinerary(item, day)}
-                              style={{
-                                flex: 1, padding: "4px 0", borderRadius: 4, border: "1px solid #E5E7EB",
-                                background: "#F9FAFB", cursor: "pointer", fontSize: 9, fontWeight: 600, color: "#6B7280",
-                              }}>D{day}</button>
-                          ))}
-                        </div>
+                        {item.details}
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {group.itinerary.length > 0 && (
-                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", padding: 16 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
-                    <Calendar style={{ width: 16, height: 16, color: "#22C55E" }} /> Roteiro Montado
-                  </h3>
-                  {[1, 2, 3, 4, 5].map(day => {
-                    const dayItems = group.itinerary.filter(i => i.day === day)
-                    if (dayItems.length === 0) return null
-                    return (
-                      <div key={day} style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", marginBottom: 6 }}>Dia {day}</div>
-                        {dayItems.map(item => {
-                          const Icon = getCatalogIcon(item.icon)
-                          return (
-                            <div key={item.id} data-testid={`itinerary-item-${item.id}`} style={{
-                              display: "flex", alignItems: "center", gap: 8, padding: "6px 8px",
-                              borderRadius: 6, background: "#F9FAFB", marginBottom: 4,
-                            }}>
-                              <Icon style={{ width: 14, height: 14, color: "#2563EB", flexShrink: 0 }} />
-                              <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", flex: 1 }}>{item.name}</span>
-                              <span style={{ fontSize: 10, color: "#6B7280" }}>{item.time}</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#22C55E" }}>{item.price > 0 ? `R$ ${item.price}` : "Incluído"}</span>
-                              <button data-testid={`remove-${item.id}`} onClick={() => handleRemoveFromItinerary(item.id)} style={{
-                                background: "none", border: "none", cursor: "pointer", padding: 2,
-                              }}><Trash2 style={{ width: 12, height: 12, color: "#EF4444" }} /></button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                  <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: "#EBF5FF", display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700 }}>
-                    <span style={{ color: "#374151" }}>Total do Roteiro</span>
-                    <span style={{ color: "#2563EB" }}>R$ {group.itinerary.reduce((sum, i) => sum + i.price, 0)}/pessoa</span>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              )
+            })}
+          </div>
+        </div>
 
-          {activeSection === "orders" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
-                <div style={{ background: "#fff", borderRadius: 10, padding: 12, textAlign: "center", border: "1px solid #E5E7EB" }}>
-                  <div style={{ fontSize: 10, color: "#6B7280" }}>Confirmados</div>
-                  <div data-testid="text-confirmed-orders" style={{ fontSize: 20, fontWeight: 800, color: "#22C55E" }}>{confirmedOrders}</div>
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
+          <button data-testid="button-toggle-savings" onClick={() => setShowSavings(!showSavings)} style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            gap: 8, padding: 0, border: "none", background: "transparent", cursor: "pointer",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Percent style={{ width: 18, height: 18, color: "#22C55E" }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Economize em Grupo</span>
+            </div>
+            {showSavings ? <ChevronUp style={{ width: 18, height: 18, color: "#6B7280" }} /> : <ChevronDown style={{ width: 18, height: 18, color: "#6B7280" }} />}
+          </button>
+
+          {showSavings && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{
+                padding: "14px 16px", borderRadius: 12, marginBottom: 12,
+                background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
+                border: "1px solid #BBF7D0", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 12, color: "#16A34A", fontWeight: 600 }}>Economia total do grupo</div>
+                <div data-testid="text-total-savings" style={{ fontSize: 28, fontWeight: 800, color: "#22C55E" }}>
+                  R$ {animatedSavings.toLocaleString("pt-BR")}
                 </div>
-                <div style={{ background: "#fff", borderRadius: 10, padding: 12, textAlign: "center", border: "1px solid #E5E7EB" }}>
-                  <div style={{ fontSize: 10, color: "#6B7280" }}>Pendentes</div>
-                  <div data-testid="text-pending-orders" style={{ fontSize: 20, fontWeight: 800, color: "#F59E0B" }}>{pendingOrders}</div>
-                </div>
-                <div style={{ background: "#fff", borderRadius: 10, padding: 12, textAlign: "center", border: "1px solid #E5E7EB" }}>
-                  <div style={{ fontSize: 10, color: "#6B7280" }}>Total</div>
-                  <div data-testid="text-total-orders-value" style={{ fontSize: 20, fontWeight: 800, color: "#2563EB" }}>R$ {totalOrders.toLocaleString("pt-BR")}</div>
-                </div>
+                <div style={{ fontSize: 11, color: "#6B7280" }}>comparado com reservas individuais</div>
               </div>
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E5E7EB", overflow: "hidden" }}>
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                    <thead>
-                      <tr style={{ background: "#F9FAFB" }}>
-                        <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>ID</th>
-                        <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>Membro</th>
-                        <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>Item</th>
-                        <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>Tipo</th>
-                        <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>Valor</th>
-                        <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 600, color: "#6B7280", fontSize: 11 }}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.orders.length === 0 ? (
-                        <tr><td colSpan={6} style={{ padding: 20, textAlign: "center", color: "#9CA3AF" }}>Nenhum pedido ainda. Selecione hotel ou monte o roteiro.</td></tr>
-                      ) : group.orders.map((order, i) => (
-                        <tr key={i} data-testid={`row-order-${i}`} style={{ borderTop: "1px solid #F3F4F6" }}>
-                          <td style={{ padding: "10px 12px", fontWeight: 600, color: "#2563EB", fontSize: 11 }}>{order.id}</td>
-                          <td style={{ padding: "10px 12px", color: "#374151" }}>{order.memberName}</td>
-                          <td style={{ padding: "10px 12px", color: "#374151" }}>{order.item}</td>
-                          <td style={{ padding: "10px 12px", color: "#6B7280" }}>{order.type}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: "#1F2937" }}>R$ {order.value}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                            <span style={{
-                              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
-                              color: order.status === "confirmed" ? "#22C55E" : order.status === "pending" ? "#F59E0B" : "#EF4444",
-                              background: order.status === "confirmed" ? "#F0FDF4" : order.status === "pending" ? "#FEF3C7" : "#FEE2E2",
-                            }}>
-                              {order.status === "confirmed" ? "Confirmado" : order.status === "pending" ? "Pendente" : "Cancelado"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+
+              <div style={{
+                display: "grid", gridTemplateColumns: "1fr auto auto", gap: "2px 12px",
+                fontSize: 12, padding: "0 4px",
+              }}>
+                <div style={{ fontWeight: 700, color: "#6B7280", fontSize: 10, paddingBottom: 6 }}>ITEM</div>
+                <div style={{ fontWeight: 700, color: "#EF4444", fontSize: 10, paddingBottom: 6, textAlign: "right" }}>INDIVIDUAL</div>
+                <div style={{ fontWeight: 700, color: "#22C55E", fontSize: 10, paddingBottom: 6, textAlign: "right" }}>GRUPO</div>
+                {SAVINGS_COMPARISON.map((item, i) => {
+                  const ItemIcon = item.icon
+                  const savings = item.individual - item.group
+                  return [
+                    <div key={`name-${i}`} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0", borderTop: "1px solid #F3F4F6" }}>
+                      <ItemIcon style={{ width: 14, height: 14, color: "#6B7280" }} />
+                      <span style={{ color: "#374151", fontWeight: 500 }}>{item.item}</span>
+                    </div>,
+                    <div key={`ind-${i}`} style={{ textAlign: "right", color: "#9CA3AF", textDecoration: "line-through", padding: "6px 0", borderTop: "1px solid #F3F4F6" }}>
+                      R$ {item.individual}
+                    </div>,
+                    <div key={`grp-${i}`} style={{ textAlign: "right", padding: "6px 0", borderTop: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
+                      <span style={{ fontWeight: 700, color: "#22C55E" }}>R$ {item.group}</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: "#16A34A", background: "#F0FDF4", padding: "1px 4px", borderRadius: 3 }}>-{Math.round((savings / item.individual) * 100)}%</span>
+                    </div>
+                  ]
+                })}
+              </div>
+              <div style={{
+                display: "grid", gridTemplateColumns: "1fr auto auto", gap: "2px 12px",
+                fontSize: 13, padding: "8px 4px 0", borderTop: "2px solid #E5E7EB", marginTop: 4,
+              }}>
+                <div style={{ fontWeight: 800, color: "#1F2937" }}>Total</div>
+                <div style={{ textAlign: "right", fontWeight: 700, color: "#EF4444", textDecoration: "line-through" }}>R$ {totalIndividual.toLocaleString("pt-BR")}</div>
+                <div style={{ textAlign: "right", fontWeight: 800, color: "#22C55E" }}>R$ {totalGroup.toLocaleString("pt-BR")}</div>
               </div>
             </div>
           )}
         </div>
-      </div>
 
-      <button data-testid="button-open-chat" onClick={() => setChatOpen(!chatOpen)} style={{
-        position: "fixed", bottom: 20, right: 20, zIndex: 100,
-        width: 56, height: 56, borderRadius: "50%", border: "none",
-        background: chatOpen ? "#EF4444" : "linear-gradient(135deg, #22C55E, #16A34A)",
-        color: "#fff", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        {chatOpen ? <X style={{ width: 24, height: 24 }} /> : <MessageCircle style={{ width: 24, height: 24 }} />}
-        {!chatOpen && unreadCount > 0 && (
-          <div style={{
-            position: "absolute", top: -2, right: -2, width: 20, height: 20, borderRadius: "50%",
-            background: "#EF4444", color: "#fff", fontSize: 10, fontWeight: 800,
-            display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff",
-          }}>{unreadCount}</div>
-        )}
-      </button>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            pointerEvents: chatOpen ? "auto" : "none",
+            zIndex: 44,
+          }}
+        >
+          <div
+            onClick={() => setChatOpen(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(15,23,42,0.20)",
+              opacity: chatOpen ? 1 : 0,
+              transition: "opacity 200ms ease",
+            }}
+          />
+        </div>
 
-      {chatOpen && (
-        <div data-testid="chat-popup" style={{
-          position: "fixed", bottom: 84, right: 20, zIndex: 150,
-          width: 380, maxWidth: "calc(100vw - 32px)", height: 500, maxHeight: "calc(100vh - 120px)",
-          background: "#fff", borderRadius: 16, boxShadow: "0 8px 40px rgba(0,0,0,0.2)",
-          display: "flex", flexDirection: "column", overflow: "hidden",
-          border: "1px solid #E5E7EB",
-        }}>
-          <div style={{
-            background: "linear-gradient(135deg, #1e3a5f, #2563EB)", padding: "12px 16px",
-            display: "flex", alignItems: "center", gap: 8, color: "#fff", flexShrink: 0,
-          }}>
-            <Bot style={{ width: 20, height: 20 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Chat - {group.name}</div>
-              <div style={{ fontSize: 10, opacity: 0.8 }}>{group.messages.length} mensagens</div>
+        <div
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 86,
+            width: "min(430px, calc(100vw - 24px))",
+            maxHeight: "70vh",
+            background: "#fff",
+            border: "1px solid #E5E7EB",
+            borderRadius: 14,
+            boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+            overflow: "hidden",
+            zIndex: 45,
+            display: "flex",
+            flexDirection: "column",
+            pointerEvents: chatOpen ? "auto" : "none",
+            opacity: chatOpen ? 1 : 0,
+            transform: chatOpen ? "translateY(0)" : "translateY(14px) scale(0.98)",
+            transformOrigin: "bottom right",
+            transition: "opacity 220ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+                padding: "10px 12px",
+                borderBottom: "1px solid #E5E7EB",
+                background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Bot style={{ width: 16, height: 16, color: "#22C55E" }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1F2937" }}>Chat do Grupo</span>
+                <span style={{ fontSize: 10, color: "#64748B" }}>({messages.length})</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setChatOpen(false)}
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  background: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ChevronDown style={{ width: 14, height: 14, color: "#475569" }} />
+              </button>
             </div>
-            <button data-testid="button-close-chat" onClick={() => setChatOpen(false)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer" }}>
-              <X style={{ width: 18, height: 18 }} />
-            </button>
-          </div>
 
-          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: 12 }}>
-            {group.messages.map(msg => (
-              <div key={msg.id} style={{ display: "flex", flexDirection: msg.isMe ? "row-reverse" : "row", alignItems: "flex-start", gap: 6, marginBottom: 12 }}>
+            <div ref={chatRef} style={{ maxHeight: 360, overflowY: "auto", padding: "12px 12px 0" }}>
+            {messages.map((msg) => (
+              <div key={msg.id} style={{
+                display: "flex", flexDirection: msg.isMe ? "row-reverse" : "row",
+                alignItems: "flex-start", gap: 8, marginBottom: 14,
+              }}>
                 {!msg.isMe && (
                   <div style={{
-                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                    background: msg.isBot ? "linear-gradient(135deg, #22C55E, #16A34A)" : group.members.find(m => m.name === msg.sender)?.color || "#2563EB",
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff",
-                  }}>{msg.isBot ? <Bot style={{ width: 12, height: 12 }} /> : msg.sender.charAt(0)}</div>
+                    width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                    background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : msg.isBot ? "linear-gradient(135deg, #22C55E, #16A34A)" : MEMBERS.find(m => m.name === msg.sender)?.color || "#2563EB",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 12, fontWeight: 700, color: "#fff",
+                  }}>
+                    {msg.isBot ? <Bot style={{ width: 14, height: 14 }} /> : msg.sender.charAt(0)}
+                  </div>
                 )}
-                <div style={{ maxWidth: "80%" }}>
+                <div style={{ maxWidth: "78%" }}>
                   {!msg.isMe && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: msg.isBot ? "#22C55E" : "#1F2937" }}>{msg.sender}</span>
-                      {msg.isBot && <span style={{ fontSize: 8, fontWeight: 700, color: "#fff", background: "#22C55E", padding: "1px 4px", borderRadius: 3 }}>BOT</span>}
-                      {msg.isOrganizer && <Crown style={{ width: 8, height: 8, color: "#F59E0B" }} />}
-                      {msg.tag && <span style={{ fontSize: 8, color: "#22C55E", fontWeight: 600 }}>{msg.tag}</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: msg.isAiIntervention ? "#ea580c" : msg.isBot ? "#22C55E" : "#1F2937" }}>{msg.sender}</span>
+                      {msg.isBot && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: "#fff",
+                          background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
+                        }}>AI BOT</span>
+                      )}
+                      {msg.isOrganizer && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: "#F59E0B",
+                          background: "#FEF3C7", padding: "1px 6px", borderRadius: 4,
+                          display: "flex", alignItems: "center", gap: 2,
+                        }}>
+                          <Crown style={{ width: 8, height: 8 }} /> Organizador
+                        </span>
+                      )}
+                      {msg.tag && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 600, color: "#22C55E",
+                          background: "#F0FDF4", padding: "1px 6px", borderRadius: 4,
+                          display: "flex", alignItems: "center", gap: 2,
+                        }}><Check style={{ width: 8, height: 8 }} /> {msg.tag}</span>
+                      )}
+                    </div>
+                  )}
+                  {msg.isMe && msg.isOrganizer && (
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, color: "#F59E0B",
+                        background: "#FEF3C7", padding: "1px 6px", borderRadius: 4,
+                        display: "flex", alignItems: "center", gap: 2,
+                      }}>
+                        <Crown style={{ width: 8, height: 8 }} /> Organizador
+                      </span>
                     </div>
                   )}
                   <div style={{
-                    padding: "8px 12px", borderRadius: 12,
-                    ...(msg.isMe ? { background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", borderTopRightRadius: 4 }
-                      : msg.isBot ? { background: "#F0FDF4", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #BBF7D0" }
-                      : { background: "#F3F4F6", color: "#1F2937", borderTopLeftRadius: 4 }),
+                    padding: "10px 14px", borderRadius: 14,
+                    ...(msg.isMe
+                      ? { background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", borderTopRightRadius: 4 }
+                      : msg.isAiIntervention
+                        ? { background: "#FFF7ED", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #FED7AA" }
+                        : msg.isBot
+                        ? { background: "#F0FDF4", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #BBF7D0" }
+                        : { background: "#fff", color: "#1F2937", borderTopLeftRadius: 4, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
+                    ),
                   }}>
-                    <p style={{ fontSize: 12, lineHeight: 1.5, margin: 0 }}>{msg.text}</p>
+                    <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>{msg.text}</p>
                     {msg.card && (
-                      <div style={{ marginTop: 8, background: "#fff", borderRadius: 10, overflow: "hidden", border: "1px solid #E5E7EB" }}>
-                        <div style={{ height: 50, background: msg.card.type === "hotel" ? "linear-gradient(135deg, #3B82F6, #1D4ED8)" : msg.card.type === "voucher" ? "linear-gradient(135deg, #F57C00, #E65100)" : "linear-gradient(135deg, #F59E0B, #D97706)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                          {msg.card.type === "voucher" ? <QrCode style={{ width: 20, height: 20, color: "rgba(255,255,255,0.5)" }} /> : <Hotel style={{ width: 20, height: 20, color: "rgba(255,255,255,0.5)" }} />}
-                          {msg.card.discount && <div style={{ position: "absolute", top: 6, right: 6, background: "#EF4444", color: "#fff", padding: "1px 6px", borderRadius: 4, fontSize: 9, fontWeight: 800 }}>{msg.card.discount}</div>}
+                      <div style={{
+                        marginTop: 10, background: "#fff", borderRadius: 12, overflow: "hidden",
+                        border: "1px solid #E5E7EB", boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      }}>
+                        <div style={{
+                          height: 70, background: msg.card.type === "hotel"
+                            ? "linear-gradient(135deg, #3B82F6, #1D4ED8)"
+                            : "linear-gradient(135deg, #F59E0B, #D97706)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          position: "relative",
+                        }}>
+                          {msg.card.type === "hotel" ? <Hotel style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} /> : <Ticket style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} />}
+                          {msg.card.discount && (
+                            <div style={{
+                              position: "absolute", top: 8, right: 8,
+                              background: "#EF4444", color: "#fff", padding: "2px 8px",
+                              borderRadius: 6, fontSize: 11, fontWeight: 800,
+                            }}>{msg.card.discount}</div>
+                          )}
                         </div>
-                        <div style={{ padding: 10 }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937" }}>{msg.card.title}</div>
-                          <div style={{ fontSize: 10, color: "#6B7280", marginTop: 2 }}>{msg.card.subtitle}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-                            <span style={{ fontSize: 14, fontWeight: 800, color: "#22C55E" }}>{msg.card.price}</span>
-                            {msg.card.oldPrice && <span style={{ fontSize: 10, color: "#9CA3AF", textDecoration: "line-through" }}>{msg.card.oldPrice}</span>}
+                        <div style={{ padding: 12 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{msg.card.title}</div>
+                          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{msg.card.subtitle}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                            <span style={{ fontSize: 16, fontWeight: 800, color: "#22C55E" }}>{msg.card.price}</span>
+                            {msg.card.oldPrice && (
+                              <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>{msg.card.oldPrice}</span>
+                            )}
                           </div>
-                          <button data-testid={`button-cta-${msg.id}`}
-                            onClick={() => { if (msg.card?.type === "voucher") setVoucherModalOpen(true) }}
-                            style={{
-                              marginTop: 6, width: "100%", padding: "6px 0", borderRadius: 6, border: "none",
-                              background: msg.card.type === "voucher" ? "linear-gradient(135deg, #F57C00, #E65100)" : "linear-gradient(135deg, #2563EB, #1D4ED8)",
-                              color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                            }}>{msg.card.cta}</button>
+                          <button data-testid={`button-cta-${msg.id}`} style={{
+                            marginTop: 8, width: "100%", padding: "8px 0", borderRadius: 8,
+                            border: "none", background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
+                            color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                          }}>
+                            {msg.card.cta} <ChevronRight style={{ width: 14, height: 14 }} />
+                          </button>
                         </div>
                       </div>
                     )}
                   </div>
-                  <span style={{ fontSize: 9, color: "#9CA3AF", marginTop: 2, display: "block", textAlign: msg.isMe ? "right" : "left" }}>{msg.time}</span>
+                  <span style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2, display: "block", textAlign: msg.isMe ? "right" : "left" }}>{msg.time}</span>
                 </div>
               </div>
             ))}
+
             {showTyping && (
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 12 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #22C55E, #16A34A)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}><Bot style={{ width: 12, height: 12 }} /></div>
-                <div style={{ padding: "8px 14px", borderRadius: 12, borderTopLeftRadius: 4, background: "#F0FDF4", border: "1px solid #BBF7D0", display: "flex", gap: 3 }}>
-                  <span style={{ fontSize: 18, animation: "bounce 1s infinite" }}>&#8226;</span>
-                  <span style={{ fontSize: 18, animation: "bounce 1s infinite 0.2s" }}>&#8226;</span>
-                  <span style={{ fontSize: 18, animation: "bounce 1s infinite 0.4s" }}>&#8226;</span>
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14,
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                  background: "linear-gradient(135deg, #22C55E, #16A34A)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#fff",
+                }}>
+                  <Bot style={{ width: 14, height: 14 }} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#22C55E" }}>CaldasAI</span>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, color: "#fff",
+                      background: "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
+                    }}>AI BOT</span>
+                  </div>
+                  <div style={{
+                    padding: "10px 18px", borderRadius: 14, borderTopLeftRadius: 4,
+                    background: "#F0FDF4", border: "1px solid #BBF7D0",
+                    display: "flex", alignItems: "center", gap: 4,
+                  }}>
+                    <span style={{ fontSize: 20, animation: "bounce 1s infinite" }}>&#8226;</span>
+                    <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.2s" }}>&#8226;</span>
+                    <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.4s" }}>&#8226;</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div style={{ padding: "8px 12px", borderTop: "1px solid #E5E7EB", display: "flex", gap: 6, flexShrink: 0 }}>
-            <input data-testid="input-chat-message" value={message} onChange={e => setMessage(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSendMessage()}
-              placeholder="Pergunte sobre hotel, parque, spa..."
-              style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12, outline: "none" }}
-            />
-            <button data-testid="button-send-message" onClick={handleSendMessage} style={{
-              width: 36, height: 36, borderRadius: 8, border: "none",
-              background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
-              color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
+            <div style={{ background: "#fff", borderTop: "1px solid #E5E7EB", padding: "10px 12px 12px" }}>
+        <div style={{
+          display: "flex", gap: 8, marginBottom: 10, overflowX: "auto",
+        }}>
+          {TABS.map((tab, i) => (
+            <button key={i} data-testid={`button-tab-${i}`} onClick={() => setActiveTab(i)} style={{
+              flex: 1, padding: "8px 4px", borderRadius: 8,
+              border: activeTab === i ? "2px solid #2563EB" : "1px solid #E5E7EB",
+              background: activeTab === i ? "#EBF5FF" : "#F9FAFB",
+              cursor: "pointer", textAlign: "center", minWidth: 70,
             }}>
-              <Send style={{ width: 14, height: 14 }} />
+              <tab.icon style={{ width: 16, height: 16, color: activeTab === i ? "#2563EB" : "#9CA3AF", margin: "0 auto 2px", display: "block" }} />
+              <span style={{ fontSize: 10, color: activeTab === i ? "#2563EB" : "#374151", fontWeight: activeTab === i ? 700 : 500 }}>{tab.label}</span>
             </button>
+          ))}
+        </div>
+
+        <div style={{
+          background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", padding: "10px 12px",
+          borderRadius: 10, border: "1px solid #BBF7D0", marginBottom: 10,
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <Share2 style={{ width: 18, height: 18, color: "#22C55E", flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
+            <div style={{ fontSize: 11, color: "#6B7280" }}>Quanto mais pessoas, maior o desconto</div>
+          </div>
+          <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
+            padding: "6px 12px", borderRadius: 8, border: "none",
+            background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700,
+            cursor: "pointer", whiteSpace: "nowrap",
+          }}>
+            WhatsApp
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <button data-testid="button-emoji" style={{
+            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Smile style={{ width: 18, height: 18, color: "#F59E0B" }} />
+          </button>
+          <button data-testid="button-camera" style={{
+            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Camera style={{ width: 18, height: 18, color: "#6B7280" }} />
+          </button>
+          <button data-testid="button-location" style={{
+            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <MapPin style={{ width: 18, height: 18, color: "#EF4444" }} />
+          </button>
+          <input
+            data-testid="input-message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Envie uma mensagem..."
+            style={{
+              flex: 1, padding: "10px 14px", borderRadius: 10,
+              border: "1px solid #E5E7EB", fontSize: 13, outline: "none",
+              background: "#F9FAFB",
+            }}
+          />
+          <button data-testid="button-send" onClick={handleSend} style={{
+            width: 40, height: 40, borderRadius: 10, border: "none",
+            background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
+            color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all 0.2s",
+          }}>
+            <Send style={{ width: 16, height: 16 }} />
+          </button>
+            </div>
           </div>
         </div>
+
+      </div>
+
+      {wizardStep === "quem" && (
+        <BarraFinanceira
+          valorPorPessoa={valorPorPessoaBarra}
+          valorTotal={valorTotalBarra}
+          onReservar={() => {}}
+        />
       )}
 
+      <FloatingChat
+        isOpen={chatOpen}
+        unreadCount={Math.max(messages.length - 3, 0)}
+        onToggle={() => setChatOpen((v) => !v)}
+      />
+
       <style>{`
-        @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-6px); }
+        }
+        @keyframes slideDown {
+          from { transform: translate(-50%, -100%); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
       `}</style>
     </div>
   )

@@ -16,6 +16,7 @@ import CaldasAI from "@/pages/caldas-ai";
 import MapaCaldas from "@/pages/mapa-caldas-novas";
 import Perfil from "@/pages/perfil";
 import ViagensGrupo from "@/pages/viagens-grupo";
+import CriarExcursao from "@/pages/criar-excursao";
 import QuemSomos from "@/pages/quem-somos";
 import PoliticaPrivacidade from "@/pages/politica-de-privacidade";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -47,6 +48,9 @@ function Router() {
       <Route path="/mapa-caldas-novas" component={MapaCaldas} />
       <Route path="/perfil" component={Perfil} />
       <Route path="/viagens-grupo" component={ViagensGrupo} />
+      <Route path="/viagens-grupo/:id" component={ViagensGrupo} />
+      <Route path="/criar-excursao" component={CriarExcursao} />
+      <Route path="/criar-excursao/:id" component={CriarExcursao} />
       <Route path="/quem-somos" component={QuemSomos} />
       <Route path="/politica-de-privacidade" component={PoliticaPrivacidade} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
