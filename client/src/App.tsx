@@ -31,6 +31,7 @@ import SeguroViagem from "@/pages/admin/seguro-viagem";
 import SegurancaEmbarque from "@/pages/admin/seguranca-embarque";
 import ContratosExcursao from "@/pages/admin/contratos";
 import FrotaANTT from "@/pages/admin/frota-antt";
+import Excursoes from "@/pages/excursoes";
 import CircularNav from "@/components/circular-nav";
 
 function Router() {
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/hoteis" component={Hoteis} />
       <Route path="/hoteis/:id" component={Hoteis} />
+      <Route path="/excursoes" component={Excursoes} />
       <Route path="/promocoes" component={Promocoes} />
       <Route path="/flash-deals" component={FlashDeals} />
       <Route path="/leiloes" component={Leiloes} />

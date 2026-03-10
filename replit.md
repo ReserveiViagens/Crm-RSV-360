@@ -35,7 +35,7 @@ Preferred communication style: Simple, everyday language.
 - **Fonts**: Inter, Open Sans, Poppins loaded from Google Fonts
 - **Real-time**: WebSocket client (`client/src/lib/socket.ts`) connects to `/ws`, subscribes per excursão ID, handles `estado_grupo`, `pix_expirado`, and `vigilancia` events with auto-reconnect
 - **AI/Personalization**: Traveler profile stored in `localStorage` (`rsv360_traveler_profile`); match score calculation; FOMO/urgency messaging logic in `client/src/lib/caldas-ai-regras.ts`
-- **Key pages**: Home, Hotels, Promotions, Flash Deals, Auctions, Tickets, Attractions, CaldasAI, Map, Profile, Group Trips, Create Excursão, Admin Dashboard, and multiple admin sub-pages
+- **Key pages**: Home, Hotels, Excursões (landing pública), Promotions, Flash Deals, Auctions, Tickets, Attractions, CaldasAI, Map, Profile, Group Trips, Create Excursão, Admin Dashboard, and multiple admin sub-pages
 
 ### Backend
 
