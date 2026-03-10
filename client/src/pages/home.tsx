@@ -542,14 +542,24 @@ export default function RSV360Landing() {
               <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button style={{
-                padding: "6px 14px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.5)",
-                background: "transparent", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-              }}>Entrar</button>
-              <button style={{
-                padding: "6px 14px", borderRadius: 20, border: "none",
-                background: "#fff", color: "#2563EB", fontSize: 13, fontWeight: 700, cursor: "pointer",
-              }}>Cadastrar</button>
+              <Link href="/entrar" style={{ textDecoration: "none" }}>
+                <button
+                  data-testid="button-entrar-home"
+                  style={{
+                    padding: "6px 14px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.5)",
+                    background: "transparent", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Entrar</button>
+              </Link>
+              <Link href="/cadastrar" style={{ textDecoration: "none" }}>
+                <button
+                  data-testid="button-cadastrar-home"
+                  style={{
+                    padding: "6px 14px", borderRadius: 20, border: "none",
+                    background: "#fff", color: "#2563EB", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}
+                >Cadastrar</button>
+              </Link>
             </div>
           </div>
 
