@@ -39,6 +39,8 @@ import GamificationDashboard from "@/pages/organizer/gamification-dashboard";
 import ExcursaoLanding from "@/pages/excursao-landing";
 import FinancialDashboard from "@/pages/superadmin/financial-dashboard";
 import LiveChat from "@/pages/superadmin/live-chat";
+import Entrar from "@/pages/entrar";
+import Cadastrar from "@/pages/cadastrar";
 
 function Router() {
   return (
@@ -80,6 +82,9 @@ function Router() {
       <Route path="/admin/excursoes" component={ViagensGrupo} />
       <Route path="/admin/passageiros" component={ViagensGrupo} />
       <Route path="/dashboard" component={AdminDashboard} />
+      <Route path="/entrar" component={Entrar} />
+      <Route path="/login" component={Entrar} />
+      <Route path="/cadastrar" component={Cadastrar} />
       <Route path="/kyc" component={KYCVerificacao} />
       <Route path="/admin/waas" component={WaaSDashboard} />
       <Route path="/organizer/metas" component={GamificationDashboard} />

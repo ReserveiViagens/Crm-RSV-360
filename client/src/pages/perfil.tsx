@@ -1,22 +1,11 @@
-import { useState } from "react"
-import { ArrowLeft, User, Star, Calendar, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays } from "lucide-react"
+import { ArrowLeft, User, Star, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays, Mail, Phone, Loader2 } from "lucide-react"
 import { Link } from "wouter";
+import { useAuth, useLogout } from "@/hooks/use-auth";
+
 const RESERVATIONS = [
-  {
-    id: 1,
-    hotel: "Resort Termas Paradise",
-    dates: "13/05/2026",
-    status: "Confirmada",
-    location: "Caldas Novas",
-  },
-  {
-    id: 2,
-    hotel: "Hot Park - Ingresso Família",
-    dates: "15/05/2026",
-    status: "Pendente",
-    location: "Rio Quente",
-  },
-]
+  { id: 1, hotel: "Resort Termas Paradise", dates: "13/05/2026", status: "Confirmada", location: "Caldas Novas" },
+  { id: 2, hotel: "Hot Park - Ingresso Família", dates: "15/05/2026", status: "Pendente", location: "Rio Quente" },
+];
 
 const MENU_ITEMS = [
   { icon: CalendarDays, label: "Minhas Reservas", href: "#", badge: "2" },
@@ -25,9 +14,15 @@ const MENU_ITEMS = [
   { icon: Bell, label: "Notificações", href: "#", badge: "3" },
   { icon: Shield, label: "Privacidade e Segurança", href: "/politica-de-privacidade" },
   { icon: Settings, label: "Configurações", href: "#" },
-]
+];
 
 export default function PerfilPage() {
+  const { user, isLoading } = useAuth();
+  const logout = useLogout();
+
+  const displayName = user?.nome ?? "Visitante";
+  const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
   return (
     <div className="rsv-subpage" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
       <div style={{
@@ -49,26 +44,96 @@ export default function PerfilPage() {
         </div>
 
         <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: "50%", margin: "0 auto 12px",
-            background: "rgba(255,255,255,0.2)", border: "3px solid rgba(255,255,255,0.4)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <User style={{ width: 36, height: 36, color: "#fff" }} />
-          </div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>Visitante</h1>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 4,
-            background: "rgba(255,215,0,0.3)", padding: "4px 12px",
-            borderRadius: 12, fontSize: 12, fontWeight: 700, color: "#FFD700",
-          }}>
-            <Star style={{ width: 12, height: 12, fill: "#FFD700", color: "#FFD700" }} />
-            Nível Ouro
-          </div>
+          {isLoading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
+              <Loader2 style={{ width: 32, height: 32, color: "rgba(255,255,255,0.6)", animation: "spin 1s linear infinite" }} />
+            </div>
+          ) : (
+            <>
+              <div style={{
+                width: 80, height: 80, borderRadius: "50%", margin: "0 auto 12px",
+                background: user ? "linear-gradient(135deg, #F57C00, #EF4444)" : "rgba(255,255,255,0.2)",
+                border: "3px solid rgba(255,255,255,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {user ? (
+                  <span style={{ fontSize: 24, fontWeight: 900, color: "#fff" }}>{initials}</span>
+                ) : (
+                  <User style={{ width: 36, height: 36, color: "#fff" }} />
+                )}
+              </div>
+              <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }} data-testid="text-username">
+                {displayName}
+              </h1>
+              {user?.email && (
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: "0 0 8px" }}>{user.email}</p>
+              )}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                background: "rgba(255,215,0,0.3)", padding: "4px 12px",
+                borderRadius: 12, fontSize: 12, fontWeight: 700, color: "#FFD700",
+              }}>
+                <Star style={{ width: 12, height: 12, fill: "#FFD700", color: "#FFD700" }} />
+                {user ? "Membro RSV360" : "Visitante"}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div style={{ padding: "0 16px", marginTop: -20 }}>
+        {!user && !isLoading && (
+          <div style={{
+            background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08)", textAlign: "center",
+          }}>
+            <p style={{ fontSize: 14, color: "#6B7280", margin: "0 0 14px" }}>
+              Faça login para acessar suas reservas e benefícios exclusivos
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Link href="/entrar" style={{ flex: 1 }}>
+                <button data-testid="button-entrar-perfil" style={{
+                  width: "100%", padding: "12px 0", borderRadius: 10,
+                  background: "linear-gradient(135deg, #1e3a5f, #2563EB)",
+                  color: "#fff", border: "none", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}>
+                  Entrar
+                </button>
+              </Link>
+              <Link href="/cadastrar" style={{ flex: 1 }}>
+                <button data-testid="button-cadastrar-perfil" style={{
+                  width: "100%", padding: "12px 0", borderRadius: 10,
+                  background: "#F9FAFB", color: "#1e3a5f",
+                  border: "1px solid #E5E7EB", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}>
+                  Cadastrar
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {user && (
+          <div style={{
+            background: "#fff", borderRadius: 16, padding: 16, marginBottom: 16,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" }}>Dados da conta</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <Mail style={{ width: 16, height: 16, color: "#9CA3AF" }} />
+                <span style={{ fontSize: 13, color: "#374151" }} data-testid="text-email">{user.email}</span>
+              </div>
+              {user.telefone && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Phone style={{ width: 16, height: 16, color: "#9CA3AF" }} />
+                  <span style={{ fontSize: 13, color: "#374151" }} data-testid="text-telefone">{user.telefone}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div style={{
           background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
           boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
@@ -91,19 +156,13 @@ export default function PerfilPage() {
                 <div style={{
                   position: "absolute", top: -4, right: -4,
                   background: res.status === "Confirmada" ? "#22C55E" : "#F57C00",
-                  color: "#fff", padding: "1px 6px", borderRadius: 4,
-                  fontSize: 8, fontWeight: 700,
+                  color: "#fff", padding: "1px 6px", borderRadius: 4, fontSize: 8, fontWeight: 700,
                 }}>{res.status === "Confirmada" ? "OK" : "..."}</div>
               </div>
               <div>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", margin: "0 0 2px" }}>{res.hotel}</h3>
-                <p style={{ fontSize: 11, color: "#6B7280", margin: "0 0 2px" }}>
-                  {res.dates} - {res.location}
-                </p>
-                <span style={{
-                  fontSize: 10, fontWeight: 600,
-                  color: res.status === "Confirmada" ? "#22C55E" : "#F57C00",
-                }}>{res.status}</span>
+                <p style={{ fontSize: 11, color: "#6B7280", margin: "0 0 2px" }}>{res.dates} - {res.location}</p>
+                <span style={{ fontSize: 10, fontWeight: 600, color: res.status === "Confirmada" ? "#22C55E" : "#F57C00" }}>{res.status}</span>
               </div>
             </div>
           ))}
@@ -115,9 +174,8 @@ export default function PerfilPage() {
         }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" }}>Meus Pontos</h2>
           <div style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: 16, background: "linear-gradient(135deg, #FFF7ED, #FFEDD5)",
-            borderRadius: 12,
+            display: "flex", alignItems: "center", gap: 12, padding: 16,
+            background: "linear-gradient(135deg, #FFF7ED, #FFEDD5)", borderRadius: 12,
           }}>
             <div style={{ fontSize: 28 }}>🪙</div>
             <div>
@@ -153,15 +211,24 @@ export default function PerfilPage() {
           ))}
         </div>
 
-        <button style={{
-          width: "100%", padding: "14px 0", borderRadius: 12, border: "1px solid #FEE2E2",
-          background: "#FFF5F5", color: "#DC2626", fontSize: 14, fontWeight: 600,
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          marginBottom: 24,
-        }}>
-          <LogOut style={{ width: 18, height: 18 }} />
-          Sair da conta
-        </button>
+        {user && (
+          <button
+            data-testid="button-sair"
+            onClick={() => logout.mutate()}
+            disabled={logout.isPending}
+            style={{
+              width: "100%", padding: "14px 0", borderRadius: 12, border: "1px solid #FEE2E2",
+              background: "#FFF5F5", color: "#DC2626", fontSize: 14, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              marginBottom: 24,
+            }}
+          >
+            {logout.isPending ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : <LogOut style={{ width: 18, height: 18 }} />}
+            {logout.isPending ? "Saindo..." : "Sair da conta"}
+          </button>
+        )}
+
+        <div style={{ height: 80 }} />
       </div>
 
       <div style={{
@@ -171,26 +238,23 @@ export default function PerfilPage() {
         display: "flex", padding: "8px 0 12px", zIndex: 30,
       }}>
         {[
-          { icon: Home, label: "Home", href: "/", active: false },
-          { icon: Search, label: "Busca", href: "#", active: false },
-          { icon: CalendarDays, label: "Reservas", href: "#", active: false },
+          { icon: Home, label: "Home", href: "/" },
+          { icon: Search, label: "Busca", href: "#" },
+          { icon: CalendarDays, label: "Reservas", href: "#" },
           { icon: User, label: "Perfil", href: "/perfil", active: true },
         ].map((tab, i) => (
           <Link key={i} href={tab.href} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
             textDecoration: "none", gap: 2,
           }}>
-            <tab.icon style={{
-              width: 22, height: 22,
-              color: tab.active ? "#2563EB" : "#9CA3AF",
-            }} />
+            <tab.icon style={{ width: 22, height: 22, color: (tab as any).active ? "#2563EB" : "#9CA3AF" }} />
             <span style={{
-              fontSize: 10, fontWeight: tab.active ? 700 : 500,
-              color: tab.active ? "#2563EB" : "#9CA3AF",
+              fontSize: 10, fontWeight: (tab as any).active ? 700 : 500,
+              color: (tab as any).active ? "#2563EB" : "#9CA3AF",
             }}>{tab.label}</span>
           </Link>
         ))}
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,10 @@
 
 import type { Express, Request, Response } from "express";
 import { type Server } from "http";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+import { storage } from "./storage";
+import { registerSchema, loginSchema } from "@shared/schema";
 import { getOpcionais } from "./opcionais";
 import {
   criarReserva,
@@ -52,6 +56,77 @@ export async function registerRoutes(
     const nome = String(req.get("x-user-name") ?? "").trim() || "Usuário";
     return { userId, nome };
   };
+
+  const scryptAsync = promisify(scrypt);
+
+  const hashPassword = async (password: string): Promise<string> => {
+    const salt = randomBytes(16).toString("hex");
+    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+    return `${buf.toString("hex")}.${salt}`;
+  };
+
+  const verifyPassword = async (password: string, stored: string): Promise<boolean> => {
+    const [hash, salt] = stored.split(".");
+    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+    const storedBuf = Buffer.from(hash, "hex");
+    return timingSafeEqual(buf, storedBuf);
+  };
+
+  const safeUser = (u: any) => ({ id: u.id, nome: u.nome, email: u.email, telefone: u.telefone, role: u.role });
+
+  // ─── AUTH ────────────────────────────────────────────────────────────────
+
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
+
+    const { nome, email, telefone, senha } = parsed.data;
+
+    const existing = await storage.getUserByEmail(email);
+    if (existing) return res.status(409).json({ message: "E-mail já cadastrado" });
+
+    const hashedPassword = await hashPassword(senha);
+    const user = await storage.createUser({
+      username: email,
+      password: hashedPassword,
+      nome,
+      email,
+      telefone,
+      role: "user",
+    });
+
+    req.session.userId = user.id;
+    return res.status(201).json(safeUser(user));
+  });
+
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
+
+    const { email, senha } = parsed.data;
+
+    const user = await storage.getUserByEmail(email);
+    if (!user) return res.status(401).json({ message: "E-mail ou senha incorretos" });
+
+    const ok = await verifyPassword(senha, user.password);
+    if (!ok) return res.status(401).json({ message: "E-mail ou senha incorretos" });
+
+    req.session.userId = user.id;
+    return res.json(safeUser(user));
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    req.session.destroy(() => {
+      res.json({ ok: true });
+    });
+  });
+
+  app.get("/api/auth/me", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
+    return res.json(safeUser(user));
+  });
 
   const getMembershipRole = async (excursao: Excursao, userId: string) => {
     if (!userId) return null;
