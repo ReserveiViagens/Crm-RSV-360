@@ -1,0 +1,320 @@
+# CRM-RSV-360 — Reservei Viagens | Cursor AI Design & Architecture Rules
+
+## Projeto
+Plataforma de turismo para Caldas Novas e Rio Quente (GO, Brasil).
+Stack: React 18 + TypeScript + Vite (frontend) · Express + Node.js + tsx (backend) · Tailwind CSS + shadcn/ui · TanStack Query v5 · wouter (routing) · WebSocket (ws).
+
+---
+
+## 1. STACK OBRIGATÓRIA — nunca substituir sem aprovação explícita
+
+| Camada | Tecnologia |
+|---|---|
+| Bundler | Vite (não Next.js, não CRA) |
+| Router | `wouter` |
+| Data fetching | `@tanstack/react-query` v5 |
+| UI primitives | `shadcn/ui` (style: new-york) |
+| Estilos | Tailwind CSS + CSS custom properties |
+| Icons | `lucide-react` (ícones gerais) · `react-icons/si` (logos de marcas) |
+| Backend | Express + tsx (ESM) |
+| ORM | Drizzle ORM |
+| WebSocket | `ws` (server) · client nativo (browser) |
+| Formulários | `react-hook-form` + `zodResolver` |
+
+---
+
+## 2. DESIGN SYSTEM — tokens de cor e escala
+
+### Cores (definidas em `client/src/index.css` como variáveis HSL sem `hsl()`)
+```css
+--primary: 221.2 83.2% 53.3%;          /* azul principal */
+--primary-foreground: 210 40% 98%;
+--background: 0 0% 100%;
+--foreground: 222.2 84% 4.9%;
+--muted: 210 40% 96%;
+--muted-foreground: 215.4 16.3% 46.9%;
+--border: 214.3 31.8% 91.4%;
+--card: 0 0% 100%;
+--destructive: 0 84.2% 60.2%;
+```
+
+### Hierarquia de cores semânticas para features de turismo
+- **Sucesso / disponível**: `emerald-500` / `bg-emerald-50 text-emerald-600`
+- **Alerta / urgência**: `amber-500` / `bg-amber-50 text-amber-600`
+- **Erro / esgotado**: `red-500` / `bg-red-50 text-red-600`
+- **Destaque / premium**: `primary` (azul)
+- **Texto secundário**: `text-muted-foreground`
+
+---
+
+## 3. COMPONENTES — regras de construção
+
+### Cards
+```tsx
+// Padrão obrigatório para todos os cards de listagem
+<div className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-border
+                transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col">
+```
+- Sempre `rounded-2xl` para cards principais
+- Hover: `hover:-translate-y-1 hover:shadow-xl`
+- Imagens internas: `h-48` com `object-cover` e `group-hover:scale-105 transition-transform duration-500`
+- Gradient overlay na imagem: `bg-gradient-to-t from-black/60 via-transparent to-transparent`
+
+### Botões
+```tsx
+// Primário
+<Button className="rounded-xl font-semibold" />
+
+// Primário grande (hero/CTA)
+<Button size="lg" className="rounded-2xl font-bold px-8 h-12" />
+
+// Outline sobre fundo escuro
+<Button variant="outline" className="rounded-2xl border-white/40 text-white hover:bg-white/10" />
+```
+
+### Badges
+```tsx
+// Destaque/tag sobre imagem
+<Badge className="bg-primary text-white text-xs font-semibold shadow" />
+
+// Desconto
+<Badge className="bg-emerald-500 text-white text-xs font-bold shadow" />
+
+// Tag neutra
+<Badge className="bg-amber-500 text-white text-xs font-semibold shadow" />
+```
+
+### Inputs e Selects
+```tsx
+<Input className="h-11 rounded-xl" />
+<SelectTrigger className="h-11 rounded-xl" />
+```
+
+### Seções Hero
+```tsx
+<section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+  {/* Imagem de fundo com overlay */}
+  <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url(...)", backgroundSize: "cover" }} />
+  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/30 to-blue-900/70" />
+  {/* Conteúdo */}
+  <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
+    {/* Badge topo */}
+    <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6" />
+    {/* Título */}
+    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 tracking-tight" />
+    {/* Subtítulo */}
+    <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-8 leading-relaxed" />
+  </div>
+</section>
+```
+
+### Seções CTA (call-to-action)
+```tsx
+<section className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white py-16
+                    mx-4 mb-10 rounded-3xl max-w-6xl md:mx-auto px-6">
+```
+
+### Layout de página
+```tsx
+<div className="min-h-screen bg-background">
+  {/* Hero */}
+  {/* Seção auxiliar (como funciona, filtros...) bg-muted/40 border-b */}
+  {/* Conteúdo principal max-w-6xl mx-auto px-4 py-10 */}
+  {/* CTA */}
+  {/* Rodapé de suporte border-t bg-muted/30 */}
+</div>
+```
+
+---
+
+## 4. ESTRUTURA DE ARQUIVOS — onde colocar cada coisa
+
+```
+client/src/
+  pages/                  ← uma página = um arquivo .tsx
+    admin/                ← sub-páginas do painel admin
+  components/
+    ui/                   ← shadcn primitivos (não editar)
+    *.tsx                 ← componentes reutilizáveis do projeto
+  lib/
+    queryClient.ts        ← TanStack Query + apiRequest
+    socket.ts             ← cliente WebSocket
+    caldas-ai-regras.ts   ← lógica CaldasAI / FOMO / upsell
+    utils.ts              ← cn() e helpers
+  hooks/
+    use-toast.ts
+    use-mobile.tsx
+
+server/
+  index.ts               ← HTTP server + WebSocket setup
+  routes.ts              ← todas as rotas REST
+  storage.ts             ← interface IStorage + MemStorage
+  persistence.ts         ← estado em memória (_db)
+  social-commerce.ts     ← lógica de grupos e social commerce
+  socket.ts              ← broadcast de eventos WebSocket
+  services/
+    bureaucracyService.ts
+    accountingService.ts
+
+shared/
+  schema.ts              ← tipos Drizzle + Zod insert schemas
+```
+
+---
+
+## 5. ROTAS REGISTRADAS — nunca quebrar estas URLs
+
+| Rota | Componente | Notas |
+|---|---|---|
+| `/` | Home | |
+| `/hoteis` | Hoteis | |
+| `/hoteis/:id` | Hoteis | detalhe como painel lateral |
+| `/excursoes` | Excursoes | landing pública de excursões |
+| `/promocoes` | Promocoes | |
+| `/flash-deals` | FlashDeals | |
+| `/leiloes` | Leiloes | |
+| `/ingressos` | Ingressos | |
+| `/atracoes` | Atracoes | |
+| `/contato` | Contato | |
+| `/caldas-ai` | CaldasAI | |
+| `/mapa` | MapaCaldas | alias de /mapa-caldas-novas |
+| `/mapa-caldas-novas` | MapaCaldas | |
+| `/perfil` | Perfil | |
+| `/viagens-grupo` | ViagensGrupo | gestão interna de grupos |
+| `/viagens-grupo/:id` | ViagensGrupo | grupo específico |
+| `/criar-excursao` | CriarExcursao | wizard de criação |
+| `/criar-excursao/:id` | CriarExcursao | edição |
+| `/quem-somos` | QuemSomos | |
+| `/politica-de-privacidade` | PoliticaPrivacidade | |
+| `/admin` | AdminDashboard | alias de /admin/dashboard |
+| `/admin/dashboard` | AdminDashboard | |
+| `/admin/financeiro` | Financeiro | |
+| `/admin/frota` | FrotaANTT | alias de /admin/frota-antt |
+| `/admin/frota-antt` | FrotaANTT | |
+| `/admin/excursoes` | ViagensGrupo | |
+| `/admin/passageiros` | ViagensGrupo | |
+| `/admin/fnrh` | AdminFnrh | |
+| `/admin/assinatura-digital` | AssinaturaDigital | |
+| `/admin/integracoes` | Integracoes | |
+| `/admin/cadastur` | CadasturPage | |
+| `/admin/lgpd` | LGPDDashboard | |
+| `/admin/relatorios-ads` | RelatoriosAds | |
+| `/admin/seguro-viagem` | SeguroViagem | |
+| `/admin/seguranca-embarque` | SegurancaEmbarque | |
+| `/admin/contratos` | ContratosExcursao | |
+
+---
+
+## 6. REGRAS DE CÓDIGO — padrões obrigatórios
+
+### React / TypeScript
+- **Nunca** importar React explicitamente (`import React from 'react'`) — o Vite já configura o JSX transform
+- Variáveis de ambiente no frontend: `import.meta.env.VITE_*` (não `process.env`)
+- Usar `cn()` do `@/lib/utils` para classes condicionais
+- Dark mode: sempre fornecer variantes explícitas `dark:` quando não usar tokens de design
+
+### TanStack Query v5
+```tsx
+// Query (apenas forma de objeto)
+const { data, isLoading } = useQuery({ queryKey: ['/api/excursoes'] })
+
+// Mutation com invalidação
+const mutation = useMutation({
+  mutationFn: (data) => apiRequest('POST', '/api/excursoes', data),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/excursoes'] }),
+})
+```
+
+### Formulários
+```tsx
+const form = useForm<InsertType>({
+  resolver: zodResolver(insertSchema),
+  defaultValues: { campo: "" },
+})
+```
+
+### data-testid — obrigatório em todos os elementos interativos
+```tsx
+// Padrão: {ação}-{alvo} para botões/inputs
+data-testid="btn-reservar"
+data-testid="input-busca"
+data-testid="select-categoria"
+
+// Padrão: {tipo}-{descricao}-{id} para listas
+data-testid={`card-excursao-${exc.id}`}
+data-testid={`btn-favoritar-${exc.id}`}
+```
+
+### WebSocket
+```tsx
+// Client: usar socketEmit() — não socket.emit() diretamente
+import { socketEmit, subscribeExcursao } from "@/lib/socket"
+socketEmit("entrar_excursao", { excursaoId })
+
+// subscribeExcursao aceita objeto de handlers
+subscribeExcursao(id, {
+  onPixExpirado: (data) => { ... },
+  onVigilancia: (data) => { ... },
+  onEstadoGrupo: (data) => { ... },
+  onAiIntervention: (data) => { ... },
+})
+```
+
+---
+
+## 7. NAVEGAÇÃO CIRCULAR — circular-nav.tsx
+
+O menu circular tem dois anéis: `outer` (páginas principais) e `inner` (utilitários).
+
+**Anel externo (outer):** Início, Hotéis, Promoções, Ingressos, Atrações, Ofertas, Leilão, **Excursões**
+**Anel interno (inner):** Contato, Mapa, Perfil, Grupos, CaldasAI, Quem Somos
+
+Ao adicionar uma nova página principal, adicionar ao `allNavItems` com `ring: "outer"`.
+Ao adicionar utilitário/admin, usar `ring: "inner"`.
+
+---
+
+## 8. BACKEND — padrões de rotas
+
+```typescript
+// Sempre validar body com Zod antes de passar ao storage
+app.post('/api/excursoes', async (req, res) => {
+  const parsed = insertExcursaoSchema.safeParse(req.body)
+  if (!parsed.success) return res.status(400).json({ error: parsed.error })
+  const result = await storage.createExcursao(parsed.data)
+  res.json(result)
+})
+
+// Emitir eventos WebSocket após mutações
+import { broadcastToExcursao } from './socket'
+broadcastToExcursao(excursaoId, 'estado_grupo', payload)
+```
+
+---
+
+## 9. CONTEÚDO — contexto editorial
+
+- **Língua**: Português brasileiro (pt-BR) em toda interface e dados estáticos
+- **Destinos**: Caldas Novas e Rio Quente (Goiás, Brasil)
+- **Tom**: profissional mas acolhedor, focado em família e grupos
+- **Moeda**: Real brasileiro (R$), formatado com `toLocaleString("pt-BR")`
+- **Datas**: `toLocaleDateString("pt-BR")` ou `{ day: "2-digit", month: "short" }`
+- **Horários**: `toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })`
+
+---
+
+## 10. O QUE NUNCA FAZER
+
+- ❌ Não mudar o bundler para Next.js, webpack ou outro
+- ❌ Não substituir `wouter` por `react-router-dom`
+- ❌ Não usar `process.env` no frontend (usar `import.meta.env`)
+- ❌ Não importar React explicitamente
+- ❌ Não editar `package.json` scripts sem aprovação
+- ❌ Não editar `vite.config.ts` ou `server/vite.ts` sem necessidade crítica
+- ❌ Não editar `drizzle.config.ts`
+- ❌ Não usar `socket.emit()` diretamente — usar `socketEmit()`
+- ❌ Não criar componentes sem `data-testid` nos elementos interativos
+- ❌ Não definir variáveis de cor CSS com `hsl()` — usar apenas `H S% L%` separados por espaço
+- ❌ Não usar `array(text())` no Drizzle — usar `text().array()`
+- ❌ Não cachear o cliente de integrações externas (tokens expiram)
+- ❌ Não usar a forma de array do TanStack Query v4 (`useQuery(['key'])`) — usar sempre objeto
