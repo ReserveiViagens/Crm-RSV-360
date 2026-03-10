@@ -38,6 +38,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/hoteis" component={Hoteis} />
+      <Route path="/hoteis/:id" component={Hoteis} />
       <Route path="/promocoes" component={Promocoes} />
       <Route path="/flash-deals" component={FlashDeals} />
       <Route path="/leiloes" component={Leiloes} />
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/contato" component={Contato} />
       <Route path="/caldas-ai" component={CaldasAI} />
       <Route path="/mapa-caldas-novas" component={MapaCaldas} />
+      <Route path="/mapa" component={MapaCaldas} />
       <Route path="/perfil" component={Perfil} />
       <Route path="/viagens-grupo" component={ViagensGrupo} />
       <Route path="/viagens-grupo/:id" component={ViagensGrupo} />
@@ -53,6 +55,7 @@ function Router() {
       <Route path="/criar-excursao/:id" component={CriarExcursao} />
       <Route path="/quem-somos" component={QuemSomos} />
       <Route path="/politica-de-privacidade" component={PoliticaPrivacidade} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/fnrh" component={AdminFnrh} />
       <Route path="/admin/assinatura-digital" component={AssinaturaDigital} />
@@ -65,6 +68,9 @@ function Router() {
       <Route path="/admin/seguranca-embarque" component={SegurancaEmbarque} />
       <Route path="/admin/contratos" component={ContratosExcursao} />
       <Route path="/admin/frota-antt" component={FrotaANTT} />
+      <Route path="/admin/frota" component={FrotaANTT} />
+      <Route path="/admin/excursoes" component={ViagensGrupo} />
+      <Route path="/admin/passageiros" component={ViagensGrupo} />
       <Route path="/dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
