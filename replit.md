@@ -109,3 +109,56 @@ Preferred communication style: Simple, everyday language.
 
 ### Environment Variables Required
 - `DATABASE_URL` — PostgreSQL connection string (required for Drizzle)
+- `EVOLUTION_API_URL` — Evolution API base URL for WhatsApp WaaS (optional, demo mode if absent)
+- `EVOLUTION_API_KEY` — Evolution API key (optional, demo mode if absent)
+- `GATEWAY_API_URL` — Payment gateway base URL for split Pix (optional, demo mode if absent)
+- `GATEWAY_API_KEY` — Payment gateway key (optional, demo mode if absent)
+- `RESERVEI_RECIPIENT_ID` — Platform split payment recipient ID
+- `ORGANIZER_RECIPIENT_ID` — Organizer split payment recipient ID
+
+---
+
+## NTX Modules (Next Generation — Fase 2026)
+
+Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
+
+### T001 — KYC Biométrico
+- Route: `/kyc`
+- `client/src/components/kyc/LGPDAcceptanceModal.tsx` — LGPD scroll-required consent dialog
+- `client/src/components/kyc/BiometricCapture.tsx` — webcam face capture (react-webcam), oval overlay
+- `client/src/pages/kyc-verificacao.tsx` — full flow: LGPD → Biometria → Sucesso
+
+### T002 — WhatsApp WaaS (Evolution API)
+- Route: `/admin/waas`
+- `server/services/whatsapp.service.ts` — createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, humanDelay() anti-ban
+- `client/src/pages/admin/waas-dashboard.tsx` — groups table, create group modal, intervene, send poll
+- API: POST /api/waas/criar-grupo, POST /api/waas/:id/mensagem, POST /api/waas/:id/enquete
+- **Demo mode**: works without env vars, returns mock responses
+
+### T003 — Split Pix Payment
+- `server/services/payment.service.ts` — createSplitPaymentPix (demo mode if no gateway env vars)
+- `client/src/components/checkout/PaymentCheckout.tsx` — QR code, pix copy-paste, 30min countdown, split breakdown
+- API: POST /api/pagamento/gerar-pix, POST /api/webhook/payment (webhook)
+- Webhook fires sendPaymentConfirmation + emitEstadoGrupo WebSocket event
+
+### T004 — Gamificação do Organizador
+- Route: `/organizer/metas`
+- `client/src/pages/organizer/gamification-dashboard.tsx` — goal cards, progress bars, "Resgatar" button
+- API: GET /api/organizador/:userId/metas, PATCH /api/organizador/metas/:id/resgatar
+- OrganizerGoal status: LOCKED | UNLOCKED | CLAIMED
+
+### T005 — Landing Pages Dinâmicas
+- Route: `/excursoes/:slug`
+- `client/src/pages/excursao-landing.tsx` — hero, FOMO countdown, itinerary D1/D2/D3, testimonials, checkout
+- Demo: `/excursoes/caldas-novas-maio`
+- API: GET /api/excursoes/landing/:slug, POST /api/analytics/pageview
+
+### T006 — Super-Admin Financeiro + Live Chat Handoff
+- Routes: `/admin/super-financeiro`, `/admin/live-chat`
+- `client/src/pages/superadmin/financial-dashboard.tsx` — 4 KPI cards + BarChart + LineChart (recharts) + CSV export
+- `client/src/pages/superadmin/live-chat.tsx` — group list, chat feed, toggle AI/Humano per group
+- `server/services/humanHandoff.service.ts` — pauseAI/resumeAI with WebSocket events
+- API: POST /api/handoff/:groupId/pausar, POST /api/handoff/:groupId/retomar
+
+### Admin Dashboard NTX Section
+Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links to all new modules.
