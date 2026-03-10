@@ -8,6 +8,9 @@ import {
   chamarProximoDaFila,
 } from "./reservas";
 import { emitEstadoGrupo, emitPixExpirado, emitVigilancia } from "./socket";
+import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus } from "./services/whatsapp.service";
+import { createSplitPaymentPix, checkPaymentStatus } from "./services/payment.service";
+import { pauseAI, resumeAI, isAIPaused, getHandoffInfo, listPausedGroups } from "./services/humanHandoff.service";
 import {
   gerarManifestoANTT,
   gerarFNRH,
@@ -1099,6 +1102,158 @@ export async function registerRoutes(
       period,
       totalExcursoes: excursoes.length,
     });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — WaaS (WhatsApp as a Service)
+  // ─────────────────────────────────────────────
+  app.get("/api/waas/status", (_req: Request, res: Response) => {
+    res.json(getWaasStatus());
+  });
+
+  app.get("/api/waas/grupos", (_req: Request, res: Response) => {
+    res.json([]);
+  });
+
+  app.post("/api/waas/criar-grupo", async (req: Request, res: Response) => {
+    const { name, phone } = req.body as { name?: string; phone?: string };
+    if (!name || !phone) return res.status(400).json({ error: "name e phone são obrigatórios" });
+    try {
+      const result = await createExcursionGroup(name, phone);
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.post("/api/waas/:excursaoId/mensagem", async (req: Request, res: Response) => {
+    const excursaoId = String(req.params.excursaoId);
+    const { text } = req.body as { text?: string };
+    if (!text) return res.status(400).json({ error: "text é obrigatório" });
+    try {
+      const result = await sendTextToGroup(excursaoId, text);
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.post("/api/waas/:excursaoId/enquete", async (req: Request, res: Response) => {
+    const excursaoId = String(req.params.excursaoId);
+    const { question, options } = req.body as { question?: string; options?: string[] };
+    if (!question || !options?.length) return res.status(400).json({ error: "question e options são obrigatórios" });
+    try {
+      const result = await sendPollToGroup(excursaoId, question, options);
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.get("/api/waas/:excursaoId/status", (req: Request, res: Response) => {
+    const excursaoId = String(req.params.excursaoId);
+    res.json({ excursaoId, aiPaused: isAIPaused(excursaoId), handoff: getHandoffInfo(excursaoId) });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Split Pix Payment
+  // ─────────────────────────────────────────────
+  app.post("/api/pagamento/gerar-pix", async (req: Request, res: Response) => {
+    const { excursaoId, amount, passengerName, organizerCommission } = req.body as {
+      excursaoId?: string; amount?: number; passengerName?: string; organizerCommission?: number;
+    };
+    if (!excursaoId || !amount || !passengerName) return res.status(400).json({ error: "excursaoId, amount e passengerName são obrigatórios" });
+    try {
+      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0);
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.get("/api/pagamento/status/:transactionId", async (req: Request, res: Response) => {
+    const transactionId = String(req.params.transactionId);
+    try {
+      const result = await checkPaymentStatus(transactionId);
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.post("/api/webhook/payment", async (req: Request, res: Response) => {
+    const { event, data } = req.body as { event?: string; data?: { id: string; metadata?: { orderId: string }; customer?: { name: string }; amount?: number } };
+    if (event === "transaction.paid" && data) {
+      const excursaoId = data.metadata?.orderId ?? "";
+      const passengerName = data.customer?.name ?? "Passageiro";
+      const amount = (data.amount ?? 0) / 100;
+      await sendPaymentConfirmation(excursaoId, passengerName, amount).catch(() => {});
+      emitEstadoGrupo(excursaoId, { type: "pagamento_confirmado", transactionId: data.id, passengerName, amount });
+    }
+    return res.json({ received: true });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Live Chat Handoff
+  // ─────────────────────────────────────────────
+  app.post("/api/handoff/:groupId/pausar", (req: Request, res: Response) => {
+    const groupId = String(req.params.groupId);
+    const { operatorId } = req.body as { operatorId?: string };
+    const result = pauseAI(groupId, operatorId ?? "op-unknown");
+    return res.json(result);
+  });
+
+  app.post("/api/handoff/:groupId/retomar", (req: Request, res: Response) => {
+    const groupId = String(req.params.groupId);
+    const result = resumeAI(groupId);
+    return res.json(result);
+  });
+
+  app.get("/api/handoff/pausados", (_req: Request, res: Response) => {
+    return res.json(listPausedGroups());
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Gamification / Organizer Goals
+  // ─────────────────────────────────────────────
+  const organizerGoals: Record<string, Array<{ id: string; title: string; targetSeats: number; achievedSeats: number; rewardType: string; rewardValue: string; status: string }>> = {};
+
+  app.get("/api/organizador/:userId/metas", (req: Request, res: Response) => {
+    const userId = String(req.params.userId);
+    const goals = organizerGoals[userId] ?? [
+      { id: "g1", title: "Viagem 100% Grátis", targetSeats: 15, achievedSeats: 0, rewardType: "CORTESIA", rewardValue: "Vaga gratuita", status: "LOCKED" },
+      { id: "g2", title: "Bônus Pix R$ 500", targetSeats: 30, achievedSeats: 0, rewardType: "CASHBACK", rewardValue: "R$ 500,00 via Pix", status: "LOCKED" },
+    ];
+    return res.json(goals);
+  });
+
+  app.patch("/api/organizador/metas/:id/resgatar", (req: Request, res: Response) => {
+    return res.json({ success: true, message: "Recompensa registrada. Entraremos em contato em até 48h." });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Analytics pageview
+  // ─────────────────────────────────────────────
+  app.post("/api/analytics/pageview", (req: Request, res: Response) => {
+    const { slug, page } = req.body as { slug?: string; page?: string };
+    console.log(`[Analytics] pageview: ${page ?? "?"} / ${slug ?? "?"} at ${new Date().toISOString()}`);
+    return res.json({ ok: true });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Landing Pages
+  // ─────────────────────────────────────────────
+  app.get("/api/excursoes/landing/:slug", async (req: Request, res: Response) => {
+    const { slug } = req.params;
+    const excursoes = await listExcursoes();
+    const excursao = excursoes.find((e) => e.nome.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") === slug);
+    if (!excursao) return res.status(404).json({ error: "Landing page não encontrada" });
+    return res.json({ slug, excursaoId: excursao.id, nome: excursao.nome, price: 890 });
   });
 
   return httpServer;

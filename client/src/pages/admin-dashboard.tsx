@@ -40,7 +40,11 @@ import {
   Printer,
   Shield,
   Receipt,
-  Percent
+  Percent,
+  Bot,
+  Zap,
+  Trophy,
+  BarChart2
 } from 'lucide-react';
 
 interface BookingStats {
@@ -278,6 +282,27 @@ export default function DashboardRSV() {
             </Link>
             <Link href="/settings" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-config">
               <Settings className="w-5 h-5" /> Configurações
+            </Link>
+          </nav>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, marginTop: 24, paddingLeft: 12 }}>🚀 NTX — Next Gen</h2>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Link href="/kyc" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-kyc">
+              <Shield className="w-5 h-5" /> KYC Biométrico
+            </Link>
+            <Link href="/admin/waas" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-waas">
+              <Bot className="w-5 h-5" /> WhatsApp WaaS
+            </Link>
+            <Link href="/admin/live-chat" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-live-chat">
+              <MessageSquare className="w-5 h-5" /> Live Chat Handoff
+            </Link>
+            <Link href="/admin/super-financeiro" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-super-financeiro">
+              <BarChart2 className="w-5 h-5" /> Super-Admin Financeiro
+            </Link>
+            <Link href="/organizer/metas" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-gamification">
+              <Trophy className="w-5 h-5" /> Gamificação
+            </Link>
+            <Link href="/excursoes/caldas-novas-maio" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-landing">
+              <Zap className="w-5 h-5" /> Landing Page Demo
             </Link>
           </nav>
         </div>

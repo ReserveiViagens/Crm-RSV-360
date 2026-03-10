@@ -33,6 +33,12 @@ import ContratosExcursao from "@/pages/admin/contratos";
 import FrotaANTT from "@/pages/admin/frota-antt";
 import Excursoes from "@/pages/excursoes";
 import CircularNav from "@/components/circular-nav";
+import KYCVerificacao from "@/pages/kyc-verificacao";
+import WaaSDashboard from "@/pages/admin/waas-dashboard";
+import GamificationDashboard from "@/pages/organizer/gamification-dashboard";
+import ExcursaoLanding from "@/pages/excursao-landing";
+import FinancialDashboard from "@/pages/superadmin/financial-dashboard";
+import LiveChat from "@/pages/superadmin/live-chat";
 
 function Router() {
   return (
@@ -74,6 +80,12 @@ function Router() {
       <Route path="/admin/excursoes" component={ViagensGrupo} />
       <Route path="/admin/passageiros" component={ViagensGrupo} />
       <Route path="/dashboard" component={AdminDashboard} />
+      <Route path="/kyc" component={KYCVerificacao} />
+      <Route path="/admin/waas" component={WaaSDashboard} />
+      <Route path="/organizer/metas" component={GamificationDashboard} />
+      <Route path="/admin/super-financeiro" component={FinancialDashboard} />
+      <Route path="/admin/live-chat" component={LiveChat} />
+      <Route path="/excursoes/:slug" component={ExcursaoLanding} />
       <Route component={NotFound} />
     </Switch>
   );

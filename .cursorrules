@@ -447,3 +447,94 @@ const neuroCounts: Record<string, number> = {
 - ❌ Não usar `array(text())` no Drizzle — usar `text().array()`
 - ❌ Não cachear o cliente de integrações externas (tokens expiram)
 - ❌ Não usar a forma de array do TanStack Query v4 (`useQuery(['key'])`) — usar sempre objeto
+
+---
+
+## 12. MÓDULOS NTX (Next Generation) — Arquitetura e Padrões
+
+### 12.1 KYC Biométrico (T001)
+- **Fluxo**: `LGPDAcceptanceModal` → scroll obrigatório até o fim → checkbox → `BiometricCapture` → tela de sucesso
+- **Componentes**:
+  - `client/src/components/kyc/LGPDAcceptanceModal.tsx` — Dialog shadcn, scroll obrigatório antes de habilitar botão
+  - `client/src/components/kyc/BiometricCapture.tsx` — react-webcam, oval overlay, estados: camera → preview → success
+  - `client/src/pages/kyc-verificacao.tsx` — rota `/kyc`, orquestra o fluxo completo
+- **Regra**: Botão de aceite só ativa após `hasScrolled === true` E `isChecked === true`
+- **Test IDs**: `lgpd-modal`, `lgpd-scroll-area`, `lgpd-checkbox`, `lgpd-accept-btn`, `biometric-capture`, `btn-capture-photo`, `btn-retry-photo`, `btn-confirm-photo`, `biometric-success`
+
+### 12.2 WhatsApp WaaS — Evolution API (T002)
+- **Serviço**: `server/services/whatsapp.service.ts`
+- **Modo demo automático**: Se `EVOLUTION_API_URL` ou `EVOLUTION_API_KEY` ausentes → todas as funções retornam mock `{ success: true, demo: true }` sem lançar erros
+- **Funções exportadas**:
+  - `createExcursionGroup(groupName, organizerPhone)` — cria grupo, promove admin, envia boas-vindas via CaldasAI
+  - `sendTextToGroup(groupId, text)` — envia mensagem com `humanDelay()` anti-ban (3-7s aleatório)
+  - `sendPollToGroup(groupId, question, options)` — envia enquete (singleCount=1)
+  - `sendPaymentConfirmation(groupId, passengerName, amount)` — mensagem de celebração
+  - `getWaasStatus()` — retorna `{ configured, demo, instance, apiUrl }`
+- **Rotas backend**:
+  - `GET /api/waas/status` — status da instância
+  - `POST /api/waas/criar-grupo` — `{ name, phone }`
+  - `POST /api/waas/:excursaoId/mensagem` — `{ text }`
+  - `POST /api/waas/:excursaoId/enquete` — `{ question, options: string[] }`
+- **Frontend**: `client/src/pages/admin/waas-dashboard.tsx` — rota `/admin/waas`, tabela de grupos, dialogs de intervenção
+
+### 12.3 Split de Pagamento Pix (T003)
+- **Serviço**: `server/services/payment.service.ts`
+- **Modo demo automático**: Se `GATEWAY_API_URL` ausente → retorna mock com QR code placeholder base64 e pixCopyPaste simulado
+- **Interface `SplitRule`**: `{ recipientId, amount, liable, chargeProcessingFee }`
+- **Função principal**: `createSplitPaymentPix(amount, orderId, customerName, organizerCommission)` → `PixPaymentResult`
+- **Webhook**: `POST /api/webhook/payment` — evento `transaction.paid` → `sendPaymentConfirmation()` + `emitEstadoGrupo()`
+- **Componente**: `client/src/components/checkout/PaymentCheckout.tsx` — countdown 30min, QR code, Pix copia e cola, split breakdown
+- **CRÍTICO**: `apiRequest` retorna `Promise<Response>` — para dados, usar `const res = await apiRequest(...); return res.json()`
+
+### 12.4 Gamificação do Organizador (T004)
+- **Modelo em memória**: `OrganizerGoal` com campos `{ id, title, targetSeats, achievedSeats, rewardType, rewardValue, status }`
+- **Status possíveis**: `"LOCKED"` | `"UNLOCKED"` | `"CLAIMED"`
+- **Rewardtype**: `"CORTESIA"` | `"CASHBACK"` | `"UPGRADE_HOTEL"`
+- **Rotas**:
+  - `GET /api/organizador/:userId/metas` — lista metas
+  - `PATCH /api/organizador/metas/:id/resgatar` — resgata recompensa
+- **Frontend**: `client/src/pages/organizer/gamification-dashboard.tsx` — rota `/organizer/metas`, cards com lateral colorida (amber=locked, emerald=unlocked), progress bar
+- **Design**: Botão "Resgatar" ativo apenas quando `status === "UNLOCKED"` (meta atingiu 100%)
+
+### 12.5 Landing Pages Dinâmicas de Excursão (T005)
+- **Rota**: `/excursoes/:slug` → `client/src/pages/excursao-landing.tsx`
+- **Anatomia**: Hero (gradient azul-teal + countdown FOMO + price) → Benefícios → Itinerário D1/D2/D3 → Depoimentos → `PaymentCheckout` (componente T003)
+- **Analytics**: `POST /api/analytics/pageview` ao montar a página (`useEffect` com `trackView.mutate()`)
+- **Demo disponível**: `/excursoes/caldas-novas-maio` usa dados hardcoded (MOCK_LANDING)
+- **Rotas backend**: `GET /api/excursoes/landing/:slug` — busca excursão por slug normalizado (`nome.toLowerCase().replace(/\s+/g, "-")`)
+
+### 12.6 Live Chat Handoff (T006 - parte 1)
+- **Serviço**: `server/services/humanHandoff.service.ts`
+- **Armazenamento**: `Map<groupId, { operatorId, since }>` em memória
+- **Funções**: `pauseAI(groupId, operatorId)`, `resumeAI(groupId)`, `isAIPaused(groupId)`, `getHandoffInfo(groupId)`, `listPausedGroups()`
+- **Evento WebSocket**: ao pausar/resumir emite `emitEstadoGrupo(groupId, { type: "ai_paused" | "ai_resumed" })`
+- **Rotas**:
+  - `POST /api/handoff/:groupId/pausar` — `{ operatorId }`
+  - `POST /api/handoff/:groupId/retomar`
+  - `GET /api/handoff/pausados`
+- **Frontend**: `client/src/pages/superadmin/live-chat.tsx` — rota `/admin/live-chat`, toggle verde (AI)/vermelho (Humano), badge piscante "MODO HUMANO", input desabilitado quando AI ativa
+
+### 12.7 Super-Admin Financeiro (T006 - parte 2)
+- **Frontend**: `client/src/pages/superadmin/financial-dashboard.tsx` — rota `/admin/super-financeiro`
+- **KPIs**: Lucro Líquido, GMV, Repasses (Split), Passageiros Pagantes
+- **Gráficos (recharts)**: `BarChart` (GMV vs Lucro por mês) + `LineChart` (taxa de conversão)
+- **Export CSV**: botão `data-testid="btn-export-csv"` gera e baixa CSV dos dados de excursão
+
+### 12.8 Novas Rotas Registradas em App.tsx
+```
+/kyc                      → KYCVerificacao
+/admin/waas               → WaaSDashboard
+/organizer/metas          → GamificationDashboard
+/admin/super-financeiro   → FinancialDashboard
+/admin/live-chat          → LiveChat
+/excursoes/:slug          → ExcursaoLanding
+```
+
+### 12.9 Sidebar Admin — Seção NTX
+Os links NTX foram adicionados ao `admin-dashboard.tsx` na seção "🚀 NTX — Next Gen":
+- KYC Biométrico → `/kyc`
+- WhatsApp WaaS → `/admin/waas`
+- Live Chat Handoff → `/admin/live-chat`
+- Super-Admin Financeiro → `/admin/super-financeiro`
+- Gamificação → `/organizer/metas`
+- Landing Page Demo → `/excursoes/caldas-novas-maio`
