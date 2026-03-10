@@ -303,7 +303,136 @@ broadcastToExcursao(excursaoId, 'estado_grupo', payload)
 
 ---
 
-## 10. O QUE NUNCA FAZER
+## 10. WIZARD DE EXCURSÃO — padrões de /criar-excursao
+
+### Arquitetura do Wizard
+O wizard `/criar-excursao/:id` tem **5 steps sequenciais** com navegação por `StepBar`:
+```
+[1. Básico] → [2. Veículo] → [3. Hotel] → [4. Roteiro] → [5. Revisão]
+```
+
+### StepBar (barra de progresso)
+```tsx
+// Componente StepBar — steps completados ficam verdes com checkmark
+<StepBar active={activeStep} completed={completedSteps} />
+
+// State necessário
+const [activeStep, setActiveStep] = useState(1);
+const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+
+// Ao avançar, sempre usar goStep() para marcar step atual como completo
+function goStep(n: number) {
+  setCompletedSteps((prev) => new Set(Array.from(prev).concat(activeStep)));
+  setActiveStep(n);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+```
+- Nunca usar `[...prev]` para espalhar um `Set` — usar `Array.from(prev)` (evita erro TypeScript com target não-ES2015)
+
+### Cards de veículo (Step 2)
+```tsx
+// 3 cards clicáveis: Van / Micro / Ônibus
+// vehicleByCapacity(capacidade) retorna sugestão automática
+// BUG CORRIGIDO: ao selecionar manualmente, usar:
+setRoteiro((p) => ({
+  ...p,
+  veiculoTipo: tipo,
+  manualVehicleOverride: tipo !== suggestedVehicle,
+  veiculoAutomatico: tipo === suggestedVehicle,
+}));
+
+// useEffect de auto-veículo DEVE checar !roteiro.manualVehicleOverride (não veiculoAutomatico)
+useEffect(() => {
+  if (roteiro.manualVehicleOverride) return; // <-- correto
+  const auto = vehicleByCapacity(capacidade);
+  if (roteiro.veiculoTipo !== auto) setRoteiro((prev) => ({ ...prev, veiculoTipo: auto }));
+}, [capacidade, roteiro.manualVehicleOverride]);
+```
+
+### Catálogo estático Caldas Novas (DEFAULT_CATALOG)
+Quando a API `/api/excursoes/:id/catalogo-roteiro` retorna vazio, usa-se catálogo estático:
+- **Parques**: Hot Park, Di Roma Acqua Park, Golden Dolphin Water Park, Turmalina Termas, Lagoa Quente
+- **Atrações**: Lago Corumbá, Parque das Nascentes, Mirante de Caldas Novas, Mercado Municipal, Igreja Matriz
+- **Passeios**: City Tour Caldas Novas, Passeio de Barco Lago Corumbá, Tour Gastronômico, Trilha Ecológica
+```tsx
+const catalogoRoteiro = useMemo(() => ({
+  atracoes: apiCatalogo.atracoes.length > 0 ? apiCatalogo.atracoes : DEFAULT_ATRACOES,
+  passeios: apiCatalogo.passeios.length > 0 ? apiCatalogo.passeios : DEFAULT_PASSEIOS,
+  parquesAquaticos: apiCatalogo.parquesAquaticos.length > 0 ? apiCatalogo.parquesAquaticos : DEFAULT_PARQUES,
+  ...
+}), [apiCatalogo]);
+```
+
+### Mapa de dias (Step 4)
+```tsx
+// Estado dos dias
+const [activeDayTab, setActiveDayTab] = useState<string>("");
+type DaySelections = Record<string, { atracoes: string[]; passeios: string[]; parques: string[] }>;
+const [daySelections, setDaySelections] = useState<DaySelections>({});
+
+// tripDays calculado de dataIda a dataVolta
+const tripDays = useMemo(() => { /* itera de dataIda até dataVolta */ }, [dataIda, dataVolta]);
+
+// Tab ativa: bg-primary text-white; dias com conteúdo: badge verde com count
+// Clicar num item do catálogo sincroniza tanto daySelections quanto selectedCatalogIds globais
+```
+
+### Hotel — separação admin/público (Step 3)
+```tsx
+// Detectar admin via query param
+const urlParams = new URLSearchParams(window.location.search);
+setIsAdminMode(urlParams.get("admin") === "1");
+
+// Admin: formulário completo com accordion por card (HotelAdminCard)
+// Público: cards visuais bonitos (HotelPublicCard) ou placeholder elegante
+{isAdminMode ? <HotelAdminCard ... /> : <HotelPublicCard ... />}
+```
+
+### Barra de completude (Step 5 Revisão)
+```tsx
+const completionScore = useMemo(() => {
+  let score = 0;
+  if (nome.trim()) score += 20;                           // nome: 20%
+  if (roteiro.hoteis[0]?.titulo.trim()) score += 20;      // hotel: 20%
+  if (selectedCatalogIds.parquesAquaticos.length > 0) score += 20; // parques: 20%
+  if (selectedCatalogIds.atracoes.length > 0) score += 20;         // atrações: 20%
+  if (selectedCatalogIds.passeios.length > 0) score += 20;         // passeios: 20%
+  return score; // 0-100
+}, [nome, roteiro.hoteis, selectedCatalogIds]);
+
+// Visual: emerald quando >= 80%, amber quando >= 50%, primary abaixo disso
+```
+
+### Neuromarketing no catálogo
+```tsx
+// neuroCounts: Record<string, number> mapeando card.id → qtd de excursões que usaram
+const neuroCounts: Record<string, number> = {
+  "def-hot-park": 89, "def-city-tour": 74, "def-golden-dolphin": 61, ...
+};
+
+// Badges: badgeTipo="popular" → "🔥 Mais escolhido", badgeTipo="ia" → "⭐ Recomendado IA"
+// Preço gratuito (precoPorPessoa === 0) → badge "💰 Gratuito" verde
+```
+
+### data-testid do wizard
+| Elemento | testid |
+|---|---|
+| Step 1 card | `wizard-step-1` |
+| Step 2 card | `wizard-step-2` |
+| Step 3 card | `wizard-step-3` |
+| Step 4 card | `wizard-step-4` |
+| Step 5 card | `wizard-step-5` |
+| Botão próximo | `btn-step-next-{n}` |
+| Card veículo | `vehicle-card-van`, `vehicle-card-micro`, `vehicle-card-ônibus` |
+| Card catálogo | `catalog-card-{id}` |
+| Tab de dia | `day-tab-{YYYY-MM-DD}` |
+| Barra completude | `completion-bar` |
+| Publicar | `criar-excursao-wizard-publicar` |
+| Salvar rascunho | `criar-excursao-wizard-salvar` |
+
+---
+
+## 11. O QUE NUNCA FAZER
 
 - ❌ Não mudar o bundler para Next.js, webpack ou outro
 - ❌ Não substituir `wouter` por `react-router-dom`

@@ -36,6 +36,7 @@ Preferred communication style: Simple, everyday language.
 - **Real-time**: WebSocket client (`client/src/lib/socket.ts`) connects to `/ws`, subscribes per excursão ID, handles `estado_grupo`, `pix_expirado`, and `vigilancia` events with auto-reconnect
 - **AI/Personalization**: Traveler profile stored in `localStorage` (`rsv360_traveler_profile`); match score calculation; FOMO/urgency messaging logic in `client/src/lib/caldas-ai-regras.ts`
 - **Key pages**: Home, Hotels, Excursões (landing pública), Promotions, Flash Deals, Auctions, Tickets, Attractions, CaldasAI, Map, Profile, Group Trips, Create Excursão, Admin Dashboard, and multiple admin sub-pages
+- **Wizard de Excursão** (`/criar-excursao/:id`): 5-step wizard with `StepBar` component (Básico → Veículo → Hotel → Roteiro → Revisão). Features: vehicle selection cards (Van/Micro/Ônibus) with auto-suggestion + manual override bug fixed, interactive day map tabs (D1/D2...), pre-populated Caldas Novas catalog (Hot Park, Di Roma, Lago Corumbá, City Tour, etc.) when API is empty, hotel admin/public separation via `?admin=1` query param, completion bar + neuromarketing in review step
 
 ### Backend
 

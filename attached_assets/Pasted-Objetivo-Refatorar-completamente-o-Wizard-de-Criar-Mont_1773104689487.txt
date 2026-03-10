@@ -1,0 +1,95 @@
+Objetivo
+Refatorar completamente o Wizard de Criar/Montar Excursão (/criar-excursao) em 3 frentes:
+
+Roteiro interativo com Mapa de dias — Day tabs (D1, D2, D3...) clicáveis com catálogo rico de Caldas Novas pré-populado, seleção visual com cards, neuromarketing
+Bug Veículo/Capacidade — Corrigir lógica contraditória do override manual
+Hotel principal admin-only — Formulário de gestão de cards visível apenas no modo admin; cliente vê apenas o card bonito renderizado
+Tasks
+T001: Redesign visual do wizard — navegação por steps com shadcn
+Blocked By: []
+Details:
+Substituir todos os style={{...}} inline por classes Tailwind + componentes shadcn
+Criar barra de progresso de steps: [1. Básico] → [2. Veículo] → [3. Hotel] → [4. Roteiro] → [5. Revisão]
+Usar Tabs do shadcn para navegar entre os steps do wizard
+Cada step tem um card branco rounded-2xl border border-border p-6
+Botões "Anterior / Próximo" com ícones ChevronLeft/ChevronRight
+Indicador visual de step completo (checkmark verde)
+Files: client/src/pages/criar-excursao.tsx
+Acceptance: Wizard tem navegação por steps visualmente clara, sem style inline
+T002: Corrigir bug veículo + cards visuais de seleção de veículo
+Blocked By: [T001]
+Details:
+BUG: linha 594 seta veiculoAutomatico: true E manualVehicleOverride: true simultaneamente — contradição que impede o override de funcionar
+Fix: quando o usuário seleciona manualmente → veiculoAutomatico: false, manualVehicleOverride: true
+Fix: quando desmarca override → manualVehicleOverride: false, veiculoAutomatico: true + recalcula pelo vehicleByCapacity()
+Fix: o useEffect de linha 247 deve checar !roteiro.manualVehicleOverride em vez de roteiro.veiculoAutomatico || roteiro.manualVehicleOverride
+Substituir <select> + checkbox por 3 cards visuais clicáveis para Van / Micro / Ônibus com:
+Ícone do veículo (Bus, Truck, etc.)
+Capacidade máxima exibida
+Badge "Sugerido para X pessoas" quando for a sugestão automática
+Borda azul + checkmark quando selecionado
+Tag "Automático" ou "Manual" no card
+Neuromarketing: badge "Mais econômico" (Van), "Mais popular" (Micro), "Para grandes grupos" (Ônibus)
+Files: client/src/pages/criar-excursao.tsx
+Acceptance: Selecionar Micro manualmente e aumentar capacidade para 40 não muda o veículo se override estiver ativo; ao desativar override reconverte para Ônibus
+T003: Mapa de dias interativo + catálogo pré-populado de Caldas Novas
+Blocked By: [T001]
+Details:
+Mapa de dias: Transformar as pills D1/D2... em tabs horizontais clicáveis
+Cada tab abre o dia selecionado com: slot de hotel, slot de atrações, slot de passeios, slot de parque
+Arrastar/soltar ou clicar para adicionar card de catálogo ao dia
+Visual: tab ativa com fundo azul; dias com conteúdo têm badge verde "X itens"
+Catálogo pré-populado: quando a API retorna vazio, usar dados estáticos com os principais itens de Caldas Novas:
+Parques: Hot Park (Rio Quente), Di Roma Acqua Park, Golden Dolphin Water Park, Turmalina Termas, Lagoa Quente
+Atrações: Lago Corumbá, Parque das Nascentes, Mirante de Caldas Novas, Mercado Municipal, Igreja Matriz
+Passeios: City Tour Caldas Novas, Passeio de Barco Lago Corumbá, Tour Gastronômico, Trilha Ecológica
+Cada item com: imagem, duração, preço médio por pessoa, badge de popularidade
+Cards de seleção visual: substituir texto "Nenhum card disponível" por grid de cards clicáveis:
+Imagem do card, título, preço/pessoa, duração
+Estado selecionado: borda azul + overlay com checkmark
+Contador "X selecionado(s)" com badge animado
+Neuromarketing nos cards do catálogo:
+Badge "🔥 Mais escolhido" para Hot Park
+Badge "⭐ Recomendado pela IA" para itens com high score
+Badge "💰 Melhor custo-benefício" para passeios econômicos
+Contador social: "42 excursões incluíram isso este mês"
+FOMO: "Só disponível em dias específicos"
+Files: client/src/pages/criar-excursao.tsx
+Acceptance: Clicar em D2 abre o dia 2; clicar em "Hot Park" no catálogo adiciona ao D2; badge mostra "1 item"
+T004: Hotel principal — separação admin/público
+Blocked By: [T001]
+Details:
+Detectar modo admin: usar previewIsAdmin (já existe no state) ou query param ?admin=1
+Modo Admin (só aparece quando isAdmin === true):
+Botão "+ Adicionar card" com formulário completo (título, descrição, galeria imagens, vídeos, preço, categoria)
+Cards gerenciáveis com ações Editar / Remover
+Layout em lista vertical expansível (accordion por card)
+Modo público / wizard padrão:
+Exibe os hotéis já cadastrados como cards visuais bonitos (usando RoteiroActivityCard com isAdmin=false)
+Se nenhum hotel cadastrado: placeholder elegante "Hotel será definido pelo organizador" + ícone
+Sem qualquer formulário de edição visível
+Card de hotel bonito (modo público):
+Imagem principal em hero 200px com gradient overlay
+Nome do hotel, estrelas, localização
+Badges de inclusões (café da manhã, wifi, piscina...)
+Preço por pessoa
+Files: client/src/pages/criar-excursao.tsx, client/src/components/roteiro-activity-card.tsx
+Acceptance: Acessar /criar-excursao/:id sem ser admin mostra cards bonitos de hotel, sem formulários de edição
+T005: Neuromarketing e UX de fechamento no wizard
+Blocked By: [T003, T004]
+Details:
+Step de Revisão (último step):
+Summary card: foto do destino, dias, veículo, hotel, X atrações, X passeios, X parques
+Barra de "Completude do roteiro" (progress bar 0-100% baseada em quantos itens foram preenchidos)
+Badge "Roteiro completo!" com confetti animado (CSS) quando ≥80%
+Mensagem CaldasAI: "Seu roteiro está ótimo! Grupos com roteiro completo convertem 3x mais."
+Contadores e urgência:
+"X pessoas já adicionaram essa excursão aos favoritos"
+"Últimas X vagas disponíveis no {Hotel escolhido}"
+Contador regressivo "Essa configuração fica salva por 24h"
+Botão final de publicação:
+CTA "Publicar e começar a receber inscrições" com ícone Rocket
+Botão secundário "Salvar rascunho"
+Ao publicar: toast de sucesso + redirecionamento para /viagens-grupo/:id
+Files: client/src/pages/criar-excursao.tsx
+Acceptance: Step revisão mostra barra de completude; ao completar tudo aparece badge animado verde
