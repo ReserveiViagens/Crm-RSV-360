@@ -139,6 +139,17 @@ export async function registerRoutes(
     return res.json(safeUser(user));
   });
 
+  app.post("/api/auth/selfie", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const { fotoUrl } = req.body;
+    if (!fotoUrl || typeof fotoUrl !== "string") {
+      return res.status(400).json({ message: "Foto inválida" });
+    }
+    const updated = await storage.updateUser(req.session.userId, { fotoUrl });
+    if (!updated) return res.status(404).json({ message: "Usuário não encontrado" });
+    return res.json(safeUser(updated));
+  });
+
   // ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────
 
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

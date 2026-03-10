@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { SelfieModal } from "@/components/selfie/SelfieModal";
 import {
   Bus, Car, Truck, ChevronLeft, ChevronRight, Check, Sparkles,
   Hotel, MapPin, Waves, Footprints, Star, Clock, DollarSign,
   Rocket, Save, Eye, Users, Calendar, Flame, TrendingUp,
   PiggyBank, AlertCircle, Plus, Trash2, Edit3, Image,
-  X, Building2, Coffee, Wifi, ParkingCircle, Utensils
+  X, Building2, Coffee, Wifi, ParkingCircle, Utensils,
+  ShieldCheck, Camera
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────
@@ -405,6 +408,11 @@ export default function CriarExcursaoPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/criar-excursao/:id");
   const excursaoId = (params as { id?: string } | null)?.id;
+  const { user } = useAuth();
+
+  // Selfie verification gate
+  const [selfieGateAberto, setSelfieGateAberto] = useState(false);
+  const [selfieVerificada, setSelfieVerificada] = useState(false);
 
   // Basic form state
   const [nome, setNome] = useState("Minha Excursão Caldas Novas");
@@ -795,6 +803,8 @@ export default function CriarExcursaoPage() {
     { label: "Parques", cards: catalogoRoteiro.parquesAquaticos.filter((c) => selectedCatalogIds.parquesAquaticos.includes(c.id)), fallback: "Sem parques selecionados" },
   ];
 
+  const needsSelfie = user && !user.fotoUrl && !selfieVerificada;
+
   return (
     <div className="min-h-screen bg-background pb-24" data-testid="criar-excursao-page">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -810,6 +820,39 @@ export default function CriarExcursaoPage() {
               : "Configure uma nova excursão e crie seu grupo com governança de roteiro."}
           </p>
         </div>
+
+        {/* ── SELFIE VERIFICATION GATE ── */}
+        {needsSelfie && (
+          <div className="rounded-2xl overflow-hidden mb-6 border border-emerald-200" data-testid="selfie-gate-banner">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-sm">Verificação do organizador necessária</p>
+                <p className="text-emerald-100 text-xs mt-0.5 leading-relaxed">
+                  Para criar excursões e gerenciar grupos, precisamos confirmar sua identidade com uma selfie rápida. É seguro e protegido pela LGPD.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setSelfieGateAberto(true)}
+                data-testid="button-selfie-gate"
+                className="bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl font-bold text-xs flex-shrink-0 gap-1.5"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Verificar agora
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {selfieVerificada && (
+          <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 mb-6 flex items-center gap-3" data-testid="selfie-gate-ok">
+            <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <p className="text-sm font-semibold text-emerald-700">Identidade verificada! Você pode criar e publicar excursões.</p>
+          </div>
+        )}
 
         {/* ── INITIAL FORM (no excursaoId) ── */}
         {!isWizardMode && (
@@ -1405,6 +1448,17 @@ export default function CriarExcursaoPage() {
           </div>
         </div>
       )}
+
+      {/* Selfie Verification Modal for excursion organizer gate */}
+      <SelfieModal
+        aberto={selfieGateAberto}
+        onFechar={() => setSelfieGateAberto(false)}
+        contexto="excursao"
+        onSucesso={() => {
+          setSelfieVerificada(true);
+          setSelfieGateAberto(false);
+        }}
+      />
     </div>
   );
 }

@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 
 interface BiometricCaptureProps {
   onCaptureSuccess: (imageData: string) => void;
+  mensagemSucesso?: string;
 }
 
-export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
+export function BiometricCapture({
+  onCaptureSuccess,
+  mensagemSucesso = "Sua foto foi registrada. Estamos processando sua verificação de identidade.",
+}: BiometricCaptureProps) {
   const webcamRef = useRef<Webcam>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState(false);
@@ -30,8 +34,7 @@ export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
   const confirm = async () => {
     if (!capturedImage) return;
     setProcessing(true);
-    // Simulate biometric processing (500ms delay)
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 1200));
     setProcessing(false);
     setStep("success");
     onCaptureSuccess(capturedImage);
@@ -44,9 +47,7 @@ export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
           <CheckCircle2 className="w-12 h-12 text-emerald-500" />
         </div>
         <h3 className="text-xl font-bold text-foreground">Biometria capturada!</h3>
-        <p className="text-sm text-muted-foreground max-w-xs">
-          Sua foto foi registrada. Estamos processando sua verificação de identidade.
-        </p>
+        <p className="text-sm text-muted-foreground max-w-xs">{mensagemSucesso}</p>
       </div>
     );
   }
@@ -59,7 +60,9 @@ export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
             {cameraError ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted text-muted-foreground gap-3">
                 <AlertCircle className="w-8 h-8" />
-                <p className="text-sm font-medium text-center px-4">Câmera não encontrada ou sem permissão.<br />Permita o acesso à câmera no navegador.</p>
+                <p className="text-sm font-medium text-center px-4">
+                  Câmera não encontrada ou sem permissão.<br />Permita o acesso à câmera no navegador.
+                </p>
               </div>
             ) : (
               <>
@@ -71,7 +74,6 @@ export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
                   className="w-full h-full object-cover"
                   mirrored
                 />
-                {/* Oval silhouette overlay */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-44 h-56 rounded-full border-4 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]" />
                 </div>
@@ -111,7 +113,9 @@ export function BiometricCapture({ onCaptureSuccess }: BiometricCaptureProps) {
               <RefreshCw className="w-4 h-4" /> Repetir
             </Button>
             <Button onClick={confirm} disabled={processing} className="flex-1 rounded-xl gap-2 h-11" data-testid="btn-confirm-photo">
-              {processing ? <><Loader2 className="w-4 h-4 animate-spin" /> Verificando...</> : <><CheckCircle2 className="w-4 h-4" /> Confirmar</>}
+              {processing
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Processando...</>
+                : <><CheckCircle2 className="w-4 h-4" /> Confirmar</>}
             </Button>
           </div>
         </div>
