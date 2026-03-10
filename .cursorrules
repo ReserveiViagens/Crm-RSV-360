@@ -450,7 +450,82 @@ const neuroCounts: Record<string, number> = {
 
 ---
 
-## 12. MÓDULOS NTX (Next Generation) — Arquitetura e Padrões
+## 12. SISTEMA DE AUTENTICAÇÃO — Padrões e Arquitetura
+
+### 12.1 Auth Backend (Express Session + Scrypt)
+- **Middleware**: `express-session` com `SESSION_SECRET`, `cookie: { httpOnly: true, sameSite: "lax", maxAge: 7d }`
+- **Rotas**:
+  - `POST /api/auth/register` — `{ nome, email, telefone, senha, cpf? }` → cria usuário
+  - `POST /api/auth/login` — `{ identificador, senha }` — detecta tipo automaticamente (email/telefone/CPF)
+  - `POST /api/auth/logout` — destroi sessão
+  - `GET  /api/auth/me` — retorna `safeUser()` ou 401
+  - `POST /api/auth/selfie` — `{ fotoUrl: string (base64) }` → salva foto no usuário autenticado
+  - `GET  /api/auth/google` — redireciona para OAuth Google
+  - `GET  /api/auth/google/callback` — callback OAuth, cria/vincula conta
+  - `GET  /api/auth/google/status` → `{ configured: boolean }`
+- **`safeUser()`** retorna: `{ id, nome, email, telefone, role, cpf, fotoUrl, provider }`
+- **Hash**: `scrypt` + salt hex, formato `hash.salt`
+
+### 12.2 Smart Login — detecção automática de identificador
+```
+loginSchema.identificador detecta:
+- "(" → telefone (formato (XX) XXXXX-XXXX)
+- regex CPF (\d{3}\.\d{3}\.\d{3}-\d{2}) → CPF
+- "@" → email
+- 11 dígitos contíguos → telefone
+```
+- `getUserByIdentifier(identificador)` no storage resolve telefone/CPF com/sem formatação
+
+### 12.3 Schema de usuário (shared/schema.ts)
+```ts
+// Campos extra além do básico:
+cpf: text()           // opcional, máscara 000.000.000-00
+googleId: text()      // OAuth Google
+fotoUrl: text()       // base64 selfie ou URL
+provider: text()      // "local" | "google"
+```
+
+### 12.4 Hooks de Auth (client/src/hooks/use-auth.ts)
+```ts
+useAuth()         // { user, isLoading } — queryKey ["/api/auth/me"]
+useLogin()        // mutationFn POST /api/auth/login, campo: identificador
+useRegister()     // mutationFn POST /api/auth/register
+useLogout()       // mutationFn POST /api/auth/logout, limpa cache
+```
+
+### 12.5 Selfie Biométrica — SelfieModal e BiometricCapture
+
+**`SelfieModal`** (`client/src/components/selfie/SelfieModal.tsx`):
+- Prop `contexto: "perfil" | "excursao" | "cadastro"` → muda cor, ícone e mensagem
+- Chama `POST /api/auth/selfie` após captura → atualiza cache do usuário
+- Prop `onSucesso?: (fotoUrl: string) => void` para callback local
+- Prop `onFechar: () => void`
+
+**`BiometricCapture`** (`client/src/components/kyc/BiometricCapture.tsx`):
+- Prop `mensagemSucesso?: string` — mensagem customizável na tela de sucesso
+- Estados: `camera` → `preview` → `success`
+- Oval silhouette overlay sobre o webcam
+- Delay de 1200ms simulando processamento biométrico
+
+**Integração no Perfil** (`/perfil`):
+- Avatar clicável (`data-testid="avatar-selfie-trigger"`) → abre SelfieModal contexto "perfil"
+- Banner CTA "Tirar selfie" (`data-testid="button-tirar-selfie"`) aparece quando `!user.fotoUrl`
+- Badge "Identidade verificada" (verde) aparece após selfie salva
+
+**Gate no Criar Excursão** (`/criar-excursao`):
+- Banner verde escuro (`data-testid="selfie-gate-banner"`) aparece quando `user && !user.fotoUrl`
+- Botão "Verificar agora" (`data-testid="button-selfie-gate"`) abre SelfieModal contexto "excursao"
+- Badge verde "Identidade verificada! Você pode criar e publicar excursões." após sucesso (`data-testid="selfie-gate-ok"`)
+
+### 12.6 Google OAuth
+- Requer: `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env vars
+- Callback URL: `{HOST}/api/auth/google/callback`
+- Degrada graciosamente — botão Google sempre visível, mostra badge "Configurar" se não configurado
+- Vinculação automática: se e-mail já existe na base, vincula `googleId` sem criar duplicata
+
+---
+
+## 13. MÓDULOS NTX (Next Generation) — Arquitetura e Padrões
 
 ### 12.1 KYC Biométrico (T001)
 - **Fluxo**: `LGPDAcceptanceModal` → scroll obrigatório até o fim → checkbox → `BiometricCapture` → tela de sucesso
