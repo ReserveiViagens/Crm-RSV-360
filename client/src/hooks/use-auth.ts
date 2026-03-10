@@ -7,7 +7,10 @@ export interface AuthUser {
   nome: string;
   email: string;
   telefone: string;
+  cpf: string;
   role: string;
+  fotoUrl: string;
+  provider: string;
 }
 
 export function useAuth() {
@@ -23,7 +26,7 @@ export function useAuth() {
 export function useLogin() {
   const [, setLocation] = useLocation();
   return useMutation({
-    mutationFn: async (data: { email: string; senha: string }) => {
+    mutationFn: async (data: { identificador: string; senha: string }) => {
       const res = await apiRequest("POST", "/api/auth/login", data);
       return res.json() as Promise<AuthUser>;
     },
@@ -41,6 +44,7 @@ export function useRegister() {
       nome: string;
       email: string;
       telefone: string;
+      cpf?: string;
       senha: string;
       confirmarSenha: string;
       termos: boolean;

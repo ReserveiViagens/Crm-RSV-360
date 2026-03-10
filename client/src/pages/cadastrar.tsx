@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Eye, EyeOff, MapPin, ArrowLeft, Loader2,
-  User, Mail, Phone, Lock, CheckCircle2,
+  User, Mail, Phone, Lock, CheckCircle2, CreditCard,
 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,21 @@ const BENEFITS = [
   "Suporte via WhatsApp 24h",
 ];
 
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const formatCpf = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
 export default function CadastrarPage() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -32,12 +48,8 @@ export default function CadastrarPage() {
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      nome: "",
-      email: "",
-      telefone: "",
-      senha: "",
-      confirmarSenha: "",
-      termos: false,
+      nome: "", email: "", telefone: "", cpf: "",
+      senha: "", confirmarSenha: "", termos: false,
     },
   });
 
@@ -47,13 +59,6 @@ export default function CadastrarPage() {
         toast({ title: "Erro no cadastro", description: err.message, variant: "destructive" });
       },
     });
-  };
-
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 11);
-    if (digits.length <= 2) return `(${digits}`;
-    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
   };
 
   return (
@@ -75,9 +80,7 @@ export default function CadastrarPage() {
           }}>
             <MapPin style={{ width: 28, height: 28, color: "#fff" }} />
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>
-            Crie sua conta grátis
-          </h1>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#fff", margin: "0 0 6px" }}>Crie sua conta grátis</h1>
           <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, margin: 0 }}>
             Junte-se a milhares de viajantes em Caldas Novas
           </p>
@@ -98,51 +101,62 @@ export default function CadastrarPage() {
           background: "#fff", borderRadius: 20, padding: 28,
           boxShadow: "0 4px 24px rgba(0,0,0,0.10)", maxWidth: 440, margin: "0 auto",
         }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 20px" }}>Suas informações</h2>
+          {/* Social */}
+          <a
+            href="/api/auth/google"
+            data-testid="button-google-cadastrar"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              padding: "12px 16px", borderRadius: 12, border: "1.5px solid #E5E7EB",
+              background: "#fff", textDecoration: "none", cursor: "pointer",
+              fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 16,
+            }}
+          >
+            <SiGoogle style={{ width: 18, height: 18, color: "#EA4335" }} />
+            Cadastrar com Google
+          </a>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ flex: 1, height: 1, background: "#E5E7EB" }} />
+            <span style={{ fontSize: 12, color: "#9CA3AF" }}>ou preencha o formulário</span>
+            <div style={{ flex: 1, height: 1, background: "#E5E7EB" }} />
+          </div>
+
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: "#1F2937", margin: "0 0 16px" }}>Suas informações</h2>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-              <FormField
-                control={form.control}
-                name="nome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Nome completo</FormLabel>
-                    <FormControl>
-                      <div style={{ position: "relative" }}>
-                        <User style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
-                        <Input {...field} placeholder="Seu nome completo" data-testid="input-nome" style={{ paddingLeft: 40 }} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormField control={form.control} name="nome" render={({ field }) => (
+                <FormItem>
+                  <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Nome completo</FormLabel>
+                  <FormControl>
+                    <div style={{ position: "relative" }}>
+                      <User style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
+                      <Input {...field} placeholder="Seu nome completo" data-testid="input-nome" style={{ paddingLeft: 40 }} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>E-mail</FormLabel>
-                    <FormControl>
-                      <div style={{ position: "relative" }}>
-                        <Mail style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
-                        <Input {...field} type="email" placeholder="seu@email.com" data-testid="input-email" style={{ paddingLeft: 40 }} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormField control={form.control} name="email" render={({ field }) => (
+                <FormItem>
+                  <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>E-mail</FormLabel>
+                  <FormControl>
+                    <div style={{ position: "relative" }}>
+                      <Mail style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
+                      <Input {...field} type="email" placeholder="seu@email.com" data-testid="input-email" style={{ paddingLeft: 40 }} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
-              <FormField
-                control={form.control}
-                name="telefone"
-                render={({ field }) => (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FormField control={form.control} name="telefone" render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>WhatsApp / Telefone</FormLabel>
+                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>WhatsApp</FormLabel>
                     <FormControl>
                       <div style={{ position: "relative" }}>
                         <Phone style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
@@ -157,94 +171,90 @@ export default function CadastrarPage() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
+                )} />
 
-              <FormField
-                control={form.control}
-                name="senha"
-                render={({ field }) => (
+                <FormField control={form.control} name="cpf" render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Senha</FormLabel>
+                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>
+                      CPF <span style={{ color: "#9CA3AF", fontWeight: 400 }}>(opcional)</span>
+                    </FormLabel>
                     <FormControl>
                       <div style={{ position: "relative" }}>
-                        <Lock style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
+                        <CreditCard style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
                         <Input
                           {...field}
-                          type={showPass ? "text" : "password"}
-                          placeholder="Mínimo 6 caracteres"
-                          data-testid="input-senha"
-                          style={{ paddingLeft: 40, paddingRight: 40 }}
+                          placeholder="000.000.000-00"
+                          data-testid="input-cpf"
+                          style={{ paddingLeft: 40 }}
+                          onChange={(e) => field.onChange(formatCpf(e.target.value))}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPass(!showPass)}
-                          style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}
-                        >
-                          {showPass ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
-                        </button>
                       </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
+                )} />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="confirmarSenha"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Confirmar senha</FormLabel>
-                    <FormControl>
-                      <div style={{ position: "relative" }}>
-                        <Lock style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
-                        <Input
-                          {...field}
-                          type={showConfirm ? "text" : "password"}
-                          placeholder="Repita a senha"
-                          data-testid="input-confirmar-senha"
-                          style={{ paddingLeft: 40, paddingRight: 40 }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirm(!showConfirm)}
-                          style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}
-                        >
-                          {showConfirm ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="termos"
-                render={({ field }) => (
-                  <FormItem>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 4 }}>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-termos"
-                          style={{ marginTop: 2, flexShrink: 0 }}
-                        />
-                      </FormControl>
-                      <span style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
-                        Li e concordo com os{" "}
-                        <Link href="/politica-de-privacidade" style={{ color: "#2563EB", fontWeight: 600, textDecoration: "none" }}>
-                          Termos de Uso e Política de Privacidade
-                        </Link>
-                      </span>
+              <FormField control={form.control} name="senha" render={({ field }) => (
+                <FormItem>
+                  <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Senha</FormLabel>
+                  <FormControl>
+                    <div style={{ position: "relative" }}>
+                      <Lock style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
+                      <Input
+                        {...field}
+                        type={showPass ? "text" : "password"}
+                        placeholder="Mínimo 6 caracteres"
+                        data-testid="input-senha"
+                        style={{ paddingLeft: 40, paddingRight: 40 }}
+                      />
+                      <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}>
+                        {showPass ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                      </button>
                     </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="confirmarSenha" render={({ field }) => (
+                <FormItem>
+                  <FormLabel style={{ color: "#374151", fontWeight: 600, fontSize: 13 }}>Confirmar senha</FormLabel>
+                  <FormControl>
+                    <div style={{ position: "relative" }}>
+                      <Lock style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "#9CA3AF" }} />
+                      <Input
+                        {...field}
+                        type={showConfirm ? "text" : "password"}
+                        placeholder="Repita a senha"
+                        data-testid="input-confirmar-senha"
+                        style={{ paddingLeft: 40, paddingRight: 40 }}
+                      />
+                      <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9CA3AF" }}>
+                        {showConfirm ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="termos" render={({ field }) => (
+                <FormItem>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 4 }}>
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-termos" style={{ marginTop: 2, flexShrink: 0 }} />
+                    </FormControl>
+                    <span style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                      Li e concordo com os{" "}
+                      <Link href="/politica-de-privacidade" style={{ color: "#2563EB", fontWeight: 600, textDecoration: "none" }}>
+                        Termos de Uso e Política de Privacidade
+                      </Link>
+                    </span>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
               <Button
                 type="submit"
@@ -255,8 +265,7 @@ export default function CadastrarPage() {
                   background: "linear-gradient(135deg, #F57C00 0%, #EF4444 100%)",
                   color: "#fff", border: "none", borderRadius: 12,
                   fontSize: 15, fontWeight: 700, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  marginTop: 6,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6,
                 }}
               >
                 {register.isPending ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : null}

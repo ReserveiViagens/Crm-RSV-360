@@ -72,7 +72,11 @@ export async function registerRoutes(
     return timingSafeEqual(buf, storedBuf);
   };
 
-  const safeUser = (u: any) => ({ id: u.id, nome: u.nome, email: u.email, telefone: u.telefone, role: u.role });
+  const safeUser = (u: any) => ({
+    id: u.id, nome: u.nome, email: u.email,
+    telefone: u.telefone, role: u.role,
+    cpf: u.cpf, fotoUrl: u.fotoUrl, provider: u.provider,
+  });
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
@@ -80,19 +84,22 @@ export async function registerRoutes(
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
 
-    const { nome, email, telefone, senha } = parsed.data;
+    const { nome, email, telefone, cpf = "", senha } = parsed.data;
 
     const existing = await storage.getUserByEmail(email);
     if (existing) return res.status(409).json({ message: "E-mail já cadastrado" });
+
+    if (cpf) {
+      const existingCpf = await storage.getUserByCpf(cpf);
+      if (existingCpf) return res.status(409).json({ message: "CPF já cadastrado" });
+    }
 
     const hashedPassword = await hashPassword(senha);
     const user = await storage.createUser({
       username: email,
       password: hashedPassword,
-      nome,
-      email,
-      telefone,
-      role: "user",
+      nome, email, telefone, cpf,
+      role: "user", googleId: "", fotoUrl: "", provider: "local",
     });
 
     req.session.userId = user.id;
@@ -103,13 +110,17 @@ export async function registerRoutes(
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
 
-    const { email, senha } = parsed.data;
+    const { identificador, senha } = parsed.data;
 
-    const user = await storage.getUserByEmail(email);
-    if (!user) return res.status(401).json({ message: "E-mail ou senha incorretos" });
+    const user = await storage.getUserByIdentifier(identificador);
+    if (!user) return res.status(401).json({ message: "Credenciais não encontradas" });
+
+    if (user.provider !== "local" || !user.password) {
+      return res.status(401).json({ message: `Esta conta usa login via ${user.provider}. Use o botão correspondente.` });
+    }
 
     const ok = await verifyPassword(senha, user.password);
-    if (!ok) return res.status(401).json({ message: "E-mail ou senha incorretos" });
+    if (!ok) return res.status(401).json({ message: "Senha incorreta" });
 
     req.session.userId = user.id;
     return res.json(safeUser(user));
@@ -127,6 +138,73 @@ export async function registerRoutes(
     if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
     return res.json(safeUser(user));
   });
+
+  // ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────
+
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+  const googleConfigured = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+
+  app.get("/api/auth/google/status", (_req: Request, res: Response) => {
+    res.json({ configured: googleConfigured });
+  });
+
+  if (googleConfigured) {
+    const { default: passport } = await import("passport");
+    const { Strategy: GoogleStrategy } = await import("passport-google-oauth20");
+
+    const CALLBACK_URL = process.env.NODE_ENV === "production"
+      ? `${process.env.BASE_URL ?? ""}/api/auth/google/callback`
+      : `http://localhost:5000/api/auth/google/callback`;
+
+    passport.use(new GoogleStrategy(
+      { clientID: GOOGLE_CLIENT_ID!, clientSecret: GOOGLE_CLIENT_SECRET!, callbackURL: CALLBACK_URL },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          let user = await storage.getUserByGoogleId(profile.id);
+          if (!user) {
+            const email = profile.emails?.[0]?.value ?? `${profile.id}@google.com`;
+            user = await storage.getUserByEmail(email);
+            if (user) {
+              user = await storage.updateUser(user.id, { googleId: profile.id, provider: "google", fotoUrl: profile.photos?.[0]?.value ?? "" }) ?? user;
+            } else {
+              user = await storage.createUser({
+                username: email, password: "", nome: profile.displayName ?? "Usuário Google",
+                email, telefone: "", cpf: "", role: "user",
+                googleId: profile.id, fotoUrl: profile.photos?.[0]?.value ?? "", provider: "google",
+              });
+            }
+          }
+          done(null, user);
+        } catch (e) {
+          done(e as Error);
+        }
+      }
+    ));
+
+    passport.serializeUser((user: any, done) => done(null, user.id));
+    passport.deserializeUser(async (id: string, done) => {
+      try { done(null, await storage.getUser(id)); } catch (e) { done(e); }
+    });
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+    app.get("/api/auth/google/callback",
+      passport.authenticate("google", { failureRedirect: "/entrar?erro=google" }),
+      (req: Request, res: Response) => {
+        const user = req.user as any;
+        if (user) req.session.userId = user.id;
+        res.redirect("/perfil");
+      }
+    );
+  } else {
+    app.get("/api/auth/google", (_req: Request, res: Response) => {
+      res.redirect("/entrar?erro=google-nao-configurado");
+    });
+  }
 
   const getMembershipRole = async (excursao: Excursao, userId: string) => {
     if (!userId) return null;
