@@ -255,6 +255,48 @@ export default function EntrarPage() {
                   Cadastre-se grátis
                 </Link>
               </div>
+
+              {/* ── Demo Login Card ── */}
+              <div style={{
+                marginTop: 4, padding: "14px 16px", borderRadius: 14,
+                background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)",
+                border: "1.5px solid rgba(245,124,0,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <Zap style={{ width: 14, height: 14, color: "#F59E0B" }} />
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Acesso Demo
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.4 }}>
+                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>demo@reservei.com.br</span>
+                    {" · "}
+                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>demo123</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
+                    Acesso admin — todas as funcionalidades
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  data-testid="btn-entrar-demo"
+                  onClick={handleDemoLogin}
+                  disabled={login.isPending}
+                  style={{
+                    padding: "8px 14px", borderRadius: 10, border: "1.5px solid rgba(245,124,0,0.5)",
+                    background: "rgba(245,124,0,0.15)", color: "#F59E0B",
+                    fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 6,
+                    whiteSpace: "nowrap", flexShrink: 0,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <Zap style={{ width: 13, height: 13 }} />
+                  Entrar como Demo
+                </button>
+              </div>
             </form>
           </Form>
         </div>
