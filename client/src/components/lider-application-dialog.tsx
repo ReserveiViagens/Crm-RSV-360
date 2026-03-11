@@ -300,7 +300,7 @@ export function LiderApplicationDialog({ open, onOpenChange, user }: Props) {
                   data-testid="btn-gate-cadastro"
                   size="lg"
                   variant="outline"
-                  onClick={() => { handleClose(); setLocation("/cadastro") }}
+                  onClick={() => { handleClose(); setLocation("/cadastrar") }}
                   className="rounded-2xl font-semibold gap-2"
                 >
                   <UserPlus className="w-4 h-4" /> Criar conta gratuitamente
