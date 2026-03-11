@@ -132,6 +132,17 @@ const HOTEIS_CALDAS_PRESET = [
   },
 ];
 
+const NOME_SUGESTOES_BASE = [
+  "{destino} em Família — {mes} {ano}",
+  "Grupo Amigos Termas {ano}",
+  "Turma do Colégio — Julho {ano}",
+  "Confraternização Empresa — {destino}",
+  "Fuga Romântica {destino} {mes} {ano}",
+  "Excursão em Grupo — {destino} {ano}",
+  "Amigos das Termas — {mes} {ano}",
+  "Viagem em Família — {destino}",
+];
+
 /* ─────────────────────────────────────────────
    Helpers
 ───────────────────────────────────────────── */
@@ -912,6 +923,16 @@ export default function CriarExcursaoPage() {
   const suggestedVehicle = vehicleByCapacity(capacidade);
   const isWizardMode = Boolean(excursaoId);
 
+  const nomeSugestoes = useMemo(() => {
+    const d = new Date();
+    const mes = d.toLocaleDateString("pt-BR", { month: "long" });
+    const ano = String(d.getFullYear());
+    const dest = destino.trim() || "Caldas Novas";
+    return NOME_SUGESTOES_BASE.map((s) =>
+      s.replace(/\{destino\}/g, dest).replace(/\{mes\}/g, mes).replace(/\{ano\}/g, ano)
+    );
+  }, [destino]);
+
   // Neuromarketing counts for catalog items
   const neuroCounts: Record<string, number> = {
     "def-hot-park": 89, "def-diroma": 42, "def-golden-dolphin": 61,
@@ -1269,51 +1290,193 @@ export default function CriarExcursaoPage() {
           </div>
         )}
 
-        {/* ── INITIAL FORM (no excursaoId) ── */}
+        {/* ── INITIAL FORM (no excursaoId) — LANDING INTELIGENTE ── */}
         {!isWizardMode && (
-          <div className="bg-white rounded-2xl border border-border p-6 space-y-4" data-testid="criar-excursao-form">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Nome da excursão</label>
-              <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Caldas Novas Família Total — Abril 2026" className="h-11 rounded-xl" data-testid="criar-excursao-nome" />
+          <div className="space-y-4" data-testid="criar-excursao-form">
+
+            {/* ── Hero Banner ── */}
+            <div
+              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white"
+              data-testid="criar-excursao-hero"
+            >
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1200&q=60')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/20 to-blue-900/60" />
+              <div className="relative px-6 py-8 md:py-10">
+                <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium mb-4">
+                  <Flame className="w-3.5 h-3.5 text-amber-300" />
+                  47 organizadores criaram excursões esta semana
+                </div>
+                <h2 className="text-2xl md:text-3xl font-extrabold leading-tight mb-2">
+                  Monte sua excursão
+                </h2>
+                <p className="text-blue-100 text-sm md:text-base mb-5 max-w-lg">
+                  Preencha em 2 minutos e comece a receber inscrições do seu grupo.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {["✓ Grupo privado", "✓ Roteamento inteligente", "✓ Link de compartilhamento"].map((b) => (
+                    <span key={b} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-xs font-medium">
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Data de ida</label>
-                <Input type="date" value={dataIda} onChange={(e) => setDataIda(e.target.value)} className="h-11 rounded-xl" data-testid="criar-excursao-data-ida" />
+
+            {/* ── Seção 1: Nome ── */}
+            <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">1 — Como vai chamar sua excursão?</p>
+                  <p className="text-xs text-muted-foreground">Escolha um nome que atraia participantes</p>
+                </div>
               </div>
+              <Input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Ex: Caldas Novas Família Total — Abril 2026"
+                className="h-11 rounded-xl"
+                data-testid="criar-excursao-nome"
+              />
               <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Data de volta</label>
-                <Input type="date" value={dataVolta} onChange={(e) => setDataVolta(e.target.value)} className="h-11 rounded-xl" data-testid="criar-excursao-data-volta" />
+                <p className="text-xs text-muted-foreground mb-2 font-medium">✨ Sugestões para você:</p>
+                <div className="flex flex-wrap gap-2">
+                  {nomeSugestoes.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setNome(s)}
+                      data-testid={`criar-excursao-nome-sugestao-${i}`}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-all hover:shadow-sm ${
+                        nome === s
+                          ? "bg-primary text-white border-primary"
+                          : "bg-muted/50 text-foreground border-border hover:bg-primary/5 hover:border-primary/30"
+                      }`}
+                    >
+                      ✨ {s}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-            {tripDays.length > 0 && (
-              <div className="flex flex-wrap gap-1.5" data-testid="criar-excursao-dias-mapeados">
-                {tripDays.map((d) => (
-                  <span key={d.id} className="text-xs font-semibold bg-primary/10 text-primary rounded-full px-3 py-1 border border-primary/20">
-                    {d.label}
-                  </span>
-                ))}
+
+            {/* ── Seção 2: Datas ── */}
+            <div className="bg-white rounded-2xl border border-border p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">2 — Quando vai ser?</p>
+                  <p className="text-xs text-muted-foreground">Selecione o intervalo de datas da viagem</p>
+                </div>
               </div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Destino</label>
-                <Input value={destino} onChange={(e) => setDestino(e.target.value)} placeholder="Caldas Novas" className="h-11 rounded-xl" data-testid="criar-excursao-destino" />
+              <DateRangePicker
+                dataIda={dataIda}
+                dataVolta={dataVolta}
+                onChange={(ida, volta) => { setDataIda(ida); setDataVolta(volta); }}
+              />
+            </div>
+
+            {/* ── Seção 3: Destino ── */}
+            <div className="bg-white rounded-2xl border border-border p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-rose-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">3 — Para onde?</p>
+                  <p className="text-xs text-muted-foreground">Escolha o destino principal da excursão</p>
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Local de saída</label>
-                <Input value={localSaida} onChange={(e) => setLocalSaida(e.target.value)} placeholder="Ex: Terminal Rodoviário, SP" className="h-11 rounded-xl" data-testid="criar-excursao-local-saida" />
+              <DestinoPicker value={destino} onChange={setDestino} />
+            </div>
+
+            {/* ── Seção 4: Saída + Capacidade ── */}
+            <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-sm">4 — Partindo de onde e quantos?</p>
+                  <p className="text-xs text-muted-foreground">Cidade de origem e tamanho do grupo</p>
+                </div>
+              </div>
+              <LocalSaidaPicker value={localSaida} onChange={setLocalSaida} />
+              <div className="border-t border-border pt-4">
+                <p className="text-xs font-semibold text-muted-foreground mb-3">Capacidade do grupo</p>
+                <CapacidadeStepper value={capacidade} onChange={setCapacidade} />
               </div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Capacidade do grupo</label>
-              <Input type="number" value={capacidade} onChange={(e) => setCapacidade(Math.max(4, Number(e.target.value || 4)))} className="h-11 rounded-xl" data-testid="criar-excursao-capacidade" />
-              <p className="text-xs text-muted-foreground mt-1.5">Sugestão de veículo: <strong>{vehicleByCapacity(capacidade)}</strong></p>
+
+            {/* ── Prévia ao vivo ── */}
+            <div
+              className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4"
+              data-testid="criar-excursao-preview-card"
+            >
+              <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-3">Prévia da sua excursão</p>
+              <div className="flex items-center gap-4">
+                {(() => {
+                  const dest = DESTINOS_PRESET.find(d => d.nome === destino);
+                  return dest ? (
+                    <img src={dest.img} alt={dest.nome} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 shadow-sm" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-7 h-7 text-blue-300" />
+                    </div>
+                  );
+                })()}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground truncate">{nome || "Minha Excursão Caldas Novas"}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    {destino && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="w-3 h-3" />{destino}
+                      </span>
+                    )}
+                    {dataIda && dataVolta && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />{formatDate(dataIda)} → {formatDate(dataVolta)}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="w-3 h-3" />{capacidade} pessoas
+                    </span>
+                  </div>
+                  {tripDays.length > 0 && (
+                    <span className="inline-flex items-center gap-1 mt-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-full px-2.5 py-0.5">
+                      <Clock className="w-3 h-3" />{tripDays.length} dia{tripDays.length > 1 ? "s" : ""} · {tripDays.length - 1} noite{tripDays.length > 2 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button onClick={handleCreate} disabled={saving} className="w-full h-12 rounded-xl text-base font-bold" data-testid="criar-excursao-submit">
-              {saving ? "Criando..." : "Criar excursão e montar roteiro →"}
-            </Button>
+
+            {/* ── Submit ── */}
+            {error && <p className="text-sm text-destructive px-1">{error}</p>}
+            <div className="space-y-2">
+              <Button
+                onClick={handleCreate}
+                disabled={saving}
+                className="w-full h-14 rounded-2xl text-base font-extrabold gap-3 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 shadow-lg"
+                data-testid="criar-excursao-submit"
+              >
+                <Rocket className="w-5 h-5" />
+                {saving ? "Criando seu grupo..." : "Criar excursão e montar roteiro completo →"}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">Você pode editar todos os detalhes após criar.</p>
+            </div>
+
           </div>
         )}
 
