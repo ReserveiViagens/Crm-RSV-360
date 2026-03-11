@@ -14,7 +14,7 @@ import {
   Rocket, Save, Eye, Users, Calendar, Flame, TrendingUp,
   PiggyBank, AlertCircle, Plus, Trash2, Edit3, Image,
   X, Building2, Coffee, Wifi, ParkingCircle, Utensils,
-  ShieldCheck, Camera
+  ShieldCheck, Camera, Copy, Share2, ExternalLink, User
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────
@@ -80,6 +80,59 @@ const DEFAULT_PASSEIOS: RoteiroCard[] = [
 ];
 
 /* ─────────────────────────────────────────────
+   Static data — destinations & origins
+───────────────────────────────────────────── */
+const DESTINOS_PRESET = [
+  { id: "caldas-novas", nome: "Caldas Novas", estado: "GO", img: "https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=400&q=75" },
+  { id: "rio-quente", nome: "Rio Quente", estado: "GO", img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=75" },
+  { id: "pirenopolis", nome: "Pirenópolis", estado: "GO", img: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&q=75" },
+  { id: "chapada", nome: "Chapada dos Veadeiros", estado: "GO", img: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=75" },
+  { id: "goiania", nome: "Goiânia", estado: "GO", img: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=75" },
+  { id: "brasilia", nome: "Brasília", estado: "DF", img: "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?w=400&q=75" },
+  { id: "bonito", nome: "Bonito", estado: "MS", img: "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=400&q=75" },
+];
+
+const ORIGENS_PRESET = [
+  { id: "goiania-rod", label: "Goiânia", sub: "Terminal Rodoviário" },
+  { id: "brasilia-rod", label: "Brasília", sub: "Rodoviária do Plano" },
+  { id: "anapolis", label: "Anápolis", sub: "Centro / Rodoviária" },
+  { id: "aparecida", label: "Aparecida de Goiânia", sub: "Rodoviária Municipal" },
+];
+
+const HOTEIS_CALDAS_PRESET = [
+  {
+    id: "preset-diroma-fiori", nome: "DiRoma Fiori Resort", preco: 289,
+    descricao: "Resort de alto padrão com parque aquático privativo, piscinas termais e spa. O queridinho dos grupos!",
+    img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
+  },
+  {
+    id: "preset-diroma-acqua", nome: "DiRoma Acqua Park Hotel", preco: 259,
+    descricao: "Hotel integrado ao famoso Acqua Park com toboáguas e piscinas de águas termais naturais.",
+    img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80",
+  },
+  {
+    id: "preset-sesc", nome: "SESC Caldas Novas", preco: 189,
+    descricao: "Estrutura completa com piscinas termais, quadras e restaurante. Ótimo custo-benefício para grupos.",
+    img: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=80",
+  },
+  {
+    id: "preset-hot-park-suites", nome: "Hot Park Suítes", preco: 349,
+    descricao: "Acomodação exclusiva integrada ao Hot Park, o maior parque de águas termais do mundo.",
+    img: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80",
+  },
+  {
+    id: "preset-nautico", nome: "Hotel Náutico Caldas Novas", preco: 219,
+    descricao: "À beira do Lago Corumbá, com vista panorâmica, piscinas aquecidas e estrutura para grupos.",
+    img: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=600&q=80",
+  },
+  {
+    id: "preset-rio-quente-pousada", nome: "Resort Rio Quente", preco: 239,
+    descricao: "Às margens do Rio Quente com acesso direto ao Hot Park e águas naturalmente quentes.",
+    img: "https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=600&q=80",
+  },
+];
+
+/* ─────────────────────────────────────────────
    Helpers
 ───────────────────────────────────────────── */
 function getCurrentUser() {
@@ -130,6 +183,365 @@ function formatDate(dateStr: string) {
    Sub-components
 ───────────────────────────────────────────── */
 const STEP_LABELS = ["Básico", "Veículo", "Hotel", "Roteiro", "Revisão"];
+
+/* ── Interactive date range calendar ── */
+interface DateRangePickerProps {
+  dataIda: string;
+  dataVolta: string;
+  onChange: (ida: string, volta: string) => void;
+}
+function DateRangePicker({ dataIda, dataVolta, onChange }: DateRangePickerProps) {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(() => {
+    if (dataIda) return new Date(dataIda + "T00:00:00").getFullYear();
+    return today.getFullYear();
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (dataIda) return new Date(dataIda + "T00:00:00").getMonth();
+    return today.getMonth();
+  });
+  const [selecting, setSelecting] = useState<"ida" | "volta">("ida");
+
+  const idaDate = dataIda ? new Date(dataIda + "T00:00:00") : null;
+  const voltaDate = dataVolta ? new Date(dataVolta + "T00:00:00") : null;
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const lastOfMonth = new Date(viewYear, viewMonth + 1, 0);
+  const startDow = firstOfMonth.getDay();
+
+  const days: (Date | null)[] = [];
+  for (let i = 0; i < startDow; i++) days.push(null);
+  for (let d = 1; d <= lastOfMonth.getDate(); d++) days.push(new Date(viewYear, viewMonth, d));
+
+  const MONTHS_PT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const DAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+  function isoDate(d: Date) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  function handleDayClick(d: Date) {
+    const iso = isoDate(d);
+    if (selecting === "ida" || !dataIda) {
+      onChange(iso, "");
+      setSelecting("volta");
+    } else {
+      if (iso < dataIda) {
+        onChange(iso, dataIda);
+      } else {
+        onChange(dataIda, iso);
+      }
+      setSelecting("ida");
+    }
+  }
+
+  function isInRange(d: Date) {
+    if (!idaDate || !voltaDate) return false;
+    return d > idaDate && d < voltaDate;
+  }
+  function isStart(d: Date) { return idaDate ? isoDate(d) === isoDate(idaDate) : false; }
+  function isEnd(d: Date) { return voltaDate ? isoDate(d) === isoDate(voltaDate) : false; }
+  function isPast(d: Date) { const t = new Date(); t.setHours(0,0,0,0); return d < t; }
+
+  const nights = idaDate && voltaDate
+    ? Math.round((voltaDate.getTime() - idaDate.getTime()) / 86400000)
+    : 0;
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Selection indicator */}
+      <div className="flex gap-2">
+        {(["ida", "volta"] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setSelecting(k)}
+            className={`flex-1 rounded-xl border-2 px-3 py-2 text-left transition-all ${
+              selecting === k ? "border-primary bg-primary/5" : "border-border bg-white hover:border-primary/40"
+            }`}
+          >
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{k === "ida" ? "Ida" : "Volta"}</p>
+            <p className={`text-sm font-bold mt-0.5 ${k === "ida" ? (dataIda ? "text-foreground" : "text-muted-foreground") : (dataVolta ? "text-foreground" : "text-muted-foreground")}`}>
+              {k === "ida"
+                ? (dataIda ? formatDate(dataIda) : "Selecione")
+                : (dataVolta ? formatDate(dataVolta) : "Selecione")}
+            </p>
+          </button>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="bg-white border border-border rounded-2xl overflow-hidden">
+        {/* Month navigation */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <button type="button" onClick={prevMonth} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <p className="font-bold text-foreground text-sm">{MONTHS_PT[viewMonth]} {viewYear}</p>
+          <button type="button" onClick={nextMonth} className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Day headers */}
+        <div className="grid grid-cols-7 border-b border-border">
+          {DAYS_PT.map(d => (
+            <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">{d}</div>
+          ))}
+        </div>
+        {/* Day cells */}
+        <div className="grid grid-cols-7 p-2 gap-y-1">
+          {days.map((d, i) => {
+            if (!d) return <div key={`empty-${i}`} />;
+            const past = isPast(d);
+            const start = isStart(d);
+            const end = isEnd(d);
+            const inRange = isInRange(d);
+            return (
+              <button
+                key={d.toISOString()}
+                type="button"
+                disabled={past}
+                onClick={() => !past && handleDayClick(d)}
+                className={`relative h-9 w-full flex items-center justify-center text-sm font-medium transition-all rounded-full
+                  ${past ? "text-muted-foreground/40 cursor-not-allowed" : "hover:bg-primary/10 cursor-pointer"}
+                  ${(start || end) ? "bg-primary text-white hover:bg-primary rounded-full z-10" : ""}
+                  ${inRange ? "bg-primary/15 text-primary rounded-none" : ""}
+                `}
+              >
+                {d.getDate()}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Duration badge */}
+      {nights > 0 && (
+        <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5" data-testid="criar-excursao-duracao-badge">
+          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+          <p className="text-sm font-bold text-primary">{nights + 1} dias · {nights} {nights === 1 ? "noite" : "noites"}</p>
+          <span className="ml-auto text-xs text-muted-foreground">{formatDate(dataIda)} → {formatDate(dataVolta)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Destination card picker ── */
+interface DestinoPickerProps {
+  value: string;
+  onChange: (v: string) => void;
+}
+function DestinoPicker({ value, onChange }: DestinoPickerProps) {
+  const isCustom = value && !DESTINOS_PRESET.some(d => d.nome === value);
+  const [showCustom, setShowCustom] = useState(isCustom);
+  const [customText, setCustomText] = useState(isCustom ? value : "");
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {DESTINOS_PRESET.map((dest) => {
+          const sel = value === dest.nome;
+          return (
+            <button
+              key={dest.id}
+              type="button"
+              data-testid={`destino-card-${dest.id}`}
+              onClick={() => { onChange(dest.nome); setShowCustom(false); }}
+              className={`relative rounded-xl overflow-hidden border-2 transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                sel ? "border-primary ring-2 ring-primary/30" : "border-border"
+              }`}
+            >
+              <div className="relative h-20">
+                <img src={dest.img} alt={dest.nome} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                {sel && (
+                  <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+                <div className="absolute bottom-1.5 left-2 right-2">
+                  <p className="text-white text-xs font-bold leading-tight truncate">{dest.nome}</p>
+                  <p className="text-white/70 text-xs">{dest.estado}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => { setShowCustom(true); onChange(customText); }}
+          className={`rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 h-20 transition-all hover:border-primary/50 hover:bg-primary/5 ${
+            showCustom ? "border-primary bg-primary/5" : "border-border"
+          }`}
+        >
+          <Plus className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">Outro</span>
+        </button>
+      </div>
+      {showCustom && (
+        <Input
+          value={customText}
+          onChange={(e) => { setCustomText(e.target.value); onChange(e.target.value); }}
+          placeholder="Digite o destino..."
+          className="h-11 rounded-xl"
+          autoFocus
+          data-testid="criar-excursao-destino-custom"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Local de saída picker ── */
+interface LocalSaidaPickerProps {
+  value: string;
+  onChange: (v: string) => void;
+}
+function LocalSaidaPicker({ value, onChange }: LocalSaidaPickerProps) {
+  const isCustom = value && !ORIGENS_PRESET.some(o => o.label + " — " + o.sub === value);
+  const [showCustom, setShowCustom] = useState(isCustom);
+  const [customText, setCustomText] = useState(isCustom ? value : "");
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        {ORIGENS_PRESET.map((o) => {
+          const fullLabel = `${o.label} — ${o.sub}`;
+          const sel = value === fullLabel;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              data-testid={`origem-card-${o.id}`}
+              onClick={() => { onChange(fullLabel); setShowCustom(false); }}
+              className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5 ${
+                sel ? "border-primary bg-primary/5" : "border-border bg-white"
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${sel ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{o.label}</p>
+                <p className="text-xs text-muted-foreground truncate">{o.sub}</p>
+              </div>
+              {sel && <Check className="w-4 h-4 text-primary ml-auto flex-shrink-0" />}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => { setShowCustom(true); if (customText) onChange(customText); }}
+          className={`flex items-center gap-3 rounded-xl border-2 border-dashed p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/5 ${
+            showCustom ? "border-primary bg-primary/5" : "border-border"
+          }`}
+        >
+          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+            <Plus className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">Outro</p>
+            <p className="text-xs text-muted-foreground">Digite o local</p>
+          </div>
+        </button>
+      </div>
+      {showCustom && (
+        <Input
+          value={customText}
+          onChange={(e) => { setCustomText(e.target.value); onChange(e.target.value); }}
+          placeholder="Ex: Terminal Rodoviário de São Paulo"
+          className="h-11 rounded-xl"
+          autoFocus
+          data-testid="criar-excursao-local-saida-custom"
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Capacity stepper ── */
+interface CapacidadeStepperProps {
+  value: number;
+  onChange: (v: number) => void;
+}
+function CapacidadeStepper({ value, onChange }: CapacidadeStepperProps) {
+  const cfg = value <= 6
+    ? { label: "Mini grupo", emoji: "👨‍👩‍👧‍👦", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" }
+    : value <= 15
+    ? { label: "Grupo médio", emoji: "👥", cls: "bg-blue-100 text-blue-700 border-blue-200" }
+    : value <= 28
+    ? { label: "Grupo grande", emoji: "🚌", cls: "bg-amber-100 text-amber-700 border-amber-200" }
+    : { label: "Excursão completa", emoji: "🚍", cls: "bg-primary/10 text-primary border-primary/20" };
+  const veh = vehicleByCapacity(value);
+  const display = Math.min(value, 20);
+  const rest = value > 20 ? value - 20 : 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Stepper control */}
+      <div className="flex items-center justify-center gap-6">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(4, value - 1))}
+          disabled={value <= 4}
+          className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center text-xl font-bold transition-all hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          −
+        </button>
+        <div className="text-center">
+          <p className="text-5xl font-extrabold text-foreground" data-testid="criar-excursao-capacidade-display">{value}</p>
+          <p className="text-xs text-muted-foreground mt-1">pessoas</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(60, value + 1))}
+          disabled={value >= 60}
+          className="w-11 h-11 rounded-full border-2 border-border flex items-center justify-center text-xl font-bold transition-all hover:border-primary hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Group type badge */}
+      <div className={`flex items-center justify-center gap-2 rounded-full border px-4 py-1.5 w-fit mx-auto ${cfg.cls}`}>
+        <span>{cfg.emoji}</span>
+        <span className="text-sm font-semibold">{cfg.label}</span>
+      </div>
+
+      {/* Vehicle suggestion */}
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Bus className="w-4 h-4" />
+        <span>Sugestão de veículo: <strong className="text-foreground">{veh}</strong></span>
+        <span className="bg-emerald-100 text-emerald-700 text-xs rounded-full px-2 py-0.5 font-medium">✓ automático</span>
+      </div>
+
+      {/* People icons visual */}
+      <div className="flex flex-wrap gap-1 justify-center" data-testid="criar-excursao-pessoas-icons">
+        {Array.from({ length: display }).map((_, i) => (
+          <div key={i} className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center">
+            <User className="w-3.5 h-3.5 text-primary" />
+          </div>
+        ))}
+        {rest > 0 && (
+          <div className="w-6 h-6 rounded-full bg-primary/30 flex items-center justify-center text-xs font-bold text-primary">
+            +{rest}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function StepBar({ active, completed }: { active: number; completed: Set<number> }) {
   return (
@@ -476,6 +888,8 @@ export default function CriarExcursaoPage() {
   const [previewLastUpdatedAt, setPreviewLastUpdatedAt] = useState("");
   const [mainSyncStatus, setMainSyncStatus] = useState<"synced" | "syncing" | "error">("synced");
   const [mainLastUpdatedAt, setMainLastUpdatedAt] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Computed values
   const tripDays = useMemo(() => {
@@ -770,8 +1184,9 @@ export default function CriarExcursaoPage() {
         setMainLastUpdatedAt(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
         setCompletedSteps((prev) => new Set(Array.from(prev).concat(activeStep)));
         if (publish) {
-          toast({ title: "🚀 Excursão publicada!", description: "Seu grupo está aberto para inscrições." });
-          setLocation(`/viagens-grupo/${excursaoId}`);
+          setIsPublished(true);
+          toast({ title: "🚀 Excursão publicada!", description: "Compartilhe o link para começar a receber inscrições." });
+          goStep(5);
         } else {
           toast({ title: "✅ Rascunho salvo!", description: "Continue montando seu roteiro." });
         }
@@ -909,50 +1324,79 @@ export default function CriarExcursaoPage() {
 
             {/* ════════ STEP 1 — Básico ════════ */}
             {activeStep === 1 && (
-              <div className="bg-white rounded-2xl border border-border p-6 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300" data-testid="wizard-step-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-foreground">Informações básicas</h2>
-                    <p className="text-xs text-muted-foreground">Datas, destino e capacidade do grupo</p>
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300" data-testid="wizard-step-1">
+                {/* Hero card */}
+                <div className="relative rounded-2xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800" />
+                  <img src="https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=900&q=60" alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" />
+                  <div className="relative px-6 py-5">
+                    <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Passo 1 de 5</p>
+                    <h2 className="text-xl font-extrabold text-white leading-tight">Informações básicas</h2>
+                    <p className="text-blue-200 text-sm mt-1">Datas, destino e tamanho do grupo — a base da sua excursão.</p>
                   </div>
                 </div>
-                <div>
+
+                {/* Nome */}
+                <div className="bg-white rounded-2xl border border-border p-5">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Nome da excursão</label>
-                  <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Caldas Novas Família Total" className="h-11 rounded-xl" data-testid="criar-excursao-wizard-nome" />
+                  <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Caldas Novas Família Total — Abril 2026" className="h-11 rounded-xl" data-testid="criar-excursao-wizard-nome" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Data de ida</label>
-                    <Input type="date" value={dataIda} onChange={(e) => setDataIda(e.target.value)} className="h-11 rounded-xl" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Data de volta</label>
-                    <Input type="date" value={dataVolta} onChange={(e) => setDataVolta(e.target.value)} className="h-11 rounded-xl" />
-                  </div>
-                </div>
-                {tripDays.length > 0 && (
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Mapa de dias da viagem</label>
-                    <div className="flex flex-wrap gap-2" data-testid="criar-excursao-wizard-trip-days">
-                      {tripDays.map((d) => (
-                        <span key={d.id} className="text-xs font-bold bg-primary/10 text-primary rounded-full px-3 py-1.5 border border-primary/20">{d.label}</span>
-                      ))}
+
+                {/* Calendário interativo */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5" /> Datas da viagem
+                  </label>
+                  <DateRangePicker
+                    dataIda={dataIda}
+                    dataVolta={dataVolta}
+                    onChange={(ida, volta) => { setDataIda(ida); setDataVolta(volta); }}
+                  />
+                  {/* Timeline de dias */}
+                  {tripDays.length > 0 && (
+                    <div className="mt-4" data-testid="criar-excursao-wizard-trip-days">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block">Mapa da viagem</label>
+                      <div className="relative flex items-start gap-0 overflow-x-auto pb-2">
+                        {tripDays.map((d, i) => (
+                          <div key={d.id} className="flex items-center flex-shrink-0">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {i + 1}
+                              </div>
+                              <p className="text-xs text-muted-foreground whitespace-nowrap">{d.label.split("•")[1]?.trim()}</p>
+                            </div>
+                            {i < tripDays.length - 1 && <div className="h-0.5 w-8 bg-primary/30 flex-shrink-0 -mt-4" />}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Destino</label>
-                    <Input value={destino} onChange={(e) => setDestino(e.target.value)} className="h-11 rounded-xl" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Capacidade</label>
-                    <Input type="number" value={capacidade} onChange={(e) => setCapacidade(Math.max(4, Number(e.target.value || 4)))} className="h-11 rounded-xl" data-testid="criar-excursao-wizard-capacidade" />
-                  </div>
+                  )}
                 </div>
+
+                {/* Destino */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5" /> Destino
+                  </label>
+                  <DestinoPicker value={destino} onChange={setDestino} />
+                </div>
+
+                {/* Local de saída */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5" /> Local de saída
+                  </label>
+                  <LocalSaidaPicker value={localSaida} onChange={setLocalSaida} />
+                </div>
+
+                {/* Capacidade */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 block flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5" /> Capacidade do grupo
+                  </label>
+                  <CapacidadeStepper value={capacidade} onChange={setCapacidade} />
+                </div>
+
                 <div className="flex justify-end">
                   <Button onClick={() => goStep(2)} className="rounded-xl gap-2 h-11 px-6 font-bold" data-testid="btn-step-next-1">
                     Próximo: Veículo <ChevronRight className="w-4 h-4" />
@@ -1018,25 +1462,84 @@ export default function CriarExcursaoPage() {
 
             {/* ════════ STEP 3 — Hotel ════════ */}
             {activeStep === 3 && (
-              <div className="bg-white rounded-2xl border border-border p-6 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300" data-testid="wizard-step-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Hotel className="w-5 h-5 text-primary" />
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300" data-testid="wizard-step-3">
+
+                {/* Hotéis populares de Caldas Novas */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <Star className="w-5 h-5 text-amber-500" />
                     </div>
                     <div>
-                      <h2 className="font-bold text-foreground">Hotel principal</h2>
-                      <p className="text-xs text-muted-foreground">
-                        {isAdminMode ? "Modo admin — gerencie os cards do hotel" : "Acomodação incluída na excursão"}
-                      </p>
+                      <h3 className="font-bold text-foreground">Hotéis populares em Caldas Novas</h3>
+                      <p className="text-xs text-muted-foreground">Selecione um para adicionar automaticamente</p>
                     </div>
                   </div>
-                  {isAdminMode && (
-                    <Button size="sm" className="rounded-xl gap-2 h-9 text-xs" onClick={() => addCard("hoteis")} data-testid="criar-excursao-wizard-card-hoteis-add">
-                      <Plus className="w-3.5 h-3.5" /> Adicionar hotel
-                    </Button>
-                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" data-testid="hoteis-preset-grid">
+                    {HOTEIS_CALDAS_PRESET.map((h) => {
+                      const jaAdicionado = roteiro.hoteis.some(c => c.titulo === h.nome);
+                      return (
+                        <div key={h.id} className="rounded-xl border border-border overflow-hidden bg-white hover:shadow-md transition-all" data-testid={`hotel-preset-${h.id}`}>
+                          <div className="relative h-28">
+                            <img src={h.img} alt={h.nome} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                            <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
+                              <p className="text-white text-xs font-bold leading-tight">{h.nome}</p>
+                              <span className="bg-white/90 text-foreground text-xs font-bold rounded-lg px-2 py-0.5 flex-shrink-0">
+                                R$ {h.preco}/pessoa
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-3 flex items-center justify-between gap-2">
+                            <p className="text-xs text-muted-foreground line-clamp-2 flex-1">{h.descricao}</p>
+                            <Button
+                              size="sm"
+                              variant={jaAdicionado ? "outline" : "default"}
+                              disabled={jaAdicionado}
+                              onClick={() => {
+                                if (jaAdicionado) return;
+                                const card: RoteiroCard = {
+                                  id: `hotel-${h.id}-${Date.now().toString(36)}`,
+                                  titulo: h.nome,
+                                  descricaoBreve: h.descricao,
+                                  galeriaImagens: [h.img],
+                                  galeriaVideos: [],
+                                  precoPorPessoa: h.preco,
+                                };
+                                setRoteiro(prev => ({ ...prev, hoteis: [...prev.hoteis, card] }));
+                              }}
+                              className="rounded-xl text-xs h-8 flex-shrink-0"
+                              data-testid={`btn-usar-hotel-${h.id}`}
+                            >
+                              {jaAdicionado ? <><Check className="w-3 h-3 mr-1" />Adicionado</> : "Usar este"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Card manager */}
+                <div className="bg-white rounded-2xl border border-border p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Hotel className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="font-bold text-foreground">Hotel principal</h2>
+                        <p className="text-xs text-muted-foreground">
+                          {isAdminMode ? "Modo admin — gerencie os cards do hotel" : "Acomodação incluída na excursão"}
+                        </p>
+                      </div>
+                    </div>
+                    {isAdminMode && (
+                      <Button size="sm" className="rounded-xl gap-2 h-9 text-xs" onClick={() => addCard("hoteis")} data-testid="criar-excursao-wizard-card-hoteis-add">
+                        <Plus className="w-3.5 h-3.5" /> Adicionar hotel
+                      </Button>
+                    )}
+                  </div>
 
                 {/* Admin mode: full card management */}
                 {isAdminMode && (
@@ -1045,7 +1548,7 @@ export default function CriarExcursaoPage() {
                       <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-xl">
                         <Hotel className="w-8 h-8 mx-auto mb-2 opacity-30" />
                         <p className="text-sm">Nenhum hotel cadastrado.</p>
-                        <p className="text-xs mt-1">Clique em "Adicionar hotel" para começar.</p>
+                        <p className="text-xs mt-1">Selecione um dos presets acima ou clique em "Adicionar hotel".</p>
                       </div>
                     ) : (
                       roteiro.hoteis.map((card) => (
@@ -1079,6 +1582,8 @@ export default function CriarExcursaoPage() {
                     )}
                   </div>
                 )}
+
+                </div>
 
                 <div className="flex justify-between">
                   <Button variant="outline" onClick={() => goStep(2)} className="rounded-xl gap-2 h-11 px-5">
@@ -1347,22 +1852,92 @@ export default function CriarExcursaoPage() {
                   </div>
                 </div>
 
+                {/* Published share panel */}
+                {isPublished && excursaoId && (
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-6 space-y-4" data-testid="share-panel">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <Rocket className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-emerald-800 text-base">🎉 Excursão publicada com sucesso!</h3>
+                        <p className="text-xs text-emerald-700">Compartilhe o link para receber inscrições do seu grupo.</p>
+                      </div>
+                    </div>
+
+                    {/* Link display */}
+                    <div className="bg-white border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
+                      <p className="text-sm text-foreground flex-1 font-mono truncate" data-testid="share-link-text">
+                        {window.location.origin}/viagens-grupo?excursao={excursaoId}
+                      </p>
+                      <button
+                        type="button"
+                        data-testid="btn-copiar-link"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(`${window.location.origin}/viagens-grupo?excursao=${excursaoId}`);
+                          setLinkCopied(true);
+                          setTimeout(() => setLinkCopied(false), 2000);
+                        }}
+                        className={`flex items-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-2 transition-all flex-shrink-0 ${
+                          linkCopied ? "bg-emerald-500 text-white" : "bg-primary/10 text-primary hover:bg-primary/20"
+                        }`}
+                      >
+                        {linkCopied ? <><Check className="w-3.5 h-3.5" /> Copiado!</> : <><Copy className="w-3.5 h-3.5" /> Copiar</>}
+                      </button>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(`Olá! Criei uma excursão "${nome}" para ${destino}. Confirme sua vaga: ${window.location.origin}/viagens-grupo?excursao=${excursaoId}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-testid="btn-compartilhar-whatsapp"
+                        className="flex items-center gap-2 bg-[#25D366] text-white rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-[#22c35e] transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" /> Compartilhar no WhatsApp
+                      </a>
+                      <a
+                        href={`/viagens-grupo?excursao=${excursaoId}`}
+                        data-testid="btn-ver-meu-grupo"
+                        className="flex items-center gap-2 bg-white border border-border text-foreground rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-muted transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Ver meu grupo
+                      </a>
+                    </div>
+                  </div>
+                )}
+
                 {/* Preview & Save buttons */}
-                <div className="bg-white rounded-2xl border border-border p-6 space-y-3">
-                  <div className="flex flex-wrap gap-3">
+                {!isPublished && (
+                  <div className="bg-white rounded-2xl border border-border p-6 space-y-3">
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="outline" onClick={() => setFullscreenPreviewOpen(true)} className="rounded-xl gap-2 h-11" data-testid="criar-excursao-wizard-fullscreen-preview-open">
+                        <Eye className="w-4 h-4" /> Ver como convidado
+                      </Button>
+                      <Button variant="outline" onClick={() => handleSaveRoteiro(false)} disabled={savingRoteiro} className="rounded-xl gap-2 h-11" data-testid="criar-excursao-wizard-salvar">
+                        <Save className="w-4 h-4" /> {savingRoteiro ? "Salvando..." : "Salvar rascunho"}
+                      </Button>
+                    </div>
+                    <Button onClick={() => handleSaveRoteiro(true)} disabled={savingRoteiro} className="w-full h-14 rounded-2xl text-base font-extrabold gap-3 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 shadow-lg" data-testid="criar-excursao-wizard-publicar">
+                      <Rocket className="w-5 h-5" />
+                      {savingRoteiro ? "Publicando..." : "Publicar e começar a receber inscrições"}
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">Você pode editar e salvar novamente a qualquer momento após publicar.</p>
+                  </div>
+                )}
+
+                {isPublished && (
+                  <div className="bg-white rounded-2xl border border-border p-4 flex flex-wrap gap-3">
                     <Button variant="outline" onClick={() => setFullscreenPreviewOpen(true)} className="rounded-xl gap-2 h-11" data-testid="criar-excursao-wizard-fullscreen-preview-open">
                       <Eye className="w-4 h-4" /> Ver como convidado
                     </Button>
                     <Button variant="outline" onClick={() => handleSaveRoteiro(false)} disabled={savingRoteiro} className="rounded-xl gap-2 h-11" data-testid="criar-excursao-wizard-salvar">
-                      <Save className="w-4 h-4" /> {savingRoteiro ? "Salvando..." : "Salvar rascunho"}
+                      <Save className="w-4 h-4" /> {savingRoteiro ? "Salvando..." : "Salvar alterações"}
                     </Button>
+                    <p className="text-xs text-muted-foreground self-center ml-auto">Você pode editar a qualquer momento após publicar.</p>
                   </div>
-                  <Button onClick={() => handleSaveRoteiro(true)} disabled={savingRoteiro} className="w-full h-14 rounded-2xl text-base font-extrabold gap-3 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 shadow-lg" data-testid="criar-excursao-wizard-publicar">
-                    <Rocket className="w-5 h-5" />
-                    {savingRoteiro ? "Publicando..." : "Publicar e começar a receber inscrições"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">Você pode editar e salvar novamente a qualquer momento após publicar.</p>
-                </div>
+                )}
 
                 <div className="flex justify-start">
                   <Button variant="outline" onClick={() => goStep(4)} className="rounded-xl gap-2 h-11 px-5">

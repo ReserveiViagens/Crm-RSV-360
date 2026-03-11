@@ -659,3 +659,51 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
 - `btn-gate-refresh` — botão "Atualizar status" (tela PENDING)
 - `btn-gate-back-excursoes` — botão voltar (tela REJEITADO)
 - `badge-privado-{excursaoId}` — badge no card da excursão
+
+---
+
+### 12.11 Wizard /criar-excursao — Componentes Interativos (session: wizard-enhancement)
+
+**Sub-componentes adicionados em `client/src/pages/criar-excursao.tsx`:**
+
+#### DateRangePicker
+- Calendário inline construído em React puro (sem biblioteca externa)
+- Clique 1 → define `dataIda`; Clique 2 → define `dataVolta`
+- Range entre datas destacado com `bg-blue-100`; datas selecionadas com `bg-primary text-white rounded-full`
+- Exibe badge "N dias · N noites" após seleção
+- Timeline visual de dias (D1 · D2 · ...) com linha horizontal conectando pontos
+
+#### DestinoPicker
+- 7 destinos pré-definidos com foto Unsplash + nome + estado
+- `DESTINOS_PRESET`: Caldas Novas GO, Rio Quente GO, Pirenópolis GO, Chapada dos Veadeiros GO, Goiânia GO, Brasília DF, Bonito MS
+- Card selecionado com `ring-2 ring-primary`
+- Opção "+ Outro destino" abre `<Input>` para texto livre
+
+#### LocalSaidaPicker
+- `ORIGENS_PRESET`: 4 cidades pré-definidas + "Outro"
+- Cards com ícone `MapPin`, ring azul quando selecionado
+- "Outro" abre input de texto livre
+
+#### CapacidadeStepper
+- Stepper visual com botões `−` / `+` (`rounded-full`)
+- Range: 4–60 pessoas
+- Badge automático por faixa: Mini grupo (4–6), Grupo médio (7–15), Grupo grande (16–28), Excursão completa (29–60)
+- Sugestão de veículo como badge inline (atualiza dinamicamente)
+- Visualização de ícones `User` (máx 20 visíveis + "+N")
+
+#### HOTEIS_CALDAS_PRESET (Step 3)
+- 6 hotéis reais de Caldas Novas com foto, nome, preço/pessoa, descrição
+- IDs: `diroma-fiori`, `diroma-acqua`, `sesc`, `hot-park-suites`, `nautico`, `pousada-rio-quente`
+- Botão "Usar este" → cria `RoteiroCard` preenchido em `roteiro.hoteis`
+- Sem duplicação: verifica `roteiro.hoteis.some(c => c.titulo === h.nome)`
+- data-testid: `hoteis-preset-grid`, `hotel-preset-{id}`, `btn-usar-hotel-{id}`
+
+#### Share Panel (Step 5 — após publicar)
+- Estado: `isPublished: boolean`, `linkCopied: boolean`
+- Após `handleSaveRoteiro(true)` bem-sucedido: `setIsPublished(true)` + `goStep(5)` (não redireciona mais)
+- Painel com gradiente emerald-teal: data-testid `share-panel`
+- URL display: `{origin}/viagens-grupo?excursao={excursaoId}` — data-testid `share-link-text`
+- Botão Copiar (data-testid `btn-copiar-link`): feedback "Copiado!" por 2s via `setLinkCopied`
+- WhatsApp share: `https://wa.me/?text=...` com nome + link — data-testid `btn-compartilhar-whatsapp`
+- "Ver meu grupo": link para `/viagens-grupo?excursao={id}` — data-testid `btn-ver-meu-grupo`
+- Após publicar: botões de preview e salvar alterações ainda visíveis (painel separado)
