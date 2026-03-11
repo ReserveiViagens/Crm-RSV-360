@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Eye, EyeOff, MapPin, ArrowLeft, Loader2,
-  Lock, AtSign, Phone, CreditCard, Chrome, Zap,
+  Lock, AtSign, Phone, CreditCard, Chrome, Zap, Copy, Users,
 } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLogin } from "@/hooks/use-auth";
 import { loginSchema } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
@@ -76,6 +77,11 @@ export default function EntrarPage() {
     form.setValue("identificador", value);
     setFieldType(detectFieldType(value));
   };
+
+  const { data: demoInfo } = useQuery<{ excursaoId: string; inviteCode: string }>({
+    queryKey: ["/api/demo/info"],
+    staleTime: Infinity,
+  });
 
   const handleDemoLogin = () => {
     form.setValue("identificador", "demo@reservei.com.br");
@@ -258,44 +264,99 @@ export default function EntrarPage() {
 
               {/* ── Demo Login Card ── */}
               <div style={{
-                marginTop: 4, padding: "14px 16px", borderRadius: 14,
+                marginTop: 4, padding: "16px", borderRadius: 14,
                 background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)",
                 border: "1.5px solid rgba(245,124,0,0.4)",
-                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                display: "flex", flexDirection: "column", gap: 12,
               }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                {/* header row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <Zap style={{ width: 14, height: 14, color: "#F59E0B" }} />
                     <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                       Acesso Demo
                     </span>
                   </div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.4 }}>
-                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>demo@reservei.com.br</span>
-                    {" · "}
-                    <span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>demo123</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
-                    Acesso admin — todas as funcionalidades
-                  </div>
+                  <button
+                    type="button"
+                    data-testid="btn-entrar-demo"
+                    onClick={handleDemoLogin}
+                    disabled={login.isPending}
+                    style={{
+                      padding: "6px 12px", borderRadius: 8, border: "1.5px solid rgba(245,124,0,0.5)",
+                      background: "rgba(245,124,0,0.15)", color: "#F59E0B",
+                      fontSize: 11, fontWeight: 700, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 5,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Zap style={{ width: 12, height: 12 }} />
+                    Entrar como Demo
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  data-testid="btn-entrar-demo"
-                  onClick={handleDemoLogin}
-                  disabled={login.isPending}
-                  style={{
-                    padding: "8px 14px", borderRadius: 10, border: "1.5px solid rgba(245,124,0,0.5)",
-                    background: "rgba(245,124,0,0.15)", color: "#F59E0B",
-                    fontSize: 12, fontWeight: 700, cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 6,
-                    whiteSpace: "nowrap", flexShrink: 0,
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <Zap style={{ width: 13, height: 13 }} />
-                  Entrar como Demo
-                </button>
+
+                {/* credentials */}
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.8 }}>
+                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>email </span>
+                  <span style={{ color: "#fff", fontWeight: 600 }}>demo@reservei.com.br</span>
+                  {"  "}
+                  <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>senha </span>
+                  <span style={{ color: "#fff", fontWeight: 600 }}>demo123</span>
+                </div>
+
+                {/* invite code */}
+                {demoInfo?.inviteCode && demoInfo?.excursaoId && (
+                  <div style={{
+                    padding: "10px 12px", borderRadius: 10,
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                  }}>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                      <Users style={{ width: 10, height: 10 }} />
+                      Grupo demo "Caldas Novas" — código de convite:
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <code
+                        data-testid="text-demo-invite-code"
+                        style={{
+                          flex: 1, fontSize: 14, fontWeight: 800, letterSpacing: "0.08em",
+                          color: "#34D399", fontFamily: "monospace",
+                        }}
+                      >
+                        {demoInfo.inviteCode}
+                      </code>
+                      <button
+                        type="button"
+                        data-testid="btn-copy-invite-code"
+                        onClick={() => {
+                          navigator.clipboard.writeText(demoInfo.inviteCode);
+                          toast({ title: "Copiado!", description: "Código de convite copiado." });
+                        }}
+                        style={{
+                          padding: "4px 8px", borderRadius: 6,
+                          background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)",
+                          color: "#34D399", cursor: "pointer", fontSize: 11,
+                          display: "flex", alignItems: "center", gap: 4,
+                        }}
+                      >
+                        <Copy style={{ width: 11, height: 11 }} />
+                        Copiar
+                      </button>
+                      <Link
+                        href={`/viagens-grupo?excursao=${demoInfo.excursaoId}`}
+                        data-testid="link-demo-group"
+                        style={{
+                          padding: "4px 8px", borderRadius: 6,
+                          background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.3)",
+                          color: "#93C5FD", fontSize: 11, textDecoration: "none",
+                          display: "flex", alignItems: "center", gap: 4,
+                        }}
+                      >
+                        <Users style={{ width: 11, height: 11 }} />
+                        Ir ao grupo
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </form>
           </Form>

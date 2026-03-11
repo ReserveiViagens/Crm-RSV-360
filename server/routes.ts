@@ -78,13 +78,17 @@ export async function registerRoutes(
     cpf: u.cpf, fotoUrl: u.fotoUrl, provider: u.provider,
   });
 
-  // ─── SEED DEMO USER ───────────────────────────────────────────────────────
+  // ─── SEED DEMO ────────────────────────────────────────────────────────────
+  let DEMO_EXCURSAO_ID = "";
+  let DEMO_INVITE_CODE = "INV-DEMO-000000";
+
   (async () => {
+    // 1. Usuário demo
     const DEMO_EMAIL = "demo@reservei.com.br";
-    const existing = await storage.getUserByEmail(DEMO_EMAIL);
-    if (!existing) {
+    let demoUser = await storage.getUserByEmail(DEMO_EMAIL);
+    if (!demoUser) {
       const hashedPassword = await hashPassword("demo123");
-      await storage.createUser({
+      demoUser = await storage.createUser({
         username: DEMO_EMAIL,
         password: hashedPassword,
         nome: "Demo Master",
@@ -98,6 +102,41 @@ export async function registerRoutes(
       });
       console.log("[SEED] Usuário demo criado → demo@reservei.com.br / demo123 (admin)");
     }
+
+    // 2. Excursão demo
+    const allExcursoes = await listExcursoes();
+    let demoExcursao = allExcursoes.find((e) => e.nome === "Caldas Novas — Grupo Demo");
+    if (!demoExcursao) {
+      demoExcursao = await createExcursao({
+        nome: "Caldas Novas — Grupo Demo",
+        destino: "Caldas Novas, GO",
+        dataIda: "2026-07-15",
+        dataVolta: "2026-07-20",
+        localSaida: "Goiânia - Terminal Rodoviário",
+        capacidade: 40,
+        veiculoTipo: "Ônibus",
+        status: "aberto",
+      });
+      console.log(`[SEED] Excursão demo criada → id=${demoExcursao.id}`);
+    }
+    DEMO_EXCURSAO_ID = demoExcursao.id;
+
+    // 3. Grupo e convite
+    const group = await ensureGroupForExcursao(demoExcursao.id, demoExcursao.nome, demoExcursao.capacidade);
+    await upsertMembership(group.id, demoUser.id, demoUser.nome, "ADMIN");
+
+    const { mutateDb } = await import("./persistence");
+    const existingCode = await mutateDb((db: any) => {
+      const invites = (db.inviteStore as Array<{ groupId: string; code: string; used: boolean }>) ?? [];
+      return invites.find((i) => i.groupId === group.id && !i.used)?.code ?? null;
+    });
+    if (existingCode) {
+      DEMO_INVITE_CODE = existingCode;
+    } else {
+      const inv = await createInvite(group.id);
+      DEMO_INVITE_CODE = inv.code;
+    }
+    console.log(`[SEED] Convite demo → ${DEMO_INVITE_CODE} (excursão ${DEMO_EXCURSAO_ID})`);
   })();
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
@@ -191,6 +230,10 @@ export async function registerRoutes(
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
   const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
   const googleConfigured = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET);
+
+  app.get("/api/demo/info", (_req: Request, res: Response) => {
+    res.json({ excursaoId: DEMO_EXCURSAO_ID, inviteCode: DEMO_INVITE_CODE });
+  });
 
   app.get("/api/auth/google/status", (_req: Request, res: Response) => {
     res.json({ configured: googleConfigured });
