@@ -5,7 +5,7 @@ import {
   Search, Filter, ArrowRight, Shield, Headphones, Zap,
   Thermometer, Waves, Camera, Heart, Share2, Trophy,
   CheckCircle2, Plus, Sparkles, TrendingUp, Tag,
-  Crown, Rocket,
+  Crown, Rocket, Lock,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

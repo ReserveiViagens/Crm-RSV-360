@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ComponentType } from "react"
 import { useLocation } from "wouter"
 import { useMutation } from "@tanstack/react-query"
 import {
@@ -20,7 +20,7 @@ interface TipoGrupo {
   id: string
   label: string
   emoji: string
-  icon: React.ElementType
+  icon: ComponentType<{ className?: string }>
   cor: string
 }
 
