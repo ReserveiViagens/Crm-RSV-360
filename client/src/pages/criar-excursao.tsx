@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { SelfieModal } from "@/components/selfie/SelfieModal";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Bus, Car, Truck, ChevronLeft, ChevronRight, Check, Sparkles,
   Hotel, MapPin, Waves, Footprints, Star, Clock, DollarSign,
   Rocket, Save, Eye, Users, Calendar, Flame, TrendingUp,
   PiggyBank, AlertCircle, Plus, Trash2, Edit3, Image,
   X, Building2, Coffee, Wifi, ParkingCircle, Utensils,
-  ShieldCheck, Camera, Copy, Share2, ExternalLink, User
+  ShieldCheck, Camera, Copy, Share2, ExternalLink, User,
+  Crown, Lock, CheckCircle2, Shield, Zap, ArrowRight
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────
@@ -831,7 +834,23 @@ export default function CriarExcursaoPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/criar-excursao/:id");
   const excursaoId = (params as { id?: string } | null)?.id;
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const isLider = user?.role === "LIDER" || user?.role === "admin";
+
+  const tornarLiderMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/tornar-lider");
+      if (!res.ok) throw new Error("Erro ao ativar liderança");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({ title: "🎉 Você agora é um Líder!", description: "Crie e gerencie suas excursões com acesso completo." });
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Não foi possível ativar a liderança. Tente novamente.", variant: "destructive" });
+    },
+  });
 
   // Selfie verification gate
   const [selfieGateAberto, setSelfieGateAberto] = useState(false);
@@ -1240,6 +1259,98 @@ export default function CriarExcursaoPage() {
   ];
 
   const needsSelfie = user && !user.fotoUrl && !selfieVerificada;
+
+  /* ─── Líder Gate ─── */
+  if (!authLoading && !isLider) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16" data-testid="lider-gate-page">
+        <div className="max-w-2xl w-full">
+          {/* Card principal */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-800 text-white p-8 md:p-12 shadow-2xl">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/30 rounded-full px-4 py-1.5 text-sm mb-6">
+                <Lock className="w-4 h-4 text-amber-300" />
+                <span className="text-amber-200 font-semibold">Acesso Exclusivo — Programa Líder</span>
+              </div>
+
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-3" data-testid="lider-gate-title">
+                Área exclusiva de <span className="text-amber-300">Líderes</span>
+              </h1>
+              <p className="text-blue-100 text-lg mb-8 max-w-xl">
+                {!user
+                  ? "Faça login para desbloquear a criação de excursões e gerencie seus grupos com ferramentas profissionais."
+                  : "Ative sua liderança gratuitamente e crie excursões ilimitadas com gestão completa de grupo."}
+              </p>
+
+              {/* Benefícios */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                {[
+                  { icon: Rocket, label: "Wizard de criação guiado" },
+                  { icon: Users, label: "Gestão completa de grupo" },
+                  { icon: Shield, label: "Grupos privados com convite" },
+                  { icon: Zap, label: "Pix integrado para inscrições" },
+                  { icon: Sparkles, label: "Sugestões de roteiro com IA" },
+                  { icon: CheckCircle2, label: "ANTT / FNRH automático" },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3">
+                    <Icon className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                    <span className="text-sm font-medium">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {!user ? (
+                  <Button
+                    data-testid="btn-gate-entrar"
+                    size="lg"
+                    onClick={() => setLocation("/entrar")}
+                    className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
+                  >
+                    <Crown className="w-5 h-5" />
+                    Entrar e tornar-me Líder
+                  </Button>
+                ) : (
+                  <Button
+                    data-testid="btn-gate-tornar-lider"
+                    size="lg"
+                    onClick={() => tornarLiderMutation.mutate()}
+                    disabled={tornarLiderMutation.isPending}
+                    className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
+                  >
+                    <Crown className="w-5 h-5" />
+                    {tornarLiderMutation.isPending ? "Ativando..." : "Ativar liderança — É grátis!"}
+                  </Button>
+                )}
+                <Button
+                  data-testid="btn-gate-voltar"
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setLocation("/excursoes")}
+                  className="rounded-2xl border-white/30 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2"
+                >
+                  <ArrowRight className="w-5 h-5 rotate-180" />
+                  Ver excursões disponíveis
+                </Button>
+              </div>
+
+              {!user && (
+                <p className="text-blue-300 text-xs mt-4">
+                  Não tem conta?{" "}
+                  <button onClick={() => setLocation("/cadastro")} className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                    Cadastre-se de graça
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24" data-testid="criar-excursao-page">

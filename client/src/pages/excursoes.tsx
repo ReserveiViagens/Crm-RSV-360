@@ -1,15 +1,20 @@
 import { useState, useMemo } from "react"
-import { Link } from "wouter"
+import { Link, useLocation } from "wouter"
+import { useMutation } from "@tanstack/react-query"
 import {
   Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight,
   Search, Filter, ArrowRight, Shield, Headphones, Zap,
   Thermometer, Waves, Camera, Heart, Share2, Trophy,
-  CheckCircle2, Plus, Sparkles, TrendingUp, Tag, Lock
+  CheckCircle2, Plus, Sparkles, TrendingUp, Tag, Lock,
+  Crown, Rocket, CheckCheck
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/hooks/use-auth"
+import { apiRequest, queryClient } from "@/lib/queryClient"
+import { useToast } from "@/hooks/use-toast"
 
 interface Excursao {
   id: string
@@ -341,6 +346,27 @@ export default function Excursoes() {
   const [busca, setBusca] = useState("")
   const [categoria, setCategoria] = useState("todas")
   const [ordenacao, setOrdenacao] = useState("destaque")
+  const [, setLocation] = useLocation()
+  const { user } = useAuth()
+  const { toast } = useToast()
+
+  const isLider = user?.role === "LIDER" || user?.role === "admin"
+
+  const tornarLiderMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/tornar-lider")
+      if (!res.ok) throw new Error("Erro ao ativar liderança")
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] })
+      toast({ title: "🎉 Parabéns, você agora é um Líder!", description: "Você pode criar e gerenciar suas próprias excursões." })
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Faça login primeiro para se tornar Líder.", variant: "destructive" })
+      setLocation("/entrar")
+    },
+  })
 
   const excursoesFiltradas = useMemo(() => {
     let lista = [...EXCURSOES]
@@ -421,17 +447,33 @@ export default function Excursoes() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </a>
-            <Link href="/criar-excursao">
+            {isLider ? (
+              <Link href="/criar-excursao">
+                <Button
+                  data-testid="btn-hero-criar-excursao"
+                  size="lg"
+                  className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
+                >
+                  <Crown className="w-5 h-5" />
+                  Criar minha excursão
+                </Button>
+              </Link>
+            ) : (
               <Button
-                data-testid="btn-hero-criar-excursao"
+                data-testid="btn-hero-tornar-lider"
                 size="lg"
                 variant="outline"
-                className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12"
+                onClick={() => {
+                  if (!user) { setLocation("/entrar"); return; }
+                  tornarLiderMutation.mutate();
+                }}
+                disabled={tornarLiderMutation.isPending}
+                className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                Criar minha excursão
+                <Crown className="w-5 h-5 text-amber-300" />
+                {tornarLiderMutation.isPending ? "Ativando..." : "Tornar-me Líder"}
               </Button>
-            </Link>
+            )}
           </div>
         </div>
 
@@ -561,51 +603,99 @@ export default function Excursoes() {
         )}
       </section>
 
-      {/* CTA — Criar excursão */}
-      <section className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white py-16 mx-4 mb-10 rounded-3xl max-w-6xl md:mx-auto px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/15 rounded-full px-4 py-1.5 text-sm mb-5 border border-white/20">
-            <Zap className="w-4 h-4 text-amber-300" />
-            Para organizadores e guias de turismo
+      {/* CTA — Liderança */}
+      <section className="mx-4 mb-10 max-w-6xl md:mx-auto" data-testid="cta-lideranca">
+        {isLider ? (
+          /* ── Líder ativo ── */
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white py-14 px-6">
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=50')", backgroundSize: "cover" }} />
+            <div className="relative max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm mb-5 border border-white/30">
+                <Crown className="w-4 h-4 text-amber-200" />
+                Você é um Líder Reservei Viagens ✓
+              </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-3">Pronto para criar sua excursão?</h2>
+              <p className="text-amber-100 text-lg mb-8">Você tem acesso exclusivo ao wizard completo de criação e gestão de grupos.</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/criar-excursao">
+                  <Button data-testid="btn-criar-excursao-cta" size="lg" className="rounded-2xl bg-white text-amber-700 hover:bg-amber-50 font-bold px-8 h-12 shadow-lg gap-2">
+                    <Plus className="w-5 h-5" /> Criar minha excursão
+                  </Button>
+                </Link>
+                <Link href="/viagens-grupo">
+                  <Button data-testid="btn-gerenciar-grupos-cta" size="lg" variant="outline" className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2">
+                    <Users className="w-5 h-5" /> Meus Grupos
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-            Monte sua própria excursão
-          </h2>
-          <p className="text-blue-100 text-lg mb-8 leading-relaxed">
-            Use nossa plataforma para criar, divulgar e gerenciar excursões com controle total — passageiros, financeiro, documentação e muito mais.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center mb-8">
-            {["Wizard guiado", "Lista de passageiros", "Pix integrado", "ANTT / FNRH automático", "WhatsApp compartilhável"].map((f) => (
-              <span key={f} className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm">
-                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                {f}
-              </span>
-            ))}
+        ) : (
+          /* ── Benefícios de ser Líder ── */
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-800 text-white py-14 px-6">
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1200&q=50')", backgroundSize: "cover" }} />
+            <div className="relative max-w-4xl mx-auto">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/30 rounded-full px-4 py-1.5 text-sm mb-5">
+                  <Crown className="w-4 h-4 text-amber-300" />
+                  <span className="text-amber-200 font-semibold">Benefício exclusivo — Programa Líder</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Torne-se um Líder Reservei</h2>
+                <p className="text-blue-100 text-lg max-w-2xl mx-auto">
+                  Crie e gerencie suas próprias excursões com todas as ferramentas profissionais — de graça, sem comissões escondidas.
+                </p>
+              </div>
+
+              {/* Benefícios em grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+                {[
+                  { icon: Rocket, title: "Wizard de criação", desc: "Monte seu roteiro completo com hotel, parques, passeios e veículo em minutos." },
+                  { icon: Users, title: "Gestão de grupo", desc: "Lista de passageiros, aprovações, convites e controle de vagas em tempo real." },
+                  { icon: Share2, title: "Link de compartilhamento", desc: "Compartilhe sua excursão via WhatsApp e comece a receber inscrições na hora." },
+                  { icon: Shield, title: "Grupo privado", desc: "Controle quem entra no seu grupo com sistema de convites e aprovação." },
+                  { icon: Zap, title: "Pix integrado", desc: "Receba pagamentos direto pelo app com split automático entre organizador e plataforma." },
+                  { icon: Sparkles, title: "CaldasAI Insights", desc: "Sugestões inteligentes de roteiro, preços e dicas para maximizar inscrições." },
+                ].map(({ icon: Icon, title, desc }) => (
+                  <div key={title} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4">
+                    <div className="w-9 h-9 rounded-xl bg-amber-400/20 flex items-center justify-center mb-3">
+                      <Icon className="w-5 h-5 text-amber-300" />
+                    </div>
+                    <p className="font-bold text-sm mb-1">{title}</p>
+                    <p className="text-blue-200 text-xs leading-relaxed">{desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div className="text-center">
+                {!user ? (
+                  <div className="space-y-3">
+                    <p className="text-blue-200 text-sm mb-4">Faça login para ativar sua liderança gratuitamente.</p>
+                    <Link href="/entrar">
+                      <Button data-testid="btn-login-para-lider" size="lg" className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 h-13 shadow-lg gap-2">
+                        <Crown className="w-5 h-5" /> Entrar e tornar-me Líder
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Button
+                      data-testid="btn-tornar-lider-cta"
+                      size="lg"
+                      onClick={() => tornarLiderMutation.mutate()}
+                      disabled={tornarLiderMutation.isPending}
+                      className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 h-13 shadow-lg gap-2"
+                    >
+                      <Crown className="w-5 h-5" />
+                      {tornarLiderMutation.isPending ? "Ativando liderança..." : "Ativar minha liderança — É grátis!"}
+                    </Button>
+                    <p className="text-blue-300 text-xs">Sem taxas de adesão · Ative em 1 clique · Cancele quando quiser</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/criar-excursao">
-              <Button
-                data-testid="btn-criar-excursao-cta"
-                size="lg"
-                className="rounded-2xl bg-white text-blue-700 hover:bg-blue-50 font-bold px-8 h-12 shadow-lg"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Criar Excursão Agora
-              </Button>
-            </Link>
-            <Link href="/viagens-grupo">
-              <Button
-                data-testid="btn-gerenciar-grupos-cta"
-                size="lg"
-                variant="outline"
-                className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12"
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Gerenciar Grupos
-              </Button>
-            </Link>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* Depoimentos */}

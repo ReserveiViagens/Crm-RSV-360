@@ -707,3 +707,35 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
 - WhatsApp share: `https://wa.me/?text=...` com nome + link — data-testid `btn-compartilhar-whatsapp`
 - "Ver meu grupo": link para `/viagens-grupo?excursao={id}` — data-testid `btn-ver-meu-grupo`
 - Após publicar: botões de preview e salvar alterações ainda visíveis (painel separado)
+
+### 12.12 Sistema Líder — Acesso Exclusivo para Criação de Excursões (session: lider-gate)
+
+#### Conceito
+- Somente usuários com `role === "LIDER"` ou `role === "admin"` podem criar excursões.
+- Usuários comuns (`role === "user"`) são apresentados a uma tela de benefícios com botão "Ativar liderança" (upgrade em 1 clique, gratuito).
+- Não autenticados são redirecionados para `/entrar`.
+
+#### Backend — Novas Rotas (`server/routes.ts`)
+- `POST /api/auth/tornar-lider`: requer sessão; define `role = "LIDER"` via `storage.updateUser`; retorna `safeUser(updated)`.
+- `POST /api/excursoes`: agora verifica role antes de criar; retorna 403 com `code: "NOT_LIDER"` se role não for `LIDER` ou `admin`.
+
+#### Frontend — `excursoes.tsx`
+- Imports adicionados: `useLocation` (wouter), `useMutation` (@tanstack/react-query), `useAuth`, `apiRequest`, `queryClient`, `useToast`, `Crown`, `Rocket`, `CheckCheck` (lucide-react).
+- `isLider = user?.role === "LIDER" || user?.role === "admin"`.
+- `tornarLiderMutation`: POST `/api/auth/tornar-lider`; onSuccess: `queryClient.invalidateQueries(["/api/auth/me"])` + toast.
+- **Hero buttons**: LIDER → botão âmbar "Criar minha excursão" com Crown; não-LIDER → botão "Tornar-me Líder" que dispara mutation.
+- **CTA Section** (`data-testid="cta-lideranca"`): condicional por `isLider`:
+  - **LIDER**: gradiente âmbar-laranja, badge "Você é um Líder ✓", botões Criar + Meus Grupos.
+  - **Não-LIDER**: gradiente indigo-azul, grid de 6 benefícios (cards com ícone + título + desc), CTA "Ativar minha liderança — É grátis!" ou "Entrar e tornar-me Líder" se não logado.
+- data-testids: `cta-lideranca`, `btn-criar-excursao-cta`, `btn-gerenciar-grupos-cta`, `btn-hero-criar-excursao`, `btn-hero-tornar-lider`, `btn-login-para-lider`, `btn-tornar-lider-cta`.
+
+#### Frontend — `criar-excursao.tsx`
+- Imports adicionados: `useMutation` (@tanstack/react-query), `apiRequest`, `queryClient`, `Crown`, `Lock`, `CheckCircle2`, `Shield`, `Zap`, `ArrowRight` (lucide-react).
+- `isLoading: authLoading` extraído de `useAuth()`.
+- `tornarLiderMutation`: mesma lógica de `/api/auth/tornar-lider` + invalidate `/api/auth/me`.
+- **Gate early return**: `if (!authLoading && !isLider) return <LiderGatePage />`
+  - Mostra tela full-screen com gradiente indigo, badge "Acesso Exclusivo", grid 2-col de benefícios.
+  - Se não logado: botão "Entrar e tornar-me Líder" → `/entrar`; link "Cadastre-se" → `/cadastro`.
+  - Se logado sem role: botão "Ativar liderança — É grátis!" dispara mutation; ao resolver, `queryClient.invalidate` causa re-render com acesso liberado.
+  - Botão "Ver excursões disponíveis" → `/excursoes`.
+  - data-testids: `lider-gate-page`, `lider-gate-title`, `btn-gate-entrar`, `btn-gate-tornar-lider`, `btn-gate-voltar`.

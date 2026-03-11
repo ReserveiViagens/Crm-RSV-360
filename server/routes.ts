@@ -150,6 +150,18 @@ export async function registerRoutes(
     return res.json(safeUser(updated));
   });
 
+  app.post("/api/auth/tornar-lider", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
+    if (user.role === "LIDER" || user.role === "admin") {
+      return res.json({ ...safeUser(user), message: "Você já é um Líder!" });
+    }
+    const updated = await storage.updateUser(req.session.userId, { role: "LIDER" });
+    if (!updated) return res.status(500).json({ message: "Erro ao atualizar role" });
+    return res.json(safeUser(updated));
+  });
+
   // ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────
 
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -386,6 +398,15 @@ export async function registerRoutes(
   });
 
   app.post("/api/excursoes", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Faça login para criar excursões.", code: "NOT_AUTHENTICATED" });
+    }
+    const requester = await storage.getUser(userId);
+    if (!requester || (requester.role !== "LIDER" && requester.role !== "admin")) {
+      return res.status(403).json({ message: "Apenas Líderes podem criar excursões.", code: "NOT_LIDER" });
+    }
+
     const body = req.body as Partial<Excursao>;
 
     if (!body.nome || !body.dataIda || !body.dataVolta || !body.destino) {
