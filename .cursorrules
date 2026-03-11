@@ -613,3 +613,49 @@ Os links NTX foram adicionados ao `admin-dashboard.tsx` na seção "🚀 NTX —
 - Super-Admin Financeiro → `/admin/super-financeiro`
 - Gamificação → `/organizer/metas`
 - Landing Page Demo → `/excursoes/caldas-novas-maio`
+
+### 12.10 Privacidade e Controle de Acesso a Grupos (session: group-privacy)
+**Problema resolvido**: qualquer pessoa acessava `/viagens-grupo` sem login, convite ou aprovação.
+
+**Fluxo de gates implementado em `client/src/pages/viagens-grupo.tsx`:**
+
+```
+Acessa /viagens-grupo?excursao=ID
+       ↓
+Gate 1 — Auth: usuário está logado? (useAuth)
+  NÃO → tela "Grupo Privado" com botão → /entrar?next=URL
+  SIM ↓
+Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
+  null (estranho)   → tela "Entrada Restrita" (código convite + solicitar)
+  PENDING           → tela "Aguardando Aprovação"
+  REJEITADO         → tela "Acesso Negado"
+  MEMBER | ADMIN    → grupo aberto normalmente
+```
+
+**Roles possíveis** (`membershipStore`):
+- `ADMIN` — criador/promovido, edita roteiro oficial
+- `MEMBER` — entrou via convite aprovado, pode sugerir/votar
+- `PENDING` — solicitou entrada, aguarda aprovação
+- `REJEITADO` — entrada negada pelo organizador
+- `null` — sem registro de membership
+
+**Ações no gate "Entrada Restrita":**
+- Código de convite → `POST /api/invites/join` `{ code, userId, nome }` → role vira MEMBER
+- Solicitar participação → `POST /api/excursoes/:id/solicitar-participacao` `{ userId, nome }` → role vira PENDING
+
+**Backend (`server/routes.ts`):**
+- `GET /api/excursoes/:id/me-role` agora prefere `req.session.userId` (auth real) sobre header `x-user-id` (legacy)
+- Todos os handlers de sugestão/votação usam `user?.id` e `user?.nome` do `useAuth()`, não mais localStorage
+
+**Badge visual em `client/src/pages/excursoes.tsx`:**
+- Cada card tem badge âmbar "Grupo Privado" com ícone Lock (`data-testid: badge-privado-{id}`)
+- Não bloqueia o clique — o gate do viagens-grupo trata o acesso
+
+**data-testids importantes:**
+- `btn-gate-login` — botão "Entrar na conta" (gate não autenticado)
+- `btn-gate-join-invite` — botão "Entrar com convite"
+- `input-gate-invite-code` — campo de código de convite
+- `btn-gate-request-join` — botão "Solicitar participação"
+- `btn-gate-refresh` — botão "Atualizar status" (tela PENDING)
+- `btn-gate-back-excursoes` — botão voltar (tela REJEITADO)
+- `badge-privado-{excursaoId}` — badge no card da excursão

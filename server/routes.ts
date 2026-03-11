@@ -818,7 +818,10 @@ export async function registerRoutes(
   app.get("/api/excursoes/:id/me-role", async (req: Request, res: Response) => {
     const excursao = await findExcursao(String(req.params.id));
     if (!excursao) return res.status(404).json({ error: "NOT_FOUND", message: "Excursão não encontrada" });
-    const { userId } = getActorFromHeaders(req);
+    const sessionUserId = (req.session as any).userId as string | undefined;
+    const { userId: headerUserId } = getActorFromHeaders(req);
+    const userId = sessionUserId || headerUserId;
+    if (!userId) return res.json({ role: null, isAdmin: false });
     const info = await getMembershipRole(excursao, userId);
     return res.json({ role: info?.role ?? null, isAdmin: info?.role === "ADMIN" });
   });

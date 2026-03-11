@@ -45,9 +45,16 @@ import {
   Waves,
   Copy,
   ExternalLink,
+  Lock,
+  LogIn,
+  AlertCircle,
+  Hourglass,
+  ShieldX,
+  KeyRound,
 } from "lucide-react"
 import { Link, useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { useAuth } from "@/hooks/use-auth"
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
 import { subscribeExcursao, socketEmit } from "@/lib/socket"
 import { toast } from "@/hooks/use-toast"
@@ -512,7 +519,6 @@ export default function ViagensGrupoPage() {
   const [inviteLink, setInviteLink] = useState("")
   const [chatOpen, setChatOpen] = useState(false)
   const [agendaSlots, setAgendaSlots] = useState<TimeSlot[]>([])
-  const currentUser = getCurrentUser()
   const [isAdminRoteiro, setIsAdminRoteiro] = useState(false)
   const [roteiroOficial, setRoteiroOficial] = useState<RoteiroOficial | null>(null)
   const [sugestoesRoteiro, setSugestoesRoteiro] = useState<SugestaoRoteiro[]>([])
@@ -532,8 +538,68 @@ export default function ViagensGrupoPage() {
     { id: "recanto", nome: "Pousada Recanto", precoNoite: 179, imagem: "https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=900&auto=format&fit=crop", margin: 85, score: 7 },
   ])
 
+  const { user, isLoading: authLoading } = useAuth()
+
   const [, params] = useRoute<{ id: string }>("/viagens-grupo/:id")
-  const excursaoId = params?.id ?? null
+  const excursaoIdFromQuery = new URLSearchParams(window.location.search).get("excursao")
+  const excursaoId = params?.id ?? excursaoIdFromQuery ?? null
+
+  const { data: meRoleData, isLoading: roleLoading, refetch: refetchRole } = useQuery<{ role: string | null; isAdmin: boolean } | null>({
+    queryKey: ["me-role", excursaoId, user?.id],
+    enabled: !!excursaoId && !!user,
+    retry: false,
+    staleTime: 0,
+    queryFn: async () => {
+      if (!excursaoId || !user) return null
+      const res = await fetch(`/api/excursoes/${excursaoId}/me-role`)
+      if (!res.ok) return null
+      return res.json() as Promise<{ role: string | null; isAdmin: boolean }>
+    },
+  })
+
+  const memberRole = meRoleData?.role ?? null
+
+  const [gateInviteCode, setGateInviteCode] = useState("")
+  const [gateError, setGateError] = useState<string | null>(null)
+
+  const joinMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const res = await fetch("/api/invites/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, userId: user!.id, nome: user!.nome }),
+      })
+      const data = (await res.json()) as { ok?: boolean; reason?: string }
+      if (!res.ok || !data.ok) throw new Error(data.reason ?? "Código inválido ou expirado")
+      return data
+    },
+    onSuccess: () => {
+      void refetchRole()
+      setGateError(null)
+    },
+    onError: (err: Error) => {
+      setGateError(err.message)
+    },
+  })
+
+  const requestMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/excursoes/${excursaoId}/solicitar-participacao`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user!.id, nome: user!.nome }),
+      })
+      const data = (await res.json()) as { ok?: boolean }
+      if (!res.ok) throw new Error("Não foi possível solicitar participação")
+      return data
+    },
+    onSuccess: () => {
+      void refetchRole()
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Não foi possível solicitar participação.", variant: "destructive" })
+    },
+  })
 
   const { data: excursao } = useQuery<Excursao | null>({
     queryKey: ["excursao-grupo", excursaoId],
@@ -564,17 +630,11 @@ export default function ViagensGrupoPage() {
   }, [excursaoId])
 
   useEffect(() => {
-    if (!excursaoId) return
-    fetch(`/api/excursoes/${excursaoId}/me-role`, {
-      headers: {
-        "x-user-id": currentUser.userId,
-        "x-user-name": currentUser.nome,
-      },
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { isAdmin?: boolean } | null) => setIsAdminRoteiro(Boolean(data?.isAdmin)))
-      .catch(() => setIsAdminRoteiro(false))
+    setIsAdminRoteiro(meRoleData?.isAdmin ?? false)
+  }, [meRoleData])
 
+  useEffect(() => {
+    if (!excursaoId) return
     fetch(`/api/excursoes/${excursaoId}/roteiro`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { roteiro?: RoteiroOficial } | null) => {
@@ -588,14 +648,14 @@ export default function ViagensGrupoPage() {
         setVotacaoRoteiro(data?.items ?? [])
       })
       .catch(() => setVotacaoRoteiro([]))
-  }, [excursaoId, currentUser.nome, currentUser.userId])
+  }, [excursaoId])
 
   const refreshSugestoesRoteiro = async () => {
     if (!excursaoId || !isAdminRoteiro) return
     const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro`, {
       headers: {
-        "x-user-id": currentUser.userId,
-        "x-user-name": currentUser.nome,
+        "x-user-id": user?.id ?? "",
+        "x-user-name": user?.nome ?? "",
       },
     })
     if (!res.ok) return
@@ -613,8 +673,8 @@ export default function ViagensGrupoPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": currentUser.userId,
-        "x-user-name": currentUser.nome,
+        "x-user-id": user?.id ?? "",
+        "x-user-name": user?.nome ?? "",
       },
       body: JSON.stringify({
         categoria: novaSugestaoCategoria,
@@ -637,8 +697,8 @@ export default function ViagensGrupoPage() {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": currentUser.userId,
-        "x-user-name": currentUser.nome,
+        "x-user-id": user?.id ?? "",
+        "x-user-name": user?.nome ?? "",
       },
       body: JSON.stringify({ status, publishForVoting }),
     })
@@ -660,8 +720,8 @@ export default function ViagensGrupoPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": currentUser.userId,
-        "x-user-name": currentUser.nome,
+        "x-user-id": user?.id ?? "",
+        "x-user-name": user?.nome ?? "",
       },
       body: JSON.stringify({ itemId }),
     })
@@ -1064,6 +1124,184 @@ export default function ViagensGrupoPage() {
     } finally {
       setWizardSaving(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Verificando acesso...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    const returnUrl = excursaoId
+      ? `/viagens-grupo?excursao=${excursaoId}`
+      : "/viagens-grupo"
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Lock className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-1">Grupo Privado</h2>
+            <p className="text-sm text-muted-foreground">
+              Este grupo de excursão é privado. Faça login para verificar seu acesso ou entrar com um convite.
+            </p>
+          </div>
+          <Link href={`/entrar?next=${encodeURIComponent(returnUrl)}`} className="w-full">
+            <button
+              data-testid="btn-gate-login"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/90 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              Entrar na conta
+            </button>
+          </Link>
+          <Link href="/cadastrar" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            Ainda não tem conta? Cadastre-se
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (excursaoId && (roleLoading || meRoleData === undefined)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Verificando membros do grupo...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (excursaoId && memberRole === "REJEITADO") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5 text-center">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+            <ShieldX className="w-8 h-8 text-red-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-1">Acesso Negado</h2>
+            <p className="text-sm text-muted-foreground">
+              O organizador desta excursão não aprovou sua participação. Entre em contato com o organizador para mais informações.
+            </p>
+          </div>
+          <Link href="/excursoes">
+            <button
+              data-testid="btn-gate-back-excursoes"
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              Ver outras excursões
+            </button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (excursaoId && memberRole === "PENDING") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5 text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+            <Hourglass className="w-8 h-8 text-amber-500" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-1">Aguardando Aprovação</h2>
+            <p className="text-sm text-muted-foreground">
+              Sua solicitação para participar desta excursão foi enviada. O organizador precisa aprovar sua entrada.
+            </p>
+          </div>
+          <div className="w-full bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700">
+            Você receberá acesso assim que o organizador aprovar sua participação.
+          </div>
+          <button
+            data-testid="btn-gate-refresh"
+            onClick={() => void refetchRole()}
+            className="text-sm text-primary hover:underline font-medium"
+          >
+            Atualizar status
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (excursaoId && memberRole === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8 text-primary" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-foreground mb-1">Entrada Restrita</h2>
+            <p className="text-sm text-muted-foreground">
+              Este grupo é privado. Você precisa de um convite ou da aprovação do organizador para participar.
+            </p>
+          </div>
+
+          <div className="w-full border-t border-border pt-4 flex flex-col gap-3">
+            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-primary" />
+              Tenho um código de convite
+            </p>
+            <input
+              data-testid="input-gate-invite-code"
+              type="text"
+              value={gateInviteCode}
+              onChange={(e) => { setGateInviteCode(e.target.value); setGateError(null) }}
+              placeholder="Ex: INV-ABCD-123456"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase tracking-wider"
+            />
+            {gateError && (
+              <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                {gateError}
+              </div>
+            )}
+            <button
+              data-testid="btn-gate-join-invite"
+              disabled={!gateInviteCode.trim() || joinMutation.isPending}
+              onClick={() => joinMutation.mutate(gateInviteCode.trim())}
+              className="w-full bg-primary text-primary-foreground rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {joinMutation.isPending ? "Verificando..." : "Entrar com convite"}
+            </button>
+          </div>
+
+          <div className="w-full border-t border-border pt-4 flex flex-col gap-3">
+            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-primary" />
+              Não tenho convite
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Solicite participação e aguarde a aprovação do organizador.
+            </p>
+            <button
+              data-testid="btn-gate-request-join"
+              disabled={requestMutation.isPending}
+              onClick={() => requestMutation.mutate()}
+              className="w-full border border-primary text-primary rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {requestMutation.isPending ? "Enviando..." : "Solicitar participação"}
+            </button>
+          </div>
+
+          <Link href="/excursoes" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            Voltar para excursões
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -4,7 +4,7 @@ import {
   Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight,
   Search, Filter, ArrowRight, Shield, Headphones, Zap,
   Thermometer, Waves, Camera, Heart, Share2, Trophy,
-  CheckCircle2, Plus, Sparkles, TrendingUp, Tag
+  CheckCircle2, Plus, Sparkles, TrendingUp, Tag, Lock
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -258,9 +258,18 @@ function ExcursaoCard({ exc }: { exc: Excursao }) {
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div>
-          <h3 className="font-semibold text-base text-foreground leading-tight group-hover:text-primary transition-colors">
-            {exc.titulo}
-          </h3>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <h3 className="font-semibold text-base text-foreground leading-tight group-hover:text-primary transition-colors">
+              {exc.titulo}
+            </h3>
+            <span
+              data-testid={`badge-privado-${exc.id}`}
+              className="inline-flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5 whitespace-nowrap flex-shrink-0"
+            >
+              <Lock className="w-3 h-3" />
+              Grupo Privado
+            </span>
+          </div>
           <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
