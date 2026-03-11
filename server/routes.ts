@@ -78,6 +78,28 @@ export async function registerRoutes(
     cpf: u.cpf, fotoUrl: u.fotoUrl, provider: u.provider,
   });
 
+  // ─── SEED DEMO USER ───────────────────────────────────────────────────────
+  (async () => {
+    const DEMO_EMAIL = "demo@reservei.com.br";
+    const existing = await storage.getUserByEmail(DEMO_EMAIL);
+    if (!existing) {
+      const hashedPassword = await hashPassword("demo123");
+      await storage.createUser({
+        username: DEMO_EMAIL,
+        password: hashedPassword,
+        nome: "Demo Master",
+        email: DEMO_EMAIL,
+        telefone: "(62) 99999-0000",
+        cpf: "00000000000",
+        role: "admin",
+        googleId: "",
+        fotoUrl: "https://api.dicebear.com/7.x/initials/svg?seed=DM&backgroundColor=1e3a5f&textColor=ffffff",
+        provider: "local",
+      });
+      console.log("[SEED] Usuário demo criado → demo@reservei.com.br / demo123 (admin)");
+    }
+  })();
+
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
   app.post("/api/auth/register", async (req: Request, res: Response) => {

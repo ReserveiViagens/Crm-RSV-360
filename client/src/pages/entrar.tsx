@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Eye, EyeOff, MapPin, ArrowLeft, Loader2,
-  Lock, AtSign, Phone, CreditCard, Chrome,
+  Lock, AtSign, Phone, CreditCard, Chrome, Zap,
 } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -75,6 +75,16 @@ export default function EntrarPage() {
   const handleIdentifierChange = (value: string) => {
     form.setValue("identificador", value);
     setFieldType(detectFieldType(value));
+  };
+
+  const handleDemoLogin = () => {
+    form.setValue("identificador", "demo@reservei.com.br");
+    form.setValue("senha", "demo123");
+    login.mutate({ identificador: "demo@reservei.com.br", senha: "demo123" }, {
+      onError: (err: any) => {
+        toast({ title: "Erro ao entrar como demo", description: err.message, variant: "destructive" });
+      },
+    });
   };
 
   const config = FIELD_CONFIG[fieldType];
