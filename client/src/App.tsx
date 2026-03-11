@@ -87,9 +87,13 @@ function Router() {
       <Route path="/cadastrar" component={Cadastrar} />
       <Route path="/kyc" component={KYCVerificacao} />
       <Route path="/admin/waas" component={WaaSDashboard} />
+      <Route path="/waas" component={WaaSDashboard} />
       <Route path="/organizer/metas" component={GamificationDashboard} />
+      <Route path="/metas" component={GamificationDashboard} />
       <Route path="/admin/super-financeiro" component={FinancialDashboard} />
+      <Route path="/super-financeiro" component={FinancialDashboard} />
       <Route path="/admin/live-chat" component={LiveChat} />
+      <Route path="/live-chat" component={LiveChat} />
       <Route path="/excursoes/:slug" component={ExcursaoLanding} />
       <Route component={NotFound} />
     </Switch>
