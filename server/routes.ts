@@ -157,6 +157,8 @@ export async function registerRoutes(
     if (user.role === "LIDER" || user.role === "admin") {
       return res.json({ ...safeUser(user), message: "Você já é um Líder!" });
     }
+    const { tipoGrupo, qtdPessoas } = req.body as { tipoGrupo?: string; qtdPessoas?: number };
+    console.log(`[LIDER-CANDIDATURA] user=${user.id} nome="${user.nome}" tipoGrupo=${tipoGrupo} qtdPessoas=${qtdPessoas}`);
     const updated = await storage.updateUser(req.session.userId, { role: "LIDER" });
     if (!updated) return res.status(500).json({ message: "Erro ao atualizar role" });
     return res.json(safeUser(updated));

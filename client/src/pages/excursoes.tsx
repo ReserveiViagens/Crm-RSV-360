@@ -1,20 +1,18 @@
 import { useState, useMemo } from "react"
-import { Link, useLocation } from "wouter"
-import { useMutation } from "@tanstack/react-query"
+import { Link } from "wouter"
 import {
   Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight,
   Search, Filter, ArrowRight, Shield, Headphones, Zap,
   Thermometer, Waves, Camera, Heart, Share2, Trophy,
-  CheckCircle2, Plus, Sparkles, TrendingUp, Tag, Lock,
-  Crown, Rocket, CheckCheck
+  CheckCircle2, Plus, Sparkles, TrendingUp, Tag,
+  Crown, Rocket,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
-import { apiRequest, queryClient } from "@/lib/queryClient"
-import { useToast } from "@/hooks/use-toast"
+import { LiderApplicationDialog } from "@/components/lider-application-dialog"
 
 interface Excursao {
   id: string
@@ -346,27 +344,10 @@ export default function Excursoes() {
   const [busca, setBusca] = useState("")
   const [categoria, setCategoria] = useState("todas")
   const [ordenacao, setOrdenacao] = useState("destaque")
-  const [, setLocation] = useLocation()
+  const [liderDialogOpen, setLiderDialogOpen] = useState(false)
   const { user } = useAuth()
-  const { toast } = useToast()
 
   const isLider = user?.role === "LIDER" || user?.role === "admin"
-
-  const tornarLiderMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/tornar-lider")
-      if (!res.ok) throw new Error("Erro ao ativar liderança")
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] })
-      toast({ title: "🎉 Parabéns, você agora é um Líder!", description: "Você pode criar e gerenciar suas próprias excursões." })
-    },
-    onError: () => {
-      toast({ title: "Erro", description: "Faça login primeiro para se tornar Líder.", variant: "destructive" })
-      setLocation("/entrar")
-    },
-  })
 
   const excursoesFiltradas = useMemo(() => {
     let lista = [...EXCURSOES]
@@ -460,18 +441,14 @@ export default function Excursoes() {
               </Link>
             ) : (
               <Button
-                data-testid="btn-hero-tornar-lider"
+                data-testid="btn-hero-quero-criar"
                 size="lg"
                 variant="outline"
-                onClick={() => {
-                  if (!user) { setLocation("/entrar"); return; }
-                  tornarLiderMutation.mutate();
-                }}
-                disabled={tornarLiderMutation.isPending}
+                onClick={() => setLiderDialogOpen(true)}
                 className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2"
               >
                 <Crown className="w-5 h-5 text-amber-300" />
-                {tornarLiderMutation.isPending ? "Ativando..." : "Tornar-me Líder"}
+                Quero criar minha excursão
               </Button>
             )}
           </div>
@@ -667,31 +644,17 @@ export default function Excursoes() {
               </div>
 
               {/* CTA */}
-              <div className="text-center">
-                {!user ? (
-                  <div className="space-y-3">
-                    <p className="text-blue-200 text-sm mb-4">Faça login para ativar sua liderança gratuitamente.</p>
-                    <Link href="/entrar">
-                      <Button data-testid="btn-login-para-lider" size="lg" className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 h-13 shadow-lg gap-2">
-                        <Crown className="w-5 h-5" /> Entrar e tornar-me Líder
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Button
-                      data-testid="btn-tornar-lider-cta"
-                      size="lg"
-                      onClick={() => tornarLiderMutation.mutate()}
-                      disabled={tornarLiderMutation.isPending}
-                      className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 h-13 shadow-lg gap-2"
-                    >
-                      <Crown className="w-5 h-5" />
-                      {tornarLiderMutation.isPending ? "Ativando liderança..." : "Ativar minha liderança — É grátis!"}
-                    </Button>
-                    <p className="text-blue-300 text-xs">Sem taxas de adesão · Ative em 1 clique · Cancele quando quiser</p>
-                  </div>
-                )}
+              <div className="text-center space-y-3">
+                <Button
+                  data-testid="btn-tornar-lider-cta"
+                  size="lg"
+                  onClick={() => setLiderDialogOpen(true)}
+                  className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 shadow-lg gap-2"
+                >
+                  <Crown className="w-5 h-5" />
+                  Quero criar minha excursão — É grátis!
+                </Button>
+                <p className="text-blue-300 text-xs">Sem taxas de adesão · Ative em 1 clique · Cancele quando quiser</p>
               </div>
             </div>
           </div>
@@ -794,6 +757,13 @@ export default function Excursoes() {
           </div>
         </div>
       </div>
+
+      {/* Líder Application Dialog */}
+      <LiderApplicationDialog
+        open={liderDialogOpen}
+        onOpenChange={setLiderDialogOpen}
+        user={user}
+      />
     </div>
   )
 }

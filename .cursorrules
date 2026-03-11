@@ -708,34 +708,43 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
 - "Ver meu grupo": link para `/viagens-grupo?excursao={id}` — data-testid `btn-ver-meu-grupo`
 - Após publicar: botões de preview e salvar alterações ainda visíveis (painel separado)
 
-### 12.12 Sistema Líder — Acesso Exclusivo para Criação de Excursões (session: lider-gate)
+### 12.12 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
 
 #### Conceito
 - Somente usuários com `role === "LIDER"` ou `role === "admin"` podem criar excursões.
-- Usuários comuns (`role === "user"`) são apresentados a uma tela de benefícios com botão "Ativar liderança" (upgrade em 1 clique, gratuito).
-- Não autenticados são redirecionados para `/entrar`.
+- O botão "Quero criar minha excursão" fica **visível para todos** (incluindo não-logados).
+- Ao clicar, abre o `LiderApplicationDialog` — um mini-wizard de candidatura em 3 passos.
+- Após completar o wizard com sucesso, o usuário recebe `role = "LIDER"` e é redirecionado para `/criar-excursao`.
 
 #### Backend — Novas Rotas (`server/routes.ts`)
-- `POST /api/auth/tornar-lider`: requer sessão; define `role = "LIDER"` via `storage.updateUser`; retorna `safeUser(updated)`.
-- `POST /api/excursoes`: agora verifica role antes de criar; retorna 403 com `code: "NOT_LIDER"` se role não for `LIDER` ou `admin`.
+- `POST /api/auth/tornar-lider`: requer sessão; aceita body `{ tipoGrupo, qtdPessoas }`; loga a candidatura; define `role = "LIDER"` via `storage.updateUser`; retorna `safeUser(updated)`.
+- `POST /api/excursoes`: agora requer sessão (401) + LIDER/admin role (403 `NOT_LIDER`).
+
+#### Componente `LiderApplicationDialog` (`client/src/components/lider-application-dialog.tsx`)
+- Reusável, com props: `open`, `onOpenChange`, `user: AuthUser | null`.
+- **3 passos**:
+  1. **Tipo de grupo**: 7 opções como chips clicáveis com emoji + label + cor por tipo. `TIPOS_GRUPO`: `igreja`, `empresa`, `familia`, `amigos`, `escola`, `agencia`, `outro`. `COR_MAP` mapeia cor para classes Tailwind.
+  2. **Quantas pessoas**: número grande + botões +/- + chips rápidos (5/10/15/20/28/40). Mínimo 3 para prosseguir.
+  3a. **Se não logado**: resumo da candidatura + botões "Já tenho conta" (`/entrar`) + "Criar conta" (`/cadastro`).
+  3b. **Se logado**: lista de compromissos (emerald cards) + checkbox de aceite + botão "Ativar minha liderança!".
+- `tornarLiderMutation`: POST `/api/auth/tornar-lider` com `{ tipoGrupo, qtdPessoas }`; onSuccess: invalidate `/api/auth/me` + toast + `setLocation("/criar-excursao")`.
+- Após fechar, reset state com `setTimeout`.
+- Progress bar por passos (amber quando ativo).
+- data-testids: `tipo-grupo-{id}`, `btn-step1-proximo`, `btn-qtd-minus`, `btn-qtd-plus`, `qtd-pessoas-display`, `qtd-chip-{n}`, `btn-step2-proximo`, `btn-gate-login`, `btn-gate-cadastro`, `check-compromisso`, `btn-confirmar-lider`.
 
 #### Frontend — `excursoes.tsx`
-- Imports adicionados: `useLocation` (wouter), `useMutation` (@tanstack/react-query), `useAuth`, `apiRequest`, `queryClient`, `useToast`, `Crown`, `Rocket`, `CheckCheck` (lucide-react).
 - `isLider = user?.role === "LIDER" || user?.role === "admin"`.
-- `tornarLiderMutation`: POST `/api/auth/tornar-lider`; onSuccess: `queryClient.invalidateQueries(["/api/auth/me"])` + toast.
-- **Hero buttons**: LIDER → botão âmbar "Criar minha excursão" com Crown; não-LIDER → botão "Tornar-me Líder" que dispara mutation.
-- **CTA Section** (`data-testid="cta-lideranca"`): condicional por `isLider`:
-  - **LIDER**: gradiente âmbar-laranja, badge "Você é um Líder ✓", botões Criar + Meus Grupos.
-  - **Não-LIDER**: gradiente indigo-azul, grid de 6 benefícios (cards com ícone + título + desc), CTA "Ativar minha liderança — É grátis!" ou "Entrar e tornar-me Líder" se não logado.
-- data-testids: `cta-lideranca`, `btn-criar-excursao-cta`, `btn-gerenciar-grupos-cta`, `btn-hero-criar-excursao`, `btn-hero-tornar-lider`, `btn-login-para-lider`, `btn-tornar-lider-cta`.
+- `liderDialogOpen` state controla abertura do dialog.
+- **Hero buttons**: LIDER → link âmbar "/criar-excursao" (data-testid `btn-hero-criar-excursao`); outros → "Quero criar minha excursão" abre dialog (data-testid `btn-hero-quero-criar`).
+- **CTA Section** (`data-testid="cta-lideranca"`): condicional:
+  - **LIDER**: gradiente âmbar, botões Criar + Meus Grupos.
+  - **Não-LIDER**: gradiente indigo, grid 6 benefícios, botão "Quero criar — É grátis!" abre dialog (data-testid `btn-tornar-lider-cta`).
+- `<LiderApplicationDialog>` renderizado no final do componente.
 
 #### Frontend — `criar-excursao.tsx`
-- Imports adicionados: `useMutation` (@tanstack/react-query), `apiRequest`, `queryClient`, `Crown`, `Lock`, `CheckCircle2`, `Shield`, `Zap`, `ArrowRight` (lucide-react).
 - `isLoading: authLoading` extraído de `useAuth()`.
-- `tornarLiderMutation`: mesma lógica de `/api/auth/tornar-lider` + invalidate `/api/auth/me`.
-- **Gate early return**: `if (!authLoading && !isLider) return <LiderGatePage />`
-  - Mostra tela full-screen com gradiente indigo, badge "Acesso Exclusivo", grid 2-col de benefícios.
-  - Se não logado: botão "Entrar e tornar-me Líder" → `/entrar`; link "Cadastre-se" → `/cadastro`.
-  - Se logado sem role: botão "Ativar liderança — É grátis!" dispara mutation; ao resolver, `queryClient.invalidate` causa re-render com acesso liberado.
-  - Botão "Ver excursões disponíveis" → `/excursoes`.
-  - data-testids: `lider-gate-page`, `lider-gate-title`, `btn-gate-entrar`, `btn-gate-tornar-lider`, `btn-gate-voltar`.
+- `liderDialogOpen` state para o dialog na tela de gate.
+- **Gate early return**: `if (!authLoading && !isLider)` → tela full-screen com gradiente indigo + grid de benefícios.
+  - Botão "Quero criar minha excursão" (data-testid `btn-gate-quero-criar`) abre `LiderApplicationDialog`.
+  - Botão "Ver excursões disponíveis" (data-testid `btn-gate-voltar`) → `/excursoes`.
+  - `<LiderApplicationDialog>` incluído no JSX do early return.

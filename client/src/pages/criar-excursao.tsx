@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useMutation } from "@tanstack/react-query";
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { SelfieModal } from "@/components/selfie/SelfieModal";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { LiderApplicationDialog } from "@/components/lider-application-dialog";
 import {
   Bus, Car, Truck, ChevronLeft, ChevronRight, Check, Sparkles,
   Hotel, MapPin, Waves, Footprints, Star, Clock, DollarSign,
@@ -836,21 +835,7 @@ export default function CriarExcursaoPage() {
   const excursaoId = (params as { id?: string } | null)?.id;
   const { user, isLoading: authLoading } = useAuth();
   const isLider = user?.role === "LIDER" || user?.role === "admin";
-
-  const tornarLiderMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/tornar-lider");
-      if (!res.ok) throw new Error("Erro ao ativar liderança");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({ title: "🎉 Você agora é um Líder!", description: "Crie e gerencie suas excursões com acesso completo." });
-    },
-    onError: () => {
-      toast({ title: "Erro", description: "Não foi possível ativar a liderança. Tente novamente.", variant: "destructive" });
-    },
-  });
+  const [liderDialogOpen, setLiderDialogOpen] = useState(false);
 
   // Selfie verification gate
   const [selfieGateAberto, setSelfieGateAberto] = useState(false);
@@ -1303,28 +1288,15 @@ export default function CriarExcursaoPage() {
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-3">
-                {!user ? (
-                  <Button
-                    data-testid="btn-gate-entrar"
-                    size="lg"
-                    onClick={() => setLocation("/entrar")}
-                    className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
-                  >
-                    <Crown className="w-5 h-5" />
-                    Entrar e tornar-me Líder
-                  </Button>
-                ) : (
-                  <Button
-                    data-testid="btn-gate-tornar-lider"
-                    size="lg"
-                    onClick={() => tornarLiderMutation.mutate()}
-                    disabled={tornarLiderMutation.isPending}
-                    className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
-                  >
-                    <Crown className="w-5 h-5" />
-                    {tornarLiderMutation.isPending ? "Ativando..." : "Ativar liderança — É grátis!"}
-                  </Button>
-                )}
+                <Button
+                  data-testid="btn-gate-quero-criar"
+                  size="lg"
+                  onClick={() => setLiderDialogOpen(true)}
+                  className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
+                >
+                  <Crown className="w-5 h-5" />
+                  Quero criar minha excursão
+                </Button>
                 <Button
                   data-testid="btn-gate-voltar"
                   size="lg"
@@ -1337,17 +1309,19 @@ export default function CriarExcursaoPage() {
                 </Button>
               </div>
 
-              {!user && (
-                <p className="text-blue-300 text-xs mt-4">
-                  Não tem conta?{" "}
-                  <button onClick={() => setLocation("/cadastro")} className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
-                    Cadastre-se de graça
-                  </button>
-                </p>
-              )}
+              <p className="text-blue-300 text-xs mt-4">
+                Sem taxas · Ativação em minutos · Cancele quando quiser
+              </p>
             </div>
           </div>
         </div>
+
+        {/* Líder Application Dialog */}
+        <LiderApplicationDialog
+          open={liderDialogOpen}
+          onOpenChange={setLiderDialogOpen}
+          user={user}
+        />
       </div>
     );
   }
