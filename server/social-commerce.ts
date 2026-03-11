@@ -36,6 +36,7 @@ export interface Invite {
   groupId: string;
   code: string;
   used: boolean;
+  multiUse?: boolean;
   criadoEm: string;
   expiresAt?: string;
 }
@@ -161,7 +162,7 @@ export async function recalculateVoucherForGroup(
   });
 }
 
-export async function createInvite(groupId: string): Promise<Invite> {
+export async function createInvite(groupId: string, opts?: { multiUse?: boolean }): Promise<Invite> {
   return mutateDb((db) => {
     const invites = (db.inviteStore as Invite[]) ?? [];
     const code = `INV-${groupId.slice(-4).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -170,8 +171,9 @@ export async function createInvite(groupId: string): Promise<Invite> {
       groupId,
       code,
       used: false,
+      multiUse: opts?.multiUse ?? false,
       criadoEm: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: opts?.multiUse ? undefined : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
     invites.push(invite);
     db.inviteStore = invites;
@@ -186,8 +188,8 @@ export async function validateInvite(
     const invites = (db.inviteStore as Invite[]) ?? [];
     const invite = invites.find((i) => i.code === code);
     if (!invite) return { valid: false, reason: "Convite não encontrado" };
-    if (invite.used) return { valid: false, reason: "Convite já utilizado" };
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+    if (!invite.multiUse && invite.used) return { valid: false, reason: "Convite já utilizado" };
+    if (!invite.multiUse && invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
       return { valid: false, reason: "Convite expirado" };
     }
     return { valid: true, invite };
@@ -198,7 +200,9 @@ export async function consumeInvite(code: string): Promise<boolean> {
   return mutateDb((db) => {
     const invites = (db.inviteStore as Invite[]) ?? [];
     const invite = invites.find((i) => i.code === code);
-    if (!invite || invite.used) return false;
+    if (!invite) return false;
+    if (invite.multiUse) return true;
+    if (invite.used) return false;
     invite.used = true;
     db.inviteStore = invites;
     return true;

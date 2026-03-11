@@ -133,7 +133,7 @@ export async function registerRoutes(
     if (existingCode) {
       DEMO_INVITE_CODE = existingCode;
     } else {
-      const inv = await createInvite(group.id);
+      const inv = await createInvite(group.id, { multiUse: true });
       DEMO_INVITE_CODE = inv.code;
     }
     console.log(`[SEED] Convite demo → ${DEMO_INVITE_CODE} (excursão ${DEMO_EXCURSAO_ID})`);
