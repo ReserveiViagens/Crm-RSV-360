@@ -52,7 +52,7 @@ import {
   ShieldX,
   KeyRound,
 } from "lucide-react"
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
@@ -539,6 +539,7 @@ export default function ViagensGrupoPage() {
   ])
 
   const { user, isLoading: authLoading } = useAuth()
+  const [, setLocation] = useLocation()
 
   const [, params] = useRoute<{ id: string }>("/viagens-grupo/:id")
   const excursaoIdFromQuery = new URLSearchParams(window.location.search).get("excursao")
@@ -569,13 +570,18 @@ export default function ViagensGrupoPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, userId: user!.id, nome: user!.nome }),
       })
-      const data = (await res.json()) as { ok?: boolean; reason?: string }
+      const data = (await res.json()) as { ok?: boolean; reason?: string; excursaoId?: string }
       if (!res.ok || !data.ok) throw new Error(data.reason ?? "Código inválido ou expirado")
       return data
     },
-    onSuccess: () => {
-      void refetchRole()
+    onSuccess: (data) => {
       setGateError(null)
+      const targetId = data.excursaoId ?? excursaoId
+      if (targetId) {
+        setLocation(`/viagens-grupo?excursao=${targetId}`)
+      } else {
+        void refetchRole()
+      }
     },
     onError: (err: Error) => {
       setGateError(err.message)
