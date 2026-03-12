@@ -582,7 +582,26 @@ export default function ViagensGrupoPage() {
 
   const [, params] = useRoute<{ id: string }>("/viagens-grupo/:id")
   const excursaoIdFromQuery = new URLSearchParams(window.location.search).get("excursao")
-  const excursaoId = params?.id ?? excursaoIdFromQuery ?? null
+  const excursaoIdRaw = params?.id ?? excursaoIdFromQuery ?? null
+  const [autoExcursaoId, setAutoExcursaoId] = useState<string | null>(null)
+  const excursaoId = excursaoIdRaw ?? autoExcursaoId
+
+  useEffect(() => {
+    if (excursaoIdRaw || !user) return
+    fetch("/api/demo/info")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { excursaoId?: string } | null) => {
+        if (data?.excursaoId) {
+          setAutoExcursaoId(data.excursaoId)
+          fetch("/api/invites/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: "auto", userId: user.id, nome: user.nome }),
+          }).catch(() => null)
+        }
+      })
+      .catch(() => null)
+  }, [excursaoIdRaw, user])
 
   const { data: meRoleData, isLoading: roleLoading, refetch: refetchRole } = useQuery<{ role: string | null; isAdmin: boolean } | null>({
     queryKey: ["me-role", excursaoId, user?.id],

@@ -121,6 +121,43 @@ export async function registerRoutes(
     }
     DEMO_EXCURSAO_ID = demoExcursao.id;
 
+    const existingRoteiro = demoExcursao.wizard?.roteiroOficial;
+    const hasCards = existingRoteiro?.hoteis && existingRoteiro.hoteis.length > 0;
+    if (!hasCards) {
+      const roteiroOficial = {
+        veiculoTipo: "Ônibus" as const,
+        veiculoAutomatico: true,
+        manualVehicleOverride: false,
+        hotelPrincipal: "Di Roma Grand Hotel",
+        atracoes: ["Mirante do Rio Corumbá", "Feira Noturna de Caldas Novas", "Museu das Culturas"],
+        passeios: ["Passeio de Barco — Lago Corumbá", "Quadriciclo nas Trilhas do Cerrado", "Pesca Esportiva Rio Quente"],
+        parquesAquaticos: ["Hot Park", "Di Roma Acqua Park", "Lagoa Quente Thermas"],
+        hoteis: [
+          { id: "hotel-di-roma", titulo: "Di Roma Grand Hotel", descricaoBreve: "Resort 5 estrelas com piscinas termais, toboáguas e spa completo", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 280, duracaoHoras: 24, horarioSaida: "14:00", diasDisponiveis: ["D1", "D2", "D3", "D4", "D5"], badgeTipo: "popular" as const },
+          { id: "hotel-laranjais", titulo: "Resort Thermas dos Laranjais", descricaoBreve: "Resort familiar com águas termais naturais e área de lazer completa", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 220, duracaoHoras: 24, horarioSaida: "14:00", diasDisponiveis: ["D1", "D2", "D3", "D4", "D5"], badgeTipo: "ia" as const },
+        ],
+        atracoesCards: [
+          { id: "atracao-mirante", titulo: "Mirante do Rio Corumbá", descricaoBreve: "Vista panorâmica do lago e pôr do sol inesquecível", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 0, duracaoHoras: 2, horarioSaida: "16:30", diasDisponiveis: ["D2", "D3", "D4"] },
+          { id: "atracao-feira", titulo: "Feira Noturna de Caldas Novas", descricaoBreve: "Artesanato, gastronomia regional e apresentações culturais", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 0, duracaoHoras: 3, horarioSaida: "19:00", diasDisponiveis: ["D1", "D3", "D5"] },
+          { id: "atracao-museu", titulo: "Museu das Culturas", descricaoBreve: "Exposição interativa sobre a história e cultura do cerrado goiano", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 15, duracaoHoras: 2, horarioSaida: "10:00", diasDisponiveis: ["D2", "D4"] },
+        ],
+        passeiosCards: [
+          { id: "passeio-barco", titulo: "Passeio de Barco — Lago Corumbá", descricaoBreve: "Navegação pelo lago com paradas para banho e fotos", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 85, duracaoHoras: 3, horarioSaida: "09:00", diasDisponiveis: ["D2", "D3", "D4"], badgeTipo: "popular" as const },
+          { id: "passeio-quadri", titulo: "Quadriciclo nas Trilhas do Cerrado", descricaoBreve: "Aventura off-road pelas trilhas com guia especializado", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 120, duracaoHoras: 2, horarioSaida: "08:00", diasDisponiveis: ["D3", "D5"] },
+          { id: "passeio-pesca", titulo: "Pesca Esportiva Rio Quente", descricaoBreve: "Pesca esportiva com todo equipamento incluso e instrutor", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 95, duracaoHoras: 4, horarioSaida: "06:00", diasDisponiveis: ["D2", "D4"] },
+        ],
+        parquesAquaticosCards: [
+          { id: "parque-hotpark", titulo: "Hot Park", descricaoBreve: "Maior parque de águas quentes do mundo — toboáguas, rio lento e praia artificial", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 189, duracaoHoras: 8, horarioSaida: "09:00", diasDisponiveis: ["D1", "D2", "D3", "D4"], badgeTipo: "ia" as const },
+          { id: "parque-diroma", titulo: "Di Roma Acqua Park", descricaoBreve: "Piscinas termais, toboáguas radicais e área infantil completa", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 130, duracaoHoras: 6, horarioSaida: "10:00", diasDisponiveis: ["D2", "D3", "D5"], badgeTipo: "popular" as const },
+          { id: "parque-lagoa", titulo: "Lagoa Quente Thermas", descricaoBreve: "Complexo termal com águas naturalmente aquecidas e spa relaxante", galeriaImagens: [] as string[], galeriaVideos: [] as string[], precoPorPessoa: 75, duracaoHoras: 5, horarioSaida: "10:00", diasDisponiveis: ["D1", "D3", "D4"] },
+        ],
+      };
+      await updateExcursao(demoExcursao.id, {
+        wizard: { ...(demoExcursao.wizard ?? {}), roteiroOficial: roteiroOficial },
+      });
+      console.log("[SEED] Roteiro oficial com 11 cards de Caldas Novas");
+    }
+
     // 3. Grupo e convite
     const group = await ensureGroupForExcursao(demoExcursao.id, demoExcursao.nome, demoExcursao.capacidade);
     await upsertMembership(group.id, demoUser.id, demoUser.nome, "ADMIN");
