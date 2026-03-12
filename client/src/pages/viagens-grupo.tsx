@@ -70,6 +70,17 @@ import { HotelSelector } from "@/components/HotelSelector"
 import { calculateNights, hasScheduleConflict, sortByMarginAndScore, type TimeSlot } from "@/utils/social-commerce"
 const WHATSAPP = "5564993197555"
 
+const ATIVIDADES_FALLBACK: AtividadeWizard[] = [
+  { id: "hot-park", label: "Hot Park", descricao: "Maior parque aquático de águas quentes do mundo", icone: "waves" },
+  { id: "di-roma", label: "Di Roma Thermas", descricao: "Resort com piscinas termais e toboáguas", icone: "droplets" },
+  { id: "lagoa-quente", label: "Lagoa Quente", descricao: "Complexo termal com águas naturalmente aquecidas", icone: "thermometer" },
+  { id: "parque-corumba", label: "Parque Corumbá", descricao: "Lago Corumbá com passeio de barco e esportes náuticos", icone: "sailboat" },
+  { id: "city-tour", label: "City Tour", descricao: "Centro + comprinhas + pontos turísticos locais", icone: "map" },
+  { id: "taua-resort", label: "Tauá Resort", descricao: "Resort all-inclusive com parque aquático e spa", icone: "hotel" },
+  { id: "rio-quente", label: "Rio Quente Resorts", descricao: "Hot Park + hospedagem integrada no complexo", icone: "tree-pine" },
+  { id: "aquapark", label: "Caldas Novas Aquapark", descricao: "Parque aquático familiar com piscinas e toboáguas", icone: "fish" },
+]
+
 interface Member {
   name: string
   color: string
@@ -1731,7 +1742,7 @@ export default function ViagensGrupoPage() {
                       Não foi possível carregar as atividades. Tente novamente mais tarde.
                     </div>
                   ) : (
-                    atividadesWizard.map((a) => {
+                    (atividadesWizard.length > 0 ? atividadesWizard : ATIVIDADES_FALLBACK).map((a) => {
                       const selected = atracoesSelecionadas.includes(a.id)
                       return (
                         <button

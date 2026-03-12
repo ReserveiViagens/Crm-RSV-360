@@ -22,9 +22,14 @@ const normalizePhone = (v: string) => v.replace(/\D/g, "");
 const normalizeCpf = (v: string) => v.replace(/\D/g, "");
 
 const SEED_ATIVIDADES: AtividadeWizard[] = [
-  { id: "hot-park", label: "Hot Park", descricao: "Parque aquático o dia inteiro", icone: "waves" },
-  { id: "city-tour", label: "City Tour", descricao: "Centro + comprinhas + pontos turísticos", icone: "map" },
-  { id: "spa-dia", label: "Dia de Spa", descricao: "Relax nas águas termais", icone: "tree-pine" },
+  { id: "hot-park", label: "Hot Park", descricao: "Maior parque aquático de águas quentes do mundo", icone: "waves" },
+  { id: "di-roma", label: "Di Roma Thermas", descricao: "Resort com piscinas termais e toboáguas", icone: "droplets" },
+  { id: "lagoa-quente", label: "Lagoa Quente", descricao: "Complexo termal com águas naturalmente aquecidas", icone: "thermometer" },
+  { id: "parque-corumba", label: "Parque Corumbá", descricao: "Lago Corumbá com passeio de barco e esportes náuticos", icone: "sailboat" },
+  { id: "city-tour", label: "City Tour", descricao: "Centro + comprinhas + pontos turísticos locais", icone: "map" },
+  { id: "taua-resort", label: "Tauá Resort", descricao: "Resort all-inclusive com parque aquático e spa", icone: "hotel" },
+  { id: "rio-quente", label: "Rio Quente Resorts", descricao: "Hot Park + hospedagem integrada no complexo", icone: "tree-pine" },
+  { id: "aquapark", label: "Caldas Novas Aquapark", descricao: "Parque aquático familiar com piscinas e toboáguas", icone: "fish" },
 ];
 
 export class MemStorage implements IStorage {
