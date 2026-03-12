@@ -180,8 +180,8 @@ shared/
 | `/mapa` | MapaCaldas | alias de /mapa-caldas-novas |
 | `/mapa-caldas-novas` | MapaCaldas | |
 | `/perfil` | Perfil | |
-| `/viagens-grupo` | ViagensGrupo | gestão interna de grupos |
-| `/viagens-grupo/:id` | ViagensGrupo | grupo específico |
+| `/viagens-grupo` | ViagensGrupo | gestão interna de grupos — 5 abas primárias (Início, Roteiro, Planejar, Votar, Chat) |
+| `/viagens-grupo/:id` | ViagensGrupo | grupo específico — mesma estrutura de 5 abas |
 | `/criar-excursao` | CriarExcursao | wizard de criação |
 | `/criar-excursao/:id` | CriarExcursao | edição |
 | `/quem-somos` | QuemSomos | |

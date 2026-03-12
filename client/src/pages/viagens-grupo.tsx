@@ -51,6 +51,8 @@ import {
   Hourglass,
   ShieldX,
   KeyRound,
+  Home,
+  Compass,
 } from "lucide-react"
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query"
@@ -64,7 +66,6 @@ import { BarraFinanceira } from "@/components/BarraFinanceira"
 import { CountdownTimer } from "@/components/CountdownTimer"
 import { QRCodeSVG } from "qrcode.react"
 import { HotelSelector } from "@/components/HotelSelector"
-import { FloatingChat } from "@/components/FloatingChat"
 import { calculateNights, hasScheduleConflict, sortByMarginAndScore, type TimeSlot } from "@/utils/social-commerce"
 const WHATSAPP = "5564993197555"
 
@@ -88,6 +89,14 @@ const TABS = [
   { icon: Ticket, label: "Ingressos" },
   { icon: Calendar, label: "Programação" },
   { icon: ImageIcon, label: "Fotos" },
+]
+
+const PRIMARY_TABS = [
+  { icon: Home, label: "Início" },
+  { icon: Map, label: "Roteiro" },
+  { icon: Compass, label: "Planejar" },
+  { icon: Vote, label: "Votar" },
+  { icon: MessageCircle, label: "Chat" },
 ]
 
 const TIMELINE = [
@@ -473,6 +482,7 @@ export default function ViagensGrupoPage() {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES)
   const [showTyping, setShowTyping] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
+  const [activePrimaryTab, setActivePrimaryTab] = useState(0)
   const [votes, setVotes] = useState([3, 2, 1])
   const [hasVoted, setHasVoted] = useState(false)
   const [showNotification, setShowNotification] = useState(true)
@@ -517,7 +527,6 @@ export default function ViagensGrupoPage() {
   const [selectedCheckOut, setSelectedCheckOut] = useState("2026-03-15")
   const [inviteCode, setInviteCode] = useState("RSV-DEMO")
   const [inviteLink, setInviteLink] = useState("")
-  const [chatOpen, setChatOpen] = useState(false)
   const [agendaSlots, setAgendaSlots] = useState<TimeSlot[]>([])
   const [isAdminRoteiro, setIsAdminRoteiro] = useState(false)
   const [roteiroOficial, setRoteiroOficial] = useState<RoteiroOficial | null>(null)
@@ -1509,8 +1518,42 @@ export default function ViagensGrupoPage() {
         </div>
       </div>
 
+      <div style={{ background: "#fff", borderBottom: "2px solid #E5E7EB", padding: "0 16px", position: "sticky", top: 0, zIndex: 30 }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", gap: 0, overflowX: "auto" }}>
+          {PRIMARY_TABS.map((tab, i) => {
+            const isActive = activePrimaryTab === i
+            const TabIcon = tab.icon
+            return (
+              <button
+                key={i}
+                data-testid={`primary-tab-${i}`}
+                onClick={() => setActivePrimaryTab(i)}
+                style={{
+                  flex: 1,
+                  minWidth: 64,
+                  padding: "10px 6px 8px",
+                  border: "none",
+                  borderBottom: isActive ? "3px solid #2563EB" : "3px solid transparent",
+                  background: "transparent",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                  transition: "all 0.2s",
+                }}
+              >
+                <TabIcon style={{ width: 18, height: 18, color: isActive ? "#2563EB" : "#9CA3AF" }} />
+                <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "#2563EB" : "#6B7280" }}>{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <div style={{ overflowY: "auto", flex: 1 }}>
 
+        {activePrimaryTab === 2 && (
         <div style={{ background: "#F3F4F6", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
@@ -1945,7 +1988,9 @@ export default function ViagensGrupoPage() {
             </div>
           </div>
         </div>
+        )}
 
+        {activePrimaryTab === 1 && (
         <div style={{ marginTop: 12, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, padding: 12 }} data-testid="roteiro-governanca-widget">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div>
@@ -2061,7 +2106,9 @@ export default function ViagensGrupoPage() {
             )}
           </div>
         </div>
+        )}
 
+        {activePrimaryTab === 0 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2162,7 +2209,9 @@ export default function ViagensGrupoPage() {
             </div>
           )}
         </div>
+        )}
 
+        {activePrimaryTab === 2 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Sparkles style={{ width: 18, height: 18, color: "#F57C00" }} />
@@ -2288,7 +2337,9 @@ export default function ViagensGrupoPage() {
             Total por hospedagem: <strong>R$ {(selectedHotelId ? (HOTEL_OPTIONS.find((h) => h.id === selectedHotelId)?.precoNoite ?? 0) * (calculateNights(selectedCheckIn, selectedCheckOut) || 1) : 0).toLocaleString("pt-BR")}</strong>
           </div>
         </div>
+        </>)}
 
+        {activePrimaryTab === 3 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Vote style={{ width: 18, height: 18, color: "#8B5CF6" }} />
@@ -2353,7 +2404,9 @@ export default function ViagensGrupoPage() {
             })}
           </div>
         </div>
+        )}
 
+        {activePrimaryTab === 0 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Calendar style={{ width: 18, height: 18, color: "#F59E0B" }} />
@@ -2486,85 +2539,42 @@ export default function ViagensGrupoPage() {
             </div>
           )}
         </div>
+        </>)}
 
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            pointerEvents: chatOpen ? "auto" : "none",
-            zIndex: 44,
-          }}
-        >
+        {activePrimaryTab === 4 && (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, maxWidth: 900, margin: "0 auto", width: "100%" }}>
           <div
-            onClick={() => setChatOpen(false)}
             style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(15,23,42,0.20)",
-              opacity: chatOpen ? 1 : 0,
-              transition: "opacity 200ms ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+              padding: "10px 16px",
+              borderBottom: "1px solid #E5E7EB",
+              background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
             }}
-          />
-        </div>
-
-        <div
-          style={{
-            position: "fixed",
-            right: 16,
-            bottom: 86,
-            width: "min(430px, calc(100vw - 24px))",
-            maxHeight: "70vh",
-            background: "#fff",
-            border: "1px solid #E5E7EB",
-            borderRadius: 14,
-            boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
-            overflow: "hidden",
-            zIndex: 45,
-            display: "flex",
-            flexDirection: "column",
-            pointerEvents: chatOpen ? "auto" : "none",
-            opacity: chatOpen ? 1 : 0,
-            transform: chatOpen ? "translateY(0)" : "translateY(14px) scale(0.98)",
-            transformOrigin: "bottom right",
-            transition: "opacity 220ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1)",
-          }}
-        >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-                padding: "10px 12px",
-                borderBottom: "1px solid #E5E7EB",
-                background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Bot style={{ width: 16, height: 16, color: "#22C55E" }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#1F2937" }}>Chat do Grupo</span>
-                <span style={{ fontSize: 10, color: "#64748B" }}>({messages.length})</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setChatOpen(false)}
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 8,
-                  border: "1px solid #E5E7EB",
-                  background: "#fff",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ChevronDown style={{ width: 14, height: 14, color: "#475569" }} />
-              </button>
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Bot style={{ width: 16, height: 16, color: "#22C55E" }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Chat do Grupo</span>
+              <span style={{ fontSize: 10, color: "#64748B" }}>({messages.length} mensagens)</span>
             </div>
+            <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+              {TABS.map((tab, i) => (
+                <button key={i} data-testid={`button-tab-${i}`} onClick={() => setActiveTab(i)} style={{
+                  padding: "4px 8px", borderRadius: 6,
+                  border: activeTab === i ? "1px solid #2563EB" : "1px solid #E5E7EB",
+                  background: activeTab === i ? "#EBF5FF" : "transparent",
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                }}>
+                  <tab.icon style={{ width: 12, height: 12, color: activeTab === i ? "#2563EB" : "#9CA3AF" }} />
+                  <span style={{ fontSize: 10, color: activeTab === i ? "#2563EB" : "#6B7280", fontWeight: activeTab === i ? 700 : 500 }}>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-            <div ref={chatRef} style={{ maxHeight: 360, overflowY: "auto", padding: "12px 12px 0" }}>
+          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0", minHeight: 300, maxHeight: "calc(100vh - 380px)" }}>
             {messages.map((msg) => (
               <div key={msg.id} style={{
                 display: "flex", flexDirection: msg.isMe ? "row-reverse" : "row",
@@ -2712,101 +2722,80 @@ export default function ViagensGrupoPage() {
             )}
           </div>
 
-            <div style={{ background: "#fff", borderTop: "1px solid #E5E7EB", padding: "10px 12px 12px" }}>
-        <div style={{
-          display: "flex", gap: 8, marginBottom: 10, overflowX: "auto",
-        }}>
-          {TABS.map((tab, i) => (
-            <button key={i} data-testid={`button-tab-${i}`} onClick={() => setActiveTab(i)} style={{
-              flex: 1, padding: "8px 4px", borderRadius: 8,
-              border: activeTab === i ? "2px solid #2563EB" : "1px solid #E5E7EB",
-              background: activeTab === i ? "#EBF5FF" : "#F9FAFB",
-              cursor: "pointer", textAlign: "center", minWidth: 70,
+          <div style={{ background: "#fff", borderTop: "1px solid #E5E7EB", padding: "10px 16px 12px" }}>
+            <div style={{
+              background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", padding: "8px 12px",
+              borderRadius: 10, border: "1px solid #BBF7D0", marginBottom: 10,
+              display: "flex", alignItems: "center", gap: 10,
             }}>
-              <tab.icon style={{ width: 16, height: 16, color: activeTab === i ? "#2563EB" : "#9CA3AF", margin: "0 auto 2px", display: "block" }} />
-              <span style={{ fontSize: 10, color: activeTab === i ? "#2563EB" : "#374151", fontWeight: activeTab === i ? 700 : 500 }}>{tab.label}</span>
-            </button>
-          ))}
-        </div>
+              <Share2 style={{ width: 16, height: 16, color: "#22C55E", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
+                <div style={{ fontSize: 11, color: "#6B7280" }}>Quanto mais pessoas, maior o desconto</div>
+              </div>
+              <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
+                padding: "6px 12px", borderRadius: 8, border: "none",
+                background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700,
+                cursor: "pointer", whiteSpace: "nowrap",
+              }}>
+                WhatsApp
+              </button>
+            </div>
 
-        <div style={{
-          background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", padding: "10px 12px",
-          borderRadius: 10, border: "1px solid #BBF7D0", marginBottom: 10,
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <Share2 style={{ width: 18, height: 18, color: "#22C55E", flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
-            <div style={{ fontSize: 11, color: "#6B7280" }}>Quanto mais pessoas, maior o desconto</div>
-          </div>
-          <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
-            padding: "6px 12px", borderRadius: 8, border: "none",
-            background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700,
-            cursor: "pointer", whiteSpace: "nowrap",
-          }}>
-            WhatsApp
-          </button>
-        </div>
-
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <button data-testid="button-emoji" style={{
-            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Smile style={{ width: 18, height: 18, color: "#F59E0B" }} />
-          </button>
-          <button data-testid="button-camera" style={{
-            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Camera style={{ width: 18, height: 18, color: "#6B7280" }} />
-          </button>
-          <button data-testid="button-location" style={{
-            width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-            background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <MapPin style={{ width: 18, height: 18, color: "#EF4444" }} />
-          </button>
-          <input
-            data-testid="input-message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Envie uma mensagem..."
-            style={{
-              flex: 1, padding: "10px 14px", borderRadius: 10,
-              border: "1px solid #E5E7EB", fontSize: 13, outline: "none",
-              background: "#F9FAFB",
-            }}
-          />
-          <button data-testid="button-send" onClick={handleSend} style={{
-            width: 40, height: 40, borderRadius: 10, border: "none",
-            background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
-            color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.2s",
-          }}>
-            <Send style={{ width: 16, height: 16 }} />
-          </button>
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <button data-testid="button-emoji" style={{
+                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Smile style={{ width: 18, height: 18, color: "#F59E0B" }} />
+              </button>
+              <button data-testid="button-camera" style={{
+                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Camera style={{ width: 18, height: 18, color: "#6B7280" }} />
+              </button>
+              <button data-testid="button-location" style={{
+                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <MapPin style={{ width: 18, height: 18, color: "#EF4444" }} />
+              </button>
+              <input
+                data-testid="input-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Envie uma mensagem..."
+                style={{
+                  flex: 1, padding: "10px 14px", borderRadius: 10,
+                  border: "1px solid #E5E7EB", fontSize: 13, outline: "none",
+                  background: "#F9FAFB",
+                }}
+              />
+              <button data-testid="button-send" onClick={handleSend} style={{
+                width: 40, height: 40, borderRadius: 10, border: "none",
+                background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
+                color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.2s",
+              }}>
+                <Send style={{ width: 16, height: 16 }} />
+              </button>
             </div>
           </div>
         </div>
+        )}
 
       </div>
 
-      {wizardStep === "quem" && (
+      {wizardStep === "quem" && activePrimaryTab === 2 && (
         <BarraFinanceira
           valorPorPessoa={valorPorPessoaBarra}
           valorTotal={valorTotalBarra}
           onReservar={() => {}}
         />
       )}
-
-      <FloatingChat
-        isOpen={chatOpen}
-        unreadCount={Math.max(messages.length - 3, 0)}
-        onToggle={() => setChatOpen((v) => !v)}
-      />
 
       <style>{`
         @keyframes bounce {
