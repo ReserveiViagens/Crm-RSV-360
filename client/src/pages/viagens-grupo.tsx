@@ -2031,6 +2031,71 @@ export default function ViagensGrupoPage() {
         )}
 
         {activePrimaryTab === 0 && (<>
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="group-info-card">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <MapPin style={{ width: 18, height: 18, color: "#2563EB" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Informações do Grupo</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8 }}>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Local de saída</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{excursao?.localPartida || "Goiânia - GO"}</div>
+            </div>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Destino</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>Caldas Novas - GO</div>
+            </div>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Período</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>15-19 Mar 2026</div>
+            </div>
+            <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
+              <div style={{ fontSize: 11, color: "#6B7280" }}>Membros</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{groupSize} pessoas</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="members-grid">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Users style={{ width: 18, height: 18, color: "#8B5CF6" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Membros do Grupo</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
+            {MEMBERS.map((m, i) => (
+              <div key={i} data-testid={`member-card-${i}`} style={{
+                border: "1px solid #E5E7EB", borderRadius: 10, padding: 10,
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <div style={{ position: "relative" }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: "50%", background: m.color,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 14, fontWeight: 700, color: "#fff",
+                  }}>
+                    {m.name.charAt(0)}
+                  </div>
+                  <div style={{
+                    position: "absolute", bottom: 0, right: 0,
+                    width: 10, height: 10, borderRadius: "50%",
+                    background: i < 3 ? "#22C55E" : "#D1D5DB",
+                    border: "2px solid #fff",
+                  }} data-testid={`member-status-${i}`} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#1F2937", display: "flex", alignItems: "center", gap: 4 }}>
+                    {m.name}
+                    {m.isOrganizer && <Crown style={{ width: 10, height: 10, color: "#F59E0B" }} />}
+                  </div>
+                  <div style={{ fontSize: 10, color: i < 3 ? "#22C55E" : "#9CA3AF", fontWeight: 600 }}>
+                    {i < 3 ? "Online" : "Offline"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ background: "linear-gradient(135deg, #1e3a5f, #0D47A1)", padding: "12px 16px" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: 12, color: "#fff", flexWrap: "wrap" }}>
             <div style={{ background: "#fff", borderRadius: 8, padding: 6 }}>
@@ -2488,6 +2553,39 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
+        {activePrimaryTab === 1 && (
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="recommended-hotels">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Star style={{ width: 18, height: 18, color: "#F59E0B" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Recomendado</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+            {[
+              { name: "Hotel Di Roma", stars: 5, price: "R$ 280/noite", img: "🏨", tag: "Mais votado" },
+              { name: "Lagoa Quente", stars: 4, price: "R$ 220/noite", img: "🏖️", tag: "Melhor custo" },
+              { name: "Prive Thermas", stars: 4, price: "R$ 195/noite", img: "🌊", tag: "Grupo favorito" },
+            ].map((h, i) => (
+              <div key={i} data-testid={`hotel-rec-${i}`} style={{
+                border: "1px solid #E5E7EB", borderRadius: 12, padding: 12, position: "relative",
+              }}>
+                <div style={{
+                  position: "absolute", top: 8, right: 8, background: "#EFF6FF",
+                  color: "#2563EB", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 8px",
+                }}>{h.tag}</div>
+                <div style={{ fontSize: 24, marginBottom: 6 }}>{h.img}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{h.name}</div>
+                <div style={{ display: "flex", gap: 2, margin: "4px 0" }}>
+                  {Array.from({ length: h.stars }).map((_, s) => (
+                    <Star key={s} style={{ width: 12, height: 12, color: "#F59E0B", fill: "#F59E0B" }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#22C55E" }}>{h.price}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+
         {activePrimaryTab === 0 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <button data-testid="button-toggle-savings" onClick={() => setShowSavings(!showSavings)} style={{
@@ -2555,7 +2653,7 @@ export default function ViagensGrupoPage() {
 
         {activePrimaryTab === 4 && (
         <div className="chat-tab-layout" style={{ display: "flex", flex: 1, width: "100%", minHeight: 0 }} data-testid="chat-tab-container">
-          <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          <div className={`chat-main-col${showAssistant ? " assistant-active" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
             <div
               style={{
                 display: "flex",
@@ -2941,12 +3039,15 @@ export default function ViagensGrupoPage() {
           .chat-tab-layout {
             flex-direction: column !important;
           }
+          .chat-tab-layout .chat-main-col.assistant-active {
+            display: none !important;
+          }
           .chat-tab-layout [data-testid="assistant-panel"] {
             width: 100% !important;
             min-width: 0 !important;
             border-left: none !important;
             border-top: 1px solid #E5E7EB !important;
-            max-height: 50vh;
+            flex: 1;
           }
         }
       `}</style>
