@@ -1507,16 +1507,6 @@ export default function ViagensGrupoPage() {
             Convidar
           </button>
         </div>
-        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, color: "#fff", flexWrap: "wrap" }}>
-          <div style={{ background: "#fff", borderRadius: 8, padding: 6 }}>
-            <QRCodeSVG value={inviteLink || whatsappInvite} size={56} />
-          </div>
-          <div>
-            <div style={{ fontSize: 11, opacity: 0.8 }}>Código de convite</div>
-            <div style={{ fontWeight: 800, letterSpacing: 0.5 }}>{inviteCode}</div>
-            <div style={{ fontSize: 10, opacity: 0.7 }}>RSV-XXXX válido por vagas</div>
-          </div>
-        </div>
       </div>
 
       <div style={{ background: "#fff", borderBottom: "2px solid #E5E7EB", padding: "0 16px", position: "sticky", top: 0, zIndex: 30 }}>
@@ -2040,7 +2030,20 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 0 && (
+        {activePrimaryTab === 0 && (<>
+        <div style={{ background: "linear-gradient(135deg, #1e3a5f, #0D47A1)", padding: "12px 16px" }}>
+          <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", gap: 12, color: "#fff", flexWrap: "wrap" }}>
+            <div style={{ background: "#fff", borderRadius: 8, padding: 6 }}>
+              <QRCodeSVG value={inviteLink || whatsappInvite} size={56} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, opacity: 0.8 }}>Código de convite</div>
+              <div style={{ fontWeight: 800, letterSpacing: 0.5 }}>{inviteCode}</div>
+              <div style={{ fontSize: 10, opacity: 0.7 }}>RSV-XXXX válido por vagas</div>
+            </div>
+          </div>
+        </div>
+
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2141,7 +2144,7 @@ export default function ViagensGrupoPage() {
             </div>
           )}
         </div>
-        )}
+        </>)}
 
         {activePrimaryTab === 2 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
@@ -2413,7 +2416,7 @@ export default function ViagensGrupoPage() {
         </div>
         </>)}
 
-        {activePrimaryTab === 0 && (<>
+        {activePrimaryTab === 1 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Calendar style={{ width: 18, height: 18, color: "#F59E0B" }} />
@@ -2483,7 +2486,9 @@ export default function ViagensGrupoPage() {
             })}
           </div>
         </div>
+        )}
 
+        {activePrimaryTab === 0 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <button data-testid="button-toggle-savings" onClick={() => setShowSavings(!showSavings)} style={{
             width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -2546,10 +2551,10 @@ export default function ViagensGrupoPage() {
             </div>
           )}
         </div>
-        </>)}
+        )}
 
         {activePrimaryTab === 4 && (
-        <div style={{ display: "flex", flex: 1, width: "100%", minHeight: 0 }} data-testid="chat-tab-container">
+        <div className="chat-tab-layout" style={{ display: "flex", flex: 1, width: "100%", minHeight: 0 }} data-testid="chat-tab-container">
           <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
             <div
               style={{
@@ -2931,6 +2936,18 @@ export default function ViagensGrupoPage() {
         @keyframes slideDown {
           from { transform: translate(-50%, -100%); opacity: 0; }
           to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @media (max-width: 768px) {
+          .chat-tab-layout {
+            flex-direction: column !important;
+          }
+          .chat-tab-layout [data-testid="assistant-panel"] {
+            width: 100% !important;
+            min-width: 0 !important;
+            border-left: none !important;
+            border-top: 1px solid #E5E7EB !important;
+            max-height: 50vh;
+          }
         }
       `}</style>
     </div>
