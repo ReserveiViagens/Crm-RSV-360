@@ -1,10 +1,10 @@
 
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { registerSchema, loginSchema } from "@shared/schema";
+import { registerSchema, loginSchema, insertAtividadeWizardSchema } from "@shared/schema";
 import { getOpcionais } from "./opcionais";
 import {
   criarReserva,
@@ -1509,6 +1509,49 @@ export async function registerRoutes(
     const excursao = excursoes.find((e) => e.nome.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") === slug);
     if (!excursao) return res.status(404).json({ error: "Landing page não encontrada" });
     return res.json({ slug, excursaoId: excursao.id, nome: excursao.nome, price: 890 });
+  });
+
+  // ─────────────────────────────────────────────
+  // Atividades do Wizard (CRUD)
+  // ─────────────────────────────────────────────
+  app.get("/api/atividades-wizard", async (_req: Request, res: Response) => {
+    const items = await storage.listAtividadesWizard();
+    return res.json({ items });
+  });
+
+  async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    const u = await storage.getUser(req.session.userId);
+    if (!u || u.role !== "admin") {
+      return res.status(403).json({ message: "Acesso restrito a administradores" });
+    }
+    return next();
+  }
+
+  app.post("/api/atividades-wizard", requireAdmin, async (req: Request, res: Response) => {
+    const parsed = insertAtividadeWizardSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.issues[0].message });
+    const created = await storage.createAtividadeWizard(parsed.data);
+    return res.status(201).json(created);
+  });
+
+  app.patch("/api/atividades-wizard/:id", requireAdmin, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const existing = await storage.getAtividadeWizard(id);
+    if (!existing) return res.status(404).json({ message: "Atividade não encontrada" });
+    const partial = insertAtividadeWizardSchema.partial().safeParse(req.body);
+    if (!partial.success) return res.status(400).json({ message: partial.error.issues[0].message });
+    const updated = await storage.updateAtividadeWizard(id, partial.data);
+    return res.json(updated);
+  });
+
+  app.delete("/api/atividades-wizard/:id", requireAdmin, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const deleted = await storage.deleteAtividadeWizard(id);
+    if (!deleted) return res.status(404).json({ message: "Atividade não encontrada" });
+    return res.status(204).send();
   });
 
   return httpServer;

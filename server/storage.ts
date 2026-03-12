@@ -1,4 +1,4 @@
-import { type User } from "@shared/schema";
+import { type User, type AtividadeWizard, type InsertAtividadeWizard } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -11,16 +11,32 @@ export interface IStorage {
   getUserByIdentifier(identifier: string): Promise<User | undefined>;
   createUser(user: Omit<User, "id">): Promise<User>;
   updateUser(id: string, data: Partial<Omit<User, "id">>): Promise<User | undefined>;
+  listAtividadesWizard(): Promise<AtividadeWizard[]>;
+  getAtividadeWizard(id: string): Promise<AtividadeWizard | undefined>;
+  createAtividadeWizard(data: InsertAtividadeWizard): Promise<AtividadeWizard>;
+  updateAtividadeWizard(id: string, data: Partial<InsertAtividadeWizard>): Promise<AtividadeWizard | undefined>;
+  deleteAtividadeWizard(id: string): Promise<boolean>;
 }
 
 const normalizePhone = (v: string) => v.replace(/\D/g, "");
 const normalizeCpf = (v: string) => v.replace(/\D/g, "");
 
+const SEED_ATIVIDADES: AtividadeWizard[] = [
+  { id: "hot-park", label: "Hot Park", descricao: "Parque aquático o dia inteiro", icone: "waves" },
+  { id: "city-tour", label: "City Tour", descricao: "Centro + comprinhas + pontos turísticos", icone: "map" },
+  { id: "spa-dia", label: "Dia de Spa", descricao: "Relax nas águas termais", icone: "tree-pine" },
+];
+
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private atividades: Map<string, AtividadeWizard>;
 
   constructor() {
     this.users = new Map();
+    this.atividades = new Map();
+    for (const a of SEED_ATIVIDADES) {
+      this.atividades.set(a.id, { ...a });
+    }
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -78,6 +94,33 @@ export class MemStorage implements IStorage {
     const updated = { ...user, ...data };
     this.users.set(id, updated);
     return updated;
+  }
+
+  async listAtividadesWizard(): Promise<AtividadeWizard[]> {
+    return Array.from(this.atividades.values());
+  }
+
+  async getAtividadeWizard(id: string): Promise<AtividadeWizard | undefined> {
+    return this.atividades.get(id);
+  }
+
+  async createAtividadeWizard(data: InsertAtividadeWizard): Promise<AtividadeWizard> {
+    const id = randomUUID();
+    const atividade: AtividadeWizard = { id, ...data };
+    this.atividades.set(id, atividade);
+    return atividade;
+  }
+
+  async updateAtividadeWizard(id: string, data: Partial<InsertAtividadeWizard>): Promise<AtividadeWizard | undefined> {
+    const existing = this.atividades.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...data };
+    this.atividades.set(id, updated);
+    return updated;
+  }
+
+  async deleteAtividadeWizard(id: string): Promise<boolean> {
+    return this.atividades.delete(id);
   }
 }
 

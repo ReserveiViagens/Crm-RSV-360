@@ -40,6 +40,24 @@ export const loginSchema = z.object({
   senha: z.string().min(1, "Informe a senha"),
 });
 
+export const atividadeWizardSchema = z.object({
+  id: z.string().optional(),
+  label: z.string().min(1, "Label é obrigatório"),
+  descricao: z.string().min(1, "Descrição é obrigatória"),
+  icone: z.string().optional(),
+});
+
+export const insertAtividadeWizardSchema = atividadeWizardSchema.omit({ id: true });
+
+export type AtividadeWizard = {
+  id: string;
+  label: string;
+  descricao: string;
+  icone?: string;
+};
+
+export type InsertAtividadeWizard = z.infer<typeof insertAtividadeWizardSchema>;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type RegisterInput = z.infer<typeof registerSchema>;

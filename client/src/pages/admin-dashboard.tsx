@@ -1,6 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import type { AtividadeWizard } from "@shared/schema";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell, Legend,
@@ -119,6 +120,71 @@ export default function DashboardRSV() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  const [atividades, setAtividades] = useState<AtividadeWizard[]>([]);
+  const [atividadeEditId, setAtividadeEditId] = useState<string | null>(null);
+  const [atividadeEditLabel, setAtividadeEditLabel] = useState('');
+  const [atividadeEditDesc, setAtividadeEditDesc] = useState('');
+  const [atividadeNovaLabel, setAtividadeNovaLabel] = useState('');
+  const [atividadeNovaDesc, setAtividadeNovaDesc] = useState('');
+  const [showNovaAtividade, setShowNovaAtividade] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const fetchAtividades = async () => {
+    const res = await fetch('/api/atividades-wizard');
+    if (res.ok) {
+      const data = await res.json();
+      setAtividades(data.items ?? []);
+    }
+  };
+
+  useEffect(() => { fetchAtividades(); }, []);
+
+  const handleCriarAtividade = async () => {
+    if (!atividadeNovaLabel.trim() || !atividadeNovaDesc.trim()) return;
+    const res = await fetch('/api/atividades-wizard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: atividadeNovaLabel.trim(), descricao: atividadeNovaDesc.trim() }),
+    });
+    if (res.ok) {
+      setAtividadeNovaLabel('');
+      setAtividadeNovaDesc('');
+      setShowNovaAtividade(false);
+      await fetchAtividades();
+    } else {
+      const data = await res.json().catch(() => null);
+      alert(data?.message ?? 'Erro ao criar atividade. Verifique se está autenticado como admin.');
+    }
+  };
+
+  const handleEditarAtividade = async (id: string) => {
+    if (!atividadeEditLabel.trim() || !atividadeEditDesc.trim()) return;
+    const res = await fetch(`/api/atividades-wizard/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: atividadeEditLabel.trim(), descricao: atividadeEditDesc.trim() }),
+    });
+    if (res.ok) {
+      setAtividadeEditId(null);
+      await fetchAtividades();
+    } else {
+      const data = await res.json().catch(() => null);
+      alert(data?.message ?? 'Erro ao editar atividade. Verifique se está autenticado como admin.');
+    }
+  };
+
+  const handleExcluirAtividade = async (id: string) => {
+    const res = await fetch(`/api/atividades-wizard/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setDeleteConfirmId(null);
+      await fetchAtividades();
+    } else {
+      const data = await res.json().catch(() => null);
+      alert(data?.message ?? 'Erro ao excluir atividade. Verifique se está autenticado como admin.');
+      setDeleteConfirmId(null);
+    }
+  };
 
   const [stats] = useState<BookingStats>({
     totalBookings: 1247,
@@ -576,6 +642,117 @@ export default function DashboardRSV() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 32 }} data-testid="section-atividades-wizard">
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Atividades do Roteiro</h2>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: '4px 0 0' }}>Gerencie as atividades exibidas no wizard "Como?" da excursão em grupo.</p>
+              </div>
+              <button
+                onClick={() => setShowNovaAtividade(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#2563EB', color: '#fff', padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                data-testid="button-nova-atividade"
+              >
+                <Plus className="w-4 h-4" />
+                Nova Atividade
+              </button>
+            </div>
+            <div style={{ padding: 24 }}>
+              {showNovaAtividade && (
+                <div style={{ border: '1px solid #DBEAFE', borderRadius: 10, padding: 16, marginBottom: 16, background: '#EFF6FF' }} data-testid="form-nova-atividade">
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: 8, alignItems: 'end' }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Nome</label>
+                      <input
+                        value={atividadeNovaLabel}
+                        onChange={(e) => setAtividadeNovaLabel(e.target.value)}
+                        placeholder="Ex: Trilha ecológica"
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13 }}
+                        data-testid="input-nova-atividade-label"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Descrição</label>
+                      <input
+                        value={atividadeNovaDesc}
+                        onChange={(e) => setAtividadeNovaDesc(e.target.value)}
+                        placeholder="Descrição curta da atividade"
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 13 }}
+                        data-testid="input-nova-atividade-descricao"
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={handleCriarAtividade} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#22C55E', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }} data-testid="button-salvar-nova-atividade">
+                        Salvar
+                      </button>
+                      <button onClick={() => { setShowNovaAtividade(false); setAtividadeNovaLabel(''); setAtividadeNovaDesc(''); }} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 13, cursor: 'pointer' }} data-testid="button-cancelar-nova-atividade">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {atividades.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', padding: 20 }}>Nenhuma atividade cadastrada.</p>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#F9FAFB' }}>
+                      {['Nome', 'Descrição', 'Ações'].map((h) => (
+                        <th key={h} style={{ padding: '12px 20px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {atividades.map((a) => (
+                      <tr key={a.id} style={{ borderTop: '1px solid #F3F4F6' }} data-testid={`row-atividade-${a.id}`}>
+                        {atividadeEditId === a.id ? (
+                          <>
+                            <td style={{ padding: '10px 20px' }}>
+                              <input value={atividadeEditLabel} onChange={(e) => setAtividadeEditLabel(e.target.value)} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13 }} data-testid="input-edit-atividade-label" />
+                            </td>
+                            <td style={{ padding: '10px 20px' }}>
+                              <input value={atividadeEditDesc} onChange={(e) => setAtividadeEditDesc(e.target.value)} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #E5E7EB', fontSize: 13 }} data-testid="input-edit-atividade-descricao" />
+                            </td>
+                            <td style={{ padding: '10px 20px' }}>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button onClick={() => handleEditarAtividade(a.id)} style={{ background: '#22C55E', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }} data-testid="button-salvar-edit-atividade">Salvar</button>
+                                <button onClick={() => setAtividadeEditId(null)} style={{ background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer' }} data-testid="button-cancelar-edit-atividade">Cancelar</button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: '14px 20px', fontSize: 14, fontWeight: 500, color: '#111827' }}>{a.label}</td>
+                            <td style={{ padding: '14px 20px', fontSize: 14, color: '#374151' }}>{a.descricao}</td>
+                            <td style={{ padding: '14px 20px' }}>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button onClick={() => { setAtividadeEditId(a.id); setAtividadeEditLabel(a.label); setAtividadeEditDesc(a.descricao); }} style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer' }} title="Editar" data-testid={`button-edit-atividade-${a.id}`}>
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                {deleteConfirmId === a.id ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>Confirmar?</span>
+                                    <button onClick={() => handleExcluirAtividade(a.id)} style={{ background: '#EF4444', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }} data-testid={`button-confirmar-delete-atividade-${a.id}`}>Sim</button>
+                                    <button onClick={() => setDeleteConfirmId(null)} style={{ background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }} data-testid={`button-cancelar-delete-atividade-${a.id}`}>Não</button>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => setDeleteConfirmId(a.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }} title="Excluir" data-testid={`button-delete-atividade-${a.id}`}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 

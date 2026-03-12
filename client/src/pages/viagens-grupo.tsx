@@ -57,6 +57,7 @@ import {
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
+import type { AtividadeWizard } from "@shared/schema"
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
 import { subscribeExcursao, socketEmit } from "@/lib/socket"
 import { toast } from "@/hooks/use-toast"
@@ -92,11 +93,11 @@ const TABS = [
 ]
 
 const PRIMARY_TABS = [
-  { icon: Home, label: "Início" },
-  { icon: Map, label: "Roteiro" },
   { icon: Compass, label: "Planejar" },
-  { icon: Vote, label: "Votar" },
   { icon: MessageCircle, label: "Chat" },
+  { icon: Vote, label: "Votar" },
+  { icon: Home, label: "Timeline do Planejamento" },
+  { icon: Map, label: "Roteiro" },
 ]
 
 const TIMELINE = [
@@ -106,6 +107,7 @@ const TIMELINE = [
     icon: Hotel,
     status: "done",
     details: "14h check-in, tarde livre nas piscinas termais",
+    expandedDetails: null,
     time: "14:00 - 20:00",
   },
   {
@@ -114,6 +116,7 @@ const TIMELINE = [
     icon: Waves,
     status: "done",
     details: "Hot Park o dia inteiro, almoço incluso",
+    expandedDetails: null,
     time: "09:00 - 18:00",
   },
   {
@@ -122,6 +125,7 @@ const TIMELINE = [
     icon: Map,
     status: "current",
     details: "Visita guiada + almoço regional",
+    expandedDetails: null,
     time: "08:30 - 16:00",
   },
   {
@@ -131,6 +135,13 @@ const TIMELINE = [
     status: "upcoming",
     details: "Manhã no spa, tarde para compras",
     time: "10:00 - 17:00",
+    expandedDetails: [
+      { hora: "10:00", atividade: "Spa termal — Banho nas piscinas de água quente natural (36°C–42°C)", dica: "Leve chinelo e toalha extra. A água é sulfurosa e ótima para a pele." },
+      { hora: "12:00", atividade: "Almoço livre — Opções no centro gastronômico do resort" },
+      { hora: "13:30", atividade: "Massagem relaxante (opcional) — Reservar com antecedência", dica: "Pacote grupo com 20% de desconto: R$ 89/pessoa." },
+      { hora: "15:00", atividade: "Compras — Feira do artesanato local e lojas do centro", dica: "Lojas recomendadas: Empório Goiano, Doces da Serra, Artesanato Termal." },
+      { hora: "17:00", atividade: "Retorno ao hotel — Tempo livre para descanso" },
+    ],
   },
   {
     day: "Dia 5",
@@ -139,6 +150,13 @@ const TIMELINE = [
     status: "upcoming",
     details: "Café da manhã e partida às 12h",
     time: "07:00 - 12:00",
+    expandedDetails: [
+      { hora: "07:00", atividade: "Café da manhã — Buffet completo no restaurante do hotel", dica: "Último café incluso na diária. Aproveite as frutas regionais!" },
+      { hora: "09:00", atividade: "Arrumar malas e conferir pertences no quarto" },
+      { hora: "10:00", atividade: "Check-out na recepção — Devolver chaves e fechar conta", dica: "Verifique consumo do frigobar antes de descer." },
+      { hora: "10:30", atividade: "Tempo livre — Última passada nas piscinas ou lojinha do hotel" },
+      { hora: "11:30", atividade: "Embarque no ônibus — Ponto de encontro no lobby", dica: "Chegue com 15 min de antecedência. Viagem de retorno: ~3h." },
+    ],
   },
 ]
 
@@ -628,6 +646,16 @@ export default function ViagensGrupoPage() {
       return (await res.json()) as Excursao
     },
   })
+
+  const { data: atividadesWizardData, isLoading: atividadesLoading, isError: atividadesError } = useQuery<{ items: AtividadeWizard[] }>({
+    queryKey: ["/api/atividades-wizard"],
+    queryFn: async () => {
+      const res = await fetch("/api/atividades-wizard")
+      if (!res.ok) throw new Error("Erro ao carregar atividades")
+      return res.json()
+    },
+  })
+  const atividadesWizard = atividadesWizardData?.items ?? []
   useEffect(() => {
     if (!excursaoId) return
     const base = `${window.location.origin}/join?code=`
@@ -650,7 +678,14 @@ export default function ViagensGrupoPage() {
   }, [meRoleData])
 
   useEffect(() => {
-    if (!excursaoId) return
+    if (!excursaoId) {
+      setVotacaoRoteiro((prev) => prev.length > 0 ? prev : [
+        { id: "demo-1", categoria: "hotel", valor: "Resort Termas Paradise", votos: 5 },
+        { id: "demo-2", categoria: "atracao", valor: "Hot Park — dia inteiro", votos: 3 },
+        { id: "demo-3", categoria: "passeio", valor: "City Tour + Almoço Regional", votos: 2 },
+      ])
+      return
+    }
     fetch(`/api/excursoes/${excursaoId}/roteiro`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { roteiro?: RoteiroOficial } | null) => {
@@ -684,31 +719,53 @@ export default function ViagensGrupoPage() {
   }, [isAdminRoteiro])
 
   const handleEnviarSugestaoRoteiro = async () => {
-    if (!excursaoId || !novaSugestaoValor.trim()) return
-    const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-id": user?.id ?? "",
-        "x-user-name": user?.nome ?? "",
-      },
-      body: JSON.stringify({
+    if (!novaSugestaoValor.trim()) return
+    if (excursaoId) {
+      const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": user?.id ?? "",
+          "x-user-name": user?.nome ?? "",
+        },
+        body: JSON.stringify({
+          categoria: novaSugestaoCategoria,
+          valor: novaSugestaoValor.trim(),
+          descricao: novaSugestaoDescricao.trim() || undefined,
+        }),
+      })
+      if (!res.ok) {
+        toast({ title: "Sugestão não enviada", description: "Verifique se você está aprovado no grupo.", variant: "destructive" })
+        return
+      }
+    } else {
+      const novaSugestao: SugestaoRoteiro = {
+        id: `demo-${Date.now()}`,
+        nomeAutor: user?.nome ?? "Você",
         categoria: novaSugestaoCategoria,
         valor: novaSugestaoValor.trim(),
         descricao: novaSugestaoDescricao.trim() || undefined,
-      }),
-    })
-    if (!res.ok) {
-      toast({ title: "Sugestão não enviada", description: "Verifique se você está aprovado no grupo.", variant: "destructive" })
-      return
+        status: "PENDENTE",
+      }
+      setSugestoesRoteiro((prev) => [...prev, novaSugestao])
     }
     setNovaSugestaoValor("")
     setNovaSugestaoDescricao("")
     toast({ title: "Sugestão enviada", description: "O admin vai analisar e publicar para votação." })
   }
 
-  const handleModerarSugestao = async (sugestaoId: string, status: "APROVADA" | "REJEITADA", publishForVoting: boolean) => {
-    if (!excursaoId) return
+  const handleModerarSugestao = async (sugestaoId: string, newStatus: "APROVADA" | "REJEITADA", publishForVoting: boolean) => {
+    if (!excursaoId) {
+      setSugestoesRoteiro((prev) => prev.map((s) => s.id === sugestaoId ? { ...s, status: newStatus, publishedForVoting: publishForVoting } : s))
+      if (publishForVoting) {
+        const sugestao = sugestoesRoteiro.find((s) => s.id === sugestaoId)
+        if (sugestao) {
+          setVotacaoRoteiro((prev) => [...prev, { id: `vote-${sugestaoId}`, categoria: sugestao.categoria, valor: sugestao.valor, votos: 0 }])
+        }
+      }
+      toast({ title: newStatus === "APROVADA" ? "Sugestão aprovada" : "Sugestão reprovada" })
+      return
+    }
     const res = await fetch(`/api/excursoes/${excursaoId}/sugestoes-roteiro/${encodeURIComponent(sugestaoId)}`, {
       method: "PATCH",
       headers: {
@@ -716,7 +773,7 @@ export default function ViagensGrupoPage() {
         "x-user-id": user?.id ?? "",
         "x-user-name": user?.nome ?? "",
       },
-      body: JSON.stringify({ status, publishForVoting }),
+      body: JSON.stringify({ status: newStatus, publishForVoting }),
     })
     if (!res.ok) {
       toast({ title: "Falha na moderação", description: "Não foi possível atualizar a sugestão.", variant: "destructive" })
@@ -731,7 +788,13 @@ export default function ViagensGrupoPage() {
   }
 
   const handleVotarRoteiro = async (itemId: string) => {
-    if (!excursaoId) return
+    if (!excursaoId) {
+      setVotacaoRoteiro((prev) =>
+        prev.map((item) => item.id === itemId ? { ...item, votos: item.votos + 1 } : item)
+      )
+      toast({ title: "Voto registrado", description: "Seu voto foi computado com sucesso." })
+      return
+    }
     const res = await fetch(`/api/excursoes/${excursaoId}/votacao-roteiro`, {
       method: "POST",
       headers: {
@@ -1544,7 +1607,7 @@ export default function ViagensGrupoPage() {
 
       <div style={{ overflowY: "auto", flex: 1 }}>
 
-        {activePrimaryTab === 2 && (
+        {activePrimaryTab === 0 && (
         <div style={{ background: "#F3F4F6", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ maxWidth: 1400, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
@@ -1654,36 +1717,47 @@ export default function ViagensGrupoPage() {
 
               {wizardStep === "como" && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-                  {[
-                    { id: "hot-park", label: "Hot Park", desc: "Parque aquático o dia inteiro" },
-                    { id: "city-tour", label: "City Tour", desc: "Centro + comprinhas + pontos turísticos" },
-                    { id: "spa-dia", label: "Dia de Spa", desc: "Relax nas águas termais" },
-                  ].map((a) => {
-                    const selected = atracoesSelecionadas.includes(a.id)
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() =>
-                          setAtracoesSelecionadas((prev) =>
-                            prev.includes(a.id) ? prev.filter((x) => x !== a.id) : [...prev, a.id],
-                          )
-                        }
-                        style={{
-                          textAlign: "left",
-                          padding: 10,
-                          borderRadius: 10,
-                          border: selected ? "2px solid #2563EB" : "1px solid #E5E7EB",
-                          background: selected ? "linear-gradient(135deg,#EEF2FF,#DBEAFE)" : "#FFFFFF",
-                          cursor: "pointer",
-                        }}
-                        data-testid={`wizard-como-${a.id}`}
-                      >
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{a.label}</div>
-                        <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{a.desc}</div>
-                      </button>
-                    )
-                  })}
+                  {atividadesLoading ? (
+                    <>
+                      {[1, 2, 3].map((n) => (
+                        <div key={n} style={{ padding: 10, borderRadius: 10, border: "1px solid #E5E7EB", background: "#F9FAFB" }}>
+                          <div style={{ height: 16, width: "60%", background: "#E5E7EB", borderRadius: 4, marginBottom: 6 }} />
+                          <div style={{ height: 12, width: "80%", background: "#F3F4F6", borderRadius: 4 }} />
+                        </div>
+                      ))}
+                    </>
+                  ) : atividadesError ? (
+                    <div style={{ padding: 12, borderRadius: 8, background: "#FEF2F2", border: "1px solid #FECACA", color: "#991B1B", fontSize: 12 }} data-testid="wizard-atividades-error">
+                      Não foi possível carregar as atividades. Tente novamente mais tarde.
+                    </div>
+                  ) : (
+                    atividadesWizard.map((a) => {
+                      const selected = atracoesSelecionadas.includes(a.id)
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() =>
+                            setAtracoesSelecionadas((prev) =>
+                              prev.includes(a.id) ? prev.filter((x) => x !== a.id) : [...prev, a.id],
+                            )
+                          }
+                          style={{
+                            textAlign: "left",
+                            padding: 10,
+                            borderRadius: 10,
+                            border: selected ? "2px solid #2563EB" : "1px solid #E5E7EB",
+                            background: selected ? "linear-gradient(135deg,#EEF2FF,#DBEAFE)" : "#FFFFFF",
+                            cursor: "pointer",
+                          }}
+                          data-testid={`wizard-como-${a.id}`}
+                        >
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>{a.label}</div>
+                          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{a.descricao}</div>
+                        </button>
+                      )
+                    })
+                  )}
                 </div>
               )}
 
@@ -1981,7 +2055,7 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 1 && (
+        {activePrimaryTab === 4 && (
         <div style={{ marginTop: 12, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, padding: 12 }} data-testid="roteiro-governanca-widget">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div>
@@ -2030,7 +2104,7 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 0 && (<>
+        {activePrimaryTab === 3 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="group-info-card">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <MapPin style={{ width: 18, height: 18, color: "#2563EB" }} />
@@ -2211,7 +2285,7 @@ export default function ViagensGrupoPage() {
         </div>
         </>)}
 
-        {activePrimaryTab === 2 && (<>
+        {activePrimaryTab === 0 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Sparkles style={{ width: 18, height: 18, color: "#F57C00" }} />
@@ -2356,6 +2430,26 @@ export default function ViagensGrupoPage() {
               Enviar
             </button>
           </div>
+          {!isAdminRoteiro && sugestoesRoteiro.length > 0 && (
+            <div style={{ marginTop: 10 }} data-testid="roteiro-governanca-sugestoes-lista">
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Suas sugestões enviadas</div>
+              <div style={{ display: "grid", gap: 6 }}>
+                {sugestoesRoteiro.map((s) => (
+                  <div key={s.id} style={{ border: "1px solid #E5E7EB", borderRadius: 8, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontSize: 12 }}>
+                      <strong>{s.valor}</strong> <span style={{ color: "#6B7280" }}>({s.categoria})</span>
+                      {s.descricao && <span style={{ color: "#9CA3AF" }}> — {s.descricao}</span>}
+                    </div>
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 999,
+                      background: s.status === "APROVADA" ? "#D1FAE5" : s.status === "REJEITADA" ? "#FEE2E2" : "#F3F4F6",
+                      color: s.status === "APROVADA" ? "#065F46" : s.status === "REJEITADA" ? "#991B1B" : "#374151",
+                    }}>{s.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {isAdminRoteiro && (
@@ -2387,7 +2481,7 @@ export default function ViagensGrupoPage() {
         )}
         </>)}
 
-        {activePrimaryTab === 3 && (<>
+        {activePrimaryTab === 2 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Vote style={{ width: 18, height: 18, color: "#8B5CF6" }} />
@@ -2481,7 +2575,7 @@ export default function ViagensGrupoPage() {
         </div>
         </>)}
 
-        {activePrimaryTab === 1 && (
+        {activePrimaryTab === 3 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Calendar style={{ width: 18, height: 18, color: "#F59E0B" }} />
@@ -2542,7 +2636,26 @@ export default function ViagensGrupoPage() {
                         marginTop: 8, paddingTop: 8, borderTop: "1px solid #E5E7EB",
                         fontSize: 12, color: "#6B7280", lineHeight: 1.5,
                       }}>
-                        {item.details}
+                        {item.expandedDetails ? (
+                          <div style={{ display: "grid", gap: 6 }}>
+                            {item.expandedDetails.map((d, di) => (
+                              <div key={di} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", minWidth: 40, flexShrink: 0 }}>{d.hora}</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 12, color: "#374151" }}>{d.atividade}</div>
+                                  {d.dica && (
+                                    <div style={{ fontSize: 11, color: "#F59E0B", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                                      <Lightbulb style={{ width: 10, height: 10, flexShrink: 0 }} />
+                                      {d.dica}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          item.details
+                        )}
                       </div>
                     )}
                   </div>
@@ -2553,7 +2666,7 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 1 && (
+        {activePrimaryTab === 4 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="recommended-hotels">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Star style={{ width: 18, height: 18, color: "#F59E0B" }} />
@@ -2586,7 +2699,7 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 0 && (
+        {activePrimaryTab === 3 && (
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <button data-testid="button-toggle-savings" onClick={() => setShowSavings(!showSavings)} style={{
             width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -2651,7 +2764,7 @@ export default function ViagensGrupoPage() {
         </div>
         )}
 
-        {activePrimaryTab === 4 && (
+        {activePrimaryTab === 1 && (
         <div className="chat-tab-layout" style={{ display: "flex", flex: 1, width: "100%", minHeight: 0 }} data-testid="chat-tab-container">
           <div className={`chat-main-col${showAssistant ? " assistant-active" : ""}`} style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
             <div
@@ -3018,7 +3131,7 @@ export default function ViagensGrupoPage() {
 
       </div>
 
-      {wizardStep === "quem" && activePrimaryTab === 2 && (
+      {wizardStep === "quem" && activePrimaryTab === 0 && (
         <BarraFinanceira
           valorPorPessoa={valorPorPessoaBarra}
           valorTotal={valorTotalBarra}
