@@ -481,6 +481,7 @@ export default function ViagensGrupoPage() {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES)
   const [showTyping, setShowTyping] = useState(false)
+  const [showAssistant, setShowAssistant] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
   const [activePrimaryTab, setActivePrimaryTab] = useState(0)
   const [votes, setVotes] = useState([3, 2, 1])
@@ -2036,75 +2037,6 @@ export default function ViagensGrupoPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-sugestao-widget">
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-sugestao-title">Enviar sugestão de roteiro</div>
-            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr auto", gap: 8 }}>
-              <select value={novaSugestaoCategoria} onChange={(e) => setNovaSugestaoCategoria(e.target.value as typeof novaSugestaoCategoria)} style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-categoria">
-                <option value="veiculo">Veículo</option>
-                <option value="hotel">Hotel</option>
-                <option value="atracao">Atração</option>
-                <option value="passeio">Passeio</option>
-                <option value="parque">Parque aquático</option>
-                <option value="outro">Outro</option>
-              </select>
-              <input value={novaSugestaoValor} onChange={(e) => setNovaSugestaoValor(e.target.value)} placeholder="Sugestão principal" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-valor" />
-              <input value={novaSugestaoDescricao} onChange={(e) => setNovaSugestaoDescricao(e.target.value)} placeholder="Descrição opcional" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-descricao" />
-              <button onClick={handleEnviarSugestaoRoteiro} style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "#1e3a8a", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-enviar">
-                Enviar
-              </button>
-            </div>
-          </div>
-
-          {isAdminRoteiro && (
-            <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-moderacao-widget">
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-moderacao-title">Moderação de sugestões (admin)</div>
-              {(sugestoesRoteiro.length === 0) && <div style={{ fontSize: 12, color: "#6B7280" }}>Nenhuma sugestão pendente.</div>}
-              <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-moderacao-list">
-                {sugestoesRoteiro.map((s) => (
-                  <div key={s.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "grid", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 12 }}>
-                        <strong>{s.nomeAutor}</strong> sugeriu <strong>{s.valor}</strong> ({s.categoria})
-                      </div>
-                      <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: "#F3F4F6", color: "#374151" }}>{s.status}</span>
-                    </div>
-                    {s.descricao ? <div style={{ fontSize: 12, color: "#6B7280" }}>{s.descricao}</div> : null}
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <button onClick={() => handleModerarSugestao(s.id, "APROVADA", true)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#16A34A", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-aprovar">
-                        Aprovar + publicar votação
-                      </button>
-                      <button onClick={() => handleModerarSugestao(s.id, "REJEITADA", false)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-reprovar">
-                        Reprovar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div style={{ marginTop: 12, borderTop: "1px solid #F3F4F6", paddingTop: 10 }} data-testid="roteiro-governanca-votacao-widget">
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-votacao-title">Votação do roteiro (itens publicados pelo admin)</div>
-            {votacaoRoteiro.length === 0 ? (
-              <div style={{ fontSize: 12, color: "#6B7280" }}>Sem itens publicados para votação.</div>
-            ) : (
-              <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-votacao-list">
-                {votacaoRoteiro.map((item) => (
-                  <div key={item.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <div style={{ fontSize: 12 }}>
-                      <strong>{item.valor}</strong> <span style={{ color: "#6B7280" }}>({item.categoria})</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 12, color: "#1F2937", fontWeight: 700 }}>{item.votos} votos</span>
-                      <button onClick={() => handleVotarRoteiro(item.id)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#2563EB", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-votacao-votar">
-                        Votar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
         )}
 
@@ -2337,13 +2269,61 @@ export default function ViagensGrupoPage() {
             Total por hospedagem: <strong>R$ {(selectedHotelId ? (HOTEL_OPTIONS.find((h) => h.id === selectedHotelId)?.precoNoite ?? 0) * (calculateNights(selectedCheckIn, selectedCheckOut) || 1) : 0).toLocaleString("pt-BR")}</strong>
           </div>
         </div>
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="roteiro-governanca-sugestao-widget">
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-sugestao-title">Enviar sugestão de roteiro</div>
+          <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 10 }}>Sugira mudanças no roteiro. O admin irá revisar e pode publicar para votação do grupo.</div>
+          <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr auto", gap: 8 }}>
+            <select value={novaSugestaoCategoria} onChange={(e) => setNovaSugestaoCategoria(e.target.value as typeof novaSugestaoCategoria)} style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-categoria">
+              <option value="veiculo">Veículo</option>
+              <option value="hotel">Hotel</option>
+              <option value="atracao">Atração</option>
+              <option value="passeio">Passeio</option>
+              <option value="parque">Parque aquático</option>
+              <option value="outro">Outro</option>
+            </select>
+            <input value={novaSugestaoValor} onChange={(e) => setNovaSugestaoValor(e.target.value)} placeholder="Sugestão principal" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-valor" />
+            <input value={novaSugestaoDescricao} onChange={(e) => setNovaSugestaoDescricao(e.target.value)} placeholder="Descrição opcional" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-descricao" />
+            <button onClick={handleEnviarSugestaoRoteiro} style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "#1e3a8a", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 12 }} data-testid="roteiro-governanca-sugestao-enviar">
+              Enviar
+            </button>
+          </div>
+        </div>
+
+        {isAdminRoteiro && (
+          <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="roteiro-governanca-moderacao-widget">
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", marginBottom: 8 }} data-testid="roteiro-governanca-moderacao-title">Moderação de sugestões (admin)</div>
+            {(sugestoesRoteiro.length === 0) && <div style={{ fontSize: 12, color: "#6B7280" }}>Nenhuma sugestão pendente.</div>}
+            <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-moderacao-list">
+              {sugestoesRoteiro.map((s) => (
+                <div key={s.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "grid", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 12 }}>
+                      <strong>{s.nomeAutor}</strong> sugeriu <strong>{s.valor}</strong> ({s.categoria})
+                    </div>
+                    <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 999, background: "#F3F4F6", color: "#374151" }}>{s.status}</span>
+                  </div>
+                  {s.descricao ? <div style={{ fontSize: 12, color: "#6B7280" }}>{s.descricao}</div> : null}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <button onClick={() => handleModerarSugestao(s.id, "APROVADA", true)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#16A34A", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-aprovar">
+                      Aprovar + publicar votação
+                    </button>
+                    <button onClick={() => handleModerarSugestao(s.id, "REJEITADA", false)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#DC2626", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-moderacao-reprovar">
+                      Reprovar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         </>)}
 
-        {activePrimaryTab === 3 && (
+        {activePrimaryTab === 3 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Vote style={{ width: 18, height: 18, color: "#8B5CF6" }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Votação do Grupo</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Votação de Hotel</span>
             {hasVoted && <span style={{ fontSize: 10, color: "#22C55E", fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}><Check style={{ width: 10, height: 10 }} /> Você votou</span>}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -2404,7 +2384,34 @@ export default function ViagensGrupoPage() {
             })}
           </div>
         </div>
-        )}
+
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="roteiro-governanca-votacao-widget">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Map style={{ width: 18, height: 18, color: "#2563EB" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }} data-testid="roteiro-governanca-votacao-title">Votação do Roteiro</span>
+          </div>
+          <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 10 }}>Itens publicados pelo admin para votação do grupo.</div>
+          {votacaoRoteiro.length === 0 ? (
+            <div style={{ fontSize: 12, color: "#6B7280" }}>Sem itens publicados para votação.</div>
+          ) : (
+            <div style={{ display: "grid", gap: 8 }} data-testid="roteiro-governanca-votacao-list">
+              {votacaoRoteiro.map((item) => (
+                <div key={item.id} style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 12 }}>
+                    <strong>{item.valor}</strong> <span style={{ color: "#6B7280" }}>({item.categoria})</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: "#1F2937", fontWeight: 700 }}>{item.votos} votos</span>
+                    <button onClick={() => handleVotarRoteiro(item.id)} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "#2563EB", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }} data-testid="roteiro-governanca-votacao-votar">
+                      Votar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        </>)}
 
         {activePrimaryTab === 0 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
@@ -2542,65 +2549,100 @@ export default function ViagensGrupoPage() {
         </>)}
 
         {activePrimaryTab === 4 && (
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, maxWidth: 900, margin: "0 auto", width: "100%" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 8,
-              padding: "10px 16px",
-              borderBottom: "1px solid #E5E7EB",
-              background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Bot style={{ width: 16, height: 16, color: "#22C55E" }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Chat do Grupo</span>
-              <span style={{ fontSize: 10, color: "#64748B" }}>({messages.length} mensagens)</span>
-            </div>
-            <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-              {TABS.map((tab, i) => (
-                <button key={i} data-testid={`button-tab-${i}`} onClick={() => setActiveTab(i)} style={{
-                  padding: "4px 8px", borderRadius: 6,
-                  border: activeTab === i ? "1px solid #2563EB" : "1px solid #E5E7EB",
-                  background: activeTab === i ? "#EBF5FF" : "transparent",
-                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                }}>
-                  <tab.icon style={{ width: 12, height: 12, color: activeTab === i ? "#2563EB" : "#9CA3AF" }} />
-                  <span style={{ fontSize: 10, color: activeTab === i ? "#2563EB" : "#6B7280", fontWeight: activeTab === i ? 700 : 500 }}>{tab.label}</span>
+        <div style={{ display: "flex", flex: 1, width: "100%", minHeight: 0 }} data-testid="chat-tab-container">
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+                padding: "10px 16px",
+                borderBottom: "1px solid #E5E7EB",
+                background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <MessageCircle style={{ width: 16, height: 16, color: "#2563EB" }} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Chat do Grupo</span>
+                <span style={{ fontSize: 10, color: "#64748B" }}>({messages.length} mensagens)</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 4, overflowX: "auto" }}>
+                  {TABS.map((tab, i) => (
+                    <button key={i} data-testid={`button-tab-${i}`} onClick={() => setActiveTab(i)} style={{
+                      padding: "4px 8px", borderRadius: 6,
+                      border: activeTab === i ? "1px solid #2563EB" : "1px solid #E5E7EB",
+                      background: activeTab === i ? "#EBF5FF" : "transparent",
+                      cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                    }}>
+                      <tab.icon style={{ width: 12, height: 12, color: activeTab === i ? "#2563EB" : "#9CA3AF" }} />
+                      <span style={{ fontSize: 10, color: activeTab === i ? "#2563EB" : "#6B7280", fontWeight: activeTab === i ? 700 : 500 }}>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  data-testid="button-toggle-assistant"
+                  onClick={() => setShowAssistant(!showAssistant)}
+                  style={{
+                    padding: "4px 8px", borderRadius: 6, cursor: "pointer",
+                    border: showAssistant ? "1px solid #22C55E" : "1px solid #E5E7EB",
+                    background: showAssistant ? "#F0FDF4" : "transparent",
+                    display: "flex", alignItems: "center", gap: 4,
+                  }}
+                >
+                  <Bot style={{ width: 12, height: 12, color: showAssistant ? "#22C55E" : "#9CA3AF" }} />
+                  <span style={{ fontSize: 10, color: showAssistant ? "#22C55E" : "#6B7280", fontWeight: showAssistant ? 700 : 500 }}>Assistente</span>
                 </button>
-              ))}
+              </div>
             </div>
-          </div>
 
-          <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0", minHeight: 300, maxHeight: "calc(100vh - 380px)" }}>
-            {messages.map((msg) => (
-              <div key={msg.id} style={{
-                display: "flex", flexDirection: msg.isMe ? "row-reverse" : "row",
-                alignItems: "flex-start", gap: 8, marginBottom: 14,
-              }}>
-                {!msg.isMe && (
-                  <div style={{
-                    width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                    background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : msg.isBot ? "linear-gradient(135deg, #22C55E, #16A34A)" : MEMBERS.find(m => m.name === msg.sender)?.color || "#2563EB",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 700, color: "#fff",
-                  }}>
-                    {msg.isBot ? <Bot style={{ width: 14, height: 14 }} /> : msg.sender.charAt(0)}
-                  </div>
-                )}
-                <div style={{ maxWidth: "78%" }}>
+            <div ref={chatRef} style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0", minHeight: 300, maxHeight: "calc(100vh - 380px)" }}>
+              {messages.map((msg) => (
+                <div key={msg.id} style={{
+                  display: "flex", flexDirection: msg.isMe ? "row-reverse" : "row",
+                  alignItems: "flex-start", gap: 8, marginBottom: 14,
+                }}>
                   {!msg.isMe && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: msg.isAiIntervention ? "#ea580c" : msg.isBot ? "#22C55E" : "#1F2937" }}>{msg.sender}</span>
-                      {msg.isBot && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, color: "#fff",
-                          background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
-                        }}>AI BOT</span>
-                      )}
-                      {msg.isOrganizer && (
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                      background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : msg.isBot ? "linear-gradient(135deg, #22C55E, #16A34A)" : MEMBERS.find(m => m.name === msg.sender)?.color || "#2563EB",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 700, color: "#fff",
+                    }}>
+                      {msg.isBot ? <Bot style={{ width: 14, height: 14 }} /> : msg.sender.charAt(0)}
+                    </div>
+                  )}
+                  <div style={{ maxWidth: "78%" }}>
+                    {!msg.isMe && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: msg.isAiIntervention ? "#ea580c" : msg.isBot ? "#22C55E" : "#1F2937" }}>{msg.sender}</span>
+                        {msg.isBot && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 700, color: "#fff",
+                            background: msg.isAiIntervention ? "linear-gradient(135deg, #f97316, #ea580c)" : "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
+                          }}>AI BOT</span>
+                        )}
+                        {msg.isOrganizer && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 700, color: "#F59E0B",
+                            background: "#FEF3C7", padding: "1px 6px", borderRadius: 4,
+                            display: "flex", alignItems: "center", gap: 2,
+                          }}>
+                            <Crown style={{ width: 8, height: 8 }} /> Organizador
+                          </span>
+                        )}
+                        {msg.tag && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 600, color: "#22C55E",
+                            background: "#F0FDF4", padding: "1px 6px", borderRadius: 4,
+                            display: "flex", alignItems: "center", gap: 2,
+                          }}><Check style={{ width: 8, height: 8 }} /> {msg.tag}</span>
+                        )}
+                      </div>
+                    )}
+                    {msg.isMe && msg.isOrganizer && (
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
                         <span style={{
                           fontSize: 9, fontWeight: 700, color: "#F59E0B",
                           background: "#FEF3C7", padding: "1px 6px", borderRadius: 4,
@@ -2608,182 +2650,266 @@ export default function ViagensGrupoPage() {
                         }}>
                           <Crown style={{ width: 8, height: 8 }} /> Organizador
                         </span>
-                      )}
-                      {msg.tag && (
-                        <span style={{
-                          fontSize: 9, fontWeight: 600, color: "#22C55E",
-                          background: "#F0FDF4", padding: "1px 6px", borderRadius: 4,
-                          display: "flex", alignItems: "center", gap: 2,
-                        }}><Check style={{ width: 8, height: 8 }} /> {msg.tag}</span>
-                      )}
-                    </div>
-                  )}
-                  {msg.isMe && msg.isOrganizer && (
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
-                      <span style={{
-                        fontSize: 9, fontWeight: 700, color: "#F59E0B",
-                        background: "#FEF3C7", padding: "1px 6px", borderRadius: 4,
-                        display: "flex", alignItems: "center", gap: 2,
-                      }}>
-                        <Crown style={{ width: 8, height: 8 }} /> Organizador
-                      </span>
-                    </div>
-                  )}
-                  <div style={{
-                    padding: "10px 14px", borderRadius: 14,
-                    ...(msg.isMe
-                      ? { background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", borderTopRightRadius: 4 }
-                      : msg.isAiIntervention
-                        ? { background: "#FFF7ED", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #FED7AA" }
-                        : msg.isBot
-                        ? { background: "#F0FDF4", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #BBF7D0" }
-                        : { background: "#fff", color: "#1F2937", borderTopLeftRadius: 4, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
-                    ),
-                  }}>
-                    <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>{msg.text}</p>
-                    {msg.card && (
-                      <div style={{
-                        marginTop: 10, background: "#fff", borderRadius: 12, overflow: "hidden",
-                        border: "1px solid #E5E7EB", boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                      }}>
-                        <div style={{
-                          height: 70, background: msg.card.type === "hotel"
-                            ? "linear-gradient(135deg, #3B82F6, #1D4ED8)"
-                            : "linear-gradient(135deg, #F59E0B, #D97706)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          position: "relative",
-                        }}>
-                          {msg.card.type === "hotel" ? <Hotel style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} /> : <Ticket style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} />}
-                          {msg.card.discount && (
-                            <div style={{
-                              position: "absolute", top: 8, right: 8,
-                              background: "#EF4444", color: "#fff", padding: "2px 8px",
-                              borderRadius: 6, fontSize: 11, fontWeight: 800,
-                            }}>{msg.card.discount}</div>
-                          )}
-                        </div>
-                        <div style={{ padding: 12 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{msg.card.title}</div>
-                          <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{msg.card.subtitle}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
-                            <span style={{ fontSize: 16, fontWeight: 800, color: "#22C55E" }}>{msg.card.price}</span>
-                            {msg.card.oldPrice && (
-                              <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>{msg.card.oldPrice}</span>
-                            )}
-                          </div>
-                          <button data-testid={`button-cta-${msg.id}`} style={{
-                            marginTop: 8, width: "100%", padding: "8px 0", borderRadius: 8,
-                            border: "none", background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
-                            color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
-                            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                          }}>
-                            {msg.card.cta} <ChevronRight style={{ width: 14, height: 14 }} />
-                          </button>
-                        </div>
                       </div>
                     )}
+                    <div style={{
+                      padding: "10px 14px", borderRadius: 14,
+                      ...(msg.isMe
+                        ? { background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", borderTopRightRadius: 4 }
+                        : msg.isAiIntervention
+                          ? { background: "#FFF7ED", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #FED7AA" }
+                          : msg.isBot
+                          ? { background: "#F0FDF4", color: "#1F2937", borderTopLeftRadius: 4, border: "1px solid #BBF7D0" }
+                          : { background: "#fff", color: "#1F2937", borderTopLeftRadius: 4, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
+                      ),
+                    }}>
+                      <p style={{ fontSize: 13, lineHeight: 1.5, margin: 0 }}>{msg.text}</p>
+                      {msg.card && (
+                        <div style={{
+                          marginTop: 10, background: "#fff", borderRadius: 12, overflow: "hidden",
+                          border: "1px solid #E5E7EB", boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                        }}>
+                          <div style={{
+                            height: 70, background: msg.card.type === "hotel"
+                              ? "linear-gradient(135deg, #3B82F6, #1D4ED8)"
+                              : "linear-gradient(135deg, #F59E0B, #D97706)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            position: "relative",
+                          }}>
+                            {msg.card.type === "hotel" ? <Hotel style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} /> : <Ticket style={{ width: 24, height: 24, color: "rgba(255,255,255,0.5)" }} />}
+                            {msg.card.discount && (
+                              <div style={{
+                                position: "absolute", top: 8, right: 8,
+                                background: "#EF4444", color: "#fff", padding: "2px 8px",
+                                borderRadius: 6, fontSize: 11, fontWeight: 800,
+                              }}>{msg.card.discount}</div>
+                            )}
+                          </div>
+                          <div style={{ padding: 12 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{msg.card.title}</div>
+                            <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{msg.card.subtitle}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                              <span style={{ fontSize: 16, fontWeight: 800, color: "#22C55E" }}>{msg.card.price}</span>
+                              {msg.card.oldPrice && (
+                                <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>{msg.card.oldPrice}</span>
+                              )}
+                            </div>
+                            <button data-testid={`button-cta-${msg.id}`} style={{
+                              marginTop: 8, width: "100%", padding: "8px 0", borderRadius: 8,
+                              border: "none", background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
+                              color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                            }}>
+                              {msg.card.cta} <ChevronRight style={{ width: 14, height: 14 }} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2, display: "block", textAlign: msg.isMe ? "right" : "left" }}>{msg.time}</span>
                   </div>
-                  <span style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2, display: "block", textAlign: msg.isMe ? "right" : "left" }}>{msg.time}</span>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {showTyping && (
-              <div style={{
-                display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14,
-              }}>
+              {showTyping && (
                 <div style={{
-                  width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                  background: "linear-gradient(135deg, #22C55E, #16A34A)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#fff",
+                  display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14,
                 }}>
-                  <Bot style={{ width: 14, height: 14 }} />
-                </div>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#22C55E" }}>CaldasAI</span>
-                    <span style={{
-                      fontSize: 9, fontWeight: 700, color: "#fff",
-                      background: "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
-                    }}>AI BOT</span>
-                  </div>
                   <div style={{
-                    padding: "10px 18px", borderRadius: 14, borderTopLeftRadius: 4,
-                    background: "#F0FDF4", border: "1px solid #BBF7D0",
-                    display: "flex", alignItems: "center", gap: 4,
+                    width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                    background: "linear-gradient(135deg, #22C55E, #16A34A)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff",
                   }}>
-                    <span style={{ fontSize: 20, animation: "bounce 1s infinite" }}>&#8226;</span>
-                    <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.2s" }}>&#8226;</span>
-                    <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.4s" }}>&#8226;</span>
+                    <Bot style={{ width: 14, height: 14 }} />
+                  </div>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#22C55E" }}>CaldasAI</span>
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, color: "#fff",
+                        background: "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
+                      }}>AI BOT</span>
+                    </div>
+                    <div style={{
+                      padding: "10px 18px", borderRadius: 14, borderTopLeftRadius: 4,
+                      background: "#F0FDF4", border: "1px solid #BBF7D0",
+                      display: "flex", alignItems: "center", gap: 4,
+                    }}>
+                      <span style={{ fontSize: 20, animation: "bounce 1s infinite" }}>&#8226;</span>
+                      <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.2s" }}>&#8226;</span>
+                      <span style={{ fontSize: 20, animation: "bounce 1s infinite 0.4s" }}>&#8226;</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div style={{ background: "#fff", borderTop: "1px solid #E5E7EB", padding: "10px 16px 12px" }}>
-            <div style={{
-              background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", padding: "8px 12px",
-              borderRadius: 10, border: "1px solid #BBF7D0", marginBottom: 10,
-              display: "flex", alignItems: "center", gap: 10,
-            }}>
-              <Share2 style={{ width: 16, height: 16, color: "#22C55E", flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
-                <div style={{ fontSize: 11, color: "#6B7280" }}>Quanto mais pessoas, maior o desconto</div>
-              </div>
-              <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
-                padding: "6px 12px", borderRadius: 8, border: "none",
-                background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700,
-                cursor: "pointer", whiteSpace: "nowrap",
-              }}>
-                WhatsApp
-              </button>
+              )}
             </div>
 
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <button data-testid="button-emoji" style={{
-                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            <div style={{ background: "#fff", borderTop: "1px solid #E5E7EB", padding: "10px 16px 12px" }}>
+              <div style={{
+                background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", padding: "8px 12px",
+                borderRadius: 10, border: "1px solid #BBF7D0", marginBottom: 10,
+                display: "flex", alignItems: "center", gap: 10,
               }}>
-                <Smile style={{ width: 18, height: 18, color: "#F59E0B" }} />
-              </button>
-              <button data-testid="button-camera" style={{
-                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Camera style={{ width: 18, height: 18, color: "#6B7280" }} />
-              </button>
-              <button data-testid="button-location" style={{
-                width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
-                background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <MapPin style={{ width: 18, height: 18, color: "#EF4444" }} />
-              </button>
-              <input
-                data-testid="input-message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Envie uma mensagem..."
-                style={{
-                  flex: 1, padding: "10px 14px", borderRadius: 10,
-                  border: "1px solid #E5E7EB", fontSize: 13, outline: "none",
-                  background: "#F9FAFB",
-                }}
-              />
-              <button data-testid="button-send" onClick={handleSend} style={{
-                width: 40, height: 40, borderRadius: 10, border: "none",
-                background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
-                color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all 0.2s",
-              }}>
-                <Send style={{ width: 16, height: 16 }} />
-              </button>
+                <Share2 style={{ width: 16, height: 16, color: "#22C55E", flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>Convide mais amigos!</div>
+                  <div style={{ fontSize: 11, color: "#6B7280" }}>Quanto mais pessoas, maior o desconto</div>
+                </div>
+                <button data-testid="button-whatsapp-invite" onClick={() => window.open(whatsappInvite, "_blank")} style={{
+                  padding: "6px 12px", borderRadius: 8, border: "none",
+                  background: "#25D366", color: "#fff", fontSize: 11, fontWeight: 700,
+                  cursor: "pointer", whiteSpace: "nowrap",
+                }}>
+                  WhatsApp
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <button data-testid="button-emoji" style={{
+                  width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                  background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Smile style={{ width: 18, height: 18, color: "#F59E0B" }} />
+                </button>
+                <button data-testid="button-camera" style={{
+                  width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                  background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Camera style={{ width: 18, height: 18, color: "#6B7280" }} />
+                </button>
+                <button data-testid="button-location" style={{
+                  width: 36, height: 36, borderRadius: 10, border: "1px solid #E5E7EB",
+                  background: "#F9FAFB", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <MapPin style={{ width: 18, height: 18, color: "#EF4444" }} />
+                </button>
+                <input
+                  data-testid="input-message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  placeholder="Envie uma mensagem..."
+                  style={{
+                    flex: 1, padding: "10px 14px", borderRadius: 10,
+                    border: "1px solid #E5E7EB", fontSize: 13, outline: "none",
+                    background: "#F9FAFB",
+                  }}
+                />
+                <button data-testid="button-send" onClick={handleSend} style={{
+                  width: 40, height: 40, borderRadius: 10, border: "none",
+                  background: message.trim() ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "#E5E7EB",
+                  color: message.trim() ? "#fff" : "#9CA3AF", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.2s",
+                }}>
+                  <Send style={{ width: 16, height: 16 }} />
+                </button>
+              </div>
             </div>
           </div>
+
+          {showAssistant && (
+            <div
+              data-testid="assistant-panel"
+              style={{
+                width: 340,
+                minWidth: 280,
+                borderLeft: "1px solid #E5E7EB",
+                display: "flex",
+                flexDirection: "column",
+                background: "#FAFBFC",
+              }}
+            >
+              <div style={{
+                padding: "10px 14px",
+                borderBottom: "1px solid #E5E7EB",
+                background: "linear-gradient(135deg, #F0FDF4, #ECFDF5)",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Bot style={{ width: 16, height: 16, color: "#22C55E" }} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>CaldasAI Assistente</span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, color: "#fff",
+                    background: "linear-gradient(135deg, #22C55E, #16A34A)", padding: "1px 6px", borderRadius: 4,
+                  }}>AI</span>
+                </div>
+                <button
+                  data-testid="button-close-assistant"
+                  onClick={() => setShowAssistant(false)}
+                  style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4 }}
+                >
+                  <ChevronRight style={{ width: 14, height: 14, color: "#6B7280" }} />
+                </button>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: 14 }}>
+                <div style={{
+                  padding: 14, borderRadius: 12, background: "#fff",
+                  border: "1px solid #E5E7EB", marginBottom: 12,
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937", marginBottom: 6 }}>Sugestões rápidas</div>
+                  {[
+                    "Quais parques valem a pena?",
+                    "Melhor hotel custo-benefício?",
+                    "Roteiro ideal para 3 dias?",
+                    "Como economizar em grupo?",
+                  ].map((q, i) => (
+                    <button
+                      key={i}
+                      data-testid={`button-assistant-suggestion-${i}`}
+                      onClick={() => {
+                        setMessage(q)
+                        setShowAssistant(false)
+                      }}
+                      style={{
+                        display: "block", width: "100%", textAlign: "left",
+                        padding: "8px 10px", marginBottom: 4, borderRadius: 8,
+                        border: "1px solid #E5E7EB", background: "#F9FAFB",
+                        cursor: "pointer", fontSize: 12, color: "#374151",
+                      }}
+                    >
+                      <Sparkles style={{ width: 10, height: 10, color: "#F57C00", display: "inline", marginRight: 6, verticalAlign: "middle" }} />
+                      {q}
+                    </button>
+                  ))}
+                </div>
+                <div style={{
+                  padding: 14, borderRadius: 12, background: "#fff",
+                  border: "1px solid #E5E7EB", marginBottom: 12,
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937", marginBottom: 6 }}>Dados do grupo</div>
+                  <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Membros</span>
+                      <strong style={{ color: "#1F2937" }}>{groupSize}</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Custo por pessoa</span>
+                      <strong style={{ color: "#22C55E" }}>R$ {perPersonCost}</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Total do grupo</span>
+                      <strong style={{ color: "#2563EB" }}>R$ {totalGroupCost.toLocaleString("pt-BR")}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  padding: 14, borderRadius: 12,
+                  background: "linear-gradient(135deg, #FFF7ED, #FFFBEB)",
+                  border: "1px solid #FED7AA",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                    <Lightbulb style={{ width: 14, height: 14, color: "#F57C00" }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>Dica da CaldasAI</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#78350F", margin: 0, lineHeight: 1.5 }}>
+                    Grupos com {groupSize}+ pessoas conseguem até 35% de desconto em hotéis parceiros em Caldas Novas. Pergunte no chat para mais detalhes!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         )}
 
