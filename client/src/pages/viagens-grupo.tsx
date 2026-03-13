@@ -53,6 +53,10 @@ import {
   KeyRound,
   Home,
   Compass,
+  RefreshCw,
+  Heart,
+  Zap,
+  Trophy,
 } from "lucide-react"
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query"
@@ -203,6 +207,101 @@ const AI_ITINERARIES = [
     basePP: 539,
   },
 ]
+
+type PlannerStep = "intro" | "lazer" | "orcamento" | "perfil" | "dias" | "resultado"
+
+interface PlannerQuestion {
+  step: PlannerStep
+  aiMessage: string
+  options: { label: string; value: string; icon?: string }[]
+}
+
+const PLANNER_FLOW: PlannerQuestion[] = [
+  {
+    step: "intro",
+    aiMessage: "Imagina chegar em Caldas Novas e descobrir que tudo que você queria fazer já esgotou... 😰 Isso acontece com 60% dos grupos que não planejam! Mas calma — eu vou montar o roteiro perfeito pra vocês em segundos. Me conta: o que vocês NÃO querem que aconteça nessa viagem?",
+    options: [
+      { label: "🏨 Hotel ruim e longe de tudo", value: "hotel" },
+      { label: "💸 Gastar demais sem curtir", value: "gastar" },
+      { label: "😴 Ficar sem nada pra fazer", value: "tedio" },
+      { label: "🗓️ Perder tempo organizando", value: "tempo" },
+    ],
+  },
+  {
+    step: "lazer",
+    aiMessage: "Entendi! Vou cuidar disso pra vocês. Agora me conta: qual é o estilo do grupo? O que vocês mais curtem?",
+    options: [
+      { label: "🧖 Relaxar e descansar", value: "relax" },
+      { label: "🎢 Aventura e adrenalina", value: "aventura" },
+      { label: "👨‍👩‍👧‍👦 Diversão em família", value: "familia" },
+      { label: "🎉 Festas e vida noturna", value: "festa" },
+    ],
+  },
+  {
+    step: "orcamento",
+    aiMessage: "Ótima escolha! E sobre o investimento — lembra que em grupo vocês economizam até 20%. Qual faixa de orçamento por pessoa vocês pensam?",
+    options: [
+      { label: "💰 Econômico (até R$ 400)", value: "economico" },
+      { label: "⚖️ Custo-benefício (R$ 400-600)", value: "medio" },
+      { label: "✨ Conforto total (R$ 600+)", value: "premium" },
+    ],
+  },
+  {
+    step: "perfil",
+    aiMessage: "Perfeito! E quem vai nessa viagem? Isso me ajuda a escolher as melhores atividades:",
+    options: [
+      { label: "👫 Casais", value: "casais" },
+      { label: "👨‍👩‍👧‍👦 Famílias com crianças", value: "familias" },
+      { label: "👥 Amigos", value: "amigos" },
+      { label: "🎓 Grupo da igreja/escola", value: "grupo" },
+    ],
+  },
+  {
+    step: "dias",
+    aiMessage: "Quase lá! Quantos dias vocês pretendem ficar?",
+    options: [
+      { label: "📅 2-3 dias (final de semana)", value: "curto" },
+      { label: "📅 4-5 dias (feriado)", value: "medio" },
+      { label: "📅 6-7 dias (semana inteira)", value: "longo" },
+    ],
+  },
+]
+
+function getPlannerRecommendation(answers: Record<string, string>): { index: number; reason: string; proof: string; benefit: string } {
+  const lazer = answers.lazer
+  const orc = answers.orcamento
+
+  if (lazer === "aventura" || lazer === "festa") {
+    return {
+      index: 1,
+      reason: "Com o perfil aventureiro do grupo, o Roteiro Aventura tem tudo que vocês precisam: Hot Park, trilhas, rafting e city tour — tudo já negociado com desconto de grupo!",
+      proof: "92% dos grupos de amigos que escolheram esse roteiro avaliaram como \"melhor viagem do ano\"",
+      benefit: orc === "economico"
+        ? "Mesmo no econômico, vocês vão aproveitar TUDO com a economia de grupo!"
+        : "Com esse investimento vocês terão uma experiência premium com economia real de até R$ 450 por pessoa!",
+    }
+  }
+
+  if (lazer === "familia" || answers.perfil === "familias") {
+    return {
+      index: 2,
+      reason: "Pra famílias, o Roteiro Família é imbatível: parques aquáticos, zoo, piscinas e compras — diversão garantida pra todas as idades!",
+      proof: "87% das famílias que viajaram com esse roteiro já agendaram a próxima viagem conosco",
+      benefit: orc === "premium"
+        ? "Com o investimento premium, as crianças terão acesso VIP e a família toda vai curtir sem preocupação!"
+        : "O melhor custo-benefício pra família: diversão o dia todo gastando menos que uma viagem individual!",
+    }
+  }
+
+  return {
+    index: 0,
+    reason: "O Roteiro Relax foi feito pra quem quer descansar de verdade: spa, termas, lago e tempo livre — vocês vão voltar renovados!",
+    proof: "94% dos casais que escolheram esse roteiro disseram que foi a melhor decisão de viagem",
+    benefit: orc === "premium"
+      ? "Com o pacote premium, vocês terão acesso exclusivo ao spa e experiências relaxantes que normalmente custam o dobro!"
+      : "Relaxamento total sem estourar o orçamento — a economia de grupo permite curtir mais pagando menos!",
+  }
+}
 
 interface ChatMessage {
   id: number
@@ -524,6 +623,28 @@ export default function ViagensGrupoPage() {
   const [groupSize, setGroupSize] = useState(4)
   const [voteAnimating, setVoteAnimating] = useState<number | null>(null)
   const [itineraryApplied, setItineraryApplied] = useState(false)
+
+  const [plannerStepIdx, setPlannerStepIdx] = useState(0)
+  const [plannerAnswers, setPlannerAnswers] = useState<Record<string, string>>({})
+  const [plannerHistory, setPlannerHistory] = useState<{ role: "ai" | "user"; text: string }[]>([])
+  const [plannerDone, setPlannerDone] = useState(false)
+  const [plannerTyping, setPlannerTyping] = useState(true)
+  const [showOldCards, setShowOldCards] = useState(false)
+  const plannerChatEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (plannerStepIdx === 0 && plannerHistory.length === 0) {
+      const timer = setTimeout(() => {
+        setPlannerHistory([{ role: "ai", text: PLANNER_FLOW[0].aiMessage }])
+        setPlannerTyping(false)
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  useEffect(() => {
+    plannerChatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [plannerHistory, plannerTyping])
   const chatRef = useRef<HTMLDivElement>(null)
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastActivityRef = useRef(Date.now())
@@ -2316,104 +2437,340 @@ export default function ViagensGrupoPage() {
         </>)}
 
         {activePrimaryTab === 0 && (<>
-        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <Sparkles style={{ width: 18, height: 18, color: "#F57C00" }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Planejador IA</span>
-            <span style={{
-              fontSize: 9, fontWeight: 700, color: "#fff",
-              background: "linear-gradient(135deg, #F57C00, #E65100)", padding: "2px 8px", borderRadius: 4,
-            }}>NOVO</span>
-          </div>
-          <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 10px" }}>
-            Roteiros sugeridos para {groupSize} pessoas baseados em IA:
-          </p>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-            {AI_ITINERARIES.map((itin, i) => {
-              const isSelected = selectedItinerary === i
-              const IconComp = itin.icon
-              return (
-                <button key={i} data-testid={`button-itinerary-${i}`} onClick={() => setSelectedItinerary(i)} style={{
-                  minWidth: 150, padding: 12, borderRadius: 12, cursor: "pointer", textAlign: "left",
-                  border: isSelected ? `2px solid ${itin.color}` : "1px solid #E5E7EB",
-                  background: isSelected ? `${itin.color}08` : "#fff",
-                  flexShrink: 0, position: "relative",
-                }}>
-                  {isSelected && (
-                    <div style={{
-                      position: "absolute", top: -6, right: -6,
-                      width: 20, height: 20, borderRadius: "50%", background: itin.color,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <Check style={{ width: 12, height: 12, color: "#fff" }} />
-                    </div>
-                  )}
-                  <IconComp style={{ width: 20, height: 20, color: itin.color, marginBottom: 6 }} />
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 4 }}>{itin.name}</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: itin.color }}>R$ {itin.basePP}</div>
-                  <div style={{ fontSize: 10, color: "#6B7280" }}>/pessoa</div>
-                  <div style={{
-                    marginTop: 6, fontSize: 10, fontWeight: 700, color: "#22C55E",
-                    background: "#F0FDF4", padding: "2px 6px", borderRadius: 4,
-                    display: "inline-flex", alignItems: "center", gap: 2,
-                  }}>
-                    <TrendingDown style={{ width: 10, height: 10 }} />
-                    Economia R$ {itin.savings}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-          {selectedItinerary !== null && (
-            <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: "#F9FAFB", border: "1px solid #E5E7EB" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937", marginBottom: 8 }}>
-                Programação - {AI_ITINERARIES[selectedItinerary].name}
-              </div>
-              {AI_ITINERARIES[selectedItinerary].days.map((day, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < AI_ITINERARIES[selectedItinerary].days.length - 1 ? 6 : 0 }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: "50%",
-                    background: AI_ITINERARIES[selectedItinerary].color, color: "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, fontWeight: 700, flexShrink: 0,
-                  }}>{i + 1}</div>
-                  <span style={{ fontSize: 12, color: "#374151" }}>{day}</span>
-                </div>
-              ))}
+        <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="planejador-ia-chat">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Sparkles style={{ width: 18, height: 18, color: "#F57C00" }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Planejador IA</span>
+              <span style={{
+                fontSize: 9, fontWeight: 700, color: "#fff",
+                background: "linear-gradient(135deg, #F57C00, #E65100)", padding: "2px 8px", borderRadius: 4,
+              }}>INTERATIVO</span>
+            </div>
+            {plannerHistory.length > 1 && (
               <button
-                data-testid="button-apply-itinerary"
+                data-testid="button-planner-restart"
                 onClick={() => {
-                  const slot: TimeSlot = {
-                    id: `it-${selectedItinerary}`,
-                    startsAt: selectedItinerary === 0 ? "09:00" : selectedItinerary === 1 ? "10:00" : "14:00",
-                    endsAt: selectedItinerary === 0 ? "11:00" : selectedItinerary === 1 ? "12:00" : "16:00",
-                  }
-                  if (hasScheduleConflict(agendaSlots, slot)) {
-                    toast({
-                      title: "Conflito de horário detectado",
-                      description: "Escolha outro roteiro para evitar sobreposição no calendário.",
-                      variant: "destructive",
-                    })
-                    return
-                  }
-                  setAgendaSlots((prev) => [...prev, slot])
-                  setItineraryApplied(true)
-                  toast({
-                    title: "Roteiro aplicado",
-                    description: "Roteiro adicionado sem conflitos e sincronizado com o calendário.",
-                  })
+                  setPlannerStepIdx(0)
+                  setPlannerAnswers({})
+                  setPlannerHistory([])
+                  setPlannerDone(false)
+                  setPlannerTyping(true)
+                  setTimeout(() => {
+                    setPlannerHistory([{ role: "ai", text: PLANNER_FLOW[0].aiMessage }])
+                    setPlannerTyping(false)
+                  }, 800)
                 }}
                 style={{
-                width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 8,
-                border: "none", background: `linear-gradient(135deg, ${AI_ITINERARIES[selectedItinerary].color}, ${AI_ITINERARIES[selectedItinerary].color}CC)`,
-                color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              }}>
-                <Lightbulb style={{ width: 14, height: 14 }} />
-                Aplicar este Roteiro
+                  display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6,
+                  border: "1px solid #E5E7EB", background: "#fff", fontSize: 11, color: "#6B7280",
+                  cursor: "pointer",
+                }}
+              >
+                <RefreshCw style={{ width: 12, height: 12 }} />
+                Recomeçar
               </button>
+            )}
+          </div>
+
+          {!plannerDone && (
+            <div style={{
+              display: "flex", gap: 4, marginBottom: 12,
+            }}>
+              {PLANNER_FLOW.map((_, i) => (
+                <div key={i} style={{
+                  flex: 1, height: 4, borderRadius: 2,
+                  background: i < plannerStepIdx ? "#F57C00" : i === plannerStepIdx ? "#FDBA74" : "#E5E7EB",
+                  transition: "background 0.3s ease",
+                }} data-testid={`planner-progress-${i}`} />
+              ))}
             </div>
           )}
+
+          <div style={{
+            maxHeight: 360, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10,
+            paddingRight: 4,
+          }}>
+            {plannerHistory.map((msg, i) => (
+              <div key={i} style={{
+                display: "flex",
+                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                alignItems: "flex-start", gap: 8,
+              }} data-testid={`planner-msg-${i}`}>
+                {msg.role === "ai" && (
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #F57C00, #E65100)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <Bot style={{ width: 14, height: 14, color: "#fff" }} />
+                  </div>
+                )}
+                <div style={{
+                  maxWidth: "80%", padding: "10px 14px", borderRadius: 14,
+                  background: msg.role === "ai" ? "#FFF7ED" : "#EFF6FF",
+                  border: msg.role === "ai" ? "1px solid #FDBA74" : "1px solid #93C5FD",
+                  fontSize: 13, color: "#1F2937", lineHeight: 1.5,
+                  borderTopLeftRadius: msg.role === "ai" ? 4 : 14,
+                  borderTopRightRadius: msg.role === "user" ? 4 : 14,
+                }}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {plannerTyping && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #F57C00, #E65100)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <Bot style={{ width: 14, height: 14, color: "#fff" }} />
+                </div>
+                <div style={{
+                  padding: "10px 14px", borderRadius: 14, borderTopLeftRadius: 4,
+                  background: "#FFF7ED", border: "1px solid #FDBA74",
+                  display: "flex", gap: 4, alignItems: "center",
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#F57C00", animation: "pulse 1.4s infinite", animationDelay: "0s" }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#F57C00", animation: "pulse 1.4s infinite", animationDelay: "0.2s" }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#F57C00", animation: "pulse 1.4s infinite", animationDelay: "0.4s" }} />
+                </div>
+              </div>
+            )}
+
+            {!plannerTyping && !plannerDone && plannerStepIdx < PLANNER_FLOW.length && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+                {PLANNER_FLOW[plannerStepIdx].options.map((opt, oi) => (
+                  <button
+                    key={oi}
+                    data-testid={`planner-option-${plannerStepIdx}-${oi}`}
+                    onClick={() => {
+                      const currentStep = PLANNER_FLOW[plannerStepIdx]
+                      const newAnswers = { ...plannerAnswers, [currentStep.step]: opt.value }
+                      setPlannerAnswers(newAnswers)
+                      setPlannerHistory((prev) => [...prev, { role: "user", text: opt.label }])
+
+                      const nextIdx = plannerStepIdx + 1
+                      if (nextIdx < PLANNER_FLOW.length) {
+                        setPlannerStepIdx(nextIdx)
+                        setPlannerTyping(true)
+                        setTimeout(() => {
+                          setPlannerHistory((prev) => [...prev, { role: "ai", text: PLANNER_FLOW[nextIdx].aiMessage }])
+                          setPlannerTyping(false)
+                        }, 900)
+                      } else {
+                        setPlannerTyping(true)
+                        setTimeout(() => {
+                          const rec = getPlannerRecommendation(newAnswers)
+                          const itin = AI_ITINERARIES[rec.index]
+                          setSelectedItinerary(rec.index)
+                          setPlannerHistory((prev) => [
+                            ...prev,
+                            { role: "ai", text: `🎯 Analisei todas as suas respostas e tenho a recomendação perfeita!\n\n${rec.reason}` },
+                          ])
+                          setPlannerTyping(false)
+                          setTimeout(() => {
+                            setPlannerDone(true)
+                          }, 300)
+                        }, 1200)
+                      }
+                    }}
+                    style={{
+                      padding: "8px 14px", borderRadius: 20, cursor: "pointer",
+                      border: "1px solid #E5E7EB", background: "#fff", fontSize: 12,
+                      fontWeight: 500, color: "#374151", transition: "all 0.2s ease",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#FFF7ED"
+                      e.currentTarget.style.borderColor = "#F57C00"
+                      e.currentTarget.style.color = "#F57C00"
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#fff"
+                      e.currentTarget.style.borderColor = "#E5E7EB"
+                      e.currentTarget.style.color = "#374151"
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {plannerDone && (() => {
+              const rec = getPlannerRecommendation(plannerAnswers)
+              const itin = AI_ITINERARIES[rec.index]
+              return (
+                <div style={{
+                  marginTop: 4, padding: 16, borderRadius: 14,
+                  background: `linear-gradient(135deg, ${itin.color}08, ${itin.color}15)`,
+                  border: `2px solid ${itin.color}`,
+                  position: "relative",
+                }} data-testid="planner-result-card">
+                  <div style={{
+                    position: "absolute", top: -10, left: 16,
+                    background: itin.color, color: "#fff",
+                    fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 10,
+                    display: "flex", alignItems: "center", gap: 4,
+                  }}>
+                    <Trophy style={{ width: 12, height: 12 }} />
+                    Escolhido para você
+                  </div>
+
+                  <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 12,
+                      background: `${itin.color}20`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {rec.index === 0 && <Heart style={{ width: 22, height: 22, color: itin.color }} />}
+                      {rec.index === 1 && <Zap style={{ width: 22, height: 22, color: itin.color }} />}
+                      {rec.index === 2 && <Users style={{ width: 22, height: 22, color: itin.color }} />}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "#1F2937" }}>{itin.name}</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: itin.color }}>
+                        R$ {itin.basePP}
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "#6B7280" }}>/pessoa</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, marginBottom: 12 }}>
+                    {rec.benefit}
+                  </div>
+
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 6, marginBottom: 12,
+                    padding: "8px 12px", borderRadius: 8, background: "#FEF3C7", border: "1px solid #FCD34D",
+                  }}>
+                    <BarChart3 style={{ width: 14, height: 14, color: "#D97706" }} />
+                    <span style={{ fontSize: 11, color: "#92400E", fontWeight: 600 }}>{rec.proof}</span>
+                  </div>
+
+                  <div style={{ marginBottom: 12, borderRadius: 10, background: "#F9FAFB", padding: 10, border: "1px solid #E5E7EB" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#6B7280", marginBottom: 6 }}>PROGRAMAÇÃO</div>
+                    {itin.days.map((day, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < itin.days.length - 1 ? 4 : 0 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: "50%",
+                          background: itin.color, color: "#fff",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 10, fontWeight: 700, flexShrink: 0,
+                        }}>{i + 1}</div>
+                        <span style={{ fontSize: 12, color: "#374151" }}>{day}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 6, marginBottom: 12,
+                    padding: "6px 10px", borderRadius: 6, background: "#F0FDF4", border: "1px solid #BBF7D0",
+                  }}>
+                    <TrendingDown style={{ width: 14, height: 14, color: "#22C55E" }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#166534" }}>
+                      Economia de R$ {itin.savings} por pessoa em grupo de {groupSize}
+                    </span>
+                  </div>
+
+                  <button
+                    data-testid="button-apply-itinerary"
+                    onClick={() => {
+                      const slot: TimeSlot = {
+                        id: `it-${rec.index}`,
+                        startsAt: rec.index === 0 ? "09:00" : rec.index === 1 ? "10:00" : "14:00",
+                        endsAt: rec.index === 0 ? "11:00" : rec.index === 1 ? "12:00" : "16:00",
+                      }
+                      if (hasScheduleConflict(agendaSlots, slot)) {
+                        toast({
+                          title: "Conflito de horário detectado",
+                          description: "Escolha outro roteiro para evitar sobreposição no calendário.",
+                          variant: "destructive",
+                        })
+                        return
+                      }
+                      setAgendaSlots((prev) => [...prev, slot])
+                      setItineraryApplied(true)
+                      toast({
+                        title: "Roteiro aplicado!",
+                        description: `${itin.name} adicionado ao seu grupo com sucesso.`,
+                      })
+                    }}
+                    style={{
+                      width: "100%", padding: "12px 0", borderRadius: 10,
+                      border: "none", background: `linear-gradient(135deg, ${itin.color}, ${itin.color}CC)`,
+                      color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      boxShadow: `0 4px 14px ${itin.color}40`,
+                    }}
+                  >
+                    <Lightbulb style={{ width: 16, height: 16 }} />
+                    Aplicar este Roteiro ao meu Grupo
+                  </button>
+                </div>
+              )
+            })()}
+
+            <div ref={plannerChatEndRef} />
+          </div>
+
+          <div style={{ marginTop: 12, borderTop: "1px solid #E5E7EB", paddingTop: 10 }}>
+            <button
+              data-testid="button-toggle-old-cards"
+              onClick={() => setShowOldCards(!showOldCards)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, width: "100%",
+                padding: "6px 0", border: "none", background: "none",
+                fontSize: 12, color: "#6B7280", cursor: "pointer",
+              }}
+            >
+              {showOldCards ? <ChevronUp style={{ width: 14, height: 14 }} /> : <ChevronDown style={{ width: 14, height: 14 }} />}
+              {showOldCards ? "Ocultar roteiros rápidos" : "Ver roteiros rápidos (sem assistente)"}
+            </button>
+            {showOldCards && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+                  {AI_ITINERARIES.map((itin, i) => {
+                    const isSelected = selectedItinerary === i
+                    const IconComp = itin.icon
+                    return (
+                      <button key={i} data-testid={`button-itinerary-${i}`} onClick={() => { setSelectedItinerary(i); setItineraryApplied(false) }} style={{
+                        minWidth: 140, padding: 10, borderRadius: 12, cursor: "pointer", textAlign: "left",
+                        border: isSelected ? `2px solid ${itin.color}` : "1px solid #E5E7EB",
+                        background: isSelected ? `${itin.color}08` : "#fff",
+                        flexShrink: 0, position: "relative",
+                      }}>
+                        {isSelected && (
+                          <div style={{
+                            position: "absolute", top: -6, right: -6,
+                            width: 18, height: 18, borderRadius: "50%", background: itin.color,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}>
+                            <Check style={{ width: 10, height: 10, color: "#fff" }} />
+                          </div>
+                        )}
+                        <IconComp style={{ width: 18, height: 18, color: itin.color, marginBottom: 4 }} />
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#1F2937", marginBottom: 2 }}>{itin.name}</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: itin.color }}>R$ {itin.basePP}</div>
+                        <div style={{ fontSize: 10, color: "#6B7280" }}>/pessoa</div>
+                        <div style={{
+                          marginTop: 4, fontSize: 9, fontWeight: 700, color: "#22C55E",
+                          background: "#F0FDF4", padding: "2px 6px", borderRadius: 4,
+                          display: "inline-flex", alignItems: "center", gap: 2,
+                        }}>
+                          <TrendingDown style={{ width: 9, height: 9 }} />
+                          -R$ {itin.savings}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }}>
