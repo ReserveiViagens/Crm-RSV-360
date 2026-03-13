@@ -1356,6 +1356,8 @@ export default function ViagensGrupoPage() {
     }
   }
 
+  const gateBackUrl = excursaoIdFromQuery ? "/catalogo-excursoes" : "/excursoes"
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -1395,6 +1397,10 @@ export default function ViagensGrupoPage() {
           <Link href="/cadastrar" className="text-xs text-muted-foreground hover:text-primary transition-colors">
             Ainda não tem conta? Cadastre-se
           </Link>
+          <Link href={gateBackUrl} data-testid="btn-gate-voltar-login" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mt-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Voltar
+          </Link>
         </div>
       </div>
     )
@@ -1424,13 +1430,9 @@ export default function ViagensGrupoPage() {
               O organizador desta excursão não aprovou sua participação. Entre em contato com o organizador para mais informações.
             </p>
           </div>
-          <Link href="/excursoes">
-            <button
-              data-testid="btn-gate-back-excursoes"
-              className="text-sm text-primary hover:underline font-medium"
-            >
-              Ver outras excursões
-            </button>
+          <Link href={gateBackUrl} data-testid="btn-gate-voltar-rejeitado" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Voltar
           </Link>
         </div>
       </div>
@@ -1460,6 +1462,10 @@ export default function ViagensGrupoPage() {
           >
             Atualizar status
           </button>
+          <Link href={gateBackUrl} data-testid="btn-gate-voltar-pending" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mt-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Voltar
+          </Link>
         </div>
       </div>
     )
@@ -1526,8 +1532,9 @@ export default function ViagensGrupoPage() {
             </button>
           </div>
 
-          <Link href="/excursoes" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            Voltar para excursões
+          <Link href={gateBackUrl} data-testid="btn-gate-voltar-restrita" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Voltar
           </Link>
         </div>
       </div>
