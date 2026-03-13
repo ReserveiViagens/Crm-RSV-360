@@ -80,8 +80,8 @@ const GATE_EXCURSAO_INFO: Record<string, { nome: string; dataPartida: string; da
   "2": { nome: "Hot Park & Rio Quente Fest", dataPartida: "2026-04-25", dataRetorno: "2026-04-27" },
   "3": { nome: "Semana Santa Caldas Premium", dataPartida: "2026-04-14", dataRetorno: "2026-04-20" },
   "4": { nome: "Finde nas Termas Goianas", dataPartida: "2026-05-02", dataRetorno: "2026-05-04" },
-  "5": { nome: "Aventura Radical Caldas", dataPartida: "2026-05-09", dataRetorno: "2026-05-12" },
-  "6": { nome: "Caldas Novas Relax & Spa", dataPartida: "2026-05-16", dataRetorno: "2026-05-19" },
+  "5": { nome: "Aventura nas Águas — Grupos Jovens", dataPartida: "2026-05-09", dataRetorno: "2026-05-12" },
+  "6": { nome: "Circuito Completo Caldas + Parque", dataPartida: "2026-05-16", dataRetorno: "2026-05-20" },
 }
 
 function formatGateDate(iso: string) {
