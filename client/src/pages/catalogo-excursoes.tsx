@@ -425,13 +425,13 @@ export default function CatalogoExcursoes() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => window.history.back()}
+              <Link
+                href="/excursoes"
                 className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
                 data-testid="button-voltar-catalogo"
               >
                 <ArrowLeft className="w-4 h-4" /> Voltar
-              </button>
+              </Link>
               <div>
                 <h1 className="text-xl font-bold">Catálogo de Excursões</h1>
                 <nav className="flex items-center gap-1.5 text-xs text-blue-200" data-testid="breadcrumb-catalogo">
@@ -582,7 +582,7 @@ export default function CatalogoExcursoes() {
         )}
       </section>
 
-      <LiderApplicationDialog open={liderDialogOpen} onOpenChange={setLiderDialogOpen} />
+      <LiderApplicationDialog open={liderDialogOpen} onOpenChange={setLiderDialogOpen} user={user} />
     </div>
   )
 }
