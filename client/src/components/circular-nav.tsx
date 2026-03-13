@@ -4,7 +4,7 @@ import {
   Home, Hotel, Tag, Ticket, MapPin, Phone,
   Settings, RotateCcw, GripVertical, X,
   ChevronLeft, ChevronRight, Volume2, VolumeX,
-  Gavel, Zap, Map, User, Users, Brain, ShoppingCart, Star, CalendarDays, Bus
+  Gavel, Zap, Map, User, Users, Brain, ShoppingCart, Star, CalendarDays, Bus, List
 } from "lucide-react"
 
 interface NavItem {
@@ -24,6 +24,7 @@ const allNavItems: NavItem[] = [
   { id: "flash-deals", Icon: Zap, label: "Ofertas", href: "/flash-deals", ring: "outer" },
   { id: "leilao", Icon: Gavel, label: "Leilão", href: "/leiloes", ring: "outer" },
   { id: "excursoes", Icon: Bus, label: "Excursões", href: "/excursoes", ring: "outer" },
+  { id: "catalogo", Icon: List, label: "Catálogo", href: "/catalogo-excursoes", ring: "inner" },
   { id: "contato", Icon: Phone, label: "Contato", href: "/contato", ring: "inner" },
   { id: "mapa", Icon: Map, label: "Mapa", href: "/mapa-caldas-novas", ring: "inner" },
   { id: "perfil", Icon: User, label: "Perfil", href: "/perfil", ring: "inner" },

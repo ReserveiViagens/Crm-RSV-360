@@ -41,6 +41,7 @@ import FinancialDashboard from "@/pages/superadmin/financial-dashboard";
 import LiveChat from "@/pages/superadmin/live-chat";
 import Entrar from "@/pages/entrar";
 import Cadastrar from "@/pages/cadastrar";
+import CatalogoExcursoes from "@/pages/catalogo-excursoes";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/hoteis" component={Hoteis} />
       <Route path="/hoteis/:id" component={Hoteis} />
       <Route path="/excursoes" component={Excursoes} />
+      <Route path="/catalogo-excursoes" component={CatalogoExcursoes} />
       <Route path="/promocoes" component={Promocoes} />
       <Route path="/flash-deals" component={FlashDeals} />
       <Route path="/leiloes" component={Leiloes} />
