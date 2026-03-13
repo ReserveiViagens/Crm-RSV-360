@@ -723,7 +723,19 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
 - `btn-wizard-login` — botão "Entrar na conta" no wizard
 - `btn-wizard-cadastrar` — botão "Criar conta grátis" no wizard
 
-### 12.13 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
+### 12.13 PIX Checkout — Gate na Landing + Seção no Grupo (session: pix-checkout)
+
+#### Conceito
+- **Landing page** (`excursao-landing.tsx`): Para visitantes não-logados, o `<PaymentCheckout>` é substituído por um card com botões "Entrar" e "Cadastrar" que redirecionam para `/entrar?next=/viagens-grupo?excursao=ID` e `/cadastrar?next=/viagens-grupo?excursao=ID`. Logados veem o checkout normalmente.
+- **Grupo** (`viagens-grupo.tsx`): Seção "Reserve agora, pague pelo Pix" adicionada na aba Início (activePrimaryTab === 0), antes do Planejador IA. Usa `GATE_EXCURSAO_INFO` para nome/preço da excursão com comissão organizador de 15%.
+- `GATE_EXCURSAO_INFO` agora inclui campo `preco` por excursão.
+
+#### data-testids
+- `btn-landing-login` — botão "Entrar" na landing (para não-logados)
+- `btn-landing-cadastrar` — botão "Cadastrar" na landing (para não-logados)
+- `section-pix-grupo` — seção PIX dentro do grupo autenticado
+
+### 12.14 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
 
 #### Conceito
 - Somente usuários com `role === "LIDER"` ou `role === "admin"` podem criar excursões.

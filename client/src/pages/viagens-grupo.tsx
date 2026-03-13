@@ -73,16 +73,17 @@ import { BarraFinanceira } from "@/components/BarraFinanceira"
 import { CountdownTimer } from "@/components/CountdownTimer"
 import { QRCodeSVG } from "qrcode.react"
 import { HotelSelector } from "@/components/HotelSelector"
+import { PaymentCheckout } from "@/components/checkout/PaymentCheckout"
 import { calculateNights, hasScheduleConflict, sortByMarginAndScore, type TimeSlot } from "@/utils/social-commerce"
 const WHATSAPP = "5564993197555"
 
-const GATE_EXCURSAO_INFO: Record<string, { nome: string; dataPartida: string; dataRetorno: string }> = {
-  "1": { nome: "Caldas Novas Família Total", dataPartida: "2026-04-18", dataRetorno: "2026-04-21" },
-  "2": { nome: "Hot Park & Rio Quente Fest", dataPartida: "2026-04-25", dataRetorno: "2026-04-27" },
-  "3": { nome: "Semana Santa Caldas Premium", dataPartida: "2026-04-14", dataRetorno: "2026-04-20" },
-  "4": { nome: "Finde nas Termas Goianas", dataPartida: "2026-05-02", dataRetorno: "2026-05-04" },
-  "5": { nome: "Aventura nas Águas — Grupos Jovens", dataPartida: "2026-05-09", dataRetorno: "2026-05-12" },
-  "6": { nome: "Circuito Completo Caldas + Parque", dataPartida: "2026-05-16", dataRetorno: "2026-05-20" },
+const GATE_EXCURSAO_INFO: Record<string, { nome: string; dataPartida: string; dataRetorno: string; preco: number }> = {
+  "1": { nome: "Caldas Novas Família Total", dataPartida: "2026-04-18", dataRetorno: "2026-04-21", preco: 890 },
+  "2": { nome: "Hot Park & Rio Quente Fest", dataPartida: "2026-04-25", dataRetorno: "2026-04-27", preco: 690 },
+  "3": { nome: "Semana Santa Caldas Premium", dataPartida: "2026-04-14", dataRetorno: "2026-04-20", preco: 1290 },
+  "4": { nome: "Finde nas Termas Goianas", dataPartida: "2026-05-02", dataRetorno: "2026-05-04", preco: 590 },
+  "5": { nome: "Aventura nas Águas — Grupos Jovens", dataPartida: "2026-05-09", dataRetorno: "2026-05-12", preco: 790 },
+  "6": { nome: "Circuito Completo Caldas + Parque", dataPartida: "2026-05-16", dataRetorno: "2026-05-20", preco: 990 },
 }
 
 function formatGateDate(iso: string) {
@@ -2577,6 +2578,31 @@ export default function ViagensGrupoPage() {
           )}
         </div>
         </>)}
+
+        {activePrimaryTab === 0 && (() => {
+          const eid = excursaoId ?? excursaoIdFromQuery
+          const pixInfo = eid ? GATE_EXCURSAO_INFO[eid] : null
+          const pixNome = pixInfo?.nome ?? "Excursão"
+          const pixPreco = pixInfo?.preco ?? 890
+          const pixComissao = Math.round(pixPreco * 0.15)
+          return (
+            <div data-testid="section-pix-grupo" style={{ background: "#F0F9FF", padding: "16px", borderBottom: "1px solid #E5E7EB" }}>
+              <div style={{ maxWidth: 480, margin: "0 auto" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <DollarSign style={{ width: 18, height: 18, color: "#2563EB" }} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Reserve agora, pague pelo Pix</span>
+                </div>
+                <PaymentCheckout
+                  excursaoId={eid ?? "1"}
+                  excursaoNome={pixNome}
+                  amount={pixPreco}
+                  organizerCommission={pixComissao}
+                  passengerName={user?.nome ?? "Passageiro"}
+                />
+              </div>
+            </div>
+          )
+        })()}
 
         {activePrimaryTab === 0 && (<>
         <div style={{ background: "#fff", padding: "12px 16px", borderBottom: "1px solid #E5E7EB" }} data-testid="planejador-ia-chat">

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import { PaymentCheckout } from "@/components/checkout/PaymentCheckout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Star, CheckCircle2, MapPin, Clock, Users, Bus, Hotel, Headphones,
-  ChevronDown, Flame, Shield, Camera, Waves, ArrowLeft
+  ChevronDown, Flame, Shield, Camera, Waves, ArrowLeft, LogIn, UserPlus
 } from "lucide-react";
 
 const MOCK_LANDING = {
@@ -57,11 +58,13 @@ function useCountdown(deadline: string) {
 }
 
 export default function ExcursaoLanding() {
+  const { user } = useAuth();
   const params = useParams<{ slug: string }>();
   const checkoutRef = useRef<HTMLDivElement>(null);
   const slug = params.slug || "caldas-novas-maio";
   const data = MOCK_LANDING;
   const countdown = useCountdown(data.deadline);
+  const nextUrl = encodeURIComponent(`/viagens-grupo?excursao=${data.excursaoId}`);
 
   const trackView = useMutation({ mutationFn: () => apiRequest("POST", "/api/analytics/pageview", { slug, page: "landing" }) });
   useEffect(() => { trackView.mutate(); }, []);
@@ -222,15 +225,45 @@ export default function ExcursaoLanding() {
             <h2 className="text-2xl font-extrabold text-slate-800">Reserve agora, pague pelo Pix</h2>
             <p className="text-sm text-muted-foreground mt-1">Confirmação imediata. Sem burocracia.</p>
           </div>
-          <div className="flex justify-center">
-            <PaymentCheckout
-              excursaoId={data.excursaoId}
-              excursaoNome={data.excursaoNome}
-              amount={data.price}
-              organizerCommission={89}
-              passengerName="Passageiro"
-            />
-          </div>
+          {user ? (
+            <div className="flex justify-center">
+              <PaymentCheckout
+                excursaoId={data.excursaoId}
+                excursaoNome={data.excursaoNome}
+                amount={data.price}
+                organizerCommission={89}
+                passengerName={user.nome || "Passageiro"}
+              />
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg border border-border p-6 flex flex-col items-center gap-4 text-center">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-1">Faça login para reservar sua vaga</h3>
+                <p className="text-sm text-muted-foreground">Entre na sua conta ou cadastre-se para garantir seu lugar e pagar pelo Pix.</p>
+              </div>
+              <Link href={`/entrar?next=${nextUrl}`} className="w-full">
+                <button
+                  data-testid="btn-landing-login"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/90 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Entrar
+                </button>
+              </Link>
+              <Link href={`/cadastrar?next=${nextUrl}`} className="w-full">
+                <button
+                  data-testid="btn-landing-cadastrar"
+                  className="w-full flex items-center justify-center gap-2 border-2 border-primary text-primary rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/5 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Cadastrar
+                </button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
