@@ -184,6 +184,7 @@ const CATEGORIAS = [
   { value: "aventura", label: "Aventura" },
   { value: "luxo", label: "Luxo" },
   { value: "econômico", label: "Econômico" },
+  { value: "romântico", label: "Romântico" },
 ]
 
 const ORDENACAO = [
@@ -358,7 +359,7 @@ function CatalogoCard({ exc }: { exc: Excursao }) {
                 className="rounded-xl font-semibold gap-1"
               >
                 <Eye className="w-3.5 h-3.5" />
-                Detalhes
+                Ver Detalhes
               </Button>
             </Link>
             <Link href={`/viagens-grupo?excursao=${exc.id}`}>
