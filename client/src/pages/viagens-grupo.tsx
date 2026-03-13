@@ -52,6 +52,7 @@ import {
   ShieldX,
   KeyRound,
   Home,
+  Mail,
   Compass,
   RefreshCw,
   Heart,
@@ -718,6 +719,7 @@ export default function ViagensGrupoPage() {
 
   const [, params] = useRoute<{ id: string }>("/viagens-grupo/:id")
   const excursaoIdFromQuery = new URLSearchParams(window.location.search).get("excursao")
+  const conviteFromQuery = new URLSearchParams(window.location.search).get("convite")
   const excursaoIdRaw = params?.id ?? excursaoIdFromQuery ?? null
   const [autoExcursaoId, setAutoExcursaoId] = useState<string | null>(null)
   const excursaoId = excursaoIdRaw ?? autoExcursaoId
@@ -756,6 +758,12 @@ export default function ViagensGrupoPage() {
 
   const [gateInviteCode, setGateInviteCode] = useState("")
   const [gateError, setGateError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (conviteFromQuery && !gateInviteCode) {
+      setGateInviteCode(conviteFromQuery)
+    }
+  }, [conviteFromQuery])
 
   const joinMutation = useMutation({
     mutationFn: async (code: string) => {
@@ -1385,9 +1393,63 @@ export default function ViagensGrupoPage() {
   }
 
   if (!user) {
-    const returnUrl = excursaoId
-      ? `/viagens-grupo?excursao=${excursaoId}`
+    const returnUrl = excursaoIdFromQuery
+      ? conviteFromQuery
+        ? `/viagens-grupo?excursao=${excursaoIdFromQuery}&convite=${conviteFromQuery}`
+        : `/viagens-grupo?excursao=${excursaoIdFromQuery}`
       : "/viagens-grupo"
+
+    if (excursaoIdFromQuery && conviteFromQuery) {
+      const excInfo = GATE_EXCURSAO_INFO[excursaoIdFromQuery]
+      const excNome = excInfo ? excInfo.nome : "excursão especial"
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <div data-testid="wizard-convite-card" className="bg-white rounded-2xl shadow-lg border-2 border-primary/30 max-w-sm w-full p-8 flex flex-col items-center gap-5 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
+              <Mail className="w-8 h-8 text-green-600" />
+            </div>
+            <span className="inline-flex items-center gap-1.5 bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+              <Gift className="w-3.5 h-3.5" />
+              Você foi convidado!
+            </span>
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-1">{excNome}</h2>
+              {excInfo && (
+                <p className="text-sm text-muted-foreground">
+                  {formatGateDate(excInfo.dataPartida)} a {formatGateDate(excInfo.dataRetorno)}
+                </p>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Sua vaga está reservada. Apenas confirme sua identidade para entrar.
+            </p>
+            <Link href={`/entrar?next=${encodeURIComponent(returnUrl)}`} className="w-full">
+              <button
+                data-testid="btn-wizard-login"
+                className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/90 transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar na conta
+              </button>
+            </Link>
+            <Link href={`/cadastrar?next=${encodeURIComponent(returnUrl)}`} className="w-full">
+              <button
+                data-testid="btn-wizard-cadastrar"
+                className="w-full flex items-center justify-center gap-2 border-2 border-primary text-primary rounded-xl px-4 py-3 font-semibold text-sm hover:bg-primary/5 transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                Criar conta grátis
+              </button>
+            </Link>
+            <Link href={gateBackUrl} data-testid="btn-gate-voltar-login" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mt-1">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Voltar
+            </Link>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5 text-center">
