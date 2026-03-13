@@ -1,0 +1,30 @@
+#5 - Mini wizard persuasivo para usuários com convite em /viagens-grupo
+What & Why
+Quando alguém recebe um link de convite (ex: /viagens-grupo?excursao=X&convite=INV-ABCD-123) e não está logado, cai na tela "Grupo Privado – Faça login". Atualmente, o código de convite é perdido e a experiência não aproveita o convite.
+
+A solicitação é criar um mini wizard persuasivo de 2 etapas:
+
+Detectar o param ?convite=CODIGO na URL
+Exibir um wizard especial (em vez do card genérico de login) que guia:
+Etapa 1: Criar conta / Entrar — com botões de Login e Cadastro
+Etapa 2 (após autenticar): Entrar no grupo com o código de convite pré-preenchido automaticamente — mostrando o código e botão "Confirmar entrada"
+Done looks like
+Em viagens-grupo.tsx, no bloco if (!user):
+
+Se excursaoIdFromQuery e conviteFromQuery estiverem presentes, mostrar o wizard de 2 etapas em vez do card genérico
+Wizard Etapa 1: badge "Você foi convidado!", nome da excursão (ou fallback), botão "Entrar na conta" (Link → /entrar?next=URL_atual) e botão "Criar conta grátis" (Link → /cadastrar?next=URL_atual)
+Visual persuasivo: card com cor de destaque, ícone de envelope/convite, texto "Sua vaga está reservada. Apenas confirme sua identidade para entrar."
+Após o login/cadastro, o usuário retorna à URL com ?convite= ainda presente, agora autenticado, caindo na tela "Entrada Restrita" (memberRole === null) com o input de convite pré-preenchido pelo conviteFromQuery
+data-testids: "wizard-convite-card", "btn-wizard-login", "btn-wizard-cadastrar"
+Também em viagens-grupo.tsx, no bloco if (memberRole === null):
+
+Se conviteFromQuery estiver presente, pré-preencher o input de código de convite com o valor (usando useEffect ou defaultValue)
+Relevant files
+client/src/pages/viagens-grupo.tsx — único arquivo a modificar
+Adicionar const conviteFromQuery = new URLSearchParams(window.location.search).get("convite")
+No bloco if (!user): condicional para wizard vs card normal
+No bloco if (memberRole === null): useEffect para pré-preencher gateInviteCode
+Notes
+Não criar novos arquivos, tudo dentro de viagens-grupo.tsx
+O wizard não precisa ter etapas animadas complexas — um card persuasivo é suficiente
+Manter o card genérico de login quando não há ?convite= na URL

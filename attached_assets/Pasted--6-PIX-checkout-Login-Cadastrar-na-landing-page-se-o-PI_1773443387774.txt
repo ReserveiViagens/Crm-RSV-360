@@ -1,0 +1,37 @@
+#6 - PIX checkout: Login/Cadastrar na landing page + seção PIX dentro do grupo
+What & Why
+Atualmente, a landing page /excursoes/:slug (excursao-landing.tsx) já mostra o bloco "Reserve agora, pague pelo Pix" com o componente PaymentCheckout. Porém, qualquer visitante — logado ou não — vê o formulário PIX diretamente, sem necessidade de ter conta ou estar no grupo.
+
+A solicitação é em duas partes:
+
+Parte A — Landing page (excursao-landing.tsx): Para usuários NÃO autenticados, substituir o <PaymentCheckout> por um bloco com botões "Entrar" e "Cadastrar" para que o usuário se autentique e depois seja redirecionado para /viagens-grupo?excursao=ID para pagar dentro do grupo. Para usuários autenticados, manter o fluxo atual (ou redirecionar direto).
+
+Parte B — Dentro do grupo (/viagens-grupo): Na página principal do grupo (para membros autenticados com acesso), adicionar uma seção "Reserve agora, pague pelo Pix" usando o componente PaymentCheckout existente, preenchida com os dados da excursão atual (nome, preço, comissão). Esta seção deve aparecer para todos os membros com acesso (incluindo ADMIN/LIDER e membros aprovados), possivelmente como um card na área de vouchers/tickets ou abaixo do cabeçalho principal.
+
+Done looks like
+Parte A: excursao-landing.tsx
+useAuth() importado e utilizado
+Se !user:
+Mostrar card explicativo: "Faça login para reservar sua vaga"
+Botão "Entrar" → /entrar?next=/viagens-grupo?excursao=ID
+Botão "Cadastrar" → /cadastrar?next=/viagens-grupo?excursao=ID
+data-testids: "btn-landing-login", "btn-landing-cadastrar"
+Se user:
+Manter <PaymentCheckout> como está (com os dados da excursão)
+Parte B: viagens-grupo.tsx
+Adicionar seção <PaymentCheckout> para membros autenticados
+Posicionamento: dentro de uma aba/seção existente (ex: aba "Vouchers" ou nova seção abaixo dos tabs primários, visível para todos com acesso)
+Props: excursaoId, excursaoNome (da excursão ativa), amount (preço da excursão), organizerCommission (calculado como ~15% do valor), passengerName (user.name)
+data-testid="section-pix-grupo"
+Relevant files
+client/src/pages/excursao-landing.tsx — Parte A
+Adicionar import { useAuth } from "@/hooks/use-auth"
+Seção checkout linha ~215, bloco <PaymentCheckout>
+client/src/pages/viagens-grupo.tsx — Parte B
+Importar PaymentCheckout: import { PaymentCheckout } from "@/components/checkout/PaymentCheckout"
+Adicionar seção PIX na área principal autenticada (após header, dentro de tabs ou antes das abas)
+client/src/components/checkout/PaymentCheckout.tsx — Não modificar (só consumir)
+Notes
+Os dados da excursão em viagens-grupo.tsx são mockados (EXCURSOES_MOCK ou similar) → usar o mesmo array mock usado no catálogo para pegar nome/preço pelo excursaoId
+Organizador commission sugerida: 15% do valor
+Não alterar estilos globais nem outros arquivos além dos dois listados
