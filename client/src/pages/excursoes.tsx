@@ -5,7 +5,7 @@ import {
   Search, Filter, ArrowRight, Shield, Headphones, Zap,
   Thermometer, Waves, Camera, Heart, Share2, Trophy,
   CheckCircle2, Plus, Sparkles, TrendingUp, Tag,
-  Crown, Rocket, Lock,
+  Crown, Rocket, Lock, ArrowLeft,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -392,6 +392,15 @@ export default function Excursoes() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/30 to-blue-900/70" />
 
         <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
+          <div className="absolute top-4 left-4">
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
+              data-testid="button-voltar"
+            >
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </button>
+          </div>
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <Thermometer className="w-4 h-4 text-amber-300" />
             Caldas Novas & Rio Quente — Maior polo termal do Brasil

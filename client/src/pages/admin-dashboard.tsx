@@ -28,6 +28,7 @@ import {
   Menu,
   X,
   ArrowRight,
+  ArrowLeft,
   Clock,
   CheckCircle,
   XCircle,
@@ -260,6 +261,14 @@ export default function DashboardRSV() {
       <header style={{ background: 'linear-gradient(135deg, #1e3a5f, #2563EB)', padding: '0 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              onClick={() => window.history.back()}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}
+              data-testid="button-voltar"
+              title="Voltar"
+            >
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </button>
             <button
               onClick={() => setShowSidebar(!showSidebar)}
               style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'none' }}

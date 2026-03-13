@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Star, CheckCircle2, MapPin, Clock, Users, Bus, Hotel, Headphones,
-  ChevronDown, Flame, Shield, Camera, Waves
+  ChevronDown, Flame, Shield, Camera, Waves, ArrowLeft
 } from "lucide-react";
 
 const MOCK_LANDING = {
@@ -73,6 +73,15 @@ export default function ExcursaoLanding() {
       {/* HERO */}
       <section className="relative bg-gradient-to-b from-blue-900 via-blue-800 to-teal-800 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiA2djZoNnYtNmgtNnptLTYgNnY2aDZ2LTZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] bg-repeat" />
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
+            data-testid="button-voltar"
+          >
+            <ArrowLeft className="w-4 h-4" /> Voltar
+          </button>
+        </div>
         <div className="relative max-w-4xl mx-auto px-4 py-16 text-center space-y-6">
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge className="bg-red-500 text-white text-xs font-bold animate-pulse px-3 py-1 gap-1">
