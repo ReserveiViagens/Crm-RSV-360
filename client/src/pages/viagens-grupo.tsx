@@ -1581,9 +1581,47 @@ export default function ViagensGrupoPage() {
             gap: 12,
           }}
         >
-          <Link href="/" style={{ color: "#fff", display: "flex" }}>
-            <ArrowLeft style={{ width: 24, height: 24 }} data-testid="button-back" />
-          </Link>
+          {excursaoIdFromQuery ? (
+            <Link
+              href="/catalogo-excursoes"
+              style={{
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 999,
+                padding: "6px 12px",
+                fontSize: 13,
+                textDecoration: "none",
+                backdropFilter: "blur(8px)",
+              }}
+              data-testid="button-voltar-grupo"
+            >
+              <ArrowLeft style={{ width: 16, height: 16 }} /> Voltar
+            </Link>
+          ) : (
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: 999,
+                padding: "6px 12px",
+                fontSize: 13,
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+              }}
+              data-testid="button-voltar-grupo"
+            >
+              <ArrowLeft style={{ width: 16, height: 16 }} /> Voltar
+            </button>
+          )}
           <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Excursão em Grupo</h1>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2, flexWrap: "wrap" }}>
