@@ -61,6 +61,7 @@ import {
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/use-auth"
+import { SiWhatsapp } from "react-icons/si"
 import type { AtividadeWizard } from "@shared/schema"
 import { RoteiroActivityCard, type RoteiroActivityCategoria } from "@/components/roteiro-activity-card"
 import { subscribeExcursao, socketEmit } from "@/lib/socket"
@@ -73,6 +74,20 @@ import { QRCodeSVG } from "qrcode.react"
 import { HotelSelector } from "@/components/HotelSelector"
 import { calculateNights, hasScheduleConflict, sortByMarginAndScore, type TimeSlot } from "@/utils/social-commerce"
 const WHATSAPP = "5564993197555"
+
+const GATE_EXCURSAO_INFO: Record<string, { nome: string; dataPartida: string; dataRetorno: string }> = {
+  "1": { nome: "Caldas Novas Família Total", dataPartida: "2026-04-18", dataRetorno: "2026-04-21" },
+  "2": { nome: "Hot Park & Rio Quente Fest", dataPartida: "2026-04-25", dataRetorno: "2026-04-27" },
+  "3": { nome: "Semana Santa Caldas Premium", dataPartida: "2026-04-14", dataRetorno: "2026-04-20" },
+  "4": { nome: "Finde nas Termas Goianas", dataPartida: "2026-05-02", dataRetorno: "2026-05-04" },
+  "5": { nome: "Aventura Radical Caldas", dataPartida: "2026-05-09", dataRetorno: "2026-05-12" },
+  "6": { nome: "Caldas Novas Relax & Spa", dataPartida: "2026-05-16", dataRetorno: "2026-05-19" },
+}
+
+function formatGateDate(iso: string) {
+  const d = new Date(iso + "T12:00:00")
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+}
 
 const ATIVIDADES_FALLBACK: AtividadeWizard[] = [
   { id: "hot-park", label: "Hot Park", descricao: "Maior parque aquático de águas quentes do mundo", icone: "waves" },
@@ -1520,8 +1535,28 @@ export default function ViagensGrupoPage() {
               Não tenho convite
             </p>
             <p className="text-xs text-muted-foreground">
-              Solicite participação e aguarde a aprovação do organizador.
+              Solicite participação ou fale direto com o organizador pelo WhatsApp.
             </p>
+            {(() => {
+              const eid = excursaoId ?? excursaoIdFromQuery
+              const info = eid ? GATE_EXCURSAO_INFO[eid] : null
+              const msgText = info
+                ? `Olá! Tenho interesse na excursão "${info.nome}" de ${formatGateDate(info.dataPartida)} a ${formatGateDate(info.dataRetorno)}. Ainda tem vaga?`
+                : "Olá! Tenho interesse em uma excursão. Ainda tem vaga?"
+              const waUrl = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msgText)}`
+              return (
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="btn-gate-whatsapp-sem-convite"
+                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl px-4 py-3 font-semibold text-sm transition-colors"
+                >
+                  <SiWhatsapp className="w-4 h-4" />
+                  Falar no WhatsApp
+                </a>
+              )
+            })()}
             <button
               data-testid="btn-gate-request-join"
               disabled={requestMutation.isPending}
