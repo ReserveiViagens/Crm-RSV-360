@@ -1482,11 +1482,22 @@ export async function registerRoutes(
   app.post("/api/webhook/payment", async (req: Request, res: Response) => {
     const { event, data } = req.body as { event?: string; data?: { id: string; metadata?: { orderId: string }; customer?: { name: string }; amount?: number } };
     if (event === "transaction.paid" && data) {
+      const transactionId = data.id;
+      const alreadyProcessed = await mutateDb((db) => {
+        if (!db.processedTransactions) db.processedTransactions = {};
+        const processed = db.processedTransactions as Record<string, boolean>;
+        if (processed[transactionId]) return true;
+        processed[transactionId] = true;
+        return false;
+      });
+      if (alreadyProcessed) return res.json({ received: true, duplicate: true });
+
       const excursaoId = data.metadata?.orderId ?? "";
-      const passengerName = data.customer?.name ?? "Passageiro";
+      const rawName = data.customer?.name ?? "Passageiro";
+      const passengerName = rawName.trim();
       const amount = (data.amount ?? 0) / 100;
       await sendPaymentConfirmation(excursaoId, passengerName, amount).catch(() => {});
-      emitEstadoGrupo(excursaoId, { type: "pagamento_confirmado", transactionId: data.id, passengerName, amount });
+      emitEstadoGrupo(excursaoId, { type: "pagamento_confirmado", transactionId, passengerName, amount });
       await mutateDb((db) => {
         db.gamificationExtraSeats = ((db.gamificationExtraSeats as number) ?? 0) + 1;
       });
