@@ -179,11 +179,16 @@ shared/
 | `/caldas-ai` | CaldasAI | |
 | `/mapa` | MapaCaldas | alias de /mapa-caldas-novas |
 | `/mapa-caldas-novas` | MapaCaldas | |
-| `/perfil` | Perfil | |
+| `/perfil` | Perfil | hierarquia por role (Visitante/Passageiro/Organizador/Admin) |
+| `/minhas-reservas` | MinhasReservas | lista de reservas do passageiro |
+| `/notificacoes` | Notificacoes | notificações com marcar como lida |
+| `/configuracoes` | Configuracoes | edição de dados pessoais + preferências |
+| `/programa-fidelidade` | ProgramaFidelidade | níveis Bronze/Prata/Ouro/Diamante |
+| `/minhas-avaliacoes` | MinhasAvaliacoes | avaliações do passageiro |
 | `/viagens-grupo` | ViagensGrupo | gestão interna de grupos — 5 abas primárias (Início, Roteiro, Planejar, Votar, Chat) |
 | `/viagens-grupo/:id` | ViagensGrupo | grupo específico — mesma estrutura de 5 abas |
-| `/criar-excursao` | CriarExcursao | wizard de criação |
-| `/criar-excursao/:id` | CriarExcursao | edição |
+| `/criar-excursao` | CriarExcursao | wizard de criação (ProtectedRoute: LIDER/admin) |
+| `/criar-excursao/:id` | CriarExcursao | edição (ProtectedRoute: LIDER/admin) |
 | `/quem-somos` | QuemSomos | |
 | `/politica-de-privacidade` | PoliticaPrivacidade | |
 | `/admin` | AdminDashboard | alias de /admin/dashboard |
@@ -463,6 +468,10 @@ const neuroCounts: Record<string, number> = {
   - `GET  /api/auth/google` — redireciona para OAuth Google
   - `GET  /api/auth/google/callback` — callback OAuth, cria/vincula conta
   - `GET  /api/auth/google/status` → `{ configured: boolean }`
+  - `PATCH /api/auth/perfil` — `{ nome?, telefone? }` → atualiza dados do perfil (auth required)
+  - `GET  /api/reservas/minhas` — retorna reservas do usuário autenticado `{ items: Reserva[] }`
+  - `GET  /api/notificacoes` — retorna notificações do usuário `{ items: Notificacao[], naoLidas: number }`
+  - `PATCH /api/notificacoes/:id/lida` — marca notificação como lida
 - **`safeUser()`** retorna: `{ id, nome, email, telefone, role, cpf, fotoUrl, provider }`
 - **Hash**: `scrypt` + salt hex, formato `hash.salt`
 

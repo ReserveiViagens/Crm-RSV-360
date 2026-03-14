@@ -186,5 +186,22 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 - Removable ChipFiltro components for all active filters
 - CaldasAI empty state with WhatsApp link + CaldasAI button + clear filters
 
+### T010 — Perfil RSV360 — Hierarquia Completa por Tipo de Usuário
+- `client/src/components/protected-route.tsx` — ProtectedRoute component with role-based guards (redirects to /entrar if not logged in, / if wrong role)
+- `client/src/pages/perfil.tsx` — rewritten with role hierarchy: Visitante (CTA login), Passageiro (reservas/pontos/notificações), Organizador (criar excursão/metas/ranking), Admin (painel admin/financeiro/LGPD)
+- Role badge: dynamic per role (admin=red Shield, LIDER=orange Trophy, user=gold Star, default=Visitante)
+- Reservas from API (`GET /api/reservas/minhas`) instead of hardcoded data
+- Notifications badge from API (`GET /api/notificacoes`) showing unread count
+- 5 new sub-pages:
+  - `/minhas-reservas` — `client/src/pages/minhas-reservas.tsx` — reservation list with status badges
+  - `/notificacoes` — `client/src/pages/notificacoes.tsx` — notifications with mark-as-read, color-coded by type
+  - `/configuracoes` — `client/src/pages/configuracoes.tsx` — profile editing (nome/telefone via `PATCH /api/auth/perfil`), preferences
+  - `/programa-fidelidade` — `client/src/pages/programa-fidelidade.tsx` — 4 loyalty tiers (Bronze/Prata/Ouro/Diamante), progress bar
+  - `/minhas-avaliacoes` — `client/src/pages/minhas-avaliacoes.tsx` — user reviews with star ratings
+- All admin routes wrapped in `<ProtectedRoute roles={["admin"]}>`, organizer routes in `<ProtectedRoute roles={["LIDER", "admin"]}>`
+- Backend: `PATCH /api/auth/perfil`, `GET /api/reservas/minhas`, `GET /api/notificacoes`, `PATCH /api/notificacoes/:id/lida`
+- Bottom nav updated: Busca → /catalogo-excursoes, Reservas → /minhas-reservas
+- All menu links now point to real routes instead of `#`
+
 ### Admin Dashboard NTX Section
 Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links to all new modules.

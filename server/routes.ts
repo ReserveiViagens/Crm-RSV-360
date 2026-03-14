@@ -263,6 +263,102 @@ export async function registerRoutes(
     return res.json(safeUser(updated));
   });
 
+  // ─── PERFIL EDIT ────────────────────────────────────────────────────────────
+
+  app.patch("/api/auth/perfil", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const { nome, telefone } = req.body as { nome?: string; telefone?: string };
+    const updates: Record<string, string> = {};
+    if (typeof nome === "string" && nome.trim().length >= 3) updates.nome = nome.trim();
+    if (typeof telefone === "string" && telefone.trim().length >= 10) updates.telefone = telefone.trim();
+    if (Object.keys(updates).length === 0) return res.status(400).json({ message: "Nenhum campo válido para atualizar" });
+    const updated = await storage.updateUser(req.session.userId, updates);
+    if (!updated) return res.status(404).json({ message: "Usuário não encontrado" });
+    return res.json(safeUser(updated));
+  });
+
+  // ─── RESERVAS DO PASSAGEIRO ─────────────────────────────────────────────────
+
+  type ReservaPassageiro = {
+    id: string;
+    hotel: string;
+    dates: string;
+    status: "Confirmada" | "Pendente" | "Cancelada";
+    location: string;
+    excursaoId?: string;
+  };
+
+  const reservaPassageiroStore: Record<string, ReservaPassageiro[]> = {};
+
+  const seedReservasForUser = (userId: string, nome: string) => {
+    if (reservaPassageiroStore[userId]) return;
+    reservaPassageiroStore[userId] = [
+      { id: `res-${userId}-1`, hotel: "Resort Termas Paradise", dates: "13/05/2026", status: "Confirmada", location: "Caldas Novas" },
+      { id: `res-${userId}-2`, hotel: "Hot Park - Ingresso Família", dates: "15/05/2026", status: "Pendente", location: "Rio Quente" },
+    ];
+  };
+
+  app.get("/api/reservas/minhas", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
+    seedReservasForUser(user.id, user.nome);
+    return res.json({ items: reservaPassageiroStore[user.id] ?? [] });
+  });
+
+  // ─── NOTIFICAÇÕES ──────────────────────────────────────────────────────────
+
+  type Notificacao = {
+    id: string;
+    titulo: string;
+    mensagem: string;
+    tipo: "info" | "sucesso" | "alerta" | "promo";
+    lida: boolean;
+    criadoEm: string;
+  };
+
+  const notificacaoStore: Record<string, Notificacao[]> = {};
+
+  const seedNotificacoesForUser = (userId: string) => {
+    if (notificacaoStore[userId]) return;
+    const now = new Date();
+    notificacaoStore[userId] = [
+      {
+        id: `notif-${userId}-1`, titulo: "Reserva confirmada!",
+        mensagem: "Sua reserva no Resort Termas Paradise foi confirmada para 13/05/2026.",
+        tipo: "sucesso", lida: false, criadoEm: new Date(now.getTime() - 2 * 3600000).toISOString(),
+      },
+      {
+        id: `notif-${userId}-2`, titulo: "Pagamento pendente",
+        mensagem: "O pagamento do Hot Park - Ingresso Família está aguardando confirmação PIX.",
+        tipo: "alerta", lida: false, criadoEm: new Date(now.getTime() - 24 * 3600000).toISOString(),
+      },
+      {
+        id: `notif-${userId}-3`, titulo: "Promoção imperdível!",
+        mensagem: "Di Roma Acqua Park com 30% de desconto para grupos acima de 10 pessoas.",
+        tipo: "promo", lida: false, criadoEm: new Date(now.getTime() - 48 * 3600000).toISOString(),
+      },
+    ];
+  };
+
+  app.get("/api/notificacoes", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    seedNotificacoesForUser(req.session.userId);
+    const items = notificacaoStore[req.session.userId] ?? [];
+    const naoLidas = items.filter((n) => !n.lida).length;
+    return res.json({ items, naoLidas });
+  });
+
+  app.patch("/api/notificacoes/:id/lida", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    seedNotificacoesForUser(req.session.userId);
+    const items = notificacaoStore[req.session.userId] ?? [];
+    const notif = items.find((n) => n.id === req.params.id);
+    if (!notif) return res.status(404).json({ message: "Notificação não encontrada" });
+    notif.lida = true;
+    return res.json(notif);
+  });
+
   // ─── GOOGLE OAUTH ─────────────────────────────────────────────────────────
 
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ProtectedRoute from "@/components/protected-route";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Hoteis from "@/pages/hoteis";
@@ -44,6 +45,11 @@ import LiveChat from "@/pages/superadmin/live-chat";
 import Entrar from "@/pages/entrar";
 import Cadastrar from "@/pages/cadastrar";
 import CatalogoExcursoes from "@/pages/catalogo-excursoes";
+import MinhasReservas from "@/pages/minhas-reservas";
+import Notificacoes from "@/pages/notificacoes";
+import Configuracoes from "@/pages/configuracoes";
+import ProgramaFidelidade from "@/pages/programa-fidelidade";
+import MinhasAvaliacoes from "@/pages/minhas-avaliacoes";
 
 function Router() {
   return (
@@ -63,43 +69,48 @@ function Router() {
       <Route path="/mapa-caldas-novas" component={MapaCaldas} />
       <Route path="/mapa" component={MapaCaldas} />
       <Route path="/perfil" component={Perfil} />
+      <Route path="/minhas-reservas" component={MinhasReservas} />
+      <Route path="/notificacoes" component={Notificacoes} />
+      <Route path="/configuracoes" component={Configuracoes} />
+      <Route path="/programa-fidelidade" component={ProgramaFidelidade} />
+      <Route path="/minhas-avaliacoes" component={MinhasAvaliacoes} />
       <Route path="/viagens-grupo" component={ViagensGrupo} />
       <Route path="/viagens-grupo/:id" component={ViagensGrupo} />
-      <Route path="/criar-excursao" component={CriarExcursao} />
-      <Route path="/criar-excursao/:id" component={CriarExcursao} />
+      <Route path="/criar-excursao">{() => <ProtectedRoute roles={["LIDER", "admin"]}><CriarExcursao /></ProtectedRoute>}</Route>
+      <Route path="/criar-excursao/:id">{() => <ProtectedRoute roles={["LIDER", "admin"]}><CriarExcursao /></ProtectedRoute>}</Route>
       <Route path="/quem-somos" component={QuemSomos} />
       <Route path="/politica-de-privacidade" component={PoliticaPrivacidade} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/fnrh" component={AdminFnrh} />
-      <Route path="/admin/assinatura-digital" component={AssinaturaDigital} />
-      <Route path="/admin/financeiro" component={Financeiro} />
-      <Route path="/admin/integracoes" component={Integracoes} />
-      <Route path="/admin/cadastur" component={CadasturPage} />
-      <Route path="/admin/lgpd" component={LGPDDashboard} />
-      <Route path="/admin/relatorios-ads" component={RelatoriosAds} />
-      <Route path="/admin/seguro-viagem" component={SeguroViagem} />
-      <Route path="/admin/seguranca-embarque" component={SegurancaEmbarque} />
-      <Route path="/admin/contratos" component={ContratosExcursao} />
-      <Route path="/admin/frota-antt" component={FrotaANTT} />
-      <Route path="/admin/frota" component={FrotaANTT} />
-      <Route path="/admin/excursoes" component={ViagensGrupo} />
-      <Route path="/admin/passageiros" component={ViagensGrupo} />
-      <Route path="/dashboard" component={AdminDashboard} />
+      <Route path="/admin">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>
+      <Route path="/admin/dashboard">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>
+      <Route path="/admin/fnrh">{() => <ProtectedRoute roles={["admin"]}><AdminFnrh /></ProtectedRoute>}</Route>
+      <Route path="/admin/assinatura-digital">{() => <ProtectedRoute roles={["admin"]}><AssinaturaDigital /></ProtectedRoute>}</Route>
+      <Route path="/admin/financeiro">{() => <ProtectedRoute roles={["admin"]}><Financeiro /></ProtectedRoute>}</Route>
+      <Route path="/admin/integracoes">{() => <ProtectedRoute roles={["admin"]}><Integracoes /></ProtectedRoute>}</Route>
+      <Route path="/admin/cadastur">{() => <ProtectedRoute roles={["admin"]}><CadasturPage /></ProtectedRoute>}</Route>
+      <Route path="/admin/lgpd">{() => <ProtectedRoute roles={["admin"]}><LGPDDashboard /></ProtectedRoute>}</Route>
+      <Route path="/admin/relatorios-ads">{() => <ProtectedRoute roles={["admin"]}><RelatoriosAds /></ProtectedRoute>}</Route>
+      <Route path="/admin/seguro-viagem">{() => <ProtectedRoute roles={["admin"]}><SeguroViagem /></ProtectedRoute>}</Route>
+      <Route path="/admin/seguranca-embarque">{() => <ProtectedRoute roles={["admin"]}><SegurancaEmbarque /></ProtectedRoute>}</Route>
+      <Route path="/admin/contratos">{() => <ProtectedRoute roles={["admin"]}><ContratosExcursao /></ProtectedRoute>}</Route>
+      <Route path="/admin/frota-antt">{() => <ProtectedRoute roles={["admin"]}><FrotaANTT /></ProtectedRoute>}</Route>
+      <Route path="/admin/frota">{() => <ProtectedRoute roles={["admin"]}><FrotaANTT /></ProtectedRoute>}</Route>
+      <Route path="/admin/excursoes">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
+      <Route path="/admin/passageiros">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
+      <Route path="/dashboard">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>
       <Route path="/entrar" component={Entrar} />
       <Route path="/login" component={Entrar} />
       <Route path="/cadastrar" component={Cadastrar} />
       <Route path="/kyc" component={KYCVerificacao} />
-      <Route path="/admin/waas" component={WaaSDashboard} />
-      <Route path="/waas" component={WaaSDashboard} />
-      <Route path="/organizer/metas" component={GamificationDashboard} />
-      <Route path="/metas" component={GamificationDashboard} />
+      <Route path="/admin/waas">{() => <ProtectedRoute roles={["admin"]}><WaaSDashboard /></ProtectedRoute>}</Route>
+      <Route path="/waas">{() => <ProtectedRoute roles={["admin"]}><WaaSDashboard /></ProtectedRoute>}</Route>
+      <Route path="/organizer/metas">{() => <ProtectedRoute roles={["LIDER", "admin"]}><GamificationDashboard /></ProtectedRoute>}</Route>
+      <Route path="/metas">{() => <ProtectedRoute roles={["LIDER", "admin"]}><GamificationDashboard /></ProtectedRoute>}</Route>
       <Route path="/minha-jornada" component={MinhaJornada} />
       <Route path="/ranking-organizadores" component={RankingOrganizadores} />
-      <Route path="/admin/super-financeiro" component={FinancialDashboard} />
-      <Route path="/super-financeiro" component={FinancialDashboard} />
-      <Route path="/admin/live-chat" component={LiveChat} />
-      <Route path="/live-chat" component={LiveChat} />
+      <Route path="/admin/super-financeiro">{() => <ProtectedRoute roles={["admin"]}><FinancialDashboard /></ProtectedRoute>}</Route>
+      <Route path="/super-financeiro">{() => <ProtectedRoute roles={["admin"]}><FinancialDashboard /></ProtectedRoute>}</Route>
+      <Route path="/admin/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
+      <Route path="/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
       <Route path="/excursoes/:slug" component={ExcursaoLanding} />
       <Route component={NotFound} />
     </Switch>
