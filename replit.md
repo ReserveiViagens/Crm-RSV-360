@@ -177,9 +177,11 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 - Route: `/catalogo-excursoes`
 - `client/src/pages/catalogo-excursoes.tsx` — expanded with 18 mock excursões, location panel (CEP/Cidade/Estado), price/date filters, active chips, CaldasAI empty state
 - `client/src/lib/viacep.ts` — ViaCEP API helper (`buscarCEP`, `formatCEP`, `ESTADOS_BR`)
-- Excursão interface extended with `cidadeSaida` and `estadoSaida` fields
+- Excursão interface extended with `cidadeSaida`, `estadoSaida`, `cepSaida`, `parceiroRegional?` fields
 - Departure cities: Goiânia, Brasília, Uberlândia, Belo Horizonte, São Paulo, Anápolis, Ribeirão Preto, Campo Grande, Cuiabá
-- Location panel "De onde você sai?": 3 tabs (CEP via ViaCEP API, Cidade free text, Estado dropdown with 27 UFs)
+- Location panel "De onde você sai?": 3 tabs (CEP via ViaCEP API with auto-fetch at 8 digits, Cidade free text, Estado dropdown with 27 UFs)
+- Fallback "Parceiro regional": when no exact city match but same state, shows trips with amber badge
+- Personalized empty state (`data-testid="catalogo-empty"`): message includes filtered city/state, dynamic WhatsApp URL
 - Additional filters: price min/max, departure month (Apr–Jul 2026)
 - Removable ChipFiltro components for all active filters
 - CaldasAI empty state with WhatsApp link + CaldasAI button + clear filters

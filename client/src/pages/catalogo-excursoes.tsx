@@ -22,6 +22,7 @@ interface Excursao {
   estado: string
   cidadeSaida: string
   estadoSaida: string
+  cepSaida: string
   dataPartida: string
   dataRetorno: string
   diasDuracao: number
@@ -40,6 +41,7 @@ interface Excursao {
   tag?: string
   slug: string
   descricao: string
+  parceiroRegional?: boolean
 }
 
 const EXCURSOES: Excursao[] = [
@@ -50,6 +52,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Goiânia",
     estadoSaida: "GO",
+    cepSaida: "74000-000",
     dataPartida: "2026-04-18",
     dataRetorno: "2026-04-21",
     diasDuracao: 4,
@@ -76,6 +79,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Brasília",
     estadoSaida: "DF",
+    cepSaida: "70000-000",
     dataPartida: "2026-04-25",
     dataRetorno: "2026-04-27",
     diasDuracao: 3,
@@ -101,6 +105,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Uberlândia",
     estadoSaida: "MG",
+    cepSaida: "38400-000",
     dataPartida: "2026-04-14",
     dataRetorno: "2026-04-20",
     diasDuracao: 7,
@@ -127,6 +132,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Goiânia",
     estadoSaida: "GO",
+    cepSaida: "74000-000",
     dataPartida: "2026-05-02",
     dataRetorno: "2026-05-04",
     diasDuracao: 3,
@@ -150,6 +156,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Belo Horizonte",
     estadoSaida: "MG",
+    cepSaida: "30100-000",
     dataPartida: "2026-05-09",
     dataRetorno: "2026-05-12",
     diasDuracao: 4,
@@ -175,6 +182,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "São Paulo",
     estadoSaida: "SP",
+    cepSaida: "01000-000",
     dataPartida: "2026-05-16",
     dataRetorno: "2026-05-20",
     diasDuracao: 5,
@@ -199,6 +207,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Anápolis",
     estadoSaida: "GO",
+    cepSaida: "75000-000",
     dataPartida: "2026-05-03",
     dataRetorno: "2026-05-04",
     diasDuracao: 2,
@@ -222,6 +231,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Ribeirão Preto",
     estadoSaida: "SP",
+    cepSaida: "14000-000",
     dataPartida: "2026-05-23",
     dataRetorno: "2026-05-26",
     diasDuracao: 4,
@@ -247,6 +257,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Campo Grande",
     estadoSaida: "MS",
+    cepSaida: "79000-000",
     dataPartida: "2026-06-01",
     dataRetorno: "2026-06-05",
     diasDuracao: 5,
@@ -271,6 +282,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Cuiabá",
     estadoSaida: "MT",
+    cepSaida: "78000-000",
     dataPartida: "2026-06-04",
     dataRetorno: "2026-06-08",
     diasDuracao: 5,
@@ -296,6 +308,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Goiânia",
     estadoSaida: "GO",
+    cepSaida: "74000-000",
     dataPartida: "2026-05-30",
     dataRetorno: "2026-06-03",
     diasDuracao: 5,
@@ -322,6 +335,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Brasília",
     estadoSaida: "DF",
+    cepSaida: "70000-000",
     dataPartida: "2026-06-13",
     dataRetorno: "2026-06-16",
     diasDuracao: 4,
@@ -346,6 +360,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Uberlândia",
     estadoSaida: "MG",
+    cepSaida: "38400-000",
     dataPartida: "2026-06-06",
     dataRetorno: "2026-06-08",
     diasDuracao: 3,
@@ -369,6 +384,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "São Paulo",
     estadoSaida: "SP",
+    cepSaida: "01000-000",
     dataPartida: "2026-07-11",
     dataRetorno: "2026-07-17",
     diasDuracao: 7,
@@ -394,6 +410,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Belo Horizonte",
     estadoSaida: "MG",
+    cepSaida: "30100-000",
     dataPartida: "2026-05-22",
     dataRetorno: "2026-05-25",
     diasDuracao: 4,
@@ -418,6 +435,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Ribeirão Preto",
     estadoSaida: "SP",
+    cepSaida: "14000-000",
     dataPartida: "2026-06-20",
     dataRetorno: "2026-06-24",
     diasDuracao: 5,
@@ -442,6 +460,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Anápolis",
     estadoSaida: "GO",
+    cepSaida: "75000-000",
     dataPartida: "2026-06-27",
     dataRetorno: "2026-06-30",
     diasDuracao: 4,
@@ -466,6 +485,7 @@ const EXCURSOES: Excursao[] = [
     estado: "GO",
     cidadeSaida: "Campo Grande",
     estadoSaida: "MS",
+    cepSaida: "79000-000",
     dataPartida: "2026-07-04",
     dataRetorno: "2026-07-09",
     diasDuracao: 6,
@@ -503,13 +523,23 @@ const ORDENACAO = [
   { value: "avaliacao", label: "Melhor avaliado" },
 ]
 
-const MESES_PARTIDA = [
-  { value: "todos", label: "Qualquer data" },
-  { value: "2026-04", label: "Abril 2026" },
-  { value: "2026-05", label: "Maio 2026" },
-  { value: "2026-06", label: "Junho 2026" },
-  { value: "2026-07", label: "Julho 2026" },
-]
+const MESES_NOME: Record<string, string> = {
+  "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril",
+  "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto",
+  "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro",
+}
+
+const MESES_PARTIDA = (() => {
+  const meses = new Set(EXCURSOES.map((e) => e.dataPartida.slice(0, 7)))
+  const sorted = Array.from(meses).sort()
+  return [
+    { value: "todos", label: "Qualquer data" },
+    ...sorted.map((m) => {
+      const [ano, mes] = m.split("-")
+      return { value: m, label: `${MESES_NOME[mes] || mes} ${ano}` }
+    }),
+  ]
+})()
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + "T00:00:00")
@@ -556,6 +586,11 @@ function CatalogoCard({ exc }: { exc: Excursao }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
         <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
+          {exc.parceiroRegional && (
+            <Badge className="bg-amber-500 text-white text-xs font-semibold shadow" data-testid={`badge-parceiro-regional-${exc.id}`}>
+              Parceiro regional
+            </Badge>
+          )}
           {exc.tag && (
             <Badge className="bg-primary text-white text-xs font-semibold shadow">
               {exc.tag}
@@ -836,7 +871,19 @@ export default function CatalogoExcursoes() {
 
     if (filtros.cidadeSaida) {
       const c = filtros.cidadeSaida.toLowerCase()
-      lista = lista.filter((e) => e.cidadeSaida.toLowerCase().includes(c))
+      const exactCity = lista.filter((e) => e.cidadeSaida.toLowerCase().includes(c))
+      if (exactCity.length > 0) {
+        lista = exactCity.map((e) => ({ ...e, parceiroRegional: false }))
+      } else {
+        const uf = filtros.estadoSaida
+        if (uf) {
+          lista = lista
+            .filter((e) => e.estadoSaida === uf)
+            .map((e) => ({ ...e, parceiroRegional: true }))
+        } else {
+          lista = []
+        }
+      }
     }
 
     if (filtros.estadoSaida && !filtros.cidadeSaida) {
@@ -962,8 +1009,22 @@ export default function CatalogoExcursoes() {
                   placeholder="00000-000"
                   value={cepInput}
                   onChange={(e) => {
-                    setCepInput(formatCEP(e.target.value))
+                    const formatted = formatCEP(e.target.value)
+                    setCepInput(formatted)
                     setCepErro("")
+                    const digits = formatted.replace(/\D/g, "")
+                    if (digits.length === 8) {
+                      setCepBuscando(true)
+                      buscarCEP(digits).then((result) => {
+                        setCepBuscando(false)
+                        if (result.erro) {
+                          setCepErro("CEP não encontrado. Verifique e tente novamente.")
+                          setFiltros((prev) => ({ ...prev, cidadeSaida: null, estadoSaida: null }))
+                        } else {
+                          setFiltros((prev) => ({ ...prev, cidadeSaida: result.cidade, estadoSaida: result.estado }))
+                        }
+                      })
+                    }
                   }}
                   onKeyDown={(e) => { if (e.key === "Enter") handleBuscarCEP() }}
                   className="h-11 rounded-xl"
@@ -1185,19 +1246,23 @@ export default function CatalogoExcursoes() {
 
         {excursoesFiltradas.length === 0 ? (
           <div
-            data-testid="card-caldas-ai-empty"
+            data-testid="catalogo-empty"
             className="text-center py-16 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-zinc-900 dark:to-zinc-800 rounded-2xl border border-border"
           >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center" data-testid="card-caldas-ai-empty">
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
             <p className="text-xl font-bold text-foreground mb-2">Nenhuma excursão encontrada</p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-              Não encontramos excursões com esses filtros. Mas a CaldasAI pode ajudar a montar a viagem perfeita para você!
+              {filtros.cidadeSaida
+                ? `Não encontramos excursões saindo de ${filtros.cidadeSaida}${filtros.estadoSaida ? `/${filtros.estadoSaida}` : ""}. Mas a CaldasAI pode ajudar a montar a viagem perfeita para você!`
+                : filtros.estadoSaida
+                  ? `Não encontramos excursões saindo de ${ESTADOS_BR.find((e) => e.uf === filtros.estadoSaida)?.nome || filtros.estadoSaida}. Mas a CaldasAI pode sugerir uma excursão!`
+                  : "Não encontramos excursões com esses filtros. Mas a CaldasAI pode ajudar a montar a viagem perfeita para você!"}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href="https://wa.me/5562999999999?text=Ol%C3%A1!%20Quero%20ajuda%20para%20encontrar%20uma%20excurs%C3%A3o%20para%20Caldas%20Novas"
+                href={`https://wa.me/5562999999999?text=${encodeURIComponent(`Olá! Quero ajuda para encontrar uma excursão para Caldas Novas${filtros.cidadeSaida ? ` saindo de ${filtros.cidadeSaida}` : ""}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
