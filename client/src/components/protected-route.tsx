@@ -45,7 +45,7 @@ export default function ProtectedRoute({ children, roles, unauthorizedRedirect }
   }
 
   if (needsRole) {
-    return <Redirect to={unauthorizedRedirect ?? "/perfil"} />;
+    return <Redirect to={unauthorizedRedirect ?? "/"} />;
   }
 
   return <>{children}</>;

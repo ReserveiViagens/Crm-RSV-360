@@ -1,7 +1,9 @@
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Crown, Medal, Users } from "lucide-react";
+import { ArrowLeft, Loader2, Crown, Medal, Users, Trophy, BarChart3, Target } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
 
 type RankingItem = { nome: string; vagas: number };
 
@@ -10,6 +12,9 @@ const PODIUM_ICONS = ["🥇", "🥈", "🥉"];
 
 export default function RankingOrganizadoresPage() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const isOrganizador = user?.role === "LIDER" || user?.role === "admin";
+  const isAdmin = user?.role === "admin";
 
   const { data, isLoading } = useQuery<{ ranking: RankingItem[] }>({
     queryKey: ["/api/gamification/ranking-organizadores"],
@@ -104,6 +109,58 @@ export default function RankingOrganizadoresPage() {
               </Card>
             )}
           </>
+        )}
+
+        {isOrganizador && (
+          <Card className="mt-8 border-amber-200 bg-amber-50/50" data-testid="section-organizador-ranking">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" /> Área do Organizador
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/organizer/metas" className="flex items-center gap-3 p-3 rounded-xl bg-white border border-amber-100 hover:shadow-md transition-shadow no-underline" data-testid="link-minhas-metas">
+                <Target className="w-5 h-5 text-amber-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">Minhas Metas</p>
+                  <p className="text-xs text-muted-foreground">Acompanhe seu progresso e resgatar recompensas</p>
+                </div>
+              </Link>
+              <Link href="/criar-excursao" className="flex items-center gap-3 p-3 rounded-xl bg-white border border-amber-100 hover:shadow-md transition-shadow no-underline" data-testid="link-criar-excursao-ranking">
+                <Users className="w-5 h-5 text-amber-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">Criar Nova Excursão</p>
+                  <p className="text-xs text-muted-foreground">Monte sua próxima viagem e suba no ranking</p>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {isAdmin && (
+          <Card className="mt-4 border-red-200 bg-red-50/30" data-testid="section-admin-ranking">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-red-500" /> Painel Administrativo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/admin/super-financeiro" className="flex items-center gap-3 p-3 rounded-xl bg-white border border-red-100 hover:shadow-md transition-shadow no-underline" data-testid="link-admin-financeiro-ranking">
+                <BarChart3 className="w-5 h-5 text-red-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">Relatório Financeiro</p>
+                  <p className="text-xs text-muted-foreground">KPIs, gráficos e exportação CSV</p>
+                </div>
+              </Link>
+              <Link href="/admin/dashboard" className="flex items-center gap-3 p-3 rounded-xl bg-white border border-red-100 hover:shadow-md transition-shadow no-underline" data-testid="link-admin-painel-ranking">
+                <Users className="w-5 h-5 text-red-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">Painel Admin Completo</p>
+                  <p className="text-xs text-muted-foreground">Gerenciar passageiros, excursões e mais</p>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

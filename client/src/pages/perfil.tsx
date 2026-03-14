@@ -375,7 +375,7 @@ export default function PerfilPage() {
               <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", border: "1px solid #FFF7ED" }}>
                 <div style={{ padding: "16px 20px 8px", display: "flex", alignItems: "center", gap: 8 }}>
                   <Trophy style={{ width: 18, height: 18, color: "#F57C00" }} />
-                  <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>Organizador</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>Área do Organizador</h2>
                 </div>
                 {MENU_ORGANIZADOR.map((item, i) => (
                   <Link key={i} href={item.href} style={{ textDecoration: "none" }}>
@@ -393,7 +393,7 @@ export default function PerfilPage() {
               <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", border: "1px solid #FEE2E2" }}>
                 <div style={{ padding: "16px 20px 8px", display: "flex", alignItems: "center", gap: 8 }}>
                   <Shield style={{ width: 18, height: 18, color: "#DC2626" }} />
-                  <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>Administração</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 }}>Painel Administrativo</h2>
                 </div>
                 {MENU_ADMIN.map((item, i) => (
                   <Link key={i} href={item.href} style={{ textDecoration: "none" }}>
