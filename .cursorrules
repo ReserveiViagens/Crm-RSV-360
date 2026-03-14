@@ -823,7 +823,7 @@ Cidades de saída variadas: Goiânia (GO), Brasília (DF), Uberlândia (MG), Bel
 ### Painel "De onde você sai?" — localização
 - 3 abas: CEP, Cidade, Estado (`tabLocalidade` state)
 - **CEP**: input com máscara `formatCEP()`. Auto-busca via `buscarCEP()` quando 8 dígitos são digitados (não precisa clicar botão). Botão "Buscar" também disponível. Resultado preenche `filtros.cidadeSaida` + `filtros.estadoSaida`.
-- **Cidade**: input livre + botão "Filtrar" → filtra por `cidadeSaida.toLowerCase().includes()`
+- **Cidade**: input livre + botão "Filtrar" → filtra por igualdade exata normalizada (NFD, case-insensitive, sem acentos)
 - **Estado**: `<Select>` com 27 UFs do `ESTADOS_BR` → filtra por `estadoSaida === uf`
 - Feedback visual com ✓ e link "Limpar"
 

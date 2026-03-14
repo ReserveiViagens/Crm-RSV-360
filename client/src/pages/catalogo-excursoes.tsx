@@ -800,6 +800,7 @@ export default function CatalogoExcursoes() {
     setCepErro("")
     const result = await buscarCEP(cleaned)
     setCepBuscando(false)
+    if (result.aborted) return
     if (result.erro) {
       setCepErro("CEP não encontrado. Verifique e tente novamente.")
       setFiltros((prev) => ({ ...prev, cidadeSaida: null, estadoSaida: null }))
