@@ -561,14 +561,24 @@ useLogout()       // mutationFn POST /api/auth/logout, limpa cache
 - **Componente**: `client/src/components/checkout/PaymentCheckout.tsx` — countdown 30min, QR code, Pix copia e cola, split breakdown
 - **CRÍTICO**: `apiRequest` retorna `Promise<Response>` — para dados, usar `const res = await apiRequest(...); return res.json()`
 
-### 12.4 Gamificação do Organizador (T004)
-- **Modelo em memória**: `OrganizerGoal` com campos `{ id, title, targetSeats, achievedSeats, rewardType, rewardValue, status }`
+### 12.4 Gamificação do Organizador (T004 → T007 refatorado)
+- **Modelo em memória**: `OrganizerGoal` com campos `{ id, nivel, title, description, targetSeats, achievedSeats, rewardType, rewardValue, status }`
+- **3 Níveis de Meta**:
+  - Nível 1: Kit Conforto para 2 Pessoas (CORTESIA 🎟️) — 15 vagas
+  - Nível 2: Ingresso Lagoa Termas Parque (UPGRADE_DIVERSAO 🏨) — 10 vagas
+  - Nível 3: Viagem 50% de Desconto (CASHBACK 💰) — 30 vagas/mês
 - **Status possíveis**: `"LOCKED"` | `"UNLOCKED"` | `"CLAIMED"`
-- **Rewardtype**: `"CORTESIA"` | `"CASHBACK"` | `"UPGRADE_HOTEL"`
-- **Rotas**:
-  - `GET /api/organizador/:userId/metas` — lista metas
-  - `PATCH /api/organizador/metas/:id/resgatar` — resgata recompensa
-- **Frontend**: `client/src/pages/organizer/gamification-dashboard.tsx` — rota `/organizer/metas`, cards com lateral colorida (amber=locked, emerald=unlocked), progress bar
+- **RewardType**: `"CORTESIA"` | `"CASHBACK"` | `"UPGRADE_DIVERSAO"`
+- **Backend com dados reais**:
+  - `GET /api/organizador/:userId/metas` — calcula `achievedSeats` a partir de reservas `confirmada` no `reservaStore` + `gamificationExtraSeats` (incrementado pelo webhook)
+  - `PATCH /api/organizador/metas/:id/resgatar` — persiste status `CLAIMED` no in-memory `gamificationClaimed` por userId; rejeita se meta não atingida
+  - `POST /api/webhook/payment` — incrementa `gamificationExtraSeats` a cada `transaction.paid`
+- **Frontend**: `client/src/pages/organizer/gamification-dashboard.tsx` — rota `/organizer/metas`
+  - `useQuery` com `refetchInterval: 30000` busca dados reais do backend
+  - Badge de nível (Nível 1/2/3) em cada card com cor contextual
+  - Aviso visível amarelo em goals LOCKED: "Você precisa atingir esta meta para que o sistema libere o bônus automaticamente. Faltam X vagas!"
+  - Toast de desbloqueio: detecta transição LOCKED→UNLOCKED via `useRef` + `useEffect`
+  - Loading state com spinner enquanto dados carregam
 - **Design**: Botão "Resgatar" ativo apenas quando `status === "UNLOCKED"` (meta atingiu 100%)
 
 ### 12.5 Landing Pages Dinâmicas de Excursão (T005)

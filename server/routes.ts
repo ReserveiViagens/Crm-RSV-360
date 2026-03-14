@@ -34,6 +34,7 @@ import {
   type RoteiroCatalogCard,
   type RoteiroCatalogCategory,
 } from "./excursoes";
+import { mutateDb } from "./persistence";
 import {
   createInvite,
   ensureGroupForExcursao,
@@ -1486,6 +1487,9 @@ export async function registerRoutes(
       const amount = (data.amount ?? 0) / 100;
       await sendPaymentConfirmation(excursaoId, passengerName, amount).catch(() => {});
       emitEstadoGrupo(excursaoId, { type: "pagamento_confirmado", transactionId: data.id, passengerName, amount });
+      await mutateDb((db) => {
+        db.gamificationExtraSeats = ((db.gamificationExtraSeats as number) ?? 0) + 1;
+      });
     }
     return res.json({ received: true });
   });
@@ -1513,18 +1517,90 @@ export async function registerRoutes(
   // ─────────────────────────────────────────────
   // NTX — Gamification / Organizer Goals
   // ─────────────────────────────────────────────
-  const organizerGoals: Record<string, Array<{ id: string; title: string; targetSeats: number; achievedSeats: number; rewardType: string; rewardValue: string; status: string }>> = {};
+  interface GamificationGoalDef {
+    id: string;
+    nivel: number;
+    title: string;
+    description: string;
+    targetSeats: number;
+    rewardType: "CORTESIA" | "CASHBACK" | "UPGRADE_DIVERSAO";
+    rewardValue: string;
+  }
 
-  app.get("/api/organizador/:userId/metas", (req: Request, res: Response) => {
+  const GOAL_DEFINITIONS: GamificationGoalDef[] = [
+    { id: "g1", nivel: 1, title: "Kit Conforto para 2 Pessoas", description: "Venda 15 vagas e ganhe um Kit Conforto 100% grátis para você e seu acompanhante.", targetSeats: 15, rewardType: "CORTESIA", rewardValue: "Kit conforto para 2 pessoas — 100% grátis" },
+    { id: "g2", nivel: 2, title: "Ingresso Lagoa Termas Parque", description: "Venda 10 vagas e ganhe um ingresso 100% grátis para a Lagoa Termas Parque.", targetSeats: 10, rewardType: "UPGRADE_DIVERSAO", rewardValue: "Ingresso Lagoa Termas Parque — 100% grátis" },
+    { id: "g3", nivel: 3, title: "Viagem 50% de Desconto", description: "Venda 30 vagas no acumulado do mês e garanta 50% de desconto na sua passagem.", targetSeats: 30, rewardType: "CASHBACK", rewardValue: "50% de desconto para 1 passageiro" },
+  ];
+
+  type ClaimedGoals = Record<string, string[]>;
+
+  async function getGamificationClaimed(): Promise<ClaimedGoals> {
+    return mutateDb((db) => {
+      if (!db.gamificationClaimed) db.gamificationClaimed = {};
+      return db.gamificationClaimed as ClaimedGoals;
+    });
+  }
+
+  async function getTotalConfirmedSeats(): Promise<number> {
+    return mutateDb((db) => {
+      const reservas = (db.reservaStore as Array<{ status: string }>) ?? [];
+      return reservas.filter((r) => r.status === "confirmada").length;
+    });
+  }
+
+  async function getGamificationExtraSeats(): Promise<number> {
+    return mutateDb((db) => {
+      return (db.gamificationExtraSeats as number) ?? 0;
+    });
+  }
+
+  app.get("/api/organizador/:userId/metas", async (req: Request, res: Response) => {
     const userId = String(req.params.userId);
-    const goals = organizerGoals[userId] ?? [
-      { id: "g1", title: "Viagem 100% Grátis", targetSeats: 15, achievedSeats: 0, rewardType: "CORTESIA", rewardValue: "Vaga gratuita", status: "LOCKED" },
-      { id: "g2", title: "Bônus Pix R$ 500", targetSeats: 30, achievedSeats: 0, rewardType: "CASHBACK", rewardValue: "R$ 500,00 via Pix", status: "LOCKED" },
-    ];
-    return res.json(goals);
+    const confirmedSeats = await getTotalConfirmedSeats();
+    const extraSeats = await getGamificationExtraSeats();
+    const totalSeats = confirmedSeats + extraSeats;
+    const claimed = await getGamificationClaimed();
+    const userClaimed = claimed[userId] ?? [];
+
+    const goals = GOAL_DEFINITIONS.map((def) => {
+      const isClaimed = userClaimed.includes(def.id);
+      const achieved = Math.min(totalSeats, def.targetSeats);
+      const isUnlocked = achieved >= def.targetSeats;
+      return {
+        id: def.id,
+        nivel: def.nivel,
+        title: def.title,
+        description: def.description,
+        targetSeats: def.targetSeats,
+        achievedSeats: achieved,
+        rewardType: def.rewardType,
+        rewardValue: def.rewardValue,
+        status: isClaimed ? "CLAIMED" : isUnlocked ? "UNLOCKED" : "LOCKED",
+      };
+    });
+
+    return res.json({ goals, totalSeats });
   });
 
-  app.patch("/api/organizador/metas/:id/resgatar", (req: Request, res: Response) => {
+  app.patch("/api/organizador/metas/:id/resgatar", async (req: Request, res: Response) => {
+    const goalId = String(req.params.id);
+    const userId = req.session?.userId ?? "anonymous";
+    const goalDef = GOAL_DEFINITIONS.find((g) => g.id === goalId);
+    if (!goalDef) return res.status(404).json({ error: "Meta não encontrada" });
+
+    const confirmedSeats = await getTotalConfirmedSeats();
+    const extraSeats = await getGamificationExtraSeats();
+    const totalSeats = confirmedSeats + extraSeats;
+    if (totalSeats < goalDef.targetSeats) return res.status(400).json({ error: "Meta ainda não atingida" });
+
+    await mutateDb((db) => {
+      if (!db.gamificationClaimed) db.gamificationClaimed = {};
+      const claimed = db.gamificationClaimed as ClaimedGoals;
+      if (!claimed[userId]) claimed[userId] = [];
+      if (!claimed[userId].includes(goalId)) claimed[userId].push(goalId);
+    });
+
     return res.json({ success: true, message: "Recompensa registrada. Entraremos em contato em até 48h." });
   });
 

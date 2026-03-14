@@ -143,11 +143,14 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 - API: POST /api/pagamento/gerar-pix, POST /api/webhook/payment (webhook)
 - Webhook fires sendPaymentConfirmation + emitEstadoGrupo WebSocket event
 
-### T004 — Gamificação do Organizador
+### T004/T007 — Gamificação do Organizador (dados reais)
 - Route: `/organizer/metas`
-- `client/src/pages/organizer/gamification-dashboard.tsx` — goal cards, progress bars, "Resgatar" button
-- API: GET /api/organizador/:userId/metas, PATCH /api/organizador/metas/:id/resgatar
+- `client/src/pages/organizer/gamification-dashboard.tsx` — 3 níveis de meta com badge, progress bars, aviso de meta obrigatória, toast de desbloqueio
+- API: GET /api/organizador/:userId/metas (calcula achievedSeats de reservas confirmadas + gamificationExtraSeats), PATCH /api/organizador/metas/:id/resgatar (persiste CLAIMED, rejeita se não atingida)
+- Webhook: POST /api/webhook/payment incrementa gamificationExtraSeats a cada transaction.paid
 - OrganizerGoal status: LOCKED | UNLOCKED | CLAIMED
+- RewardType: CORTESIA | CASHBACK | UPGRADE_DIVERSAO
+- Níveis: 1=Kit Conforto (15 vagas), 2=Ingresso Lagoa Termas (10 vagas), 3=Viagem 50% Desconto (30 vagas)
 
 ### T005 — Landing Pages Dinâmicas
 - Route: `/excursoes/:slug`
