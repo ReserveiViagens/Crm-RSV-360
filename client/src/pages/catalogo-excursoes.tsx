@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback } from "react"
 import { Link } from "wouter"
 import {
-  Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight,
-  Search, Filter, ArrowRight, Shield, ArrowLeft,
+  Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight, ChevronDown,
+  Search, Filter, ArrowRight, Shield, ArrowLeft, SlidersHorizontal,
   CheckCircle2, Plus, Sparkles, TrendingUp,
   Crown, Lock, Heart, Home, Thermometer, Eye,
   X, MessageCircle, Loader2, Navigation,
@@ -786,6 +786,7 @@ export default function CatalogoExcursoes() {
   })
 
   const [cidadeInput, setCidadeInput] = useState("")
+  const [maisFiltros, setMaisFiltros] = useState(false)
 
   const isLider = user?.role === "LIDER" || user?.role === "admin"
 
@@ -1139,39 +1140,52 @@ export default function CatalogoExcursoes() {
           </Select>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
-          <div className="flex gap-3 flex-1">
-            <Input
-              data-testid="input-preco-min"
-              type="number"
-              placeholder="Preço mín (R$)"
-              value={filtros.precoMin}
-              onChange={(e) => setFiltros((p) => ({ ...p, precoMin: e.target.value }))}
-              className="h-11 rounded-xl w-full md:w-40"
-            />
-            <Input
-              data-testid="input-preco-max"
-              type="number"
-              placeholder="Preço máx (R$)"
-              value={filtros.precoMax}
-              onChange={(e) => setFiltros((p) => ({ ...p, precoMax: e.target.value }))}
-              className="h-11 rounded-xl w-full md:w-40"
-            />
-          </div>
-          <Select
-            value={filtros.mesPartida}
-            onValueChange={(v) => setFiltros((p) => ({ ...p, mesPartida: v }))}
+        <div className="mb-6">
+          <button
+            data-testid="btn-mais-filtros"
+            onClick={() => setMaisFiltros((v) => !v)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
           >
-            <SelectTrigger data-testid="select-data-partida" className="w-full md:w-48 h-11 rounded-xl">
-              <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Data de partida" />
-            </SelectTrigger>
-            <SelectContent>
-              {MESES_PARTIDA.map((m) => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <SlidersHorizontal className="w-4 h-4" />
+            Mais filtros
+            <ChevronDown className={`w-4 h-4 transition-transform ${maisFiltros ? "rotate-180" : ""}`} />
+          </button>
+          {maisFiltros && (
+            <div className="flex flex-col md:flex-row gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex gap-3 flex-1">
+                <Input
+                  data-testid="input-preco-min"
+                  type="number"
+                  placeholder="Preço mín (R$)"
+                  value={filtros.precoMin}
+                  onChange={(e) => setFiltros((p) => ({ ...p, precoMin: e.target.value }))}
+                  className="h-11 rounded-xl w-full md:w-40"
+                />
+                <Input
+                  data-testid="input-preco-max"
+                  type="number"
+                  placeholder="Preço máx (R$)"
+                  value={filtros.precoMax}
+                  onChange={(e) => setFiltros((p) => ({ ...p, precoMax: e.target.value }))}
+                  className="h-11 rounded-xl w-full md:w-40"
+                />
+              </div>
+              <Select
+                value={filtros.mesPartida}
+                onValueChange={(v) => setFiltros((p) => ({ ...p, mesPartida: v }))}
+              >
+                <SelectTrigger data-testid="select-data-partida" className="w-full md:w-48 h-11 rounded-xl">
+                  <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Data de partida" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MESES_PARTIDA.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {temFiltrosAtivos && (
@@ -1264,7 +1278,7 @@ export default function CatalogoExcursoes() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href={`https://wa.me/5562999999999?text=${encodeURIComponent(`Olá! Quero ajuda para encontrar uma excursão para Caldas Novas${filtros.cidadeSaida ? ` saindo de ${filtros.cidadeSaida}` : ""}`)}`}
+                href={`https://wa.me/5562999999999?text=${encodeURIComponent(filtros.cidadeSaida ? `Quero excursão de ${filtros.cidadeSaida}` : "Olá! Quero ajuda para encontrar uma excursão para Caldas Novas")}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1273,7 +1287,7 @@ export default function CatalogoExcursoes() {
                   className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Falar no WhatsApp
+                  Sugerir por WhatsApp
                 </Button>
               </a>
               <Link href="/caldas-ai">
