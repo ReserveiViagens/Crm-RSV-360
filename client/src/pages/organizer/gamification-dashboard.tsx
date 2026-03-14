@@ -171,6 +171,16 @@ export default function GamificationDashboard() {
                       </p>
                     </div>
                   )}
+                  {(isUnlocked || isClaimed) && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200" data-testid={`info-meta-${goal.id}`}>
+                      <AlertTriangle className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-emerald-800 font-medium leading-snug">
+                        {isClaimed
+                          ? "Bônus resgatado com sucesso! Nossa equipe entrará em contato."
+                          : "Meta atingida! O sistema liberou o bônus. Clique em Resgatar para receber."}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

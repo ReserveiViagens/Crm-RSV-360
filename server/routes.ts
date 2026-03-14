@@ -1565,7 +1565,7 @@ export async function registerRoutes(
 
     const goals = GOAL_DEFINITIONS.map((def) => {
       const isClaimed = userClaimed.includes(def.id);
-      const achieved = Math.min(totalSeats, def.targetSeats);
+      const achieved = totalSeats;
       const isUnlocked = achieved >= def.targetSeats;
       return {
         id: def.id,
