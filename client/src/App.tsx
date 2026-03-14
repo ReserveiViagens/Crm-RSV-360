@@ -76,8 +76,8 @@ function Router() {
       <Route path="/minhas-avaliacoes" component={MinhasAvaliacoes} />
       <Route path="/viagens-grupo" component={ViagensGrupo} />
       <Route path="/viagens-grupo/:id" component={ViagensGrupo} />
-      <Route path="/criar-excursao">{() => <ProtectedRoute roles={["LIDER", "admin"]}><CriarExcursao /></ProtectedRoute>}</Route>
-      <Route path="/criar-excursao/:id">{() => <ProtectedRoute roles={["LIDER", "admin"]}><CriarExcursao /></ProtectedRoute>}</Route>
+      <Route path="/criar-excursao">{() => <ProtectedRoute roles={["LIDER", "admin"]} unauthorizedRedirect="/perfil"><CriarExcursao /></ProtectedRoute>}</Route>
+      <Route path="/criar-excursao/:id">{() => <ProtectedRoute roles={["LIDER", "admin"]} unauthorizedRedirect="/perfil"><CriarExcursao /></ProtectedRoute>}</Route>
       <Route path="/quem-somos" component={QuemSomos} />
       <Route path="/politica-de-privacidade" component={PoliticaPrivacidade} />
       <Route path="/admin">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>

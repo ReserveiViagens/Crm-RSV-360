@@ -1,4 +1,5 @@
-import { ArrowLeft, CalendarDays, MapPin, Loader2, Home, Search, User } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, CalendarDays, MapPin, Loader2, Home, Search, User, ChevronDown, ChevronUp, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,8 +12,23 @@ type Reserva = {
   location: string;
 };
 
+type BottomTab = {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  active: boolean;
+};
+
+const BOTTOM_TABS: BottomTab[] = [
+  { icon: Home, label: "Home", href: "/", active: false },
+  { icon: Search, label: "Busca", href: "/catalogo-excursoes", active: false },
+  { icon: CalendarDays, label: "Reservas", href: "/minhas-reservas", active: true },
+  { icon: User, label: "Perfil", href: "/perfil", active: false },
+];
+
 export default function MinhasReservasPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery<{ items: Reserva[] }>({
     queryKey: ["/api/reservas/minhas"],
@@ -78,36 +94,79 @@ export default function MinhasReservasPage() {
             </Link>
           </div>
         ) : (
-          reservas.map((res) => (
-            <div key={res.id} data-testid={`card-reserva-${res.id}`} style={{
-              background: "#fff", borderRadius: 16, padding: 16, marginBottom: 12,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.08)", display: "flex", gap: 14,
-            }}>
-              <div style={{
-                width: 64, height: 56, borderRadius: 12, flexShrink: 0,
-                background: "linear-gradient(135deg, #1e3a5f, #2563EB)",
-                display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
+          reservas.map((res) => {
+            const isExpanded = expandedId === res.id;
+            return (
+              <div key={res.id} data-testid={`card-reserva-${res.id}`} style={{
+                background: "#fff", borderRadius: 16, marginBottom: 12,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)", overflow: "hidden",
               }}>
-                <MapPin style={{ width: 20, height: 20, color: "rgba(255,255,255,0.5)" }} />
-                <div style={{
-                  position: "absolute", top: -4, right: -4,
-                  background: res.status === "Confirmada" ? "#22C55E" : res.status === "Cancelada" ? "#EF4444" : "#F57C00",
-                  color: "#fff", padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 700,
-                }}>{res.status}</div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 4px" }}>{res.hotel}</h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                  <CalendarDays style={{ width: 12, height: 12, color: "#9CA3AF" }} />
-                  <span style={{ fontSize: 12, color: "#6B7280" }}>{res.dates}</span>
+                <div style={{ padding: 16, display: "flex", gap: 14 }}>
+                  <div style={{
+                    width: 64, height: 56, borderRadius: 12, flexShrink: 0,
+                    background: "linear-gradient(135deg, #1e3a5f, #2563EB)",
+                    display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
+                  }}>
+                    <MapPin style={{ width: 20, height: 20, color: "rgba(255,255,255,0.5)" }} />
+                    <div style={{
+                      position: "absolute", top: -4, right: -4,
+                      background: res.status === "Confirmada" ? "#22C55E" : res.status === "Cancelada" ? "#EF4444" : "#F57C00",
+                      color: "#fff", padding: "2px 8px", borderRadius: 6, fontSize: 9, fontWeight: 700,
+                    }}>{res.status}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 4px" }}>{res.hotel}</h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                      <CalendarDays style={{ width: 12, height: 12, color: "#9CA3AF" }} />
+                      <span style={{ fontSize: 12, color: "#6B7280" }}>{res.dates}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <MapPin style={{ width: 12, height: 12, color: "#9CA3AF" }} />
+                      <span style={{ fontSize: 12, color: "#6B7280" }}>{res.location}</span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <MapPin style={{ width: 12, height: 12, color: "#9CA3AF" }} />
-                  <span style={{ fontSize: 12, color: "#6B7280" }}>{res.location}</span>
-                </div>
+                <button
+                  data-testid={`button-detalhes-${res.id}`}
+                  onClick={() => setExpandedId(isExpanded ? null : res.id)}
+                  style={{
+                    width: "100%", padding: "10px 16px", border: "none",
+                    borderTop: "1px solid #F3F4F6", background: isExpanded ? "#F9FAFB" : "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#2563EB",
+                  }}
+                >
+                  {isExpanded ? "Ocultar detalhes" : "Ver detalhes"}
+                  {isExpanded ? <ChevronUp style={{ width: 14, height: 14 }} /> : <ChevronDown style={{ width: 14, height: 14 }} />}
+                </button>
+                {isExpanded && (
+                  <div data-testid={`detalhes-reserva-${res.id}`} style={{ padding: "0 16px 16px", background: "#F9FAFB" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>Status</span>
+                        <span style={{
+                          fontSize: 12, fontWeight: 700,
+                          color: res.status === "Confirmada" ? "#22C55E" : res.status === "Cancelada" ? "#EF4444" : "#F57C00",
+                        }}>{res.status}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>Destino</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>{res.location}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>Data</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>{res.dates}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>Hospedagem</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>{res.hotel}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -118,15 +177,10 @@ export default function MinhasReservasPage() {
         background: "#fff", borderTop: "1px solid #E5E7EB",
         display: "flex", padding: "8px 0 12px", zIndex: 30,
       }}>
-        {[
-          { icon: Home, label: "Home", href: "/" },
-          { icon: Search, label: "Busca", href: "/catalogo-excursoes" },
-          { icon: CalendarDays, label: "Reservas", href: "/minhas-reservas", active: true },
-          { icon: User, label: "Perfil", href: "/perfil" },
-        ].map((tab, i) => (
+        {BOTTOM_TABS.map((tab, i) => (
           <Link key={i} href={tab.href} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textDecoration: "none", gap: 2 }}>
-            <tab.icon style={{ width: 22, height: 22, color: (tab as any).active ? "#2563EB" : "#9CA3AF" }} />
-            <span style={{ fontSize: 10, fontWeight: (tab as any).active ? 700 : 500, color: (tab as any).active ? "#2563EB" : "#9CA3AF" }}>{tab.label}</span>
+            <tab.icon style={{ width: 22, height: 22, color: tab.active ? "#2563EB" : "#9CA3AF" }} />
+            <span style={{ fontSize: 10, fontWeight: tab.active ? 700 : 500, color: tab.active ? "#2563EB" : "#9CA3AF" }}>{tab.label}</span>
           </Link>
         ))}
       </div>
