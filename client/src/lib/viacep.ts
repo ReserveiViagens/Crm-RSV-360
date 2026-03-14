@@ -2,6 +2,7 @@ export interface ViaCEPResult {
   cidade: string
   estado: string
   erro?: boolean
+  aborted?: boolean
 }
 
 let abortController: AbortController | null = null
@@ -32,7 +33,7 @@ export async function buscarCEP(cep: string): Promise<ViaCEPResult> {
     }
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") {
-      return { cidade: "", estado: "", erro: true }
+      return { cidade: "", estado: "", aborted: true }
     }
     return { cidade: "", estado: "", erro: true }
   }

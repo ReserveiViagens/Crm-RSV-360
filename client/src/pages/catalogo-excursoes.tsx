@@ -870,8 +870,9 @@ export default function CatalogoExcursoes() {
     }
 
     if (filtros.cidadeSaida) {
-      const c = filtros.cidadeSaida.toLowerCase()
-      const exactCity = lista.filter((e) => e.cidadeSaida.toLowerCase().includes(c))
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+      const c = normalize(filtros.cidadeSaida)
+      const exactCity = lista.filter((e) => normalize(e.cidadeSaida) === c)
       if (exactCity.length > 0) {
         lista = exactCity.map((e) => ({ ...e, parceiroRegional: false }))
       } else {
@@ -1016,6 +1017,7 @@ export default function CatalogoExcursoes() {
                     if (digits.length === 8) {
                       setCepBuscando(true)
                       buscarCEP(digits).then((result) => {
+                        if (result.aborted) return
                         setCepBuscando(false)
                         if (result.erro) {
                           setCepErro("CEP não encontrado. Verifique e tente novamente.")
