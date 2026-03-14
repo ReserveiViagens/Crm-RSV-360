@@ -790,15 +790,10 @@ export default function CatalogoExcursoes() {
 
   const isLider = user?.role === "LIDER" || user?.role === "admin"
 
-  const handleBuscarCEP = useCallback(async () => {
-    const cleaned = cepInput.replace(/\D/g, "")
-    if (cleaned.length !== 8) {
-      setCepErro("Digite um CEP válido com 8 dígitos")
-      return
-    }
+  const processarCEP = useCallback(async (digits: string) => {
     setCepBuscando(true)
     setCepErro("")
-    const result = await buscarCEP(cleaned)
+    const result = await buscarCEP(digits)
     setCepBuscando(false)
     if (result.aborted) return
     if (result.erro) {
@@ -811,7 +806,16 @@ export default function CatalogoExcursoes() {
       cidadeSaida: result.cidade,
       estadoSaida: result.estado,
     }))
-  }, [cepInput])
+  }, [])
+
+  const handleBuscarCEP = useCallback(() => {
+    const cleaned = cepInput.replace(/\D/g, "")
+    if (cleaned.length !== 8) {
+      setCepErro("Digite um CEP válido com 8 dígitos")
+      return
+    }
+    processarCEP(cleaned)
+  }, [cepInput, processarCEP])
 
   const handleCidadeFiltro = useCallback(() => {
     const trimmed = cidadeInput.trim()
@@ -1019,17 +1023,7 @@ export default function CatalogoExcursoes() {
                     setCepErro("")
                     const digits = formatted.replace(/\D/g, "")
                     if (digits.length === 8) {
-                      setCepBuscando(true)
-                      buscarCEP(digits).then((result) => {
-                        if (result.aborted) { setCepBuscando(false); return }
-                        setCepBuscando(false)
-                        if (result.erro) {
-                          setCepErro("CEP não encontrado. Verifique e tente novamente.")
-                          setFiltros((prev) => ({ ...prev, cidadeSaida: null, estadoSaida: null }))
-                        } else {
-                          setFiltros((prev) => ({ ...prev, cidadeSaida: result.cidade, estadoSaida: result.estado }))
-                        }
-                      })
+                      processarCEP(digits)
                     }
                   }}
                   onKeyDown={(e) => { if (e.key === "Enter") handleBuscarCEP() }}
