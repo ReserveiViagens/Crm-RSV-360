@@ -766,6 +766,7 @@ export default function CatalogoExcursoes() {
     setCepBuscando(false)
     if (result.erro) {
       setCepErro("CEP não encontrado. Verifique e tente novamente.")
+      setFiltros((prev) => ({ ...prev, cidadeSaida: null, estadoSaida: null }))
       return
     }
     setFiltros((prev) => ({

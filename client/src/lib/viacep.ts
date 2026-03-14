@@ -4,21 +4,36 @@ export interface ViaCEPResult {
   erro?: boolean
 }
 
+let abortController: AbortController | null = null
+
 export async function buscarCEP(cep: string): Promise<ViaCEPResult> {
   const cleaned = cep.replace(/\D/g, "")
   if (cleaned.length !== 8) {
     return { cidade: "", estado: "", erro: true }
   }
+
+  if (abortController) {
+    abortController.abort()
+  }
+  abortController = new AbortController()
+
   try {
-    const res = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`)
+    const res = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`, {
+      signal: abortController.signal,
+    })
     if (!res.ok) return { cidade: "", estado: "", erro: true }
     const data = await res.json()
-    if (data.erro) return { cidade: "", estado: "", erro: true }
-    return {
-      cidade: data.localidade ?? "",
-      estado: data.uf ?? "",
+    if (data.erro || !data.localidade || !data.uf) {
+      return { cidade: "", estado: "", erro: true }
     }
-  } catch {
+    return {
+      cidade: data.localidade,
+      estado: data.uf,
+    }
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      return { cidade: "", estado: "", erro: true }
+    }
     return { cidade: "", estado: "", erro: true }
   }
 }
