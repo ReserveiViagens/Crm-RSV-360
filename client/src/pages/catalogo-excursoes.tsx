@@ -816,10 +816,12 @@ export default function CatalogoExcursoes() {
   const handleCidadeFiltro = useCallback(() => {
     const trimmed = cidadeInput.trim()
     if (!trimmed) return
+    const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+    const match = EXCURSOES.find((e) => normalize(e.cidadeSaida) === normalize(trimmed))
     setFiltros((prev) => ({
       ...prev,
       cidadeSaida: trimmed,
-      estadoSaida: null,
+      estadoSaida: match?.estadoSaida || null,
     }))
   }, [cidadeInput])
 
@@ -1157,6 +1159,8 @@ export default function CatalogoExcursoes() {
                 <Input
                   data-testid="input-preco-min"
                   type="number"
+                  min={0}
+                  max={3000}
                   placeholder="Preço mín (R$)"
                   value={filtros.precoMin}
                   onChange={(e) => setFiltros((p) => ({ ...p, precoMin: e.target.value }))}
@@ -1165,6 +1169,8 @@ export default function CatalogoExcursoes() {
                 <Input
                   data-testid="input-preco-max"
                   type="number"
+                  min={0}
+                  max={3000}
                   placeholder="Preço máx (R$)"
                   value={filtros.precoMax}
                   onChange={(e) => setFiltros((p) => ({ ...p, precoMax: e.target.value }))}
