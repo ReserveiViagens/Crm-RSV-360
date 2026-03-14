@@ -1553,6 +1553,16 @@ export default function ViagensGrupoPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-white rounded-2xl shadow-lg border border-border max-w-sm w-full p-8 flex flex-col items-center gap-5">
+          <div className="w-full flex items-center">
+            <Link
+              href={gateBackUrl}
+              data-testid="btn-gate-voltar-restrita-top"
+              className="flex items-center gap-1.5 border border-border rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
+            </Link>
+          </div>
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8 text-primary" />
           </div>
