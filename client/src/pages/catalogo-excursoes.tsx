@@ -1245,7 +1245,7 @@ export default function CatalogoExcursoes() {
               className="text-xs text-primary hover:underline font-medium ml-1"
               data-testid="btn-limpar-filtros"
             >
-              Limpar tudo
+              Limpar todos os filtros
             </button>
           </div>
         )}
