@@ -1638,9 +1638,19 @@ export async function registerRoutes(
     const result = await mutateDb((db) => {
       const store = (db.pontosStore as Record<string, number>) ?? {};
       const pontos = store[nome] ?? 0;
-      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string }>) ?? [];
-      const confirmedCount = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada").length;
-      return { pontos, streak: confirmedCount };
+      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string; criadaEm: Date }>) ?? [];
+      const userReservas = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
+      const distinctTrips = [...new Set(userReservas.map(r => r.excursaoId))];
+      const sortedTrips = distinctTrips.sort((a, b) => {
+        const dateA = userReservas.find(r => r.excursaoId === a)?.criadaEm ?? new Date(0);
+        const dateB = userReservas.find(r => r.excursaoId === b)?.criadaEm ?? new Date(0);
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+      let streak = 0;
+      for (const _ of sortedTrips) {
+        streak++;
+      }
+      return { pontos, streak };
     });
 
     return res.json({ pontos: result.pontos, streak: result.streak, nome });
@@ -1666,12 +1676,20 @@ export async function registerRoutes(
     const user = await storage.getUser(userId);
     const nome = user?.nome ?? "Visitante";
 
-    const { pontos, confirmedCount } = await mutateDb((db) => {
+    const excursoes = await listExcursoes();
+    const { pontos, confirmedCount, caldasCount } = await mutateDb((db) => {
       const store = (db.pontosStore as Record<string, number>) ?? {};
-      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string }>) ?? [];
+      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string }>) ?? [];
+      const userConfirmed = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
+      const distinctTrips = [...new Set(userConfirmed.map(r => r.excursaoId))];
+      const caldasTrips = distinctTrips.filter(excId => {
+        const exc = excursoes.find(e => e.id === excId);
+        return exc?.destino?.toLowerCase().includes("caldas") ?? false;
+      });
       return {
         pontos: store[nome] ?? 0,
-        confirmedCount: reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada").length,
+        confirmedCount: distinctTrips.length,
+        caldasCount: caldasTrips.length,
       };
     });
 
@@ -1679,7 +1697,7 @@ export async function registerRoutes(
       let desbloqueada = false;
       if (c.id === "primeira-viagem") desbloqueada = confirmedCount >= c.threshold;
       else if (c.id === "grupo-de-5") desbloqueada = confirmedCount >= c.threshold;
-      else if (c.id === "fiel-caldas") desbloqueada = confirmedCount >= c.threshold;
+      else if (c.id === "fiel-caldas") desbloqueada = caldasCount >= c.threshold;
       else if (c.id === "mil-pontos") desbloqueada = pontos >= c.threshold;
       else if (c.id === "embaixador") desbloqueada = pontos >= c.threshold;
       return { ...c, desbloqueada };
@@ -1689,18 +1707,34 @@ export async function registerRoutes(
   });
 
   app.get("/api/gamification/ranking-organizadores", async (_req: Request, res: Response) => {
-    const allUsers = await mutateDb((db) => {
-      const reservas = (db.reservaStore as Array<{ passageiroId: string; passageiroNome: string; status: string }>) ?? [];
-      const confirmed = reservas.filter(r => r.status === "confirmada");
-      const countMap: Record<string, { nome: string; vagas: number }> = {};
-      for (const r of confirmed) {
-        if (!countMap[r.passageiroId]) countMap[r.passageiroId] = { nome: r.passageiroNome, vagas: 0 };
-        countMap[r.passageiroId].vagas++;
+    const now = new Date();
+    const mesAtual = now.getMonth();
+    const anoAtual = now.getFullYear();
+
+    const ranking = await mutateDb((db) => {
+      const reservas = (db.reservaStore as Array<{ excursaoId: string; status: string; criadaEm: Date }>) ?? [];
+      const memberships = (db.membershipStore as Array<{ groupId: string; userId: string; nome: string; status: string }>) ?? [];
+
+      const confirmedThisMonth = reservas.filter(r => {
+        if (r.status !== "confirmada") return false;
+        const d = new Date(r.criadaEm);
+        return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+      });
+
+      const orgMap: Record<string, { nome: string; vagas: number }> = {};
+      for (const r of confirmedThisMonth) {
+        const groupId = `grp-${r.excursaoId}`;
+        const admins = memberships.filter(m => m.groupId === groupId && m.status === "ADMIN");
+        for (const admin of admins) {
+          if (!orgMap[admin.userId]) orgMap[admin.userId] = { nome: admin.nome, vagas: 0 };
+          orgMap[admin.userId].vagas++;
+        }
       }
-      return Object.values(countMap).sort((a, b) => b.vagas - a.vagas).slice(0, 10);
+
+      return Object.values(orgMap).sort((a, b) => b.vagas - a.vagas).slice(0, 10);
     });
 
-    return res.json({ ranking: allUsers });
+    return res.json({ ranking });
   });
 
   // ─────────────────────────────────────────────
