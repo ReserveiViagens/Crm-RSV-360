@@ -1018,7 +1018,7 @@ export default function CatalogoExcursoes() {
                     if (digits.length === 8) {
                       setCepBuscando(true)
                       buscarCEP(digits).then((result) => {
-                        if (result.aborted) return
+                        if (result.aborted) { setCepBuscando(false); return }
                         setCepBuscando(false)
                         if (result.erro) {
                           setCepErro("CEP não encontrado. Verifique e tente novamente.")
