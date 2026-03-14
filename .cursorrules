@@ -804,3 +804,63 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
   - Botão "Quero criar minha excursão" (data-testid `btn-gate-quero-criar`) abre `LiderApplicationDialog`.
   - Botão "Ver excursões disponíveis" (data-testid `btn-gate-voltar`) → `/excursoes`.
   - `<LiderApplicationDialog>` incluído no JSX do early return.
+
+---
+
+## 12.16 Busca Dinâmica de Excursões por Localização — `/catalogo-excursoes`
+
+### Interface `Excursao` — campos de saída
+```ts
+cidadeSaida: string   // cidade de partida do ônibus
+estadoSaida: string   // UF de partida (2 letras)
+```
+
+### 18 excursões mock (EXCURSOES[])
+Cidades de saída variadas: Goiânia (GO), Brasília (DF), Uberlândia (MG), Belo Horizonte (MG), São Paulo (SP), Anápolis (GO), Ribeirão Preto (SP), Campo Grande (MS), Cuiabá (MT).
+
+### Painel "De onde você sai?" — localização
+- 3 abas: CEP, Cidade, Estado (`tabLocalidade` state)
+- **CEP**: input com máscara `formatCEP()`, botão "Buscar" chama `buscarCEP()` do `client/src/lib/viacep.ts` (API ViaCEP). Resultado preenche `filtros.cidadeSaida` + `filtros.estadoSaida`.
+- **Cidade**: input livre + botão "Filtrar" → filtra por `cidadeSaida.toLowerCase().includes()`
+- **Estado**: `<Select>` com 27 UFs do `ESTADOS_BR` → filtra por `estadoSaida === uf`
+- Feedback visual com ✓ e link "Limpar"
+
+### Filtros adicionais
+- **Preço**: `input-preco-min` / `input-preco-max` (type=number)
+- **Data de partida**: select por mês (Abril–Julho 2026)
+- Filtros existentes: busca textual, categoria, ordenação
+
+### Chips removíveis
+`ChipFiltro` component: badge com ícone X clicável.
+Tipos: `localidade`, `estado`, `preco-min`, `preco-max`, `mes`, `categoria`, `busca`.
+Botão "Limpar tudo" reseta todos os filtros.
+
+### Empty state — CaldasAI
+Quando 0 resultados: card gradiente com ícone Sparkles, texto sugestivo, 3 botões:
+1. "Falar no WhatsApp" → `wa.me/5562999999999` (`btn-whatsapp-sugestao`)
+2. "Perguntar à CaldasAI" → `/caldas-ai` (`btn-caldas-ai-empty`)
+3. "Limpar filtros" (`btn-limpar-filtros-empty`)
+
+### data-testids novos
+| Elemento | testid |
+|---|---|
+| Seção localidade | `secao-localidade` |
+| Tab CEP | `tab-localidade-cep` |
+| Tab Cidade | `tab-localidade-cidade` |
+| Tab Estado | `tab-localidade-estado` |
+| Input CEP | `input-cep` |
+| Botão buscar CEP | `btn-buscar-cep` |
+| Input cidade | `input-cidade-localidade` |
+| Select estado | `select-estado-localidade` |
+| Chip filtro | `chip-filtro-{tipo}` |
+| Botão limpar chip | `btn-limpar-chip-{tipo}` |
+| Input preço mín | `input-preco-min` |
+| Input preço máx | `input-preco-max` |
+| Select data partida | `select-data-partida` |
+| Card CaldasAI empty | `card-caldas-ai-empty` |
+| Botão WhatsApp | `btn-whatsapp-sugestao` |
+
+### Utilitário ViaCEP — `client/src/lib/viacep.ts`
+- `buscarCEP(cep: string): Promise<ViaCEPResult>` — GET `https://viacep.com.br/ws/{cep}/json/`
+- `formatCEP(value: string): string` — máscara `XXXXX-XXX`
+- `ESTADOS_BR`: array de `{ uf, nome }` com 27 estados brasileiros

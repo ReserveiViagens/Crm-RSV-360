@@ -173,5 +173,16 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 - Perfil (`perfil.tsx`) busca saldo real e navega para /minha-jornada
 - Admin sidebar tem link "Ranking" para /ranking-organizadores
 
+### T009 — Busca Dinâmica de Excursões por Localização
+- Route: `/catalogo-excursoes`
+- `client/src/pages/catalogo-excursoes.tsx` — expanded with 18 mock excursões, location panel (CEP/Cidade/Estado), price/date filters, active chips, CaldasAI empty state
+- `client/src/lib/viacep.ts` — ViaCEP API helper (`buscarCEP`, `formatCEP`, `ESTADOS_BR`)
+- Excursão interface extended with `cidadeSaida` and `estadoSaida` fields
+- Departure cities: Goiânia, Brasília, Uberlândia, Belo Horizonte, São Paulo, Anápolis, Ribeirão Preto, Campo Grande, Cuiabá
+- Location panel "De onde você sai?": 3 tabs (CEP via ViaCEP API, Cidade free text, Estado dropdown with 27 UFs)
+- Additional filters: price min/max, departure month (Apr–Jul 2026)
+- Removable ChipFiltro components for all active filters
+- CaldasAI empty state with WhatsApp link + CaldasAI button + clear filters
+
 ### Admin Dashboard NTX Section
 Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links to all new modules.
