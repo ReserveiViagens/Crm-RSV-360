@@ -1,0 +1,61 @@
+🏆 1. Metas e Recompensas do Organizador (/organizer/metas)
+Arquivo: client/src/pages/organizer/gamification-dashboard.tsx
+
+1.1 É o sistema mais completo visualmente. Acessado pelo menu lateral do Admin (ícone de troféu, "Gamificação").
+
+1.2 Meta	Tipo	Alvo	Status no mock atenção vamos incluir uma descrição e aviso visivel e bem claro que tem que atingir a Meta para que o sistema liberem os Bonus.
+1.3 Nivel 3.Viagem 50% de Desconto para 1 passageiro	         Desconto de Cashback 💰	30 vagas/mês	12/30 — LOCKED
+1.4 Nivel 2.Bônus Ingresso Lagoa Termas Parque  100% Gratis      Upgrade Diversão 🏨	10 vagas	10/10 — UNLOCKED
+1.5 Nivel 1.Kit conforto para 2 pessoas 100% gratis              Cortesia 🎟️	15 vagas	13/15 — LOCKED         	
+1.6 O que funciona: UI completa com barra de progresso, badge animado "Disponível", botão "Resgatar" que chama PATCH /api/organizador/metas/:id/resgatar.
+
+⚠️ Problema crítico: 100% mockado. O totalSold = 12 e os MOCK_GOALS são constantes hardcoded. O endpoint GET /api/organizador/:userId/metas existe no servidor mas não persiste nada — apenas retorna estático. Nenhuma vaga real conta para o progresso.
+
+🪙 2. Pontos do Passageiro (/perfil)
+Arquivo: client/src/pages/perfil.tsx
+
+2.1 Seção "Meus Pontos" com saldo laranja mostrando 1.500 pontos e ícone 🪙.
+
+2.2 ⚠️ Problema crítico: Número hardcoded. Não existe backend, não existe acúmulo de pontos, não existe nenhuma ação que gere pontos. É puramente visual/placeholder.
+
+💰 3. Barra Financeira / "Economize em Grupo" (/viagens-grupo — aba Início)
+Arquivo: client/src/components/BarraFinanceira.tsx
+
+3.1 Barra de progresso mostrando quanto o grupo já arrecadou vs. total previsto + valor por pessoa. Há também a seção de rateio de gastos por membro (pago/falta pagar).
+
+3.2 Estado: Funciona com dados reais de reservas. Não é gamificação pura, mas é um elemento de social commerce que incentiva o grupo a completar pagamentos.
+
+⏱️ 4. FOMO e Urgência (vários lugares)
+Arquivos: excursao-landing.tsx, home.tsx, flash-deals.tsx, leiloes.tsx, viagens-grupo.tsx
+
+4.1 Contagem regressiva com CountdownTimer component
+"🔥 Restam apenas 3 vagas!"
+4.2 Percentuais de ocupação
+4.3 Flash deals com timer
+4.4 Leilões com lance em tempo real
+4.5 Estado: Funcionais visualmente. São mecanismos de persuasão/urgência, não gamificação de progressão.
+
+🤖 5. Scoring de Hotéis e Atividades
+Arquivo: client/src/utils/social-commerce.ts
+
+5.1 Função sortByMarginAndScore() que ordena hotéis e atividades por margem + score + badge IA/popular. Não é visível ao usuário como gamificação, é lógica de negócio de priorização.
+
+5.2 Resumo dos Gaps — O que está quebrado ou incompleto
+5.3 Funcionalidade	Situação
+5.4 Progresso real das metas do organizador	❌ Hardcoded — não conectado ao banco
+5.5 Pontos do passageiro	❌ Hardcoded (1.500 estático)
+5.6 Histórico de conquistas	❌ Não existe
+5.7 Notificação ao desbloquear meta	❌ Não existe
+5.8 Streak / sequência de viagens	❌ Não existe
+5.9 Ranking/leaderboard de organizadores	❌ Não existe
+5.1.1 Backend persistindo metas por usuário	❌ O endpoint existe mas retorna vazio/mock
+5.1.2 O que faz mais sentido ajustar primeiro?
+5.1.3 Tenho duas sugestões principais, mas a escolha é sua:
+
+ E vamos dar sequencia no plano realizando estas duas fases :
+ 
+ A. (maior impacto imediato): Conectar o dashboard de metas do organizador a dados reais — contar vagas vendidas por excursão vindas do sistema de reservas e calcular progresso automaticamente.
+ 
+ e
+ 
+ B.Opção B (maior impacto no passageiro): Criar um sistema básico de pontos — por exemplo, 1 ponto por real pago via PIX — e exibir o saldo real no perfil.
