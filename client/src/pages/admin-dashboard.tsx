@@ -46,7 +46,8 @@ import {
   Bot,
   Zap,
   Trophy,
-  BarChart2
+  BarChart2,
+  Crown
 } from 'lucide-react';
 
 interface BookingStats {
@@ -375,6 +376,9 @@ export default function DashboardRSV() {
             </Link>
             <Link href="/organizer/metas" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-gamification">
               <Trophy className="w-5 h-5" /> Gamificação
+            </Link>
+            <Link href="/ranking-organizadores" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-ranking">
+              <Crown className="w-5 h-5" /> Ranking
             </Link>
             <Link href="/excursoes/caldas-novas-maio" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-landing">
               <Zap className="w-5 h-5" /> Landing Page Demo

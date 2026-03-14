@@ -36,6 +36,8 @@ import CircularNav from "@/components/circular-nav";
 import KYCVerificacao from "@/pages/kyc-verificacao";
 import WaaSDashboard from "@/pages/admin/waas-dashboard";
 import GamificationDashboard from "@/pages/organizer/gamification-dashboard";
+import MinhaJornada from "@/pages/minha-jornada";
+import RankingOrganizadores from "@/pages/ranking-organizadores";
 import ExcursaoLanding from "@/pages/excursao-landing";
 import FinancialDashboard from "@/pages/superadmin/financial-dashboard";
 import LiveChat from "@/pages/superadmin/live-chat";
@@ -92,6 +94,8 @@ function Router() {
       <Route path="/waas" component={WaaSDashboard} />
       <Route path="/organizer/metas" component={GamificationDashboard} />
       <Route path="/metas" component={GamificationDashboard} />
+      <Route path="/minha-jornada" component={MinhaJornada} />
+      <Route path="/ranking-organizadores" component={RankingOrganizadores} />
       <Route path="/admin/super-financeiro" component={FinancialDashboard} />
       <Route path="/super-financeiro" component={FinancialDashboard} />
       <Route path="/admin/live-chat" component={LiveChat} />

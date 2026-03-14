@@ -1490,6 +1490,18 @@ export async function registerRoutes(
       await mutateDb((db) => {
         db.gamificationExtraSeats = ((db.gamificationExtraSeats as number) ?? 0) + 1;
       });
+      const pontos = Math.round(amount);
+      if (pontos > 0) {
+        await mutateDb((db) => {
+          if (!db.pontosStore) db.pontosStore = {};
+          const store = db.pontosStore as Record<string, number>;
+          store[passengerName] = (store[passengerName] ?? 0) + pontos;
+          if (!db.pontosHistoricoStore) db.pontosHistoricoStore = {};
+          const hist = db.pontosHistoricoStore as Record<string, Array<{ data: string; motivo: string; valor: number }>>;
+          if (!hist[passengerName]) hist[passengerName] = [];
+          hist[passengerName].push({ data: new Date().toISOString(), motivo: `Pagamento PIX — Excursão`, valor: pontos });
+        });
+      }
     }
     return res.json({ received: true });
   });
@@ -1602,6 +1614,93 @@ export async function registerRoutes(
     });
 
     return res.json({ success: true, message: "Recompensa registrada. Entraremos em contato em até 48h." });
+  });
+
+  // ─────────────────────────────────────────────
+  // NTX — Passenger Gamification (Pontos / Conquistas / Ranking)
+  // ─────────────────────────────────────────────
+  interface PontosEvento { data: string; motivo: string; valor: number; }
+
+  const CONQUISTAS_DEFS = [
+    { id: "primeira-viagem", titulo: "Primeira Viagem", descricao: "Fez sua primeira reserva confirmada", icone: "🌟", threshold: 1 },
+    { id: "grupo-de-5", titulo: "Grupo de 5", descricao: "Participou de um grupo com 5+ pessoas", icone: "🤝", threshold: 5 },
+    { id: "fiel-caldas", titulo: "Fiel Caldas Novas", descricao: "3 viagens confirmadas para Caldas Novas", icone: "🏆", threshold: 3 },
+    { id: "mil-pontos", titulo: "Mil Pontos", descricao: "Acumulou 1.000 pontos no programa", icone: "💎", threshold: 1000 },
+    { id: "embaixador", titulo: "Embaixador RSV", descricao: "Acumulou 5.000 pontos no programa", icone: "👑", threshold: 5000 },
+  ];
+
+  app.get("/api/gamification/pontos", async (req: Request, res: Response) => {
+    const userId = req.session?.userId;
+    if (!userId) return res.json({ pontos: 0, streak: 0, nome: "Visitante" });
+    const user = await storage.getUser(userId);
+    const nome = user?.nome ?? "Visitante";
+
+    const result = await mutateDb((db) => {
+      const store = (db.pontosStore as Record<string, number>) ?? {};
+      const pontos = store[nome] ?? 0;
+      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string }>) ?? [];
+      const confirmedCount = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada").length;
+      return { pontos, streak: confirmedCount };
+    });
+
+    return res.json({ pontos: result.pontos, streak: result.streak, nome });
+  });
+
+  app.get("/api/gamification/historico", async (req: Request, res: Response) => {
+    const userId = req.session?.userId;
+    if (!userId) return res.json({ historico: [] });
+    const user = await storage.getUser(userId);
+    const nome = user?.nome ?? "Visitante";
+
+    const historico = await mutateDb((db) => {
+      const hist = (db.pontosHistoricoStore as Record<string, PontosEvento[]>) ?? {};
+      return (hist[nome] ?? []).slice(-50).reverse();
+    });
+
+    return res.json({ historico });
+  });
+
+  app.get("/api/gamification/conquistas", async (req: Request, res: Response) => {
+    const userId = req.session?.userId;
+    if (!userId) return res.json({ conquistas: CONQUISTAS_DEFS.map(c => ({ ...c, desbloqueada: false })) });
+    const user = await storage.getUser(userId);
+    const nome = user?.nome ?? "Visitante";
+
+    const { pontos, confirmedCount } = await mutateDb((db) => {
+      const store = (db.pontosStore as Record<string, number>) ?? {};
+      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string }>) ?? [];
+      return {
+        pontos: store[nome] ?? 0,
+        confirmedCount: reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada").length,
+      };
+    });
+
+    const conquistas = CONQUISTAS_DEFS.map(c => {
+      let desbloqueada = false;
+      if (c.id === "primeira-viagem") desbloqueada = confirmedCount >= c.threshold;
+      else if (c.id === "grupo-de-5") desbloqueada = confirmedCount >= c.threshold;
+      else if (c.id === "fiel-caldas") desbloqueada = confirmedCount >= c.threshold;
+      else if (c.id === "mil-pontos") desbloqueada = pontos >= c.threshold;
+      else if (c.id === "embaixador") desbloqueada = pontos >= c.threshold;
+      return { ...c, desbloqueada };
+    });
+
+    return res.json({ conquistas });
+  });
+
+  app.get("/api/gamification/ranking-organizadores", async (_req: Request, res: Response) => {
+    const allUsers = await mutateDb((db) => {
+      const reservas = (db.reservaStore as Array<{ passageiroId: string; passageiroNome: string; status: string }>) ?? [];
+      const confirmed = reservas.filter(r => r.status === "confirmada");
+      const countMap: Record<string, { nome: string; vagas: number }> = {};
+      for (const r of confirmed) {
+        if (!countMap[r.passageiroId]) countMap[r.passageiroId] = { nome: r.passageiroNome, vagas: 0 };
+        countMap[r.passageiroId].vagas++;
+      }
+      return Object.values(countMap).sort((a, b) => b.vagas - a.vagas).slice(0, 10);
+    });
+
+    return res.json({ ranking: allUsers });
   });
 
   // ─────────────────────────────────────────────

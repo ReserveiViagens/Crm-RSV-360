@@ -165,5 +165,13 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 - `server/services/humanHandoff.service.ts` — pauseAI/resumeAI with WebSocket events
 - API: POST /api/handoff/:groupId/pausar, POST /api/handoff/:groupId/retomar
 
+### T008 — Pontos do Passageiro + Minha Jornada RSV + Ranking
+- `client/src/pages/minha-jornada.tsx` — route `/minha-jornada`: pontos reais, streak, conquistas, histórico, CTA
+- `client/src/pages/ranking-organizadores.tsx` — route `/ranking-organizadores`: pódio top 3, tabela 4-10
+- API: GET /api/gamification/pontos, /historico, /conquistas, /ranking-organizadores
+- Webhook POST /api/webhook/payment credita 1pt/R$1 em pontosStore[passengerName]
+- Perfil (`perfil.tsx`) busca saldo real e navega para /minha-jornada
+- Admin sidebar tem link "Ranking" para /ranking-organizadores
+
 ### Admin Dashboard NTX Section
 Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links to all new modules.

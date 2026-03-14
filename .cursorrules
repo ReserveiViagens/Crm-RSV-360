@@ -745,7 +745,26 @@ Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
 - `btn-landing-cadastrar` — botão "Cadastrar" na landing (para não-logados)
 - `section-pix-grupo` — seção PIX dentro do grupo autenticado
 
-### 12.14 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
+### 12.14 Pontos do Passageiro + Minha Jornada RSV + Ranking (T008)
+- **Sistema de Pontos**: 1 ponto por R$1 pago via PIX. Creditado pelo `POST /api/webhook/payment` → `pontosStore[passengerName]` + evento em `pontosHistoricoStore[passengerName]`
+- **Endpoints**:
+  - `GET /api/gamification/pontos` → `{ pontos, streak, nome }` (streak = nº reservas confirmadas do usuário logado)
+  - `GET /api/gamification/historico` → `{ historico: [{ data, motivo, valor }] }` (últimos 50, reversed)
+  - `GET /api/gamification/conquistas` → `{ conquistas: [{ id, titulo, descricao, icone, threshold, desbloqueada }] }`
+  - `GET /api/gamification/ranking-organizadores` → `{ ranking: [{ nome, vagas }] }` (top 10 por reservas confirmadas)
+- **Conquistas disponíveis**: primeira-viagem (1 reserva), grupo-de-5 (5 reservas), fiel-caldas (3 reservas), mil-pontos (1000 pts), embaixador (5000 pts)
+- **Página Minha Jornada RSV**: `client/src/pages/minha-jornada.tsx` → rota `/minha-jornada`
+  - Saldo de pontos (🪙 gradiente laranja) + Streak/viagens confirmadas (🔥 gradiente vermelho)
+  - Grid de conquistas com badges bloqueadas/desbloqueadas
+  - Histórico de pontos com data/motivo/valor
+  - Card CTA "Acumule mais pontos viajando com a RSV360!"
+- **Página Ranking Organizadores**: `client/src/pages/ranking-organizadores.tsx` → rota `/ranking-organizadores`
+  - Pódio visual (🥇🥈🥉) top 3 + tabela 4–10
+  - Link no sidebar do admin-dashboard (`link-sidebar-ranking`)
+- **Perfil atualizado**: `perfil.tsx` busca saldo real via `useQuery` ao `/api/gamification/pontos`, card "Meus Pontos" clicável navega para `/minha-jornada`, menu item "Minha Jornada RSV" com ícone Trophy
+- **data-testids**: `minha-jornada-page`, `card-saldo-pontos`, `card-streak`, `section-conquistas`, `conquista-{id}`, `section-historico-pontos`, `historico-item-{i}`, `card-cta-pontos`, `link-explorar-viagens`, `card-meus-pontos`, `text-pontos-saldo`, `ranking-organizadores-page`, `podium-{1,2,3}`, `tabela-ranking-restantes`, `ranking-row-{n}`, `link-sidebar-ranking`
+
+### 12.15 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
 
 #### Conceito
 - Somente usuários com `role === "LIDER"` ou `role === "admin"` podem criar excursões.

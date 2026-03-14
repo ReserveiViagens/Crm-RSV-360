@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft, User, Star, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays, Mail, Phone, Loader2, Camera, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, User, Star, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays, Mail, Phone, Loader2, Camera, CheckCircle2, Trophy } from "lucide-react"
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth, useLogout } from "@/hooks/use-auth";
 import { SelfieModal } from "@/components/selfie/SelfieModal";
 
@@ -11,6 +12,7 @@ const RESERVATIONS = [
 
 const MENU_ITEMS = [
   { icon: CalendarDays, label: "Minhas Reservas", href: "#", badge: "2" },
+  { icon: Trophy, label: "Minha Jornada RSV", href: "/minha-jornada" },
   { icon: Star, label: "Avaliações", href: "#" },
   { icon: Award, label: "Programa de Fidelidade", href: "#" },
   { icon: Bell, label: "Notificações", href: "#", badge: "3" },
@@ -23,6 +25,11 @@ export default function PerfilPage() {
   const logout = useLogout();
   const [selfieAberto, setSelfieAberto] = useState(false);
   const [fotoLocal, setFotoLocal] = useState<string | null>(null);
+
+  const { data: pontosData } = useQuery<{ pontos: number; streak: number; nome: string }>({
+    queryKey: ["/api/gamification/pontos"],
+  });
+  const pontosReais = pontosData?.pontos ?? 0;
 
   const displayName = user?.nome ?? "Visitante";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -248,17 +255,19 @@ export default function PerfilPage() {
         </div>
 
         {/* Points */}
-        <div style={{ background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" }}>Meus Pontos</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, background: "linear-gradient(135deg, #FFF7ED, #FFEDD5)", borderRadius: 12 }}>
-            <div style={{ fontSize: 28 }}>🪙</div>
-            <div>
-              <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 2px" }}>Balance pontos</p>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "#F57C00" }}>1.500</div>
+        <Link href="/minha-jornada" style={{ textDecoration: "none" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.08)", cursor: "pointer" }} data-testid="card-meus-pontos">
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" }}>Meus Pontos</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, background: "linear-gradient(135deg, #FFF7ED, #FFEDD5)", borderRadius: 12 }}>
+              <div style={{ fontSize: 28 }}>🪙</div>
+              <div>
+                <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 2px" }}>Saldo de pontos</p>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "#F57C00" }} data-testid="text-pontos-saldo">{pontosReais.toLocaleString("pt-BR")}</div>
+              </div>
+              <ChevronRight style={{ width: 20, height: 20, color: "#9CA3AF", marginLeft: "auto" }} />
             </div>
-            <ChevronRight style={{ width: 20, height: 20, color: "#9CA3AF", marginLeft: "auto" }} />
           </div>
-        </div>
+        </Link>
 
         {/* Settings menu */}
         <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
