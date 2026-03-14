@@ -1,0 +1,36 @@
+O que ainda falta para o Task #2 ❌
+Proposta do que construir A abordagem mais limpa é evoluir catalogo-excursoes.tsx (sem reescrever do zero): crie um plano detalhado robusto e co,mpleto para mim.
+
+1°.  Busca por localização — Só existe busca genérica por texto. Faltam os 3 modos: CEP (com ViaCEP), cidade e estado como campo de localização dedicado
+2°.  Integração ViaCEP — Nenhuma chamada à API pública viacep.com.br existe no projeto
+3°.  Dados mock insuficientes — Apenas 6 excursões, sem campo CEP/localidade de origem. O spec pede 15–20 com filtro por proximidade geográfica
+4°.  Estado vazio com CaldasAI — O estado vazio atual só mostra "Nenhuma excursão encontrada" + limpar filtros. Falta a CaldasAI aparecer sugerindo criar excursão para a região + botão WhatsApp
+5°.  Filtro de faixa de preço e data — Não existem como controles dedicados (só ordenação)
+6°.  Excursões com mais cidades de saída — Todas as 6 partem de Goiânia/GO. Para busca por proximidade funcionar, precisa de registros com diferentes cidades/estados de origem
+7°.  Adicionar campo de localização dedicado com modo CEP/cidade/estado acima da busca atual
+8°.  Integrar ViaCEP no modo CEP para autocompletar
+9°.  Expandir os dados mock para 15–20 excursões com campo cidadeSaida/cepSaida
+10°. Melhorar o estado vazio com o CaldasAI + WhatsApp
+11°. Adicionar slider/select de faixa de preço e filtro de data
+
+e ao final realize o commit e push para o github e atualize o documento com todas estas modificaçoes para que o cursor ai Arquivo .cursorrules criado com as regras completas para o Cursor AI:
+
+Seção O que cobre
+
+Stack obrigatória Vite, wouter, TanStack Query v5, shadcn/ui, lucide-react, Express
+Design System Tokens de cor HSL, hierarquia semântica (sucesso/alerta/erro/premium)
+Componentes Cards, botões, badges, inputs, hero sections, seções CTA, layout de página
+Estrutura de arquivos Onde cada arquivo vai (pages, components, lib, server, shared)
+Rotas registradas Todas as 30+ URLs com os componentes corretos
+Regras de código TanStack Query v5, formulários, data-testid, WebSocket, dark mode
+Navegação circular Como adicionar itens ao menu
+Backend Padrão de rotas + WebSocket broadcast
+Conteúdo pt-BR, formatação de moeda e datas
+O que NUNCA fazer 15 regras proibidas (Next.js, process.env, react import, etc.)
+Para fazer o push ao GitHub agora:
+Clique no ícone de ramo (branch) na barra lateral esquerda do Replit
+Clique em "Connect to GitHub"
+Escolha o repositório CRM-RSV-360
+Mensagem sugerida: feat: landing excursoes, cursorrules design system, route fixes, social commerce
+Commit & Push
+A partir daí, toda vez que você abrir o projeto no Cursor AI, ele vai ler o .cursorrules automaticamente e seguir exatamente o mesmo design e arquitetura que foi construído aqui — mesmos componentes, mesmos padrões de código, mesmo visual.

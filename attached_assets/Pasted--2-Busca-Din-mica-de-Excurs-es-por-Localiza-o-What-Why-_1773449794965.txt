@@ -1,0 +1,32 @@
+#2 - Busca Dinâmica de Excursões por Localização
+What & Why
+Criar a página /excursoes (que hoje não existe) com busca inteligente por localização: CEP, estado, cidade ou bairro. O sistema filtra as excursões disponíveis por proximidade. Quando não encontra resultados, a IA sugere criar uma excursão para a região do usuário, gerando engajamento e capturando leads. Hoje o App.tsx não tem rota /excursoes e não existe excursoes.tsx.
+
+Done looks like
+Rota /excursoes funcional com lista de excursões mock (15-20 registros com cidades, datas, vagas, preços)
+Campo de busca por localização com 3 modos: CEP (integra ViaCEP para autocompletar cidade/estado), cidade ou estado
+Filtros adicionais: tipo de passeio, faixa de preço, data, vagas disponíveis
+Resultados filtrados em tempo real com animação de entrada
+Estado "sem resultados": CaldasAI aparece com sugestão personalizada de criar excursão para aquela região + botão WhatsApp para contato
+Cada card de excursão tem: foto (emoji/ícone), cidade, data, vagas restantes, preço, badge de desconto, botão "Quero Participar" / "Entrar no Grupo"
+Botão "Quero Participar" integra com o fluxo de auth da Task #2 (redireciona para /cadastrar se não logado)
+Design mobile-first consistente com o restante do app (inline styles, paleta de cores da marca)
+Out of scope
+Backend real de excursões (dados mock hardcoded)
+Integração com Google Maps para mapa de resultados
+Filtro por avaliações/reviews
+Pagamento online (só captura de interesse via WhatsApp)
+Tasks
+Dados mock de excursões — Criar array de 15-20 excursões com campos: id, destino, cidade, estado, CEP, data, vagas, vagasTotal, preco, desconto, tipo (Família/Aventura/Relax/Cultura), operador.
+
+Integração ViaCEP — Implementar busca por CEP usando a API pública ViaCEP (https://viacep.com.br/ws/{cep}/json/) para autocompletar cidade e estado no campo de busca, sem precisar de chave de API.
+
+Página /excursoes e filtros — Criar excursoes.tsx com header de busca por localização, chips de filtro rápido, grid de cards de excursões com filtro reativo, e estado vazio com sugestão da IA.
+
+Rota e navegação — Adicionar /excursoes no App.tsx, adicionar link no CircularNav ou na home para a página, e garantir que o botão "Ver Excursões Disponíveis" em /viagens-grupo aponte para /excursoes.
+
+Relevant files
+client/src/App.tsx
+client/src/pages/viagens-grupo.tsx
+client/src/components/circular-nav.tsx
+client/src/pages/home.tsx
