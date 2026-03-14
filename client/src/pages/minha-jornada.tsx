@@ -75,7 +75,7 @@ export default function MinhaJornadaPage() {
             data-testid="card-streak"
           >
             <Flame className="w-8 h-8 mx-auto mb-1 text-red-500" />
-            <p className="text-xs text-red-700 font-medium mb-1">Viagens Confirmadas</p>
+            <p className="text-xs text-red-700 font-medium mb-1">Sequência Consecutiva</p>
             <p className="text-3xl font-black text-red-500">{streak}</p>
           </div>
         </div>

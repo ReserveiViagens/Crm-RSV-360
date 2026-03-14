@@ -1639,16 +1639,21 @@ export async function registerRoutes(
       const store = (db.pontosStore as Record<string, number>) ?? {};
       const pontos = store[nome] ?? 0;
       const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string; criadaEm: Date }>) ?? [];
-      const userReservas = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
-      const distinctTrips = [...new Set(userReservas.map(r => r.excursaoId))];
-      const sortedTrips = distinctTrips.sort((a, b) => {
-        const dateA = userReservas.find(r => r.excursaoId === a)?.criadaEm ?? new Date(0);
-        const dateB = userReservas.find(r => r.excursaoId === b)?.criadaEm ?? new Date(0);
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
+      const allUserReservas = reservas.filter(r => r.passageiroNome === nome);
+      const tripMap: Record<string, { confirmed: boolean; date: Date }> = {};
+      for (const r of allUserReservas) {
+        if (!tripMap[r.excursaoId] || r.status === "confirmada") {
+          tripMap[r.excursaoId] = {
+            confirmed: r.status === "confirmada",
+            date: new Date(r.criadaEm),
+          };
+        }
+      }
+      const sortedTrips = Object.values(tripMap).sort((a, b) => b.date.getTime() - a.date.getTime());
       let streak = 0;
-      for (const _ of sortedTrips) {
-        streak++;
+      for (const trip of sortedTrips) {
+        if (trip.confirmed) streak++;
+        else break;
       }
       return { pontos, streak };
     });
@@ -1677,26 +1682,34 @@ export async function registerRoutes(
     const nome = user?.nome ?? "Visitante";
 
     const excursoes = await listExcursoes();
-    const { pontos, confirmedCount, caldasCount } = await mutateDb((db) => {
+    const { pontos, confirmedCount, caldasCount, inGroupOf5 } = await mutateDb((db) => {
       const store = (db.pontosStore as Record<string, number>) ?? {};
       const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string }>) ?? [];
+      const memberships = (db.membershipStore as Array<{ groupId: string; userId: string; status: string }>) ?? [];
       const userConfirmed = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
       const distinctTrips = [...new Set(userConfirmed.map(r => r.excursaoId))];
       const caldasTrips = distinctTrips.filter(excId => {
         const exc = excursoes.find(e => e.id === excId);
         return exc?.destino?.toLowerCase().includes("caldas") ?? false;
       });
+      let inGroupOf5 = false;
+      for (const excId of distinctTrips) {
+        const groupId = `grp-${excId}`;
+        const groupMembers = memberships.filter(m => m.groupId === groupId && (m.status === "MEMBER" || m.status === "ADMIN"));
+        if (groupMembers.length >= 5) { inGroupOf5 = true; break; }
+      }
       return {
         pontos: store[nome] ?? 0,
         confirmedCount: distinctTrips.length,
         caldasCount: caldasTrips.length,
+        inGroupOf5,
       };
     });
 
     const conquistas = CONQUISTAS_DEFS.map(c => {
       let desbloqueada = false;
       if (c.id === "primeira-viagem") desbloqueada = confirmedCount >= c.threshold;
-      else if (c.id === "grupo-de-5") desbloqueada = confirmedCount >= c.threshold;
+      else if (c.id === "grupo-de-5") desbloqueada = inGroupOf5;
       else if (c.id === "fiel-caldas") desbloqueada = caldasCount >= c.threshold;
       else if (c.id === "mil-pontos") desbloqueada = pontos >= c.threshold;
       else if (c.id === "embaixador") desbloqueada = pontos >= c.threshold;
