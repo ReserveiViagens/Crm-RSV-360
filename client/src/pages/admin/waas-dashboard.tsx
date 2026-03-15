@@ -96,6 +96,9 @@ export default function WaaSDashboard() {
 
   const { data: gruposData } = useQuery<{ success: boolean; demo: boolean; groups: Array<{ id: string; subject: string; size: number; owner: string }> }>({
     queryKey: ["/api/waas/grupos"],
+    enabled: isDemo || isConnected,
+    refetchInterval: isConnected ? 60000 : false,
+    staleTime: 30000,
   });
 
   const createInstanceMut = useMutation({
