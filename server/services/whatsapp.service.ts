@@ -125,6 +125,9 @@ export async function fetchAllGroups() {
   if (IS_DEMO) {
     return { success: true, demo: true, groups: [] };
   }
+  if (cachedConnectionState !== "open") {
+    return { success: true, demo: false, groups: [], message: "WhatsApp não conectado" };
+  }
   try {
     const result = await evolutionGet(`/group/fetchAllGroups/${INSTANCE_NAME}?getParticipants=false`);
     const groups = Array.isArray(result) ? result : (result?.groups || result?.data || []);

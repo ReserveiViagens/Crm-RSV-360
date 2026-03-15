@@ -158,7 +158,7 @@ export default function WaaSDashboard() {
     isProvisioned: true,
   }));
 
-  const groups: WaasGroup[] = isDemo ? MOCK_GROUPS : (mappedRealGroups.length > 0 ? mappedRealGroups : MOCK_GROUPS);
+  const groups: WaasGroup[] = isDemo ? MOCK_GROUPS : mappedRealGroups;
   const totalMembers = groups.reduce((s, g) => s + g.members, 0);
   const activeGroups = groups.filter((g) => g.isProvisioned).length;
 
@@ -348,6 +348,19 @@ export default function WaaSDashboard() {
                   </tr>
                 </thead>
                 <tbody>
+                  {groups.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                        <p className="text-sm font-medium">Nenhum grupo encontrado</p>
+                        <p className="text-xs mt-1">
+                          {!isDemo && !isConnected
+                            ? "Conecte o WhatsApp para ver os grupos reais"
+                            : "Crie um grupo de excursão para começar"}
+                        </p>
+                      </td>
+                    </tr>
+                  )}
                   {groups.map((g) => (
                     <tr key={g.id} className="border-b border-border last:border-0 hover:bg-muted/20" data-testid={`waas-group-row-${g.id}`}>
                       <td className="px-4 py-3">
