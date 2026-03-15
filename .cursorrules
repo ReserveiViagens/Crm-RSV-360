@@ -887,3 +887,54 @@ Botões:
 - `buscarCEP(cep: string): Promise<ViaCEPResult>` — GET `https://viacep.com.br/ws/{cep}/json/`
 - `formatCEP(value: string): string` — máscara `XXXXX-XXX`
 - `ESTADOS_BR`: array de `{ uf, nome }` com 27 estados brasileiros
+
+---
+
+## 16. ADMIN QUICK ACTIONS — 5 Sub-páginas Operacionais (commit `0d01097`)
+
+### T008-T002 — Nova Reserva (`/admin/nova-reserva`)
+- `client/src/pages/admin/nova-reserva.tsx`
+- Formulário completo: busca de cliente com autocomplete (nome/CPF), seleção de destino, datas, nº passageiros, valor, método de pagamento, observações
+- Gera código `RSV-{timestamp}` ao submeter
+- `data-testid`: `page-nova-reserva`, `form-nova-reserva`, `input-busca-cliente`, `sugestao-cliente-{id}`, `select-destino`, `button-criar-reserva`
+
+### T008-T002 — Clientes (`/admin/clientes`)
+- `client/src/pages/admin/clientes.tsx`
+- Tabela com busca (nome/CPF/email), filtro por status (ativo/lead/inativo), paginação (6 por página)
+- Modal inline para cadastro de novo cliente
+- Detalhe expandível ao clicar "Ver"
+- `data-testid`: `page-clientes`, `table-clientes`, `input-busca-clientes`, `select-filtro-status`, `button-novo-cliente`, `row-cliente-{id}`, `button-ver-cliente-{id}`
+
+### T008-T002 — CRM Atendimento (`/admin/crm`)
+- `client/src/pages/admin/crm.tsx`
+- Painel split: lista de clientes à esquerda (com busca/filtro), timeline de interações à direita
+- Tipos de interação: Ligação, WhatsApp, E-mail, Reunião (com ícones e cores distintas)
+- Formulário para adicionar nova interação com seleção de tipo
+- `data-testid`: `page-crm`, `input-busca-crm`, `crm-cliente-{id}`, `crm-nome-selecionado`, `input-nova-interacao`, `button-enviar-interacao`, `interacao-{id}`
+
+### T008-T002 — Relatório Mensal (`/admin/relatorio-mensal`)
+- `client/src/pages/admin/relatorio-mensal.tsx`
+- Seletor de mês/ano com dados gerados proceduralmente
+- 4 KPIs: Receita Total, Nº de Reservas, Ticket Médio, Novos Clientes
+- Gráfico recharts (BarChart) de receita por semana
+- Tabela de reservas do período com status badges
+- Export CSV funcional
+- `data-testid`: `page-relatorio-mensal`, `select-mes`, `select-ano`, `kpi-{0-3}`, `table-reservas-relatorio`, `button-exportar-csv`
+
+### T008-T002 — Configurações do Sistema (`/admin/configuracoes-sistema`)
+- `client/src/pages/admin/configuracoes-sistema.tsx`
+- 3 abas: Empresa (razão social, CNPJ, endereço), Pagamento (chave PIX, taxas MDR/ISS, dados bancários split), Notificações (canais de envio com toggles, tipos de alerta)
+- Botão "Salvar Configurações" com loading state
+- `data-testid`: `page-configuracoes-sistema`, `tab-empresa`, `tab-pagamento`, `tab-notificacoes`, `button-salvar-config`, `toggle-canal{Email|WhatsApp|SMS|Push}`
+
+### Dashboard Quick Actions atualizado
+Os 5 quickActions do `admin-dashboard.tsx` apontam para as rotas reais:
+- Nova Reserva → `/admin/nova-reserva`
+- Adicionar Cliente → `/admin/clientes`
+- CRM - Atendimento → `/admin/crm`
+- Relatório Mensal → `/admin/relatorio-mensal`
+- Configurações → `/admin/configuracoes-sistema`
+
+### Sidebar atualizada
+Seção "Operacional": Nova Reserva, Clientes, CRM, Relatório Mensal (novos), + FNRH, Contratos, etc (existentes).
+Seção "Conformidade": Config. Sistema (novo) + Configurações Conta (existente, aponta `/configuracoes`).

@@ -205,3 +205,12 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 
 ### Admin Dashboard NTX Section
 Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links to all new modules.
+
+### Admin Quick Action Pages (commit `0d01097`)
+5 operational sub-pages connected to dashboard quick actions:
+- `/admin/nova-reserva` — `client/src/pages/admin/nova-reserva.tsx` — booking form with client autocomplete, destination select, payment method
+- `/admin/clientes` — `client/src/pages/admin/clientes.tsx` — client table with search/filter/pagination, inline add form, expandable detail
+- `/admin/crm` — `client/src/pages/admin/crm.tsx` — split panel: client list + interaction timeline, add new interaction (Ligação/WhatsApp/E-mail/Reunião)
+- `/admin/relatorio-mensal` — `client/src/pages/admin/relatorio-mensal.tsx` — month/year selector, 4 KPIs, recharts BarChart, reservations table, CSV export
+- `/admin/configuracoes-sistema` — `client/src/pages/admin/configuracoes-sistema.tsx` — 3 tabs (Empresa/Pagamento/Notificações), toggles for notification channels and alert types
+All routes protected with `ProtectedRoute roles={["admin"]}`. Dashboard quick actions and sidebar updated to point to real routes.
