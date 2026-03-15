@@ -113,6 +113,7 @@ Preferred communication style: Simple, everyday language.
 - `DATABASE_URL` — PostgreSQL connection string (required for Drizzle)
 - `EVOLUTION_API_URL` — Evolution API base URL for WhatsApp WaaS (optional, demo mode if absent)
 - `EVOLUTION_API_KEY` — Evolution API key (optional, demo mode if absent)
+- `EVOLUTION_INSTANCE_NAME` — Evolution API instance name (optional, defaults to "CaldasMaster")
 - `GATEWAY_API_URL` — Payment gateway base URL for split Pix (optional, demo mode if absent)
 - `GATEWAY_API_KEY` — Payment gateway key (optional, demo mode if absent)
 - `RESERVEI_RECIPIENT_ID` — Platform split payment recipient ID
@@ -132,10 +133,18 @@ Seven new modules implemented as "NTX" phase (commit `cca8dd6b`):
 
 ### T002 — WhatsApp WaaS (Evolution API)
 - Route: `/admin/waas`
-- `server/services/whatsapp.service.ts` — createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, humanDelay() anti-ban
-- `client/src/pages/admin/waas-dashboard.tsx` — groups table, create group modal, intervene, send poll
+- `server/services/whatsapp.service.ts` — createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, humanDelay() anti-ban, **createInstance, getInstanceStatus, getQRCode, deleteInstance, fetchAllGroups, handleWebhookEvent**
+- `client/src/pages/admin/waas-dashboard.tsx` — **connection card** (QR code / connected badge / demo alert), groups table, create group modal, intervene, send poll
 - API: POST /api/waas/criar-grupo, POST /api/waas/:id/mensagem, POST /api/waas/:id/enquete
+- **Instance management API** (Evolution API real mode):
+  - `POST /api/waas/instancia` — create instance
+  - `GET /api/waas/instancia/status` — connection state (open/connecting/close) + phone number
+  - `GET /api/waas/instancia/qrcode` — QR code base64 for scanning
+  - `DELETE /api/waas/instancia` — disconnect/logout instance
+  - `POST /api/waas/webhook` — receive Evolution API events (connection.update, messages.upsert)
+  - `GET /api/waas/grupos` — fetch real groups when connected, empty array in demo
 - **Demo mode**: works without env vars, returns mock responses
+- **Real mode**: dashboard shows QR code for connection (auto-refresh 30s), connected phone number, disconnect button, real groups list
 
 ### T003 — Split Pix Payment
 - `server/services/payment.service.ts` — createSplitPaymentPix (demo mode if no gateway env vars)

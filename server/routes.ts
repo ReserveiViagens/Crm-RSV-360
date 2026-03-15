@@ -12,7 +12,7 @@ import {
   chamarProximoDaFila,
 } from "./reservas";
 import { emitEstadoGrupo, emitPixExpirado, emitVigilancia } from "./socket";
-import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus } from "./services/whatsapp.service";
+import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus, createInstance, getInstanceStatus, getQRCode, deleteInstance, fetchAllGroups, handleWebhookEvent } from "./services/whatsapp.service";
 import { createSplitPaymentPix, checkPaymentStatus } from "./services/payment.service";
 import { pauseAI, resumeAI, isAIPaused, getHandoffInfo, listPausedGroups } from "./services/humanHandoff.service";
 import {
@@ -1500,8 +1500,62 @@ export async function registerRoutes(
     res.json(getWaasStatus());
   });
 
-  app.get("/api/waas/grupos", (_req: Request, res: Response) => {
-    res.json([]);
+  app.post("/api/waas/instancia", async (_req: Request, res: Response) => {
+    try {
+      const result = await createInstance();
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.get("/api/waas/instancia/status", async (_req: Request, res: Response) => {
+    try {
+      const result = await getInstanceStatus();
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.get("/api/waas/instancia/qrcode", async (_req: Request, res: Response) => {
+    try {
+      const result = await getQRCode();
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.delete("/api/waas/instancia", async (_req: Request, res: Response) => {
+    try {
+      const result = await deleteInstance();
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  app.post("/api/waas/webhook", (req: Request, res: Response) => {
+    const body = req.body as Record<string, unknown>;
+    const event = (body?.event as string) || "unknown";
+    const data = (body?.data as Record<string, unknown>) || body;
+    handleWebhookEvent(event, data);
+    return res.json({ received: true });
+  });
+
+  app.get("/api/waas/grupos", async (_req: Request, res: Response) => {
+    try {
+      const result = await fetchAllGroups();
+      return res.json(result);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro interno";
+      return res.status(500).json({ error: msg });
+    }
   });
 
   app.post("/api/waas/criar-grupo", async (req: Request, res: Response) => {

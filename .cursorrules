@@ -548,18 +548,37 @@ useLogout()       // mutationFn POST /api/auth/logout, limpa cache
 ### 12.2 WhatsApp WaaS — Evolution API (T002)
 - **Serviço**: `server/services/whatsapp.service.ts`
 - **Modo demo automático**: Se `EVOLUTION_API_URL` ou `EVOLUTION_API_KEY` ausentes → todas as funções retornam mock `{ success: true, demo: true }` sem lançar erros
+- **`INSTANCE_NAME`**: Lê de `EVOLUTION_INSTANCE_NAME` env var com fallback `"CaldasMaster"`
+- **Estado em memória**: `cachedConnectionState` (open/connecting/close) e `cachedPhoneNumber` — atualizados por polling e webhook
 - **Funções exportadas**:
   - `createExcursionGroup(groupName, organizerPhone)` — cria grupo, promove admin, envia boas-vindas via CaldasAI
   - `sendTextToGroup(groupId, text)` — envia mensagem com `humanDelay()` anti-ban (3-7s aleatório)
   - `sendPollToGroup(groupId, question, options)` — envia enquete (singleCount=1)
   - `sendPaymentConfirmation(groupId, passengerName, amount)` — mensagem de celebração
-  - `getWaasStatus()` — retorna `{ configured, demo, instance, apiUrl }`
+  - `getWaasStatus()` — retorna `{ configured, demo, instance, apiUrl, state, phoneNumber }`
+  - `createInstance()` — cria instância na Evolution API (`/instance/create`) com `qrcode: true`
+  - `getInstanceStatus()` — consulta `/instance/connectionState/{name}`, atualiza cache em memória
+  - `getQRCode()` — consulta `/instance/connect/{name}`, retorna `{ base64, pairingCode }`
+  - `deleteInstance()` — desconecta via `/instance/logout/{name}`, reseta cache
+  - `fetchAllGroups()` — consulta `/group/fetchAllGroups/{name}?getParticipants=false`
+  - `handleWebhookEvent(event, data)` — processa `connection.update` (atualiza cache) e `messages.upsert` (loga)
 - **Rotas backend**:
-  - `GET /api/waas/status` — status da instância
+  - `GET /api/waas/status` — status geral da instância + state + phoneNumber
+  - `POST /api/waas/instancia` — cria instância
+  - `GET /api/waas/instancia/status` — estado de conexão (open/connecting/close) + número
+  - `GET /api/waas/instancia/qrcode` — QR code base64
+  - `DELETE /api/waas/instancia` — desconecta instância
+  - `POST /api/waas/webhook` — recebe eventos Evolution API
+  - `GET /api/waas/grupos` — grupos reais (conectado) ou vazio (demo)
   - `POST /api/waas/criar-grupo` — `{ name, phone }`
   - `POST /api/waas/:excursaoId/mensagem` — `{ text }`
   - `POST /api/waas/:excursaoId/enquete` — `{ question, options: string[] }`
-- **Frontend**: `client/src/pages/admin/waas-dashboard.tsx` — rota `/admin/waas`, tabela de grupos, dialogs de intervenção
+- **Frontend**: `client/src/pages/admin/waas-dashboard.tsx` — rota `/admin/waas`
+  - **Connection Card**: 3 estados — demo (alerta âmbar com instruções), desconectado (QR code auto-refresh 30s + botão Criar Instância), conectado (badge verde + número + botão Desconectar)
+  - Grupos reais exibidos quando conectado via `/api/waas/grupos`
+  - Tabela de grupos de excursão com MOCK_GROUPS como fallback em demo
+  - Dialogs: criar grupo, enviar mensagem, enviar enquete
+- **Test IDs**: `connection-card`, `btn-create-instance`, `btn-disconnect`, `btn-refresh-qr`, `qr-code-image`, `pairing-code`, `real-groups-card`
 
 ### 12.3 Split de Pagamento Pix (T003)
 - **Serviço**: `server/services/payment.service.ts`
