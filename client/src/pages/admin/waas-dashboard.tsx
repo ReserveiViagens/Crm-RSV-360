@@ -143,11 +143,10 @@ export default function WaaSDashboard() {
     onError: () => toast({ title: "Erro ao enviar enquete", variant: "destructive" }),
   });
 
-  const groups = isDemo ? MOCK_GROUPS : MOCK_GROUPS;
-  const totalMembers = groups.reduce((s, g) => s + g.members, 0);
-  const activeGroups = groups.filter((g) => g.isProvisioned).length;
-
   const realGroups = gruposData?.groups || [];
+  const groups = MOCK_GROUPS;
+  const totalMembers = isDemo ? groups.reduce((s, g) => s + g.members, 0) : realGroups.reduce((s, g) => (s + (g.size || 0)), 0);
+  const activeGroups = isDemo ? groups.filter((g) => g.isProvisioned).length : realGroups.length;
 
   const kycColor = (s: string) =>
     s === "APPROVED" ? "bg-emerald-100 text-emerald-700" :

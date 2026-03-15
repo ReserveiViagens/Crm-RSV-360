@@ -1500,7 +1500,7 @@ export async function registerRoutes(
     res.json(getWaasStatus());
   });
 
-  app.post("/api/waas/instancia", async (_req: Request, res: Response) => {
+  app.post("/api/waas/instancia", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const result = await createInstance();
       return res.json(result);
@@ -1510,7 +1510,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/waas/instancia/status", async (_req: Request, res: Response) => {
+  app.get("/api/waas/instancia/status", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const result = await getInstanceStatus();
       return res.json(result);
@@ -1520,7 +1520,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/waas/instancia/qrcode", async (_req: Request, res: Response) => {
+  app.get("/api/waas/instancia/qrcode", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const result = await getQRCode();
       return res.json(result);
@@ -1530,7 +1530,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/waas/instancia", async (_req: Request, res: Response) => {
+  app.delete("/api/waas/instancia", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const result = await deleteInstance();
       return res.json(result);
@@ -1542,13 +1542,17 @@ export async function registerRoutes(
 
   app.post("/api/waas/webhook", (req: Request, res: Response) => {
     const body = req.body as Record<string, unknown>;
+    const apikey = req.headers["apikey"] || req.query["apikey"];
+    if (process.env.EVOLUTION_API_KEY && apikey !== process.env.EVOLUTION_API_KEY) {
+      return res.status(401).json({ error: "Unauthorized webhook" });
+    }
     const event = (body?.event as string) || "unknown";
     const data = (body?.data as Record<string, unknown>) || body;
     handleWebhookEvent(event, data);
     return res.json({ received: true });
   });
 
-  app.get("/api/waas/grupos", async (_req: Request, res: Response) => {
+  app.get("/api/waas/grupos", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const result = await fetchAllGroups();
       return res.json(result);
