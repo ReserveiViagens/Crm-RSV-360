@@ -143,10 +143,24 @@ export default function WaaSDashboard() {
     onError: () => toast({ title: "Erro ao enviar enquete", variant: "destructive" }),
   });
 
-  const realGroups = gruposData?.groups || [];
-  const groups = MOCK_GROUPS;
-  const totalMembers = isDemo ? groups.reduce((s, g) => s + g.members, 0) : realGroups.reduce((s, g) => (s + (g.size || 0)), 0);
-  const activeGroups = isDemo ? groups.filter((g) => g.isProvisioned).length : realGroups.length;
+  const rawRealGroups = gruposData?.groups || [];
+
+  const mappedRealGroups: WaasGroup[] = rawRealGroups.map((g) => ({
+    id: g.id,
+    excursaoId: g.id,
+    name: g.subject || g.id,
+    waGroupId: g.id,
+    organizer: g.owner || "—",
+    phone: g.owner || "",
+    kycStatus: "APPROVED" as const,
+    members: g.size || 0,
+    paymentProgress: 0,
+    isProvisioned: true,
+  }));
+
+  const groups: WaasGroup[] = isDemo ? MOCK_GROUPS : (mappedRealGroups.length > 0 ? mappedRealGroups : MOCK_GROUPS);
+  const totalMembers = groups.reduce((s, g) => s + g.members, 0);
+  const activeGroups = groups.filter((g) => g.isProvisioned).length;
 
   const kycColor = (s: string) =>
     s === "APPROVED" ? "bg-emerald-100 text-emerald-700" :
@@ -294,29 +308,6 @@ export default function WaaSDashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* Real Groups from Evolution API */}
-        {!isDemo && isConnected && realGroups.length > 0 && (
-          <Card className="mb-6" data-testid="real-groups-card">
-            <CardContent className="p-5">
-              <h2 className="font-bold text-foreground mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                Grupos do WhatsApp ({realGroups.length})
-              </h2>
-              <div className="grid gap-2">
-                {realGroups.map((g) => (
-                  <div key={g.id} className="flex items-center justify-between border rounded-lg px-3 py-2" data-testid={`real-group-${g.id}`}>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">{g.subject}</p>
-                      <p className="text-xs text-muted-foreground">{g.id}</p>
-                    </div>
-                    <Badge variant="outline" className="text-xs">{g.size || "—"} membros</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
