@@ -72,6 +72,7 @@ export async function getInstanceStatus() {
       cachedPhoneNumber = result?.instance?.ownerJid || result?.ownerJid || cachedPhoneNumber;
     } else {
       cachedConnectionState = state === "connecting" ? "connecting" : "close";
+      cachedPhoneNumber = null;
     }
     return {
       configured: true,

@@ -1542,7 +1542,8 @@ export async function registerRoutes(
 
   app.post("/api/waas/webhook", (req: Request, res: Response) => {
     const body = req.body as Record<string, unknown>;
-    const apikey = req.headers["apikey"] || req.query["apikey"];
+    const rawApikey = req.headers["apikey"] || req.query["apikey"];
+    const apikey = Array.isArray(rawApikey) ? rawApikey[0] : String(rawApikey || "");
     if (process.env.EVOLUTION_API_KEY && apikey !== process.env.EVOLUTION_API_KEY) {
       return res.status(401).json({ error: "Unauthorized webhook" });
     }
