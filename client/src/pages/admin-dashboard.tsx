@@ -205,11 +205,11 @@ export default function DashboardRSV() {
   ]);
 
   const quickActions: QuickAction[] = [
-    { title: 'Nova Reserva', description: 'Criar nova reserva para cliente', icon: <Plus className="w-6 h-6" />, action: () => setLocation('/reservations'), color: 'bg-blue-500 hover:bg-blue-600' },
-    { title: 'Adicionar Cliente', description: 'Cadastrar novo cliente', icon: <Users className="w-6 h-6" />, action: () => setLocation('/cadastros'), color: 'bg-green-500 hover:bg-green-600' },
-    { title: 'CRM - Atendimento', description: 'Sistema de gestão de clientes', icon: <UserCheck className="w-6 h-6" />, action: () => setLocation('/crm'), color: 'bg-orange-500 hover:bg-orange-600' },
-    { title: 'Relatório Mensal', description: 'Gerar relatório de vendas', icon: <BarChart3 className="w-6 h-6" />, action: () => setLocation('/reports'), color: 'bg-purple-500 hover:bg-purple-600' },
-    { title: 'Configurações', description: 'Configurar sistema', icon: <Settings className="w-6 h-6" />, action: () => setLocation('/settings'), color: 'bg-gray-500 hover:bg-gray-600' },
+    { title: 'Nova Reserva', description: 'Criar nova reserva para cliente', icon: <Plus className="w-6 h-6" />, action: () => setLocation('/admin/nova-reserva'), color: 'bg-blue-500 hover:bg-blue-600' },
+    { title: 'Adicionar Cliente', description: 'Cadastrar novo cliente', icon: <Users className="w-6 h-6" />, action: () => setLocation('/admin/clientes'), color: 'bg-green-500 hover:bg-green-600' },
+    { title: 'CRM - Atendimento', description: 'Sistema de gestão de clientes', icon: <UserCheck className="w-6 h-6" />, action: () => setLocation('/admin/crm'), color: 'bg-orange-500 hover:bg-orange-600' },
+    { title: 'Relatório Mensal', description: 'Gerar relatório de vendas', icon: <BarChart3 className="w-6 h-6" />, action: () => setLocation('/admin/relatorio-mensal'), color: 'bg-purple-500 hover:bg-purple-600' },
+    { title: 'Configurações', description: 'Configurar sistema', icon: <Settings className="w-6 h-6" />, action: () => setLocation('/admin/configuracoes-sistema'), color: 'bg-gray-500 hover:bg-gray-600' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -329,6 +329,18 @@ export default function DashboardRSV() {
           </nav>
           <h2 style={{ fontSize: 14, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, marginTop: 24, paddingLeft: 12 }}>Operacional</h2>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Link href="/admin/nova-reserva" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-nova-reserva">
+              <Plus className="w-5 h-5" /> Nova Reserva
+            </Link>
+            <Link href="/admin/clientes" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-clientes">
+              <Users className="w-5 h-5" /> Clientes
+            </Link>
+            <Link href="/admin/crm" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-crm">
+              <UserCheck className="w-5 h-5" /> CRM
+            </Link>
+            <Link href="/admin/relatorio-mensal" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-relatorio-mensal">
+              <BarChart3 className="w-5 h-5" /> Relatório Mensal
+            </Link>
             <Link href="/admin/fnrh" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-fnrh">
               <FileSpreadsheet className="w-5 h-5" /> FNRH Digital
             </Link>
@@ -356,8 +368,11 @@ export default function DashboardRSV() {
             <Link href="/admin/lgpd" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-lgpd">
               <Shield className="w-5 h-5" /> LGPD
             </Link>
-            <Link href="/settings" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-config">
-              <Settings className="w-5 h-5" /> Configurações
+            <Link href="/admin/configuracoes-sistema" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-config-sistema">
+              <Settings className="w-5 h-5" /> Config. Sistema
+            </Link>
+            <Link href="/configuracoes" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: '#4B5563', fontSize: 14, textDecoration: 'none' }} data-testid="link-sidebar-config">
+              <Settings className="w-5 h-5" /> Configurações Conta
             </Link>
           </nav>
           <h2 style={{ fontSize: 14, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, marginTop: 24, paddingLeft: 12 }}>🚀 NTX — Next Gen</h2>

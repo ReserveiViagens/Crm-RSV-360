@@ -50,6 +50,11 @@ import Notificacoes from "@/pages/notificacoes";
 import Configuracoes from "@/pages/configuracoes";
 import ProgramaFidelidade from "@/pages/programa-fidelidade";
 import MinhasAvaliacoes from "@/pages/minhas-avaliacoes";
+import AdminNovaReserva from "@/pages/admin/nova-reserva";
+import AdminClientes from "@/pages/admin/clientes";
+import AdminCRM from "@/pages/admin/crm";
+import AdminRelatorioMensal from "@/pages/admin/relatorio-mensal";
+import AdminConfiguracoesSistema from "@/pages/admin/configuracoes-sistema";
 
 function Router() {
   return (
@@ -94,6 +99,11 @@ function Router() {
       <Route path="/admin/contratos">{() => <ProtectedRoute roles={["admin"]}><ContratosExcursao /></ProtectedRoute>}</Route>
       <Route path="/admin/frota-antt">{() => <ProtectedRoute roles={["admin"]}><FrotaANTT /></ProtectedRoute>}</Route>
       <Route path="/admin/frota">{() => <ProtectedRoute roles={["admin"]}><FrotaANTT /></ProtectedRoute>}</Route>
+      <Route path="/admin/nova-reserva">{() => <ProtectedRoute roles={["admin"]}><AdminNovaReserva /></ProtectedRoute>}</Route>
+      <Route path="/admin/clientes">{() => <ProtectedRoute roles={["admin"]}><AdminClientes /></ProtectedRoute>}</Route>
+      <Route path="/admin/crm">{() => <ProtectedRoute roles={["admin"]}><AdminCRM /></ProtectedRoute>}</Route>
+      <Route path="/admin/relatorio-mensal">{() => <ProtectedRoute roles={["admin"]}><AdminRelatorioMensal /></ProtectedRoute>}</Route>
+      <Route path="/admin/configuracoes-sistema">{() => <ProtectedRoute roles={["admin"]}><AdminConfiguracoesSistema /></ProtectedRoute>}</Route>
       <Route path="/admin/excursoes">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/admin/passageiros">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>
