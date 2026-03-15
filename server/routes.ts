@@ -1496,7 +1496,7 @@ export async function registerRoutes(
   // ─────────────────────────────────────────────
   // NTX — WaaS (WhatsApp as a Service)
   // ─────────────────────────────────────────────
-  app.get("/api/waas/status", (_req: Request, res: Response) => {
+  app.get("/api/waas/status", requireAdmin, (_req: Request, res: Response) => {
     res.json(getWaasStatus());
   });
 

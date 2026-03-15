@@ -102,23 +102,34 @@ export default function WaaSDashboard() {
   });
 
   const createInstanceMut = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/waas/instancia"),
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/waas/instancia");
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || data.message || "Falha ao criar instância");
+      return data;
+    },
     onSuccess: () => {
       toast({ title: "Instância criada", description: "Escaneie o QR code para conectar." });
       qc.invalidateQueries({ queryKey: ["/api/waas/instancia/status"] });
       qc.invalidateQueries({ queryKey: ["/api/waas/instancia/qrcode"] });
     },
-    onError: () => toast({ title: "Erro ao criar instância", variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Erro ao criar instância", description: e.message, variant: "destructive" }),
   });
 
   const disconnectMut = useMutation({
-    mutationFn: () => apiRequest("DELETE", "/api/waas/instancia"),
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/waas/instancia");
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || data.message || "Falha ao desconectar");
+      return data;
+    },
     onSuccess: () => {
       toast({ title: "Desconectado", description: "WhatsApp desconectado com sucesso." });
       qc.invalidateQueries({ queryKey: ["/api/waas/instancia/status"] });
       qc.invalidateQueries({ queryKey: ["/api/waas/status"] });
+      qc.invalidateQueries({ queryKey: ["/api/waas/grupos"] });
     },
-    onError: () => toast({ title: "Erro ao desconectar", variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Erro ao desconectar", description: e.message, variant: "destructive" }),
   });
 
   const createGroup = useMutation({
