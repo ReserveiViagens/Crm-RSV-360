@@ -11,15 +11,18 @@ import {
   CrossSellSection,
 } from "@/components/ai-conversion-elements"
 import {
-  type CartItem,
-  getCart,
   addToCart,
-  removeFromCart,
   updateQty,
-  getCartTotal,
   getCartItemQty,
+  type CartItem,
 } from "@/lib/cart-store"
+import { useTicketsCart } from "@/hooks/useTicketsCart"
 import { trackEvent } from "@/lib/analytics"
+import { QuickDecisionSection } from "@/components/QuickDecisionSection"
+import { MiniWizard } from "@/components/MiniWizard"
+import { CartStickyBar } from "@/components/CartStickyBar"
+
+type QuickPick = "custo" | "familia" | "popular" | "combo"
 
 const ticketsBase = [
   {
@@ -214,13 +217,16 @@ function AlsoBoughtSection({ ticketId, allTickets }: { ticketId: string; allTick
 export default function IngressosPage() {
   const [, navigate] = useLocation()
   const [activeFilter, setActiveFilter] = useState("Todos")
+  const [activePick, setActivePick] = useState<QuickPick | null>(null)
+  const [showWizard, setShowWizard] = useState(false)
   const [profile, setProfile] = useState(getTravelerProfile())
   const [compareIds, setCompareIds] = useState<string[]>([])
   const [showCompare, setShowCompare] = useState(false)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
-  const [cart, setCart] = useState<CartItem[]>(() => getCart())
+
+  const { cart, total: cartTotal, addManyToCart, updateTicketQty } = useTicketsCart()
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -274,15 +280,42 @@ export default function IngressosPage() {
 
   const FILTERS = ["Todos", "Dia Inteiro", "Meio Dia", "Mais Popular", "Maior Desconto"]
 
-  const filteredTickets = (() => {
-    switch (activeFilter) {
-      case "Dia Inteiro": return tickets.filter((t) => t.duration === "Dia inteiro")
-      case "Meio Dia": return tickets.filter((t) => t.duration === "Meio dia")
-      case "Mais Popular": return [...tickets].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
-      case "Maior Desconto": return [...tickets].sort((a, b) => (b.discount || 0) - (a.discount || 0))
-      default: return tickets
+  const filteredTickets = useMemo(() => {
+    const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
+    let base = (() => {
+      switch (activeFilter) {
+        case "Dia Inteiro": return tickets.filter((t) => t.duration === "Dia inteiro")
+        case "Meio Dia": return tickets.filter((t) => t.duration === "Meio dia")
+        case "Mais Popular": return [...tickets].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
+        case "Maior Desconto": return [...tickets].sort((a, b) => (b.discount || 0) - (a.discount || 0))
+        default: return tickets
+      }
+    })()
+
+    switch (activePick) {
+      case "custo":
+        return [...base].sort((a, b) => (b.discount / b.price) - (a.discount / a.price))
+      case "familia":
+        return [...base].sort((a, b) => {
+          const aFam = a.tags.some(t => FAMILY_TAGS.some(f => t.toLowerCase().includes(f))) ? 1 : 0
+          const bFam = b.tags.some(t => FAMILY_TAGS.some(f => t.toLowerCase().includes(f))) ? 1 : 0
+          return bFam - aFam
+        })
+      case "popular":
+        return [...base].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
+      default:
+        return base
     }
-  })()
+  }, [tickets, activeFilter, activePick])
+
+  function handleQuickPick(pick: QuickPick) {
+    if (pick === "combo") {
+      setActivePick("combo")
+      setShowWizard(true)
+    } else {
+      setActivePick(prev => prev === pick ? null : pick)
+    }
+  }
 
   const toggleCompare = (id: string) => {
     setCompareIds((prev) =>
@@ -291,6 +324,19 @@ export default function IngressosPage() {
   }
 
   const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
+
+  function handleCartBuy(ticket: typeof ticketsBase[0]) {
+    const updated = addToCart({
+      ticketId: ticket.id,
+      name: ticket.name,
+      unitPrice: ticket.price,
+      originalPrice: ticket.originalPrice,
+      discount: ticket.discount,
+      image: ticket.image,
+    })
+    trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
+    return updated
+  }
 
   return (
     <div className="rsv-subpage">
@@ -353,6 +399,8 @@ export default function IngressosPage() {
 
       <SocialProofBanner pageName="ingressos" />
       <PersonalizedBanner profile={profile} />
+
+      <QuickDecisionSection onPick={handleQuickPick} activePick={activePick === "combo" ? null : activePick} />
 
       <div style={{
         margin: "16px 16px 0", padding: 20, borderRadius: 16,
@@ -622,6 +670,7 @@ export default function IngressosPage() {
           const isHovered = hoveredId === ticket.id
           const isComparing = compareIds.includes(ticket.id)
           const isLowStock = ticket.availableToday <= 10
+          const qty = getCartItemQty(cart, ticket.id)
 
           return (
             <div
@@ -789,70 +838,55 @@ export default function IngressosPage() {
                     <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>por pessoa</span>
                   </div>
 
-                  {(() => {
-                    const qty = getCartItemQty(cart, ticket.id)
-                    if (qty > 0) {
-                      return (
-                        <div
-                          data-testid={`stepper-${ticket.id}`}
+                  <div style={{ minHeight: 44 }}>
+                    {qty > 0 ? (
+                      <div
+                        data-testid={`stepper-${ticket.id}`}
+                        style={{
+                          width: "100%", display: "flex", alignItems: "center",
+                          justifyContent: "space-between", borderRadius: 12,
+                          border: "2px solid #22C55E", padding: "9px 12px",
+                          background: "#F0FDF4",
+                        }}
+                      >
+                        <button
+                          data-testid={`button-decrease-${ticket.id}`}
+                          onClick={() => {
+                            updateTicketQty(ticket.id, qty - 1)
+                            if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
+                          }}
                           style={{
-                            width: "100%", display: "flex", alignItems: "center",
-                            justifyContent: "space-between", borderRadius: 12,
-                            border: "2px solid #22C55E", padding: "9px 12px",
-                            background: "#F0FDF4",
+                            width: 34, height: 34, borderRadius: 8, border: "none",
+                            background: qty === 1 ? "#FEE2E2" : "#DCFCE7",
+                            color: qty === 1 ? "#EF4444" : "#16A34A",
+                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                           }}
                         >
-                          <button
-                            data-testid={`button-decrease-${ticket.id}`}
-                            onClick={() => {
-                              const updated = updateQty(ticket.id, qty - 1)
-                              setCart(updated)
-                              if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
-                            }}
-                            style={{
-                              width: 34, height: 34, borderRadius: 8, border: "none",
-                              background: qty === 1 ? "#FEE2E2" : "#DCFCE7",
-                              color: qty === 1 ? "#EF4444" : "#16A34A",
-                              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                            }}
-                          >
-                            {qty === 1 ? <Trash2 style={{ width: 15, height: 15 }} /> : <Minus style={{ width: 15, height: 15 }} />}
-                          </button>
-                          <span style={{ fontSize: 16, fontWeight: 800, color: "#16A34A" }} data-testid={`text-qty-${ticket.id}`}>
-                            {qty}x — {formatPrice(ticket.price * qty)}
-                          </span>
-                          <button
-                            data-testid={`button-increase-${ticket.id}`}
-                            onClick={() => {
-                              const updated = updateQty(ticket.id, qty + 1)
-                              setCart(updated)
-                              trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
-                            }}
-                            style={{
-                              width: 34, height: 34, borderRadius: 8, border: "none",
-                              background: "#DCFCE7", color: "#16A34A",
-                              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                            }}
-                          >
-                            <Plus style={{ width: 15, height: 15 }} />
-                          </button>
-                        </div>
-                      )
-                    }
-                    return (
+                          {qty === 1 ? <Trash2 style={{ width: 15, height: 15 }} /> : <Minus style={{ width: 15, height: 15 }} />}
+                        </button>
+                        <span style={{ fontSize: 16, fontWeight: 800, color: "#16A34A" }} data-testid={`text-qty-${ticket.id}`}>
+                          {qty}x — {formatPrice(ticket.price * qty)}
+                        </span>
+                        <button
+                          data-testid={`button-increase-${ticket.id}`}
+                          onClick={() => {
+                            updateTicketQty(ticket.id, qty + 1)
+                            trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
+                          }}
+                          style={{
+                            width: 34, height: 34, borderRadius: 8, border: "none",
+                            background: "#DCFCE7", color: "#16A34A",
+                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                          }}
+                        >
+                          <Plus style={{ width: 15, height: 15 }} />
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         data-testid={`button-buy-${ticket.id}`}
                         onClick={() => {
-                          const updated = addToCart({
-                            ticketId: ticket.id,
-                            name: ticket.name,
-                            unitPrice: ticket.price,
-                            originalPrice: ticket.originalPrice,
-                            discount: ticket.discount,
-                            image: ticket.image,
-                          })
-                          setCart(updated)
-                          trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
+                          handleCartBuy(ticket)
                         }}
                         style={{
                           width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
@@ -868,8 +902,8 @@ export default function IngressosPage() {
                         <ShoppingCart style={{ width: 18, height: 18 }} />
                         Comprar Agora
                       </button>
-                    )
-                  })()}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -906,58 +940,41 @@ export default function IngressosPage() {
         </a>
       )}
 
-      {cart.length > 0 && (
-        <div
-          data-testid="bar-cart-summary"
-          style={{
-            position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
-            background: "#1F2937", color: "#fff",
-            padding: "12px 16px",
-            boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
-            display: "flex", alignItems: "center", gap: 12,
-          }}
-        >
-          <div style={{
-            width: 40, height: 40, borderRadius: "50%", background: "#22C55E",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0, position: "relative",
-          }}>
-            <ShoppingCart style={{ width: 20, height: 20, color: "#fff" }} />
-            <span style={{
-              position: "absolute", top: -4, right: -4,
-              background: "#EF4444", color: "#fff", borderRadius: "50%",
-              width: 18, height: 18, fontSize: 10, fontWeight: 800,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              {cart.reduce((s, i) => s + i.quantity, 0)}
-            </span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>
-              {cart.length} {cart.length === 1 ? "ingresso" : "tipos de ingresso"}
-            </p>
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#22C55E" }}>
-              {formatPrice(getCartTotal(cart))}
-            </p>
-          </div>
-          <button
-            data-testid="button-cart-checkout"
-            onClick={() => {
-              trackEvent("tickets_checkout_start", { total: getCartTotal(cart), items: cart.length })
-              navigate("/ingressos/checkout")
-            }}
-            style={{
-              padding: "12px 20px", border: "none", borderRadius: 12,
-              background: "linear-gradient(135deg, #22C55E, #16A34A)",
-              color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-            }}
-          >
-            Ir para pagamento
-            <ChevronRight style={{ width: 16, height: 16 }} />
-          </button>
-        </div>
-      )}
+      <CartStickyBar
+        cart={cart}
+        total={cartTotal}
+        onCheckout={() => {
+          trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
+          navigate("/ingressos/checkout")
+        }}
+      />
+
+      <MiniWizard
+        open={showWizard}
+        tickets={tickets.map(t => ({
+          id: t.id,
+          name: t.name,
+          price: t.price,
+          originalPrice: t.originalPrice,
+          discount: t.discount,
+          duration: t.duration,
+          popular: t.popular,
+          category: t.category,
+          tags: t.tags,
+          image: t.image,
+        }))}
+        profile={profile}
+        onClose={() => {
+          setShowWizard(false)
+          setActivePick(null)
+        }}
+        onConfirm={(items) => {
+          addManyToCart(items)
+          setShowWizard(false)
+          setActivePick(null)
+          trackEvent("wizard_confirm", { items: items.length })
+        }}
+      />
     </div>
   )
 }
