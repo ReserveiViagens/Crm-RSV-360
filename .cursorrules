@@ -1024,7 +1024,7 @@ Não incluir nesta rota:
 - controle de baixa manual
 
 ### Arquivos do fluxo de ingressos
-- `client/src/pages/ingressos.tsx` — catálogo + stepper + barra de carrinho
+- `client/src/pages/ingressos.tsx` — catálogo + stepper + barra de carrinho; integra QuickDecisionSection (activePick filtra grid), MiniWizard (triggered por "combo" pick), CartStickyBar, useTicketsCart hook
 - `client/src/pages/ingressos-checkout.tsx` — checkout Pix (form + QR + polling)
 - `client/src/pages/ingressos-sucesso.tsx` — confirmação + download + cross-sell
 - `client/src/lib/cart-store.ts` — store de carrinho com localStorage (addToCart com qty opcional, addManyToCart)
