@@ -71,7 +71,9 @@ export function QuickDecisionSection({ onPick, activePick }: QuickDecisionSectio
         display: "grid",
         gridTemplateColumns: "repeat(2, 1fr)",
         gap: 8,
-      }}>
+      }}
+        className="sm:grid-cols-4"
+      >
         {OPTIONS.map(({ key, label, desc, icon: Icon, testId, color, bg }) => {
           const isActive = activePick === key
           return (

@@ -98,7 +98,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
               whiteSpace: "nowrap",
             }}
           >
-            Pagar
+            Ir para pagamento
             <ArrowRight style={{ width: 14, height: 14 }} />
           </button>
         </div>
