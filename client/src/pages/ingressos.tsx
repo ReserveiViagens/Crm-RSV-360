@@ -227,7 +227,7 @@ export default function IngressosPage() {
       setShowWizard(true)
     } else if (activePick === pick) {
       setActivePick(null)
-      syncCart()
+      setTickets([...ticketsBase])
     } else {
       setActivePick(pick)
     }
@@ -256,10 +256,6 @@ export default function IngressosPage() {
     } else {
       updateTicketQty(ticket.id, qty - 1)
     }
-  }
-
-  function syncCart() {
-    setTickets([...ticketsBase])
   }
 
   function handleRemove(ticketId: string) {
