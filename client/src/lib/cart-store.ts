@@ -23,19 +23,33 @@ export function saveCart(items: CartItem[]): void {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
 }
 
-export function addToCart(item: Omit<CartItem, "quantity">): CartItem[] {
+export function addToCart(item: Omit<CartItem, "quantity">, qty: number = 1): CartItem[] {
   const current = getCart();
   const existing = current.find((c) => c.ticketId === item.ticketId);
   let updated: CartItem[];
   if (existing) {
     updated = current.map((c) =>
-      c.ticketId === item.ticketId ? { ...c, quantity: c.quantity + 1 } : c
+      c.ticketId === item.ticketId ? { ...c, quantity: c.quantity + qty } : c
     );
   } else {
-    updated = [...current, { ...item, quantity: 1 }];
+    updated = [...current, { ...item, quantity: qty }];
   }
   saveCart(updated);
   return updated;
+}
+
+export function addManyToCart(items: CartItem[]): CartItem[] {
+  const current = getCart();
+  for (const it of items) {
+    const idx = current.findIndex((c) => c.ticketId === it.ticketId);
+    if (idx >= 0) {
+      current[idx] = { ...current[idx], quantity: current[idx].quantity + it.quantity };
+    } else {
+      current.push({ ...it });
+    }
+  }
+  saveCart(current);
+  return current;
 }
 
 export function removeFromCart(ticketId: string): CartItem[] {
