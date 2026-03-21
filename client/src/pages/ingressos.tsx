@@ -140,7 +140,7 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
 
-  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty } = useTicketsCart()
+  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -250,6 +250,11 @@ export default function IngressosPage() {
   function handleDec(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty - 1)
     if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
+  }
+
+  function handleRemove(ticketId: string) {
+    removeTicket(ticketId)
+    trackEvent("ticket_remove_from_cart", { ticketId })
   }
 
   function handleWizardConfirm(items: Parameters<typeof addManyToCart>[0]) {
@@ -644,15 +649,6 @@ export default function IngressosPage() {
         </a>
       )}
 
-      <CartStickyBar
-        cart={cart}
-        total={cartTotal}
-        onCheckout={() => {
-          trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
-          navigate("/ingressos/checkout")
-        }}
-      />
-
       <MiniWizard
         open={showWizard}
         tickets={tickets.map(t => ({
@@ -673,6 +669,15 @@ export default function IngressosPage() {
           setActivePick(null)
         }}
         onConfirm={handleWizardConfirm}
+      />
+
+      <CartStickyBar
+        cart={cart}
+        total={cartTotal}
+        onCheckout={() => {
+          trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
+          navigate("/ingressos/checkout")
+        }}
       />
     </div>
   )
