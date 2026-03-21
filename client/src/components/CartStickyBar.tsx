@@ -81,7 +81,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
           </div>
 
           <button
-            data-testid="button-go-checkout"
+            data-testid="button-go-checkout button-cart-checkout"
             onClick={onCheckout}
             style={{
               background: "#fff",

@@ -145,14 +145,15 @@ export default function IngressosPage() {
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
   const comboTickets = useMemo(() => {
-    if (profile) {
-      const scored = tickets.map(t => ({
-        ...t,
-        matchScore: calculateMatchScore(profile, { category: t.category, price: t.price, tags: t.tags }),
-      }))
-      return [...scored].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3)
-    }
-    return [...tickets].sort((a, b) => b.discount - a.discount).slice(0, 2)
+    const scored = tickets.map(t => ({
+      ...t,
+      matchScore: profile
+        ? calculateMatchScore(profile, { category: t.category, price: t.price, tags: t.tags })
+        : 0,
+    }))
+    return profile
+      ? [...scored].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3)
+      : [...scored].sort((a, b) => b.discount - a.discount).slice(0, 2)
   }, [tickets, profile])
 
   const comboOriginalPrice = comboTickets.reduce((sum, t) => sum + t.price, 0)
@@ -375,13 +376,13 @@ export default function IngressosPage() {
             }}>
               <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 4px" }}>{t.name}</p>
               <span style={{ fontSize: 12, opacity: 0.8 }}>{formatPrice(t.price)}</span>
-              {profile && 'matchScore' in t && (
+              {profile && t.matchScore > 0 && (
                 <div style={{
                   marginTop: 4, fontSize: 10, fontWeight: 700,
                   background: "rgba(255,255,255,0.2)", borderRadius: 4,
                   padding: "2px 6px", display: "inline-block",
                 }}>
-                  {(t as any).matchScore}% match
+                  {t.matchScore}% match
                 </div>
               )}
             </div>
