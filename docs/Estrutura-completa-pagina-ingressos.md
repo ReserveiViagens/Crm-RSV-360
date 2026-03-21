@@ -207,8 +207,11 @@ trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
 | Match IA (XX%) | `AIRecommendedBadge` componente | Varia por score | `position: absolute, bottom: 12, right: 12` |
 
 **`bestValueId`** = ingresso com maior `discount / price`:
-- kawana-park: 23/85 ≈ 0.271 → **ganhador**
-- lagoa-termas: 21/75 ≈ 0.280 → (possível empate dependendo dos valores)
+- hot-park: 14/189 ≈ 0.074
+- diroma-acqua-park: 18/90 = 0.200
+- lagoa-termas: 21/75 = 0.280 → **ganhador**
+- water-park: 20/120 ≈ 0.167
+- kawana-park: 23/85 ≈ 0.271
 
 **`AIRecommendedBadge` — cores por score:**
 - ≥ 85% → `#22C55E` (verde)
@@ -276,6 +279,11 @@ Conteúdo: branco, borderRadius 20, maxWidth 600, maxHeight 90vh, overflow auto
 
 **Colunas da tabela de comparação:**
 Preço · Desconto · Localização · Duração · Vendidos Hoje · Restantes Hoje · Match IA · Atrações
+
+**Botões de ação no modal (abaixo da tabela):**
+- Um botão por ingresso comparado (`button-compare-buy-{id}`)
+- Estilo: `linear-gradient(135deg, #22C55E, #16A34A)`, ícone `ShoppingCart`, exibe o preço formatado
+- Ação: `window.open("https://wa.me/5564993197555?text=Olá! Quero comprar o {nome} com desconto especial!")` → abre WhatsApp em nova aba
 
 ### 3.12 Combo IA
 
@@ -874,6 +882,7 @@ const IS_DEMO = !GATEWAY_API_URL || !GATEWAY_API_KEY
 | Botão limpar comparação | `button-compare-clear` |
 | Modal de comparação | `modal-compare` |
 | Botão fechar modal | `button-compare-close` |
+| Botão comprar via WhatsApp (modal comparação) | `button-compare-buy-{id}` |
 | Card do ingresso | `card-ticket-{id}` |
 | Badge "Mais Popular" | `badge-popular-{id}` |
 | Badge "Melhor Custo" | `badge-best-value-{id}` |
