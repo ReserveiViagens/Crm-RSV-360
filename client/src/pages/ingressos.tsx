@@ -1,26 +1,19 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import { ArrowLeft, Phone, MapPin, Clock, Users, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, Flame, Tag, AlertTriangle, TrendingUp, Zap, Minus, Plus, ChevronRight, Trash2 } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2 } from "lucide-react"
 import { Link, useLocation } from "wouter";
 import {
   SocialProofBanner,
-  AIRecommendedBadge,
   calculateMatchScore,
   getTravelerProfile,
   PersonalizedBanner,
-  UrgencyIndicator,
   CrossSellSection,
 } from "@/components/ai-conversion-elements"
-import {
-  addToCart,
-  updateQty,
-  getCartItemQty,
-  type CartItem,
-} from "@/lib/cart-store"
 import { useTicketsCart } from "@/hooks/useTicketsCart"
 import { trackEvent } from "@/lib/analytics"
 import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { CartStickyBar } from "@/components/CartStickyBar"
+import { TicketsGrid } from "@/components/TicketsGrid"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -118,11 +111,13 @@ const ticketsBase = [
   },
 ]
 
+type TicketData = typeof ticketsBase[0]
+
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
-function getBestValueId(list: typeof ticketsBase) {
+function getBestValueId(list: TicketData[]) {
   let bestId = list[0].id
   let bestRatio = 0
   list.forEach((t) => {
@@ -133,85 +128,6 @@ function getBestValueId(list: typeof ticketsBase) {
     }
   })
   return bestId
-}
-
-function AnimatedCounter({ target, suffix }: { target: number; suffix: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const prevTarget = useRef(0)
-
-  useEffect(() => {
-    if (target <= 0) return
-    const start = prevTarget.current
-    prevTarget.current = target
-    let current = start
-    const diff = target - start
-    if (diff <= 0) {
-      setCount(target)
-      return
-    }
-    const step = Math.max(1, Math.floor(diff / 20))
-    const interval = setInterval(() => {
-      current += step
-      if (current >= target) {
-        current = target
-        clearInterval(interval)
-      }
-      setCount(current)
-    }, 80)
-    return () => clearInterval(interval)
-  }, [target])
-
-  return (
-    <span ref={ref} style={{ fontVariantNumeric: "tabular-nums" }}>
-      {count} {suffix}
-    </span>
-  )
-}
-
-function AlsoBoughtSection({ ticketId, allTickets }: { ticketId: string; allTickets: typeof ticketsBase }) {
-  const ticket = allTickets.find(t => t.id === ticketId)
-  if (!ticket || !ticket.alsoBoght || ticket.alsoBoght.length === 0) return null
-
-  const recommended = ticket.alsoBoght
-    .map(id => allTickets.find(t => t.id === id))
-    .filter(Boolean) as typeof ticketsBase
-
-  if (recommended.length === 0) return null
-
-  return (
-    <div style={{
-      marginTop: 10, padding: "10px 12px", borderRadius: 10,
-      background: "linear-gradient(135deg, #EFF6FF, #F0FDF4)",
-      border: "1px solid #BFDBFE",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-        <TrendingUp style={{ width: 13, height: 13, color: "#2563EB" }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#1F2937" }}>
-          Quem comprou este, tambem comprou:
-        </span>
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        {recommended.map(r => (
-          <div key={r.id} style={{
-            flex: 1, background: "#fff", borderRadius: 8, padding: "8px 10px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#374151", margin: "0 0 4px", lineHeight: 1.3 }}>
-              {r.name.replace("Ingresso ", "")}
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#16A34A" }}>{formatPrice(r.price)}</span>
-              <span style={{
-                fontSize: 9, fontWeight: 700, color: "#EF4444",
-                background: "#FEE2E2", padding: "1px 5px", borderRadius: 4,
-              }}>-{r.discount}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 export default function IngressosPage() {
@@ -226,7 +142,7 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
 
-  const { cart, total: cartTotal, addManyToCart, updateTicketQty } = useTicketsCart()
+  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty } = useTicketsCart()
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -236,11 +152,9 @@ export default function IngressosPage() {
         ...t,
         matchScore: calculateMatchScore(profile, { category: t.category, price: t.price, tags: t.tags }),
       }))
-      const sorted = [...scored].sort((a, b) => b.matchScore - a.matchScore)
-      return [sorted[0], sorted[1], sorted[2]].filter(Boolean)
+      return [...scored].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3)
     }
-    const sorted = [...tickets].sort((a, b) => b.discount - a.discount)
-    return [sorted[0], sorted[1]]
+    return [...tickets].sort((a, b) => b.discount - a.discount).slice(0, 2)
   }, [tickets, profile])
 
   const comboOriginalPrice = comboTickets.reduce((sum, t) => sum + t.price, 0)
@@ -279,9 +193,9 @@ export default function IngressosPage() {
   }, [])
 
   const FILTERS = ["Todos", "Dia Inteiro", "Meio Dia", "Mais Popular", "Maior Desconto"]
+  const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
 
   const filteredTickets = useMemo(() => {
-    const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
     let base = (() => {
       switch (activeFilter) {
         case "Dia Inteiro": return tickets.filter((t) => t.duration === "Dia inteiro")
@@ -317,16 +231,8 @@ export default function IngressosPage() {
     }
   }
 
-  const toggleCompare = (id: string) => {
-    setCompareIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : prev
-    )
-  }
-
-  const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
-
-  function handleCartBuy(ticket: typeof ticketsBase[0]) {
-    const updated = addToCart({
+  function handleBuy(ticket: TicketData) {
+    addTicket({
       ticketId: ticket.id,
       name: ticket.name,
       unitPrice: ticket.price,
@@ -335,8 +241,32 @@ export default function IngressosPage() {
       image: ticket.image,
     })
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
-    return updated
   }
+
+  function handleInc(ticket: TicketData, qty: number) {
+    updateTicketQty(ticket.id, qty + 1)
+    trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
+  }
+
+  function handleDec(ticket: TicketData, qty: number) {
+    updateTicketQty(ticket.id, qty - 1)
+    if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
+  }
+
+  function handleWizardConfirm(items: Parameters<typeof addManyToCart>[0]) {
+    addManyToCart(items)
+    setShowWizard(false)
+    setActivePick(null)
+    trackEvent("wizard_confirm", { items: items.length })
+  }
+
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : prev
+    )
+  }
+
+  const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
 
   return (
     <div className="rsv-subpage">
@@ -361,6 +291,21 @@ export default function IngressosPage() {
             </div>
             <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
           </div>
+          <button
+            data-testid="button-help-choose"
+            onClick={() => setShowWizard(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)",
+              borderRadius: 10, padding: "8px 14px", color: "#fff",
+              fontSize: 12, fontWeight: 700, cursor: "pointer",
+              backdropFilter: "blur(4px)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <Wand2 style={{ width: 14, height: 14 }} />
+            Me ajude a escolher
+          </button>
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
         <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 8px" }}>Até 25% OFF + Entrada prioritária</p>
@@ -659,268 +604,30 @@ export default function IngressosPage() {
         </div>
       )}
 
-      <div className="rsv-subpage-grid" style={{ padding: "20px 16px 100px" }}>
-        {filteredTickets.map((ticket) => {
-          const matchScore = calculateMatchScore(profile, {
-            category: ticket.category,
-            price: ticket.price,
-            tags: ticket.tags,
-          })
-          const isBestValue = ticket.id === bestValueId
-          const isHovered = hoveredId === ticket.id
-          const isComparing = compareIds.includes(ticket.id)
-          const isLowStock = ticket.availableToday <= 10
-          const qty = getCartItemQty(cart, ticket.id)
+      <TicketsGrid
+        tickets={filteredTickets}
+        cart={cart}
+        bestValueId={bestValueId}
+        profile={profile}
+        hoveredId={hoveredId}
+        compareIds={compareIds}
+        onHover={setHoveredId}
+        onToggleCompare={toggleCompare}
+        onBuy={handleBuy}
+        onInc={handleInc}
+        onDec={handleDec}
+      />
 
-          return (
-            <div
-              key={ticket.id}
-              data-testid={`card-ticket-${ticket.id}`}
-              onMouseEnter={() => setHoveredId(ticket.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              style={{
-                background: "#fff",
-                borderRadius: 16,
-                boxShadow: isHovered ? "0 8px 30px rgba(0,0,0,0.15)" : "0 2px 12px rgba(0,0,0,0.08)",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                border: isComparing ? "2px solid #3B82F6" : ticket.popular ? "2px solid #FACC15" : "none",
-                transform: isHovered ? "scale(1.02)" : "scale(1)",
-                transition: "all 0.3s ease",
-                position: "relative",
-              }}
-            >
-              <div style={{ position: "relative" }}>
-                {ticket.popular && (
-                  <div
-                    data-testid={`badge-popular-${ticket.id}`}
-                    style={{
-                      position: "absolute", top: 0, left: 0, right: 0,
-                      background: "#FACC15", color: "#000", textAlign: "center",
-                      padding: "4px 0", fontSize: 12, fontWeight: 700, zIndex: 2,
-                    }}
-                  >
-                    MAIS POPULAR
-                  </div>
-                )}
-                {isBestValue && (
-                  <div
-                    data-testid={`badge-best-value-${ticket.id}`}
-                    style={{
-                      position: "absolute", top: ticket.popular ? 28 : 0, left: 0, right: 0,
-                      background: "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff",
-                      textAlign: "center", padding: "4px 0", fontSize: 12, fontWeight: 700, zIndex: 2,
-                    }}
-                  >
-                    MELHOR CUSTO-BENEFICIO
-                  </div>
-                )}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: (ticket.popular ? 28 : 0) + (isBestValue ? 28 : 0) + 10,
-                    left: 10, background: "#EF4444", color: "#fff",
-                    fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 8, zIndex: 2,
-                  }}
-                >
-                  -{ticket.discount}% OFF
-                </div>
-                <div style={{
-                  position: "absolute",
-                  top: (ticket.popular ? 28 : 0) + (isBestValue ? 28 : 0) + 10,
-                  right: 10, zIndex: 2,
-                }}>
-                  <AIRecommendedBadge matchPercent={matchScore} />
-                </div>
-                <img
-                  src={ticket.image}
-                  alt={ticket.name}
-                  style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
-                />
-              </div>
-
-              <div style={{ padding: 16, display: "flex", flexDirection: "column", flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }} data-testid={`text-ticket-name-${ticket.id}`}>{ticket.name}</h3>
-                  <button
-                    onClick={() => toggleCompare(ticket.id)}
-                    data-testid={`button-compare-${ticket.id}`}
-                    style={{
-                      background: isComparing ? "#3B82F6" : "#F3F4F6",
-                      border: "none", borderRadius: 6, padding: "4px 8px",
-                      cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                      fontSize: 11, fontWeight: 600,
-                      color: isComparing ? "#fff" : "#6B7280",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    {isComparing ? <Check style={{ width: 12, height: 12 }} /> : <BarChart3 style={{ width: 12, height: 12 }} />}
-                    {isComparing ? "Selecionado" : "Comparar"}
-                  </button>
-                </div>
-
-                <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 10px", lineHeight: 1.5 }}>{ticket.description}</p>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                  <Flame style={{ width: 13, height: 13, color: "#EF4444" }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444" }} data-testid={`text-sold-today-${ticket.id}`}>
-                    <AnimatedCounter target={ticket.soldToday} suffix="ingressos vendidos hoje" />
-                  </span>
-                </div>
-
-                {isLowStock && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
-                    background: "#FEF2F2", borderRadius: 8, padding: "6px 10px",
-                    border: "1px solid #FECACA",
-                    animation: "pulse 2s infinite",
-                  }} data-testid={`urgency-low-stock-${ticket.id}`}>
-                    <AlertTriangle style={{ width: 13, height: 13, color: "#DC2626" }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#DC2626" }}>
-                      Apenas {ticket.availableToday} ingressos restantes hoje!
-                    </span>
-                  </div>
-                )}
-
-                {!isLowStock && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
-                    background: "#FEF3C7", borderRadius: 8, padding: "6px 10px",
-                    border: "1px solid #FDE68A",
-                  }} data-testid={`urgency-available-${ticket.id}`}>
-                    <Zap style={{ width: 13, height: 13, color: "#D97706" }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>
-                      {ticket.availableToday} ingressos restantes hoje
-                    </span>
-                  </div>
-                )}
-
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 12, color: "#6B7280", marginBottom: 10 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <MapPin style={{ width: 14, height: 14, color: "#3B82F6" }} />
-                    {ticket.location}
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <Clock style={{ width: 14, height: 14, color: "#22C55E" }} />
-                    {ticket.duration}
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <Users style={{ width: 14, height: 14, color: "#A855F7" }} />
-                    {ticket.ageGroup}
-                  </span>
-                </div>
-
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-                  {ticket.features.map((f) => (
-                    <span
-                      key={f}
-                      style={{
-                        background: "#F3F4F6", borderRadius: 6,
-                        padding: "4px 10px", fontSize: 11, color: "#374151",
-                      }}
-                    >
-                      {f}
-                    </span>
-                  ))}
-                </div>
-
-                <AlsoBoughtSection ticketId={ticket.id} allTickets={tickets} />
-
-                <div style={{ marginTop: "auto", paddingTop: 10 }}>
-                  <div style={{ marginBottom: 12 }}>
-                    {ticket.originalPrice && (
-                      <span style={{ fontSize: 14, color: "#9CA3AF", textDecoration: "line-through", marginRight: 8 }}>
-                        {formatPrice(ticket.originalPrice)}
-                      </span>
-                    )}
-                    <span style={{ fontSize: 26, fontWeight: 700, color: "#16A34A" }} data-testid={`text-price-${ticket.id}`}>{formatPrice(ticket.price)}</span>
-                    <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>por pessoa</span>
-                  </div>
-
-                  <div style={{ minHeight: 44 }}>
-                    {qty > 0 ? (
-                      <div
-                        data-testid={`stepper-${ticket.id}`}
-                        style={{
-                          width: "100%", display: "flex", alignItems: "center",
-                          justifyContent: "space-between", borderRadius: 12,
-                          border: "2px solid #22C55E", padding: "9px 12px",
-                          background: "#F0FDF4",
-                        }}
-                      >
-                        <button
-                          data-testid={`button-decrease-${ticket.id}`}
-                          onClick={() => {
-                            updateTicketQty(ticket.id, qty - 1)
-                            if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
-                          }}
-                          style={{
-                            width: 34, height: 34, borderRadius: 8, border: "none",
-                            background: qty === 1 ? "#FEE2E2" : "#DCFCE7",
-                            color: qty === 1 ? "#EF4444" : "#16A34A",
-                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                          }}
-                        >
-                          {qty === 1 ? <Trash2 style={{ width: 15, height: 15 }} /> : <Minus style={{ width: 15, height: 15 }} />}
-                        </button>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: "#16A34A" }} data-testid={`text-qty-${ticket.id}`}>
-                          {qty}x — {formatPrice(ticket.price * qty)}
-                        </span>
-                        <button
-                          data-testid={`button-increase-${ticket.id}`}
-                          onClick={() => {
-                            updateTicketQty(ticket.id, qty + 1)
-                            trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
-                          }}
-                          style={{
-                            width: 34, height: 34, borderRadius: 8, border: "none",
-                            background: "#DCFCE7", color: "#16A34A",
-                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                          }}
-                        >
-                          <Plus style={{ width: 15, height: 15 }} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        data-testid={`button-buy-${ticket.id}`}
-                        onClick={() => {
-                          handleCartBuy(ticket)
-                        }}
-                        style={{
-                          width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
-                          color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
-                          background: ticket.popular
-                            ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                            : "linear-gradient(135deg, #0891B2, #06B6D4)",
-                          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                          boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        <ShoppingCart style={{ width: 18, height: 18 }} />
-                        Comprar Agora
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-
-        <div style={{ gridColumn: "1 / -1" }}>
-          <CrossSellSection
-            title="Quem comprou ingressos tambem reservou:"
-            items={[
-              { name: "Hotel diRoma Fiori", price: 320, link: "/hoteis", badge: "-20%", image: "/images/diroma-acqua-park.jpeg" },
-              { name: "Lacqua DiRoma", price: 280, link: "/hoteis", badge: "TOP", image: "/images/hot-park.jpeg" },
-              { name: "Pousada Recanto", price: 195, link: "/hoteis", badge: "Econômico" },
-              { name: "Resort Náutico", price: 450, link: "/hoteis", badge: "Premium" },
-            ]}
-          />
-        </div>
+      <div style={{ padding: "0 16px 100px" }}>
+        <CrossSellSection
+          title="Quem comprou ingressos tambem reservou:"
+          items={[
+            { name: "Hotel diRoma Fiori", price: 320, link: "/hoteis", badge: "-20%", image: "/images/diroma-acqua-park.jpeg" },
+            { name: "Lacqua DiRoma", price: 280, link: "/hoteis", badge: "TOP", image: "/images/hot-park.jpeg" },
+            { name: "Pousada Recanto", price: 195, link: "/hoteis", badge: "Econômico" },
+            { name: "Resort Náutico", price: 450, link: "/hoteis", badge: "Premium" },
+          ]}
+        />
       </div>
 
       {cart.length === 0 && (
@@ -968,12 +675,7 @@ export default function IngressosPage() {
           setShowWizard(false)
           setActivePick(null)
         }}
-        onConfirm={(items) => {
-          addManyToCart(items)
-          setShowWizard(false)
-          setActivePick(null)
-          trackEvent("wizard_confirm", { items: items.length })
-        }}
+        onConfirm={handleWizardConfirm}
       />
     </div>
   )

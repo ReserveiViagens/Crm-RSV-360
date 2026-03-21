@@ -1,5 +1,5 @@
-import { useMemo } from "react"
-import { ShoppingCart, Minus, Plus, Trash2, MapPin, Clock, TrendingUp, Zap, Users } from "lucide-react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import { ShoppingCart, Minus, Plus, Trash2, MapPin, Clock, TrendingUp, Zap, Users, BarChart3, Check, Flame, AlertTriangle } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TravelerProfile, AIRecommendedBadge, calculateMatchScore } from "@/components/ai-conversion-elements"
 
@@ -29,7 +29,9 @@ interface TicketsGridProps {
   bestValueId?: string
   profile?: TravelerProfile | null
   hoveredId?: string | null
+  compareIds?: string[]
   onHover?: (id: string | null) => void
+  onToggleCompare?: (id: string) => void
   onBuy: (ticket: TicketItem) => void
   onInc: (ticket: TicketItem, qty: number) => void
   onDec: (ticket: TicketItem, qty: number) => void
@@ -37,6 +39,40 @@ interface TicketsGridProps {
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
+}
+
+function AnimatedCounter({ target, suffix }: { target: number; suffix: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const prevTarget = useRef(0)
+
+  useEffect(() => {
+    if (target <= 0) return
+    const start = prevTarget.current
+    prevTarget.current = target
+    let current = start
+    const diff = target - start
+    if (diff <= 0) {
+      setCount(target)
+      return
+    }
+    const step = Math.max(1, Math.floor(diff / 20))
+    const interval = setInterval(() => {
+      current += step
+      if (current >= target) {
+        current = target
+        clearInterval(interval)
+      }
+      setCount(current)
+    }, 80)
+    return () => clearInterval(interval)
+  }, [target])
+
+  return (
+    <span ref={ref} style={{ fontVariantNumeric: "tabular-nums" }}>
+      {count} {suffix}
+    </span>
+  )
 }
 
 function AlsoBoughtMini({ ticket, allTickets, onQuickAdd, cart }: {
@@ -127,7 +163,9 @@ export function TicketsGrid({
   bestValueId,
   profile,
   hoveredId,
+  compareIds = [],
   onHover,
+  onToggleCompare,
   onBuy,
   onInc,
   onDec,
@@ -144,7 +182,8 @@ export function TicketsGrid({
         const qty = qtyById.get(ticket.id) ?? 0
         const isBestValue = ticket.id === bestValueId
         const isHovered = hoveredId === ticket.id
-        const isLowStock = (ticket.availableToday ?? 0) <= 10
+        const isComparing = compareIds.includes(ticket.id)
+        const isLowStock = (ticket.availableToday ?? 0) > 0 && (ticket.availableToday ?? 99) <= 10
 
         const matchScore = profile
           ? calculateMatchScore(profile, {
@@ -164,244 +203,165 @@ export function TicketsGrid({
               background: "#fff",
               borderRadius: 16,
               overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
               boxShadow: isHovered
-                ? "0 8px 30px rgba(0,0,0,0.12)"
-                : "0 2px 8px rgba(0,0,0,0.06)",
-              transition: "box-shadow 0.2s ease",
-              border: isBestValue ? "2px solid #22C55E" : "1.5px solid #F3F4F6",
+                ? "0 8px 30px rgba(0,0,0,0.15)"
+                : "0 2px 12px rgba(0,0,0,0.08)",
+              transform: isHovered ? "scale(1.02)" : "scale(1)",
+              transition: "all 0.3s ease",
+              border: isComparing ? "2px solid #3B82F6" : ticket.popular ? "2px solid #FACC15" : "none",
               position: "relative",
             }}
           >
-            {ticket.image && (
-              <div style={{ position: "relative", height: 140, overflow: "hidden" }}>
+            <div style={{ position: "relative" }}>
+              {ticket.popular && (
+                <div
+                  data-testid={`badge-popular-${ticket.id}`}
+                  style={{
+                    position: "absolute", top: 0, left: 0, right: 0,
+                    background: "#FACC15", color: "#000", textAlign: "center",
+                    padding: "4px 0", fontSize: 12, fontWeight: 700, zIndex: 2,
+                  }}
+                >
+                  MAIS POPULAR
+                </div>
+              )}
+              {isBestValue && (
+                <div
+                  data-testid={`badge-best-value-${ticket.id}`}
+                  style={{
+                    position: "absolute", top: ticket.popular ? 28 : 0, left: 0, right: 0,
+                    background: "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff",
+                    textAlign: "center", padding: "4px 0", fontSize: 12, fontWeight: 700, zIndex: 2,
+                  }}
+                >
+                  MELHOR CUSTO-BENEFICIO
+                </div>
+              )}
+              <div style={{
+                position: "absolute",
+                top: (ticket.popular ? 28 : 0) + (isBestValue ? 28 : 0) + 10,
+                left: 10, background: "#EF4444", color: "#fff",
+                fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 8, zIndex: 2,
+              }}>
+                -{ticket.discount}% OFF
+              </div>
+              <div style={{
+                position: "absolute",
+                top: (ticket.popular ? 28 : 0) + (isBestValue ? 28 : 0) + 10,
+                right: 10, zIndex: 2,
+              }}>
+                <AIRecommendedBadge matchPercent={matchScore} />
+              </div>
+              {ticket.image && (
                 <img
                   src={ticket.image}
                   alt={ticket.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
                 />
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.4))",
-                }} />
+              )}
+            </div>
 
-                {ticket.popular && (
-                  <div
-                    data-testid={`badge-popular-${ticket.id}`}
+            <div style={{ padding: 16, display: "flex", flexDirection: "column", flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <h3
+                  style={{ fontSize: 18, fontWeight: 700, margin: 0 }}
+                  data-testid={`text-ticket-name-${ticket.id}`}
+                >
+                  {ticket.name}
+                </h3>
+                {onToggleCompare && (
+                  <button
+                    onClick={() => onToggleCompare(ticket.id)}
+                    data-testid={`button-compare-${ticket.id}`}
                     style={{
-                      position: "absolute",
-                      top: isBestValue ? 44 : 12,
-                      left: 12,
-                      background: "linear-gradient(135deg, #F59E0B, #D97706)",
-                      color: "#fff",
-                      fontSize: 9,
-                      fontWeight: 800,
-                      padding: "3px 8px",
-                      borderRadius: 20,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
+                      background: isComparing ? "#3B82F6" : "#F3F4F6",
+                      border: "none", borderRadius: 6, padding: "4px 8px",
+                      cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                      fontSize: 11, fontWeight: 600,
+                      color: isComparing ? "#fff" : "#6B7280",
+                      transition: "all 0.2s",
                     }}
                   >
-                    ⭐ MAIS POPULAR
-                  </div>
-                )}
-
-                {isBestValue && (
-                  <div
-                    data-testid={`badge-best-value-${ticket.id}`}
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      background: "linear-gradient(135deg, #22C55E, #16A34A)",
-                      color: "#fff",
-                      fontSize: 9,
-                      fontWeight: 800,
-                      padding: "3px 8px",
-                      borderRadius: 20,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    💚 MELHOR CUSTO
-                  </div>
-                )}
-
-                <div style={{
-                  position: "absolute",
-                  bottom: 12,
-                  left: 12,
-                  background: "#EF4444",
-                  color: "#fff",
-                  fontSize: 10,
-                  fontWeight: 800,
-                  padding: "3px 8px",
-                  borderRadius: 20,
-                }}>
-                  -{ticket.discount}% OFF
-                </div>
-
-                {matchScore > 50 && (
-                  <div style={{ position: "absolute", bottom: 12, right: 12 }}>
-                    <AIRecommendedBadge matchPercent={matchScore} />
-                  </div>
+                    {isComparing ? <Check style={{ width: 12, height: 12 }} /> : <BarChart3 style={{ width: 12, height: 12 }} />}
+                    {isComparing ? "Selecionado" : "Comparar"}
+                  </button>
                 )}
               </div>
-            )}
 
-            <div style={{ padding: "12px 14px" }}>
-              <div
-                data-testid={`text-ticket-name-${ticket.id}`}
-                style={{ fontSize: 14, fontWeight: 800, color: "#111827", marginBottom: 4 }}
-              >
-                {ticket.name}
-              </div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5, marginBottom: 8 }}>
-                {ticket.description.slice(0, 80)}...
+              <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 10px", lineHeight: 1.5 }}>
+                {ticket.description}
               </p>
 
-              <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <MapPin style={{ width: 11, height: 11, color: "#9CA3AF" }} />
-                  <span style={{ fontSize: 10, color: "#6B7280" }}>{ticket.location}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <Clock style={{ width: 11, height: 11, color: "#9CA3AF" }} />
-                  <span style={{ fontSize: 10, color: "#6B7280" }}>{ticket.duration}</span>
-                </div>
-              </div>
-
-              {ticket.availableToday !== undefined && (
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 8,
-                  padding: "5px 8px",
-                  borderRadius: 8,
-                  background: isLowStock ? "#FEE2E2" : "#FEFCE8",
-                }}>
-                  {isLowStock ? (
-                    <Zap style={{ width: 11, height: 11, color: "#EF4444" }} className="animate-pulse" />
-                  ) : (
-                    <Zap style={{ width: 11, height: 11, color: "#D97706" }} />
-                  )}
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: isLowStock ? "#EF4444" : "#D97706",
-                  }}>
-                    {isLowStock
-                      ? `Apenas ${ticket.availableToday} restam hoje!`
-                      : `${ticket.soldToday ?? 0} vendidos hoje`}
-                  </span>
-                  <span data-testid={`text-sold-today-${ticket.id}`} style={{ display: "none" }}>
-                    {ticket.soldToday}
+              {(ticket.soldToday ?? 0) > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                  <Flame style={{ width: 13, height: 13, color: "#EF4444" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444" }} data-testid={`text-sold-today-${ticket.id}`}>
+                    <AnimatedCounter target={ticket.soldToday ?? 0} suffix="ingressos vendidos hoje" />
                   </span>
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                    <span style={{ fontSize: 20, fontWeight: 900, color: "#111827" }}>
-                      {formatPrice(ticket.price)}
-                    </span>
-                    <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>
-                      {formatPrice(ticket.originalPrice)}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 10, color: "#6B7280" }}>por pessoa</div>
+              {ticket.availableToday !== undefined && ticket.availableToday > 0 && isLowStock && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
+                  background: "#FEF2F2", borderRadius: 8, padding: "6px 10px",
+                  border: "1px solid #FECACA",
+                  animation: "pulse 2s infinite",
+                }} data-testid={`urgency-low-stock-${ticket.id}`}>
+                  <AlertTriangle style={{ width: 13, height: 13, color: "#DC2626" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#DC2626" }}>
+                    Apenas {ticket.availableToday} ingressos restantes hoje!
+                  </span>
                 </div>
-              </div>
+              )}
 
-              <div style={{ minHeight: 44 }}>
-                {qty === 0 ? (
-                  <button
-                    data-testid={`button-buy-${ticket.id}`}
-                    onClick={() => onBuy(ticket)}
-                    style={{
-                      width: "100%",
-                      padding: "11px 0",
-                      border: "none",
-                      borderRadius: 12,
-                      background: "linear-gradient(135deg, #22C55E, #16A34A)",
-                      color: "#fff",
-                      fontWeight: 800,
-                      fontSize: 14,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <ShoppingCart style={{ width: 15, height: 15 }} />
-                    Comprar Agora
-                  </button>
-                ) : (
-                  <div
-                    data-testid={`stepper-${ticket.id}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      background: "#F9FAFB",
-                      borderRadius: 12,
-                      padding: "4px",
-                      border: "1.5px solid #E5E7EB",
-                    }}
-                  >
-                    <button
-                      data-testid={`stepper-dec-${ticket.id}`}
-                      onClick={() => onDec(ticket, qty)}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        border: "none",
-                        borderRadius: 9,
-                        background: qty === 1 ? "#FEE2E2" : "#fff",
-                        color: qty === 1 ? "#EF4444" : "#374151",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      {qty === 1 ? (
-                        <Trash2 style={{ width: 15, height: 15 }} />
-                      ) : (
-                        <Minus style={{ width: 15, height: 15 }} />
-                      )}
-                    </button>
+              {ticket.availableToday !== undefined && ticket.availableToday > 0 && !isLowStock && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 6, marginBottom: 10,
+                  background: "#FEF3C7", borderRadius: 8, padding: "6px 10px",
+                  border: "1px solid #FDE68A",
+                }} data-testid={`urgency-available-${ticket.id}`}>
+                  <Zap style={{ width: 13, height: 13, color: "#D97706" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#92400E" }}>
+                    {ticket.availableToday} ingressos restantes hoje
+                  </span>
+                </div>
+              )}
 
-                    <span style={{ fontSize: 16, fontWeight: 800, color: "#111827", minWidth: 32, textAlign: "center" }}>
-                      {qty}
-                    </span>
-
-                    <button
-                      data-testid={`stepper-inc-${ticket.id}`}
-                      onClick={() => onInc(ticket, qty)}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        border: "none",
-                        borderRadius: 9,
-                        background: "#fff",
-                        color: "#374151",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      <Plus style={{ width: 15, height: 15 }} />
-                    </button>
-                  </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 12, color: "#6B7280", marginBottom: 10 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <MapPin style={{ width: 14, height: 14, color: "#3B82F6" }} />
+                  {ticket.location}
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Clock style={{ width: 14, height: 14, color: "#22C55E" }} />
+                  {ticket.duration}
+                </span>
+                {ticket.ageGroup && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <Users style={{ width: 14, height: 14, color: "#A855F7" }} />
+                    {ticket.ageGroup}
+                  </span>
                 )}
               </div>
+
+              {ticket.features && ticket.features.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                  {ticket.features.map((f) => (
+                    <span
+                      key={f}
+                      style={{
+                        background: "#F3F4F6", borderRadius: 6,
+                        padding: "4px 10px", fontSize: 11, color: "#374151",
+                      }}
+                    >
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <AlsoBoughtMini
                 ticket={ticket}
@@ -409,6 +369,85 @@ export function TicketsGrid({
                 cart={cart}
                 onQuickAdd={(t) => onBuy(t)}
               />
+
+              <div style={{ marginTop: "auto", paddingTop: 10 }}>
+                <div style={{ marginBottom: 12 }}>
+                  {ticket.originalPrice && (
+                    <span style={{ fontSize: 14, color: "#9CA3AF", textDecoration: "line-through", marginRight: 8 }}>
+                      {formatPrice(ticket.originalPrice)}
+                    </span>
+                  )}
+                  <span
+                    style={{ fontSize: 26, fontWeight: 700, color: "#16A34A" }}
+                    data-testid={`text-price-${ticket.id}`}
+                  >
+                    {formatPrice(ticket.price)}
+                  </span>
+                  <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>por pessoa</span>
+                </div>
+
+                <div style={{ minHeight: 44 }}>
+                  {qty === 0 ? (
+                    <button
+                      data-testid={`button-buy-${ticket.id}`}
+                      onClick={() => onBuy(ticket)}
+                      style={{
+                        width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
+                        color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
+                        background: ticket.popular
+                          ? "linear-gradient(135deg, #22C55E, #16A34A)"
+                          : "linear-gradient(135deg, #0891B2, #06B6D4)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <ShoppingCart style={{ width: 18, height: 18 }} />
+                      Comprar Agora
+                    </button>
+                  ) : (
+                    <div
+                      data-testid={`stepper-${ticket.id}`}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center",
+                        justifyContent: "space-between", borderRadius: 12,
+                        border: "2px solid #22C55E", padding: "9px 12px",
+                        background: "#F0FDF4",
+                      }}
+                    >
+                      <button
+                        data-testid={`button-decrease-${ticket.id}`}
+                        onClick={() => onDec(ticket, qty)}
+                        style={{
+                          width: 34, height: 34, borderRadius: 8, border: "none",
+                          background: qty === 1 ? "#FEE2E2" : "#DCFCE7",
+                          color: qty === 1 ? "#EF4444" : "#16A34A",
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        {qty === 1 ? <Trash2 style={{ width: 15, height: 15 }} /> : <Minus style={{ width: 15, height: 15 }} />}
+                      </button>
+                      <span
+                        style={{ fontSize: 16, fontWeight: 800, color: "#16A34A" }}
+                        data-testid={`text-qty-${ticket.id}`}
+                      >
+                        {qty}x — {formatPrice(ticket.price * qty)}
+                      </span>
+                      <button
+                        data-testid={`button-increase-${ticket.id}`}
+                        onClick={() => onInc(ticket, qty)}
+                        style={{
+                          width: 34, height: 34, borderRadius: 8, border: "none",
+                          background: "#DCFCE7", color: "#16A34A",
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        <Plus style={{ width: 15, height: 15 }} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )
