@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react"
 import { X, ChevronRight, ChevronLeft, Users, Clock, TrendingUp, Star, Heart, Sparkles, Check, ShoppingCart } from "lucide-react"
 import { type CartItem } from "@/lib/cart-store"
+import { type TravelerProfile, calculateMatchScore } from "@/components/ai-conversion-elements"
 
 type Duration = "Dia inteiro" | "Meio dia" | "Tanto faz"
 type Priority = "economia" | "popularidade" | "familia"
@@ -13,6 +14,7 @@ interface TicketBase {
   discount: number
   duration: string
   popular?: boolean
+  category?: string
   tags: string[]
   image?: string
 }
@@ -20,6 +22,7 @@ interface TicketBase {
 interface MiniWizardProps {
   open: boolean
   tickets: TicketBase[]
+  profile?: TravelerProfile | null
   onClose: () => void
   onConfirm: (items: CartItem[]) => void
 }
@@ -31,7 +34,8 @@ function formatPrice(price: number) {
 function scoreTickets(
   tickets: TicketBase[],
   duration: Duration,
-  priority: Priority
+  priority: Priority,
+  profile?: TravelerProfile | null
 ): TicketBase[] {
   return [...tickets].sort((a, b) => {
     let scoreA = 0
@@ -58,11 +62,16 @@ function scoreTickets(
       if (b.popular) scoreB += 1
     }
 
+    if (profile) {
+      scoreA += calculateMatchScore(profile, { category: a.category, price: a.price, tags: a.tags }) * 0.05
+      scoreB += calculateMatchScore(profile, { category: b.category, price: b.price, tags: b.tags }) * 0.05
+    }
+
     return scoreB - scoreA
   })
 }
 
-export function MiniWizard({ open, tickets, onClose, onConfirm }: MiniWizardProps) {
+export function MiniWizard({ open, tickets, profile, onClose, onConfirm }: MiniWizardProps) {
   const [step, setStep] = useState(1)
   const [people, setPeople] = useState(2)
   const [duration, setDuration] = useState<Duration>("Tanto faz")
@@ -71,22 +80,23 @@ export function MiniWizard({ open, tickets, onClose, onConfirm }: MiniWizardProp
 
   const recommendation = useMemo(() => {
     if (tickets.length === 0) return []
-    const scored = scoreTickets(tickets, duration, priority)
+    const scored = scoreTickets(tickets, duration, priority, profile)
     return wantsCombo ? scored.slice(0, 2) : [scored[0]]
-  }, [tickets, duration, priority, wantsCombo])
+  }, [tickets, duration, priority, wantsCombo, profile])
 
-  const originalTotal = recommendation.reduce((s, t) => s + t.price, 0)
+  const baseTotal = recommendation.reduce((s, t) => s + t.originalPrice, 0)
+  const discountedTotal = recommendation.reduce((s, t) => s + t.price, 0)
   const finalTotal = wantsCombo
-    ? Math.round(originalTotal * 0.85)
-    : originalTotal
-  const savings = originalTotal - finalTotal
+    ? Math.round(discountedTotal * 0.85 * 100) / 100
+    : discountedTotal
+  const savings = baseTotal - finalTotal
 
   function handleConfirm() {
     const items: CartItem[] = recommendation.map((t) => ({
       ticketId: t.id,
       name: t.name,
       unitPrice: wantsCombo
-        ? Math.round((t.price * 0.85 * 100) / 100)
+        ? Math.round(t.price * 0.85 * 100) / 100
         : t.price,
       originalPrice: t.originalPrice,
       discount: t.discount,
@@ -383,15 +393,19 @@ export function MiniWizard({ open, tickets, onClose, onConfirm }: MiniWizardProp
               marginBottom: 16,
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>Subtotal</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)" }}>Preço original</span>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", textDecoration: "line-through" }}>
-                  {formatPrice(originalTotal * people)}
+                  {formatPrice(baseTotal * people)}
                 </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Com desconto do parque</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{formatPrice(discountedTotal * people)}</span>
               </div>
               {wantsCombo && (
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Desconto combo (15%)</span>
-                  <span style={{ fontSize: 12, color: "#86EFAC" }}>-{formatPrice(savings * people)}</span>
+                  <span style={{ fontSize: 12, color: "#86EFAC" }}>-{formatPrice((discountedTotal - finalTotal) * people)}</span>
                 </div>
               )}
               <div style={{
@@ -417,7 +431,7 @@ export function MiniWizard({ open, tickets, onClose, onConfirm }: MiniWizardProp
                   color: "#fff",
                   textAlign: "center",
                 }}>
-                  Você economiza {formatPrice(savings * people)}!
+                  Você economiza {formatPrice((baseTotal - finalTotal) * people)} vs. preço original!
                 </div>
               )}
             </div>
