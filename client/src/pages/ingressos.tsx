@@ -275,19 +275,31 @@ export default function IngressosPage() {
           padding: "24px 20px 0",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" style={{ color: "#fff", display: "flex", alignItems: "center" }} data-testid="link-back-home">
-              <ArrowLeft style={{ width: 22, height: 22 }} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <Link href="/" style={{ color: "#fff", display: "flex", alignItems: "center" }} data-testid="link-back-home">
+            <ArrowLeft style={{ width: 22, height: 22 }} />
+          </Link>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%",
+            border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
+          }}>
+            <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
+          </div>
+          <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
+        <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 8px" }}>Até 25% OFF + Entrada prioritária</p>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(220,38,38,0.2)", borderRadius: 10, padding: "6px 14px",
+          }}>
+            <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#FCA5A5" }} data-testid="text-countdown-timer">
+              Preço especial por mais {String(timer.minutes).padStart(2, "0")}:{String(timer.seconds).padStart(2, "0")}
+            </span>
           </div>
           <button
             data-testid="button-help-choose"
@@ -295,28 +307,14 @@ export default function IngressosPage() {
             style={{
               display: "flex", alignItems: "center", gap: 6,
               background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)",
-              borderRadius: 10, padding: "8px 14px", color: "#fff",
+              borderRadius: 10, padding: "6px 14px", color: "#fff",
               fontSize: 12, fontWeight: 700, cursor: "pointer",
-              backdropFilter: "blur(4px)",
               transition: "all 0.15s ease",
             }}
           >
             <Wand2 style={{ width: 14, height: 14 }} />
             Me ajude a escolher
           </button>
-        </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
-        <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 8px" }}>Até 25% OFF + Entrada prioritária</p>
-
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "rgba(220,38,38,0.2)", borderRadius: 10, padding: "6px 14px",
-          marginBottom: 14,
-        }}>
-          <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#FCA5A5" }} data-testid="text-countdown-timer">
-            Preço especial por mais {String(timer.minutes).padStart(2, "0")}:{String(timer.seconds).padStart(2, "0")}
-          </span>
         </div>
 
         <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
