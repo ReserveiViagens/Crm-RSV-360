@@ -140,7 +140,7 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
 
-  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty } = useTicketsCart()
+  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -225,8 +225,11 @@ export default function IngressosPage() {
     if (pick === "combo") {
       setActivePick("combo")
       setShowWizard(true)
+    } else if (activePick === pick) {
+      setActivePick(null)
+      syncCart()
     } else {
-      setActivePick(prev => prev === pick ? null : pick)
+      setActivePick(pick)
     }
   }
 
@@ -248,8 +251,20 @@ export default function IngressosPage() {
   }
 
   function handleDecrease(ticket: TicketItem, qty: number) {
-    updateTicketQty(ticket.id, qty - 1)
-    if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
+    if (qty <= 1) {
+      handleRemove(ticket.id)
+    } else {
+      updateTicketQty(ticket.id, qty - 1)
+    }
+  }
+
+  function syncCart() {
+    setTickets([...ticketsBase])
+  }
+
+  function handleRemove(ticketId: string) {
+    removeTicket(ticketId)
+    trackEvent("ticket_remove_from_cart", { ticketId })
   }
 
   function handleWizardConfirm(items: Parameters<typeof addManyToCart>[0]) {
@@ -623,23 +638,6 @@ export default function IngressosPage() {
         />
       </div>
 
-      {cart.length === 0 && (
-        <a
-          href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre ingressos para parques."
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="link-whatsapp-float"
-          style={{
-            position: "fixed", bottom: 80, right: 16,
-            width: 56, height: 56, background: "#22C55E", borderRadius: "50%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.2)", zIndex: 50,
-          }}
-        >
-          <Phone style={{ width: 26, height: 26, color: "#fff" }} />
-        </a>
-      )}
-
       <MiniWizard
         open={showWizard}
         tickets={tickets.map(t => ({
@@ -661,6 +659,23 @@ export default function IngressosPage() {
         }}
         onConfirm={handleWizardConfirm}
       />
+
+      {cart.length === 0 && (
+        <a
+          href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre ingressos para parques."
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="link-whatsapp-float"
+          style={{
+            position: "fixed", bottom: 80, right: 16,
+            width: 56, height: 56, background: "#22C55E", borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.2)", zIndex: 50,
+          }}
+        >
+          <Phone style={{ width: 26, height: 26, color: "#fff" }} />
+        </a>
+      )}
 
       <CartStickyBar
         cart={cart}
