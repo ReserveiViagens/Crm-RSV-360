@@ -140,7 +140,7 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
 
-  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
+  const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty } = useTicketsCart()
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -250,11 +250,6 @@ export default function IngressosPage() {
   function handleDecrease(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty - 1)
     if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
-  }
-
-  function handleRemove(ticketId: string) {
-    removeTicket(ticketId)
-    trackEvent("ticket_remove_from_cart", { ticketId })
   }
 
   function handleWizardConfirm(items: Parameters<typeof addManyToCart>[0]) {
