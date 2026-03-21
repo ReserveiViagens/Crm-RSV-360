@@ -227,7 +227,6 @@ export default function IngressosPage() {
       setShowWizard(true)
     } else if (activePick === pick) {
       setActivePick(null)
-      setTickets([...ticketsBase])
     } else {
       setActivePick(pick)
     }
