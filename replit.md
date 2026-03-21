@@ -244,3 +244,6 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 - Pix de ingresso ≠ Pix de excursão (sem split para ingressos)
 - Card não muda altura ao mostrar stepper
 - Layout do /ingressos preservado integralmente (hero, grid, combo IA, social proof, badges)
+
+### Documentação Técnica
+- `docs/Estrutura-completa-pagina-ingressos.md` — documento técnico completo da página `/ingressos` (fluxo, arquivos, catálogo de 5 parques, filtros, estado React, paleta de cores, animações, funções auxiliares, cart-store, 19 eventos analytics, 4 rotas backend, serviço createTicketPix, todos os data-testids, regras de preservação)

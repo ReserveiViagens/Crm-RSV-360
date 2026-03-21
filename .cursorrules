@@ -1035,3 +1035,7 @@ Não incluir nesta rota:
 ### Pix de ingresso ≠ Pix de excursão
 - Ingresso: `createTicketPix` → sem split, 100% Reservei
 - Excursão: `createSplitPaymentPix` → com split organizador/plataforma
+
+### Documentação técnica
+- Documento completo da página `/ingressos`: `docs/Estrutura-completa-pagina-ingressos.md`
+  - Contém: fluxo, arquivos, catálogo, filtros, estado React, paleta de cores, animações, funções, cart-store, analytics, rotas backend, serviço de pagamento, data-testids, regras de preservação
