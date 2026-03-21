@@ -242,12 +242,12 @@ export default function IngressosPage() {
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
   }
 
-  function handleInc(ticket: TicketItem, qty: number) {
+  function handleIncrease(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty + 1)
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
   }
 
-  function handleDec(ticket: TicketItem, qty: number) {
+  function handleDecrease(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty - 1)
     if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
   }
@@ -297,33 +297,14 @@ export default function IngressosPage() {
         <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
         <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 8px" }}>Até 25% OFF + Entrada prioritária</p>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "rgba(220,38,38,0.2)", borderRadius: 10, padding: "6px 14px",
-          }}>
-            <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#FCA5A5" }} data-testid="text-countdown-timer">
-              Preço especial por mais {String(timer.minutes).padStart(2, "0")}:{String(timer.seconds).padStart(2, "0")}
-            </span>
-          </div>
-          <button
-            data-testid="button-help-choose"
-            onClick={() => setShowWizard(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.4)",
-              borderRadius: 10, padding: "6px 14px", color: "#fff",
-              fontSize: 12, fontWeight: 700, cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <Wand2 style={{ width: 14, height: 14 }} />
-            Me ajude a escolher
-          </button>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#FCA5A5" }} data-testid="text-countdown-timer">
+            Preço especial por mais {String(timer.minutes).padStart(2, "0")}:{String(timer.seconds).padStart(2, "0")}
+          </span>
         </div>
 
-        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
           {FILTERS.map((filter) => (
             <button
               key={filter}
@@ -341,6 +322,21 @@ export default function IngressosPage() {
               {filter}
             </button>
           ))}
+          <button
+            data-testid="button-help-choose"
+            onClick={() => setShowWizard(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.35)",
+              borderRadius: "8px 8px 0 0", padding: "7px 12px", color: "#fff",
+              fontSize: 11, fontWeight: 700, cursor: "pointer",
+              marginBottom: -2, borderBottom: "2px solid transparent",
+              transition: "all 0.15s ease", whiteSpace: "nowrap",
+            }}
+          >
+            <Wand2 style={{ width: 12, height: 12 }} />
+            Me ajude a escolher
+          </button>
         </div>
       </div>
 
@@ -616,8 +612,8 @@ export default function IngressosPage() {
         onHover={setHoveredId}
         onToggleCompare={toggleCompare}
         onBuy={handleBuy}
-        onInc={handleInc}
-        onDec={handleDec}
+        onInc={handleIncrease}
+        onDec={handleDecrease}
       />
 
       <div style={{ padding: "0 16px 100px" }}>
