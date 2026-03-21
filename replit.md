@@ -245,5 +245,18 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 - Card não muda altura ao mostrar stepper
 - Layout do /ingressos preservado integralmente (hero, grid, combo IA, social proof, badges)
 
+### Infraestrutura de Carrinho + Componentes (Task #11)
+
+**cart-store.ts atualizado:**
+- `addToCart(item, qty?)`: aceita quantidade opcional (default 1)
+- `addManyToCart(items)`: soma quantidades para itens existentes ou insere novos
+
+**Novos arquivos:**
+- `client/src/hooks/useTicketsCart.ts` — hook com StorageEvent para multi-aba, expõe `cart`, `total`, `addTicket`, `addManyToCart`, `updateTicketQty`, `removeTicket`
+- `client/src/components/CartStickyBar.tsx` — barra sticky (bottom:0, z-index:200), testids: `bar-cart-summary`, `button-go-checkout`
+- `client/src/components/QuickDecisionSection.tsx` — 4 atalhos de filtro (custo/família/popular/combo), testids: `quick-custo`, `quick-familia`, `quick-popular`, `quick-combo`
+- `client/src/components/MiniWizard.tsx` — modal 3 passos guiados com scoring de tickets e opção de combo 15% OFF
+- `client/src/components/TicketsGrid.tsx` — grid componentizado com stepper (`minHeight:44`), badges, AlsoBoughtMini com quick-add
+
 ### Documentação Técnica
 - `docs/Estrutura-completa-pagina-ingressos.md` — documento técnico completo da página `/ingressos` (fluxo, arquivos, catálogo de 5 parques, filtros, estado React, paleta de cores, animações, funções auxiliares, cart-store, 19 eventos analytics, 4 rotas backend, serviço createTicketPix, todos os data-testids, regras de preservação)

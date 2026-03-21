@@ -1027,8 +1027,13 @@ Não incluir nesta rota:
 - `client/src/pages/ingressos.tsx` — catálogo + stepper + barra de carrinho
 - `client/src/pages/ingressos-checkout.tsx` — checkout Pix (form + QR + polling)
 - `client/src/pages/ingressos-sucesso.tsx` — confirmação + download + cross-sell
-- `client/src/lib/cart-store.ts` — store de carrinho com localStorage
+- `client/src/lib/cart-store.ts` — store de carrinho com localStorage (addToCart com qty opcional, addManyToCart)
 - `client/src/lib/analytics.ts` — trackEvent (RSV analytics local)
+- `client/src/hooks/useTicketsCart.ts` — hook com sincronização multi-aba (StorageEvent)
+- `client/src/components/CartStickyBar.tsx` — barra sticky bottom:0 z-200 com total e CTA
+- `client/src/components/QuickDecisionSection.tsx` — 4 botões de escolha rápida (custo/família/popular/combo)
+- `client/src/components/MiniWizard.tsx` — modal 3 passos: pessoas + duração → prioridade + combo → resumo
+- `client/src/components/TicketsGrid.tsx` — grid componentizado com stepper, badges e AlsoBoughtMini
 - `server/services/ticket-payment.service.ts` — createTicketPix (sem split)
 - Backend rotas: POST /api/payments/tickets/create, GET /api/payments/tickets/:id/status, GET /api/payments/tickets/:id, POST /api/webhooks/tickets
 
