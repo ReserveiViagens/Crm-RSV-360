@@ -17,7 +17,8 @@ type AnalyticsEvent =
   | "tickets_success_view"
   | "ticket_download_click"
   | "support_whatsapp_click"
-  | "related_offer_click";
+  | "related_offer_click"
+  | "wizard_confirm";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   try {

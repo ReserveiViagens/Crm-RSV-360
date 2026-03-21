@@ -3,7 +3,7 @@ import { ShoppingCart, Minus, Plus, Trash2, MapPin, Clock, TrendingUp, Zap, User
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TravelerProfile, AIRecommendedBadge, calculateMatchScore } from "@/components/ai-conversion-elements"
 
-interface TicketItem {
+export interface TicketItem {
   id: string
   name: string
   description: string

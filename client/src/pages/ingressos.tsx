@@ -13,7 +13,7 @@ import { trackEvent } from "@/lib/analytics"
 import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { CartStickyBar } from "@/components/CartStickyBar"
-import { TicketsGrid } from "@/components/TicketsGrid"
+import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -111,13 +111,11 @@ const ticketsBase = [
   },
 ]
 
-type TicketData = typeof ticketsBase[0]
-
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
-function getBestValueId(list: TicketData[]) {
+function getBestValueId(list: TicketItem[]) {
   let bestId = list[0].id
   let bestRatio = 0
   list.forEach((t) => {
@@ -231,7 +229,7 @@ export default function IngressosPage() {
     }
   }
 
-  function handleBuy(ticket: TicketData) {
+  function handleBuy(ticket: TicketItem) {
     addTicket({
       ticketId: ticket.id,
       name: ticket.name,
@@ -243,12 +241,12 @@ export default function IngressosPage() {
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
   }
 
-  function handleInc(ticket: TicketData, qty: number) {
+  function handleInc(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty + 1)
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
   }
 
-  function handleDec(ticket: TicketData, qty: number) {
+  function handleDec(ticket: TicketItem, qty: number) {
     updateTicketQty(ticket.id, qty - 1)
     if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
   }
