@@ -14,6 +14,7 @@ import {
 import { emitEstadoGrupo, emitPixExpirado, emitVigilancia } from "./socket";
 import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus, createInstance, getInstanceStatus, getQRCode, deleteInstance, fetchAllGroups, handleWebhookEvent } from "./services/whatsapp.service";
 import { createSplitPaymentPix, checkPaymentStatus } from "./services/payment.service";
+import { createTicketPix, checkTicketPaymentStatus } from "./services/ticket-payment.service";
 import { pauseAI, resumeAI, isAIPaused, getHandoffInfo, listPausedGroups } from "./services/humanHandoff.service";
 import {
   gerarManifestoANTT,
@@ -1977,6 +1978,108 @@ export async function registerRoutes(
     const deleted = await storage.deleteAtividadeWizard(id);
     if (!deleted) return res.status(404).json({ message: "Atividade não encontrada" });
     return res.status(204).send();
+  });
+
+  // =============================================
+  // INGRESSOS — TICKET PAYMENT ROUTES
+  // =============================================
+
+  const ticketTransactions = new Map<string, {
+    transactionId: string;
+    status: "PENDING" | "APPROVED" | "EXPIRED" | "FAILED" | "CANCELLED";
+    totalAmount: number;
+    items: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number }>;
+    customer: { name: string; email: string; cpf: string; phone: string };
+    qrCodeBase64: string;
+    copyPasteCode: string;
+    expirationDate: string;
+    createdAt: string;
+    demo: boolean;
+  }>();
+
+  app.post("/api/payments/tickets/create", async (req: Request, res: Response) => {
+    const { items, customer } = req.body as {
+      items?: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number }>;
+      customer?: { name: string; email: string; cpf: string; phone: string };
+    };
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Items é obrigatório" });
+    }
+    if (!customer?.name || !customer?.email) {
+      return res.status(400).json({ message: "Dados do cliente são obrigatórios" });
+    }
+    try {
+      const result = await createTicketPix(items, customer);
+      ticketTransactions.set(result.transactionId, {
+        ...result,
+        createdAt: new Date().toISOString(),
+      });
+      return res.status(201).json({
+        transactionId: result.transactionId,
+        status: result.status,
+        qrCodeBase64: result.qrCodeBase64,
+        copyPasteCode: result.copyPasteCode,
+        expirationDate: result.expirationDate,
+        totalAmount: result.totalAmount,
+        items: result.items,
+        customer: result.customer,
+        demo: result.demo,
+      });
+    } catch (err) {
+      console.error("[tickets/create]", err);
+      return res.status(500).json({ message: "Erro ao criar cobrança Pix" });
+    }
+  });
+
+  app.get("/api/payments/tickets/:id/status", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const txn = ticketTransactions.get(id);
+    if (!txn) {
+      return res.status(404).json({ message: "Transação não encontrada" });
+    }
+    try {
+      if (txn.demo) {
+        const expiredMs = new Date(txn.expirationDate).getTime();
+        if (Date.now() > expiredMs) {
+          txn.status = "EXPIRED";
+          return res.json({ status: "EXPIRED", paid: false });
+        }
+        return res.json({ status: txn.status, paid: false });
+      }
+      const { status, paid } = await checkTicketPaymentStatus(id);
+      txn.status = status;
+      return res.json({ status, paid });
+    } catch (err) {
+      console.error("[tickets/status]", err);
+      return res.status(500).json({ message: "Erro ao consultar status" });
+    }
+  });
+
+  app.get("/api/payments/tickets/:id", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Transação não encontrada" });
+    return res.json(txn);
+  });
+
+  app.post("/api/webhooks/tickets", async (req: Request, res: Response) => {
+    const apiKey = req.headers["x-api-key"] as string | undefined;
+    if (process.env.WEBHOOK_SECRET && apiKey !== process.env.WEBHOOK_SECRET) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { transactionId, status } = req.body as { transactionId?: string; status?: string };
+    if (!transactionId || !status) {
+      return res.status(400).json({ message: "transactionId e status são obrigatórios" });
+    }
+    const txn = ticketTransactions.get(transactionId);
+    if (txn) {
+      const map: Record<string, "PENDING" | "APPROVED" | "EXPIRED" | "FAILED" | "CANCELLED"> = {
+        paid: "APPROVED", approved: "APPROVED", expired: "EXPIRED",
+        failed: "FAILED", cancelled: "CANCELLED",
+      };
+      txn.status = map[status.toLowerCase()] ?? txn.status;
+    }
+    return res.status(200).json({ received: true });
   });
 
   return httpServer;

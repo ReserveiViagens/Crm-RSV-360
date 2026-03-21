@@ -223,3 +223,24 @@ Sidebar in `admin-dashboard.tsx` has "🚀 NTX — Next Gen" section with links 
 - `/admin/relatorio-mensal` — `client/src/pages/admin/relatorio-mensal.tsx` — month/year selector, 4 KPIs, recharts BarChart, reservations table, CSV export
 - `/admin/configuracoes-sistema` — `client/src/pages/admin/configuracoes-sistema.tsx` — 3 tabs (Empresa/Pagamento/Notificações), toggles for notification channels and alert types
 All routes protected with `ProtectedRoute roles={["admin"]}`. Dashboard quick actions and sidebar updated to point to real routes.
+
+### Ticket Sales Flow — Ingressos (commit feat/ingressos-checkout-pix)
+Full ticket purchase flow implemented without breaking the existing `/ingressos` layout:
+
+**Frontend:**
+- `client/src/pages/ingressos.tsx` — enhanced with cart + stepper (button replaced in-place, card height preserved), sticky cart bottom bar with total + checkout CTA, analytics tracking
+- `client/src/pages/ingressos-checkout.tsx` — 2-step checkout page: customer form (name/email/CPF/phone with validation) → Pix payment (QR code, copy-paste field, 30-min countdown, TanStack Query polling every 3s, status banners for PENDING/APPROVED/EXPIRED/FAILED), auto-redirect to success on payment confirmation
+- `client/src/pages/ingressos-sucesso.tsx` — confirmation page with order summary, download ticket button (TXT comprovante), WhatsApp support button, related hotels cross-sell strip
+- `client/src/lib/cart-store.ts` — localStorage-backed cart with addToCart/removeFromCart/updateQty/getCartTotal/getCartItemQty
+- `client/src/lib/analytics.ts` — trackEvent() for RSV360 analytics events (localStorage buffer, 200 events max)
+
+**Backend:**
+- `server/services/ticket-payment.service.ts` — createTicketPix (no split, full amount to Reservei), checkTicketPaymentStatus, demo mode with mock QR
+- `server/routes.ts` — 4 new routes: POST /api/payments/tickets/create, GET /api/payments/tickets/:id/status, GET /api/payments/tickets/:id, POST /api/webhooks/tickets
+
+**App.tsx routes added:** `/ingressos/checkout`, `/ingressos/sucesso`
+
+**Key rules:**
+- Pix de ingresso ≠ Pix de excursão (sem split para ingressos)
+- Card não muda altura ao mostrar stepper
+- Layout do /ingressos preservado integralmente (hero, grid, combo IA, social proof, badges)

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react"
-import { ArrowLeft, Phone, MapPin, Clock, Users, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, Flame, Tag, AlertTriangle, TrendingUp, Zap } from "lucide-react"
-import { Link } from "wouter";
+import { ArrowLeft, Phone, MapPin, Clock, Users, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, Flame, Tag, AlertTriangle, TrendingUp, Zap, Minus, Plus, ChevronRight, Trash2 } from "lucide-react"
+import { Link, useLocation } from "wouter";
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -10,6 +10,16 @@ import {
   UrgencyIndicator,
   CrossSellSection,
 } from "@/components/ai-conversion-elements"
+import {
+  type CartItem,
+  getCart,
+  addToCart,
+  removeFromCart,
+  updateQty,
+  getCartTotal,
+  getCartItemQty,
+} from "@/lib/cart-store"
+import { trackEvent } from "@/lib/analytics"
 
 const ticketsBase = [
   {
@@ -202,6 +212,7 @@ function AlsoBoughtSection({ ticketId, allTickets }: { ticketId: string; allTick
 }
 
 export default function IngressosPage() {
+  const [, navigate] = useLocation()
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [profile, setProfile] = useState(getTravelerProfile())
   const [compareIds, setCompareIds] = useState<string[]>([])
@@ -209,6 +220,7 @@ export default function IngressosPage() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
+  const [cart, setCart] = useState<CartItem[]>(() => getCart())
 
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
 
@@ -235,6 +247,7 @@ export default function IngressosPage() {
       soldToday: Math.floor(Math.random() * 40) + 20,
       availableToday: Math.floor(Math.random() * 30) + 5,
     })))
+    trackEvent("tickets_page_view")
   }, [])
 
   useEffect(() => {
@@ -776,28 +789,87 @@ export default function IngressosPage() {
                     <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>por pessoa</span>
                   </div>
 
-                  <button
-                    data-testid={`button-buy-${ticket.id}`}
-                    onClick={() =>
-                      window.open(
-                        `https://wa.me/5564993197555?text=Olá! Quero comprar o ${ticket.name} com desconto especial!`,
-                        "_blank"
+                  {(() => {
+                    const qty = getCartItemQty(cart, ticket.id)
+                    if (qty > 0) {
+                      return (
+                        <div
+                          data-testid={`stepper-${ticket.id}`}
+                          style={{
+                            width: "100%", display: "flex", alignItems: "center",
+                            justifyContent: "space-between", borderRadius: 12,
+                            border: "2px solid #22C55E", padding: "9px 12px",
+                            background: "#F0FDF4",
+                          }}
+                        >
+                          <button
+                            data-testid={`button-decrease-${ticket.id}`}
+                            onClick={() => {
+                              const updated = updateQty(ticket.id, qty - 1)
+                              setCart(updated)
+                              if (qty - 1 === 0) trackEvent("ticket_remove_from_cart", { ticketId: ticket.id })
+                            }}
+                            style={{
+                              width: 34, height: 34, borderRadius: 8, border: "none",
+                              background: qty === 1 ? "#FEE2E2" : "#DCFCE7",
+                              color: qty === 1 ? "#EF4444" : "#16A34A",
+                              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                          >
+                            {qty === 1 ? <Trash2 style={{ width: 15, height: 15 }} /> : <Minus style={{ width: 15, height: 15 }} />}
+                          </button>
+                          <span style={{ fontSize: 16, fontWeight: 800, color: "#16A34A" }} data-testid={`text-qty-${ticket.id}`}>
+                            {qty}x — {formatPrice(ticket.price * qty)}
+                          </span>
+                          <button
+                            data-testid={`button-increase-${ticket.id}`}
+                            onClick={() => {
+                              const updated = updateQty(ticket.id, qty + 1)
+                              setCart(updated)
+                              trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: qty + 1 })
+                            }}
+                            style={{
+                              width: 34, height: 34, borderRadius: 8, border: "none",
+                              background: "#DCFCE7", color: "#16A34A",
+                              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                          >
+                            <Plus style={{ width: 15, height: 15 }} />
+                          </button>
+                        </div>
                       )
                     }
-                    style={{
-                      width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
-                      color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
-                      background: ticket.popular
-                        ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                        : "linear-gradient(135deg, #0891B2, #06B6D4)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                      boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <ShoppingCart style={{ width: 18, height: 18 }} />
-                    Comprar Agora
-                  </button>
+                    return (
+                      <button
+                        data-testid={`button-buy-${ticket.id}`}
+                        onClick={() => {
+                          const updated = addToCart({
+                            ticketId: ticket.id,
+                            name: ticket.name,
+                            unitPrice: ticket.price,
+                            originalPrice: ticket.originalPrice,
+                            discount: ticket.discount,
+                            image: ticket.image,
+                          })
+                          setCart(updated)
+                          trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
+                        }}
+                        style={{
+                          width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
+                          color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
+                          background: ticket.popular
+                            ? "linear-gradient(135deg, #22C55E, #16A34A)"
+                            : "linear-gradient(135deg, #0891B2, #06B6D4)",
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                          boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <ShoppingCart style={{ width: 18, height: 18 }} />
+                        Comprar Agora
+                      </button>
+                    )
+                  })()}
                 </div>
               </div>
             </div>
@@ -817,20 +889,75 @@ export default function IngressosPage() {
         </div>
       </div>
 
-      <a
-        href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre ingressos para parques."
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="link-whatsapp-float"
-        style={{
-          position: "fixed", bottom: 80, right: 16,
-          width: 56, height: 56, background: "#22C55E", borderRadius: "50%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 14px rgba(0,0,0,0.2)", zIndex: 50,
-        }}
-      >
-        <Phone style={{ width: 26, height: 26, color: "#fff" }} />
-      </a>
+      {cart.length === 0 && (
+        <a
+          href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre ingressos para parques."
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="link-whatsapp-float"
+          style={{
+            position: "fixed", bottom: 80, right: 16,
+            width: 56, height: 56, background: "#22C55E", borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.2)", zIndex: 50,
+          }}
+        >
+          <Phone style={{ width: 26, height: 26, color: "#fff" }} />
+        </a>
+      )}
+
+      {cart.length > 0 && (
+        <div
+          data-testid="bar-cart-summary"
+          style={{
+            position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
+            background: "#1F2937", color: "#fff",
+            padding: "12px 16px",
+            boxShadow: "0 -4px 20px rgba(0,0,0,0.3)",
+            display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%", background: "#22C55E",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, position: "relative",
+          }}>
+            <ShoppingCart style={{ width: 20, height: 20, color: "#fff" }} />
+            <span style={{
+              position: "absolute", top: -4, right: -4,
+              background: "#EF4444", color: "#fff", borderRadius: "50%",
+              width: 18, height: 18, fontSize: 10, fontWeight: 800,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {cart.reduce((s, i) => s + i.quantity, 0)}
+            </span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 11, color: "#9CA3AF" }}>
+              {cart.length} {cart.length === 1 ? "ingresso" : "tipos de ingresso"}
+            </p>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#22C55E" }}>
+              {formatPrice(getCartTotal(cart))}
+            </p>
+          </div>
+          <button
+            data-testid="button-cart-checkout"
+            onClick={() => {
+              trackEvent("tickets_checkout_start", { total: getCartTotal(cart), items: cart.length })
+              navigate("/ingressos/checkout")
+            }}
+            style={{
+              padding: "12px 20px", border: "none", borderRadius: 12,
+              background: "linear-gradient(135deg, #22C55E, #16A34A)",
+              color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
+            }}
+          >
+            Ir para pagamento
+            <ChevronRight style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -957,3 +957,81 @@ Os 5 quickActions do `admin-dashboard.tsx` apontam para as rotas reais:
 ### Sidebar atualizada
 Seção "Operacional": Nova Reserva, Clientes, CRM, Relatório Mensal (novos), + FNRH, Contratos, etc (existentes).
 Seção "Conformidade": Config. Sistema (novo) + Configurações Conta (existente, aponta `/configuracoes`).
+
+---
+
+## Regra específica da página /ingressos
+
+### Princípio
+Ao trabalhar na rota `/ingressos`, preservar integralmente o layout visual existente. Evoluir por extensão funcional, nunca por redesign desnecessário.
+
+### Manter obrigatoriamente
+- hero com gradiente azul
+- identidade RSV360 / Reservei Viagens
+- abas superiores (Todos, Dia Inteiro, Meio Dia, Mais Popular, Maior Desconto)
+- barra de prova social
+- bloco "COMBO IA — SUGESTÃO INTELIGENTE"
+- grid atual de cards
+- badges de desconto
+- badges de match
+- hierarquia atual de preços
+- CTA visual dos cards
+- bloco inferior de recomendação cruzada (CrossSellSection)
+
+### Permissões de evolução
+É permitido:
+- adicionar estado selecionado no card (borda + stepper)
+- adicionar stepper de quantidade (substitui botão sem mudar altura do card)
+- adicionar carrinho sticky/bottom bar
+- adicionar integração com checkout Pix (/ingressos/checkout)
+- adicionar estados de loading, empty e error
+- adicionar analytics (trackEvent)
+- adicionar data-testid
+- adicionar explicabilidade do combo IA
+- melhorar recomendação cruzada sem mudar layout
+
+### Proibições
+Nunca:
+- transformar a página em landing page genérica
+- trocar o grid por lista
+- remover combo IA
+- remover social proof
+- trocar o visual principal de cards
+- misturar lógica de excursão nesta página
+- inserir elementos de ônibus, embarque, poltrona ou organizador
+- refatorar cores base sem necessidade
+- remover badges de desconto/match
+- substituir a arquitetura do front fora do padrão Vite + wouter + TanStack Query v5
+
+### Escopo correto da página /ingressos
+A rota `/ingressos` trata apenas de:
+- catálogo de ingressos
+- seleção de quantidade (stepper por card)
+- carrinho persistente (localStorage via cart-store.ts)
+- checkout Pix (/ingressos/checkout)
+- sucesso da compra (/ingressos/sucesso)
+- ingressos digitais
+- recomendações e ofertas relacionadas
+
+### Escopo incorreto
+Não incluir nesta rota:
+- excursões
+- passageiros
+- repasses
+- painel master
+- painel do organizador
+- voucher de embarque
+- controle de baixa manual
+
+### Arquivos do fluxo de ingressos
+- `client/src/pages/ingressos.tsx` — catálogo + stepper + barra de carrinho
+- `client/src/pages/ingressos-checkout.tsx` — checkout Pix (form + QR + polling)
+- `client/src/pages/ingressos-sucesso.tsx` — confirmação + download + cross-sell
+- `client/src/lib/cart-store.ts` — store de carrinho com localStorage
+- `client/src/lib/analytics.ts` — trackEvent (RSV analytics local)
+- `server/services/ticket-payment.service.ts` — createTicketPix (sem split)
+- Backend rotas: POST /api/payments/tickets/create, GET /api/payments/tickets/:id/status, GET /api/payments/tickets/:id, POST /api/webhooks/tickets
+
+### Pix de ingresso ≠ Pix de excursão
+- Ingresso: `createTicketPix` → sem split, 100% Reservei
+- Excursão: `createSplitPaymentPix` → com split organizador/plataforma
