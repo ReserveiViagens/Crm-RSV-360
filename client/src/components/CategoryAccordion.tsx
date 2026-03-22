@@ -2,6 +2,7 @@ import { useState, useMemo } from "react"
 import { ChevronDown, ChevronUp, ShoppingCart, Minus, Plus, Trash2, Info, ChevronRight, MapPin, Clock, Users, Flame, AlertTriangle, Zap } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TicketItem } from "@/components/TicketsGrid"
+import { trackEvent } from "@/lib/analytics"
 
 interface CategorySectionDef {
   id: string
@@ -472,8 +473,10 @@ export function CategoryAccordion({
   function toggleSection(id: string) {
     setOpenSections((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
+      const expanded = !next.has(id)
+      if (!expanded) next.delete(id)
       else next.add(id)
+      trackEvent("category_expand", { sectionId: id, expanded })
       return next
     })
   }
