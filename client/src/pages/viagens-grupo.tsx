@@ -2417,7 +2417,7 @@ export default function ViagensGrupoPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 8 }}>
             <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
               <div style={{ fontSize: 11, color: "#6B7280" }}>Local de saída</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{excursao?.localPartida || "Goiânia - GO"}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{excursao?.localSaida || "Goiânia - GO"}</div>
             </div>
             <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, padding: 10 }}>
               <div style={{ fontSize: 11, color: "#6B7280" }}>Destino</div>
