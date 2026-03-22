@@ -82,3 +82,23 @@ export function getCartTotal(items: CartItem[]): number {
 export function getCartItemQty(items: CartItem[], ticketId: string): number {
   return items.find((c) => c.ticketId === ticketId)?.quantity ?? 0;
 }
+
+const DATE_KEY = "rsv_visit_date";
+
+export function getSelectedDate(): Date | null {
+  try {
+    const raw = localStorage.getItem(DATE_KEY);
+    if (!raw) return null;
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+export function saveSelectedDate(date: Date | null): void {
+  try {
+    if (date) localStorage.setItem(DATE_KEY, date.toISOString());
+    else localStorage.removeItem(DATE_KEY);
+  } catch {}
+}

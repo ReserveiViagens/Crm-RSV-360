@@ -10,12 +10,13 @@ import {
 } from "@/components/ai-conversion-elements"
 import { useTicketsCart } from "@/hooks/useTicketsCart"
 import { trackEvent } from "@/lib/analytics"
+import { saveSelectedDate } from "@/lib/cart-store"
 import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
-import { CartStickyBar } from "@/components/CartStickyBar"
 import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
 import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilityForTicket } from "@/components/CalendarioIngressos"
 import { CategoryAccordion } from "@/components/CategoryAccordion"
+import { IngressosSidebar } from "@/components/IngressosSidebar"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -250,6 +251,16 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== "undefined" ? window.innerWidth >= 768 : true)
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768)
+    window.addEventListener("resize", handler)
+    return () => window.removeEventListener("resize", handler)
+  }, [])
+  return isDesktop
+}
+
 function applyDateAvailability(baseTickets: TicketItem[], date: Date | null): TicketItem[] {
   return baseTickets.map((t) => {
     const avail = getDateAvailabilityForTicket(date, t.id)
@@ -272,6 +283,7 @@ function getBestValueId(list: TicketItem[]) {
 
 export default function IngressosPage() {
   const [, navigate] = useLocation()
+  const isDesktop = useIsDesktop()
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [activePick, setActivePick] = useState<QuickPick | null>(null)
   const [showWizard, setShowWizard] = useState(false)
@@ -366,6 +378,7 @@ export default function IngressosPage() {
   function handleDateSelect(date: Date) {
     setSelectedDate(date)
     setTickets(prev => applyDateAvailability(prev, date))
+    saveSelectedDate(date)
     trackEvent("date_selected", { date: date.toISOString(), multiplier: getPriceMultiplier(date) })
   }
 
@@ -493,6 +506,9 @@ export default function IngressosPage() {
         </div>
       </div>
 
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+
       <SocialProofBanner pageName="ingressos" />
 
       <div style={{ padding: "16px 16px 0" }}>
@@ -507,6 +523,7 @@ export default function IngressosPage() {
               priceMultiplier={priceMultiplier}
               onClear={() => {
                 setSelectedDate(null)
+                saveSelectedDate(null)
                 setTickets(applyDateAvailability(ticketsBase, null))
               }}
             />
@@ -799,6 +816,23 @@ export default function IngressosPage() {
         />
       </div>
 
+        </div>
+
+        {isDesktop && (
+          <div style={{ width: 340, flexShrink: 0, padding: "20px 16px 20px 0" }}>
+            <IngressosSidebar
+              cart={cart}
+              total={cartTotal}
+              selectedDate={selectedDate}
+              onCheckout={() => {
+                trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
+                navigate("/ingressos/checkout")
+              }}
+            />
+          </div>
+        )}
+      </div>
+
       <MiniWizard
         open={showWizard}
         tickets={tickets.map(t => ({
@@ -838,14 +872,17 @@ export default function IngressosPage() {
         </a>
       )}
 
-      <CartStickyBar
-        cart={cart}
-        total={cartTotal}
-        onCheckout={() => {
-          trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
-          navigate("/ingressos/checkout")
-        }}
-      />
+      {!isDesktop && (
+        <IngressosSidebar
+          cart={cart}
+          total={cartTotal}
+          selectedDate={selectedDate}
+          onCheckout={() => {
+            trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
+            navigate("/ingressos/checkout")
+          }}
+        />
+      )}
     </div>
   )
 }
