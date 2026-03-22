@@ -75,6 +75,7 @@ function SidebarTeasers() {
             return (
               <button
                 key={section.id}
+                type="button"
                 data-testid={`teaser-card-${section.id}`}
                 onClick={() => scrollToSection(section.id)}
                 onMouseEnter={() => setHoveredId(section.id)}
@@ -118,8 +119,8 @@ function SidebarTeasers() {
                   display: "flex", flexDirection: "column", alignItems: "center",
                   gap: 1, flexShrink: 0,
                 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: section.color, letterSpacing: 0.3 }}>
-                    ver
+                  <span style={{ fontSize: 9, fontWeight: 700, color: section.color, letterSpacing: 0.3, whiteSpace: "nowrap" }}>
+                    Ver mais
                   </span>
                   <ChevronBounce
                     className="rsv-teaser-chevron"
