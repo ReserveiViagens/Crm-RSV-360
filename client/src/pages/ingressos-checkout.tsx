@@ -211,6 +211,7 @@ export default function IngressosCheckoutPage() {
   })
 
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormState | keyof CardState, string>>>({})
+  const [cardConfirmed, setCardConfirmed] = useState(false)
 
   const total = getCartTotal(cart)
 
@@ -342,6 +343,7 @@ export default function IngressosCheckoutPage() {
       createPaymentMutation.mutate()
     } else if (paymentMethod === "cartao") {
       trackEvent("checkout_card_simulated")
+      setCardConfirmed(true)
     }
   }
 
@@ -364,10 +366,14 @@ export default function IngressosCheckoutPage() {
     cart,
     total,
     selectedDate,
-    onCheckout: () => {},
+    onCheckout: () => {
+      if (step === "email") handleNextEmail()
+      else if (step === "dados") handleNextDados()
+      else if (step === "pagamento" && !paymentData && !cardConfirmed) handleConfirmPayment()
+    },
   }
 
-  const isAppleDevice = /iPhone|iPad|Mac/.test(navigator.userAgent)
+  const isApplePay = typeof window !== "undefined" && "ApplePaySession" in window
 
   return (
     <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }}>
@@ -766,7 +772,7 @@ export default function IngressosCheckoutPage() {
                         {
                           key: "apple-pay" as PaymentMethod,
                           label: "Apple Pay",
-                          sublabel: isAppleDevice ? "Disponível neste dispositivo" : "Disponível somente em dispositivos Apple",
+                          sublabel: isApplePay ? "Disponível neste dispositivo" : "Disponível somente em Safari/iOS/macOS",
                           badge: null,
                           icon: (
                             <div style={{
@@ -876,7 +882,7 @@ export default function IngressosCheckoutPage() {
                         marginBottom: 20, textAlign: "center",
                         border: "1px solid #E5E7EB",
                       }} data-testid="card-apple-pay">
-                        {isAppleDevice ? (
+                        {isApplePay ? (
                           <button
                             style={{
                               width: "100%", padding: "14px 0", border: "none",
@@ -944,14 +950,14 @@ export default function IngressosCheckoutPage() {
                     <button
                       data-testid="button-confirm-payment"
                       onClick={handleConfirmPayment}
-                      disabled={createPaymentMutation.isPending || paymentMethod === "apple-pay" && !isAppleDevice}
+                      disabled={createPaymentMutation.isPending || (paymentMethod === "apple-pay" && !isApplePay)}
                       style={{
                         width: "100%", padding: "15px 0", border: "none", borderRadius: 12,
-                        background: (createPaymentMutation.isPending || (paymentMethod === "apple-pay" && !isAppleDevice))
+                        background: (createPaymentMutation.isPending || (paymentMethod === "apple-pay" && !isApplePay))
                           ? "#9CA3AF"
                           : "linear-gradient(135deg, #22C55E, #16A34A)",
                         color: "#fff", fontSize: 16, fontWeight: 800,
-                        cursor: (createPaymentMutation.isPending || (paymentMethod === "apple-pay" && !isAppleDevice)) ? "not-allowed" : "pointer",
+                        cursor: (createPaymentMutation.isPending || (paymentMethod === "apple-pay" && !isApplePay)) ? "not-allowed" : "pointer",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                         boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
                       }}
@@ -1100,29 +1106,56 @@ export default function IngressosCheckoutPage() {
                   </div>
                 )}
 
-                {paymentData && paymentMethod === "cartao" && (
+                {cardConfirmed && paymentMethod === "cartao" && (
                   <div style={{
                     background: "#fff", borderRadius: 16, padding: 24,
                     boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                     textAlign: "center",
                   }} data-testid="card-cartao-simulated">
-                    <AlertCircle style={{ width: 40, height: 40, color: "#D97706", margin: "0 auto 12px" }} />
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1F2937", margin: "0 0 8px" }}>
-                      Integração de cartão em breve
+                    <div style={{
+                      width: 64, height: 64, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #DCFCE7, #BBF7D0)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto 16px",
+                    }}>
+                      <CheckCircle2 style={{ width: 36, height: 36, color: "#16A34A" }} />
+                    </div>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 8px" }}>
+                      Pedido registrado!
                     </h3>
-                    <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 16px" }}>
-                      Por enquanto, utilize o Pix para finalizar sua compra com segurança.
+                    <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 4px" }}>
+                      Simulação de cartão concluída com sucesso.
                     </p>
-                    <button
-                      onClick={() => { setPaymentMethod("pix"); setPaymentData(null) }}
-                      style={{
-                        padding: "12px 24px", border: "none", borderRadius: 10,
-                        background: "linear-gradient(135deg, #22C55E, #16A34A)",
-                        color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
-                      }}
-                    >
-                      Pagar com Pix
-                    </button>
+                    <p style={{ fontSize: 12, color: "#9CA3AF", margin: "0 0 20px" }}>
+                      (Modo demonstração — nenhuma cobrança real foi realizada)
+                    </p>
+                    <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => { setPaymentMethod("pix"); setCardConfirmed(false) }}
+                        style={{
+                          padding: "12px 20px", border: "none", borderRadius: 10,
+                          background: "linear-gradient(135deg, #22C55E, #16A34A)",
+                          color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                        }}
+                        data-testid="button-cartao-try-pix"
+                      >
+                        Prefiro pagar com Pix
+                      </button>
+                      <a
+                        href="https://wa.me/5564993197555?text=Quero finalizar meu pedido de ingressos"
+                        target="_blank" rel="noopener noreferrer"
+                        style={{
+                          padding: "12px 20px", border: "none", borderRadius: 10,
+                          background: "#F0FDF4", color: "#16A34A",
+                          fontWeight: 700, fontSize: 14, textDecoration: "none",
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                        }}
+                        data-testid="link-cartao-whatsapp"
+                      >
+                        <Phone style={{ width: 16, height: 16 }} />
+                        Finalizar no WhatsApp
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>
