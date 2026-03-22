@@ -41,6 +41,7 @@ waitForPort = 5000
 
 [agent]
 integrations = ["github:1.0.0"]
+expertMode = true
 
 [postMerge]
 path = "scripts/post-merge.sh"
