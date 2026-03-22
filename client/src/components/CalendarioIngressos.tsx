@@ -14,7 +14,30 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ]
 
-function getDayStatus(date: Date): DayStatus {
+const HOLIDAYS: Set<string> = new Set([
+  "1-1",   // Ano Novo
+  "21-4",  // Tiradentes
+  "1-5",   // Dia do Trabalho
+  "7-9",   // Independência
+  "12-10", // Nossa Senhora Aparecida
+  "2-11",  // Finados
+  "15-11", // Proclamação da República
+  "25-12", // Natal
+  "24-2",  // Carnaval (2025 approx)
+  "25-2",
+  "26-2",
+  "1-4",   // Semana Santa / Páscoa (approximate)
+  "2-4",
+  "3-4",
+  "4-4",
+])
+
+function isHoliday(date: Date): boolean {
+  const key = `${date.getDate()}-${date.getMonth() + 1}`
+  return HOLIDAYS.has(key)
+}
+
+export function getDayStatus(date: Date): DayStatus {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   if (date < today) return "past"
@@ -23,8 +46,36 @@ function getDayStatus(date: Date): DayStatus {
   const dow = date.getDay()
   const seed = (day * 3 + month * 7 + 13) % 17
   if (seed === 0 || seed === 5 || seed === 11) return "sold-out"
-  if (dow === 0 || dow === 6 || seed <= 4) return "high-demand"
+  if (isHoliday(date) || dow === 0 || dow === 6 || seed <= 4) return "high-demand"
   return "available"
+}
+
+export function getPriceMultiplier(date: Date | null): number {
+  if (!date) return 1
+  if (isHoliday(date)) return 1.30
+  const dow = date.getDay()
+  if (dow === 0 || dow === 6) return 1.20
+  return 1.0
+}
+
+export function getDateAvailabilityForTicket(date: Date | null, ticketId: string): { soldToday: number; availableToday: number } {
+  if (!date) {
+    return { soldToday: Math.floor(Math.random() * 40) + 20, availableToday: Math.floor(Math.random() * 30) + 5 }
+  }
+  const status = getDayStatus(date)
+  const daySeed = date.getDate() * 7 + date.getMonth() * 3 + ticketId.charCodeAt(0)
+  if (status === "sold-out") {
+    const sold = 80 + (daySeed % 30)
+    return { soldToday: sold, availableToday: 0 }
+  }
+  if (status === "high-demand") {
+    const sold = 45 + (daySeed % 25)
+    const avail = Math.max(1, 8 - (daySeed % 7))
+    return { soldToday: sold, availableToday: avail }
+  }
+  const sold = 15 + (daySeed % 20)
+  const avail = 15 + (daySeed % 20)
+  return { soldToday: sold, availableToday: avail }
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -35,11 +86,11 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay()
 }
 
-const STATUS_COLORS: Record<DayStatus, { bg: string; text: string; border: string }> = {
-  available: { bg: "#F0FDF4", text: "#16A34A", border: "#DCFCE7" },
-  "high-demand": { bg: "#FFF7ED", text: "#EA580C", border: "#FED7AA" },
-  "sold-out": { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
-  past: { bg: "#F9FAFB", text: "#D1D5DB", border: "transparent" },
+const STATUS_COLORS: Record<DayStatus, { bg: string; text: string; border: string; dot: string }> = {
+  available: { bg: "#F9FAFB", text: "#6B7280", border: "#E5E7EB", dot: "#9CA3AF" },
+  "high-demand": { bg: "#FFF7ED", text: "#EA580C", border: "#FED7AA", dot: "#EA580C" },
+  "sold-out": { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA", dot: "#DC2626" },
+  past: { bg: "#F9FAFB", text: "#D1D5DB", border: "transparent", dot: "transparent" },
 }
 
 export function CalendarioIngressos({ selectedDate, onDateSelect }: CalendarioIngressosProps) {
@@ -153,6 +204,7 @@ export function CalendarioIngressos({ selectedDate, onDateSelect }: CalendarioIn
             const colors = STATUS_COLORS[status]
             const isClickable = status !== "past" && status !== "sold-out"
             const isToday = date.toDateString() === today.toDateString()
+            const holiday = isHoliday(date)
 
             return (
               <button
@@ -182,6 +234,13 @@ export function CalendarioIngressos({ selectedDate, onDateSelect }: CalendarioIn
                     background: "#0891B2",
                   }} />
                 )}
+                {holiday && !selected && status !== "past" && (
+                  <div style={{
+                    position: "absolute", top: 2, left: 2,
+                    width: 5, height: 5, borderRadius: "50%",
+                    background: "#F97316",
+                  }} />
+                )}
                 <span style={{
                   fontSize: 13, fontWeight: selected ? 800 : 600,
                   color: selected ? "#fff" : status === "past" ? "#D1D5DB" : colors.text,
@@ -193,10 +252,7 @@ export function CalendarioIngressos({ selectedDate, onDateSelect }: CalendarioIn
                   <div style={{
                     marginTop: 2,
                     width: 6, height: 6, borderRadius: "50%",
-                    background: selected ? "rgba(255,255,255,0.7)"
-                      : status === "sold-out" ? "#DC2626"
-                      : status === "high-demand" ? "#EA580C"
-                      : "#16A34A",
+                    background: selected ? "rgba(255,255,255,0.7)" : colors.dot,
                   }} />
                 )}
               </button>
@@ -210,15 +266,16 @@ export function CalendarioIngressos({ selectedDate, onDateSelect }: CalendarioIn
           flexWrap: "wrap",
         }}>
           {[
-            { status: "available" as DayStatus, label: "Disponível", icon: "●" },
-            { status: "high-demand" as DayStatus, label: "Alta demanda", icon: "●" },
-            { status: "sold-out" as DayStatus, label: "Esgotado", icon: "●" },
-          ].map(({ status, label, icon }) => (
-            <div key={status} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{
-                fontSize: 10,
-                color: STATUS_COLORS[status].text,
-              }}>{icon}</span>
+            { status: "available" as DayStatus, label: "Disponível" },
+            { status: "high-demand" as DayStatus, label: "Alta demanda" },
+            { status: "sold-out" as DayStatus, label: "Esgotado" },
+          ].map(({ status, label }) => (
+            <div key={status} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: "50%",
+                background: STATUS_COLORS[status].dot,
+                border: `1px solid ${STATUS_COLORS[status].border}`,
+              }} />
               <span style={{ fontSize: 10, color: "#6B7280" }}>{label}</span>
             </div>
           ))}
@@ -236,17 +293,23 @@ interface DateBannerProps {
 
 export function DateBanner({ selectedDate, priceMultiplier, onClear }: DateBannerProps) {
   const status = getDayStatus(selectedDate)
-  const isHighDemand = status === "high-demand"
+  const isSpecial = status === "high-demand"
   const formatted = selectedDate.toLocaleDateString("pt-BR", {
     weekday: "long", day: "2-digit", month: "long", year: "numeric",
   })
+  const holiday = HOLIDAYS.has(`${selectedDate.getDate()}-${selectedDate.getMonth() + 1}`)
+  const label = holiday
+    ? "Feriado — preços de alta temporada"
+    : isSpecial
+    ? "Alta demanda — preços de fim de semana"
+    : "Data selecionada"
 
   return (
     <div style={{
-      background: isHighDemand
+      background: isSpecial
         ? "linear-gradient(135deg, #FFF7ED, #FFEDD5)"
-        : "linear-gradient(135deg, #F0FDF4, #DCFCE7)",
-      border: `1px solid ${isHighDemand ? "#FED7AA" : "#BBF7D0"}`,
+        : "linear-gradient(135deg, #F3F4F6, #F9FAFB)",
+      border: `1px solid ${isSpecial ? "#FED7AA" : "#E5E7EB"}`,
       borderRadius: 12,
       padding: "10px 14px",
       display: "flex",
@@ -255,14 +318,14 @@ export function DateBanner({ selectedDate, priceMultiplier, onClear }: DateBanne
       gap: 10,
     }} data-testid="banner-selected-date">
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {isHighDemand ? (
+        {isSpecial ? (
           <AlertTriangle style={{ width: 16, height: 16, color: "#EA580C", flexShrink: 0 }} />
         ) : (
-          <Sun style={{ width: 16, height: 16, color: "#16A34A", flexShrink: 0 }} />
+          <Sun style={{ width: 16, height: 16, color: "#6B7280", flexShrink: 0 }} />
         )}
         <div>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: isHighDemand ? "#EA580C" : "#16A34A" }}>
-            {isHighDemand ? "Alta demanda — preços de fim de semana" : "Data selecionada"}
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: isSpecial ? "#EA580C" : "#374151" }}>
+            {label}
           </p>
           <p style={{ margin: 0, fontSize: 12, color: "#374151", textTransform: "capitalize" }}>
             {formatted}
@@ -272,7 +335,7 @@ export function DateBanner({ selectedDate, priceMultiplier, onClear }: DateBanne
                 background: "#FEF3C7", color: "#D97706",
                 padding: "1px 6px", borderRadius: 4,
               }}>
-                +{Math.round((priceMultiplier - 1) * 100)}% fim de semana
+                +{Math.round((priceMultiplier - 1) * 100)}% sobre o preço base
               </span>
             )}
           </p>
@@ -293,12 +356,3 @@ export function DateBanner({ selectedDate, priceMultiplier, onClear }: DateBanne
     </div>
   )
 }
-
-export function getPriceMultiplier(date: Date | null): number {
-  if (!date) return 1
-  const dow = date.getDay()
-  if (dow === 0 || dow === 6) return 1.20
-  return 1.0
-}
-
-export { getDayStatus }
