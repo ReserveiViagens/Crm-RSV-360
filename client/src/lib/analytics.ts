@@ -20,7 +20,15 @@ type AnalyticsEvent =
   | "related_offer_click"
   | "wizard_confirm"
   | "date_selected"
-  | "category_expand";
+  | "category_expand"
+  | "checkout_view"
+  | "checkout_step_email_done"
+  | "checkout_step_dados_done"
+  | "checkout_card_simulated"
+  | "checkout_google_click"
+  | "checkout_apple_click"
+  | "apple_pay_click"
+  | "cupom_apply_attempt";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   try {
