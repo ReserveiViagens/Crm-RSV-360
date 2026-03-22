@@ -508,6 +508,7 @@ export function CategoryAccordion({
         return (
           <div
             key={section.id}
+            id={`section-${section.id}`}
             data-testid={`section-category-${section.id}`}
             style={{
               background: isOpen ? section.bgColor : "#fff",

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
-import { MapPin, Calendar, ShoppingCart, ArrowRight, ChevronUp, ChevronDown, X } from "lucide-react"
+import { MapPin, Calendar, ShoppingCart, ArrowRight, ChevronUp, ChevronDown, ChevronDown as ChevronBounce } from "lucide-react"
 import { type CartItem } from "@/lib/cart-store"
+import { CATEGORY_SECTIONS } from "@/components/CategoryAccordion"
 
 interface IngressosSidebarProps {
   cart: CartItem[]
@@ -29,6 +30,110 @@ function useIsDesktop() {
 }
 
 const PARK_NAME = "Caldas Novas / Rio Quente - GO"
+
+const TEASER_SECTIONS = CATEGORY_SECTIONS.slice(1)
+
+function scrollToSection(sectionId: string) {
+  const el = document.getElementById(`section-${sectionId}`)
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+}
+
+function SidebarTeasers() {
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+
+  return (
+    <>
+      <style>{`
+        @keyframes rsv-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(4px); }
+        }
+        .rsv-teaser-chevron {
+          animation: rsv-bounce 1.4s ease-in-out infinite;
+        }
+      `}</style>
+
+      <div style={{ marginTop: 12 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, marginBottom: 10, padding: "0 2px",
+        }}>
+          <div style={{ flex: 1, height: 1, background: "#E5E7EB" }} />
+          <span style={{
+            fontSize: 10, fontWeight: 700, color: "#9CA3AF",
+            letterSpacing: 0.8, textTransform: "uppercase", whiteSpace: "nowrap",
+          }}>
+            Explore também
+          </span>
+          <div style={{ flex: 1, height: 1, background: "#E5E7EB" }} />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {TEASER_SECTIONS.map((section) => {
+            const isHovered = hoveredId === section.id
+            return (
+              <button
+                key={section.id}
+                data-testid={`teaser-card-${section.id}`}
+                onClick={() => scrollToSection(section.id)}
+                onMouseEnter={() => setHoveredId(section.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px",
+                  background: isHovered ? section.bgColor : "#FAFAFA",
+                  border: `1px solid ${isHovered ? section.color + "50" : "#E5E7EB"}`,
+                  borderLeft: `3px solid ${section.color}`,
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                  boxShadow: isHovered
+                    ? `0 4px 16px rgba(0,0,0,0.10), 0 0 0 1px ${section.color}20`
+                    : "0 1px 3px rgba(0,0,0,0.04)",
+                  transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+                  transition: "all 0.18s ease",
+                }}
+              >
+                <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{section.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700,
+                    color: isHovered ? section.color : "#1F2937",
+                    lineHeight: 1.2, marginBottom: 2,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    transition: "color 0.18s",
+                  }}>
+                    {section.title}
+                  </div>
+                  <div style={{
+                    fontSize: 10, color: "#6B7280", lineHeight: 1.3,
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {section.subtitle}
+                  </div>
+                </div>
+                <div style={{
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  gap: 1, flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: section.color, letterSpacing: 0.3 }}>
+                    ver
+                  </span>
+                  <ChevronBounce
+                    className="rsv-teaser-chevron"
+                    style={{ width: 14, height: 14, color: section.color }}
+                  />
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </>
+  )
+}
 
 function SidebarContent({ cart, total, selectedDate, onCheckout }: IngressosSidebarProps) {
   const itemsCount = cart.reduce((sum, it) => sum + it.quantity, 0)
@@ -154,6 +259,7 @@ export function IngressosSidebar(props: IngressosSidebarProps) {
     return (
       <div style={{ position: "sticky", top: 20 }}>
         <SidebarContent {...props} />
+        <SidebarTeasers />
       </div>
     )
   }
