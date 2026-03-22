@@ -19,6 +19,7 @@ export interface TicketItem {
   soldToday?: number
   availableToday?: number
   category: string
+  categorySection?: string
   tags: string[]
   alsoBoght?: string[]
 }
