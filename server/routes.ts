@@ -117,7 +117,7 @@ export async function registerRoutes(
         localSaida: "Goiânia - Terminal Rodoviário",
         capacidade: 40,
         veiculoTipo: "Ônibus",
-        status: "aberto",
+        status: "aberta",
       });
       console.log(`[SEED] Excursão demo criada → id=${demoExcursao.id}`);
     }
@@ -1854,7 +1854,7 @@ export async function registerRoutes(
       const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string }>) ?? [];
       const memberships = (db.membershipStore as Array<{ groupId: string; userId: string; status: string }>) ?? [];
       const userConfirmed = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
-      const distinctTrips = [...new Set(userConfirmed.map(r => r.excursaoId))];
+      const distinctTrips = Array.from(new Set(userConfirmed.map(r => r.excursaoId)));
       const caldasTrips = distinctTrips.filter(excId => {
         const exc = excursoes.find(e => e.id === excId);
         return exc?.destino?.toLowerCase().includes("caldas") ?? false;
@@ -1964,7 +1964,7 @@ export async function registerRoutes(
   });
 
   app.patch("/api/atividades-wizard/:id", requireAdmin, async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const existing = await storage.getAtividadeWizard(id);
     if (!existing) return res.status(404).json({ message: "Atividade não encontrada" });
     const partial = insertAtividadeWizardSchema.partial().safeParse(req.body);
@@ -1974,7 +1974,7 @@ export async function registerRoutes(
   });
 
   app.delete("/api/atividades-wizard/:id", requireAdmin, async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const deleted = await storage.deleteAtividadeWizard(id);
     if (!deleted) return res.status(404).json({ message: "Atividade não encontrada" });
     return res.status(204).send();
@@ -2032,7 +2032,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/payments/tickets/:id/status", async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const txn = ticketTransactions.get(id);
     if (!txn) {
       return res.status(404).json({ message: "Transação não encontrada" });
@@ -2056,7 +2056,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/payments/tickets/:id", async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const txn = ticketTransactions.get(id);
     if (!txn) return res.status(404).json({ message: "Transação não encontrada" });
     return res.json(txn);

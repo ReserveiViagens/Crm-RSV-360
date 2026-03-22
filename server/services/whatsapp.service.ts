@@ -151,7 +151,8 @@ export function handleWebhookEvent(event: string, data: Record<string, unknown>)
     const key = (data?.key as Record<string, unknown>) || {};
     const msg = (data?.message as Record<string, unknown>) || {};
     const from = key?.remoteJid || "unknown";
-    const text = (msg?.conversation || msg?.extendedTextMessage?.text || "(mídia)") as string;
+    const extMsg = (msg?.extendedTextMessage as Record<string, unknown>) ?? {};
+    const text = (msg?.conversation || extMsg?.text || "(mídia)") as string;
     console.log(`[WaaS Webhook] messages.upsert from ${from}: ${text.slice(0, 100)}`);
   } else {
     console.log(`[WaaS Webhook] ${event}:`, JSON.stringify(data).slice(0, 200));
