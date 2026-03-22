@@ -120,7 +120,7 @@ export function MiniWizard({ open, tickets, profile, onClose, onConfirm }: MiniW
 
   return (
     <div
-      data-testid="modal-mini-wizard"
+      data-testid="mini-wizard"
       style={{
         position: "fixed",
         inset: 0,

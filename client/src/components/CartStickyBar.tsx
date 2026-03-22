@@ -19,7 +19,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
 
   return (
     <div
-      data-testid="bar-cart-summary"
+      data-testid="cart-sticky"
       style={{
         position: "fixed",
         bottom: 0,
@@ -81,7 +81,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
           </div>
 
           <button
-            data-testid="button-cart-checkout"
+            data-testid="button-go-checkout"
             onClick={onCheckout}
             style={{
               background: "#fff",
