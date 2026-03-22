@@ -676,7 +676,12 @@ export default function IngressosPage() {
                     <td style={{ padding: "10px 12px", fontWeight: 600, color: "#374151" }}>Preço</td>
                     {compareTickets.map((t) => (
                       <td key={t.id} style={{ textAlign: "center", padding: "10px 12px", fontWeight: 700, color: "#16A34A" }}>
-                        {formatPrice(t.price)}
+                        {formatPrice(Math.round(t.price * priceMultiplier))}
+                        {priceMultiplier > 1 && (
+                          <div style={{ fontSize: 9, color: "#D97706", marginTop: 2 }}>
+                            (base: {formatPrice(t.price)})
+                          </div>
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -763,7 +768,7 @@ export default function IngressosPage() {
                   }}
                 >
                   <ShoppingCart style={{ width: 14, height: 14 }} />
-                  {formatPrice(t.price)}
+                  {formatPrice(Math.round(t.price * priceMultiplier))}
                 </button>
               ))}
             </div>
