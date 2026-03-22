@@ -14,7 +14,7 @@ import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { CartStickyBar } from "@/components/CartStickyBar"
 import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
-import { CalendarioIngressos, DateBanner, getPriceMultiplier } from "@/components/CalendarioIngressos"
+import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilityForTicket } from "@/components/CalendarioIngressos"
 import { CategoryAccordion } from "@/components/CategoryAccordion"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
@@ -250,6 +250,13 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
+function applyDateAvailability(baseTickets: TicketItem[], date: Date | null): TicketItem[] {
+  return baseTickets.map((t) => {
+    const avail = getDateAvailabilityForTicket(date, t.id)
+    return { ...t, soldToday: avail.soldToday, availableToday: avail.availableToday }
+  })
+}
+
 function getBestValueId(list: TicketItem[]) {
   let bestId = list[0].id
   let bestRatio = 0
@@ -300,11 +307,7 @@ export default function IngressosPage() {
 
   useEffect(() => {
     setProfile(getTravelerProfile())
-    setTickets(ticketsBase.map((t) => ({
-      ...t,
-      soldToday: Math.floor(Math.random() * 40) + 20,
-      availableToday: Math.floor(Math.random() * 30) + 5,
-    })))
+    setTickets(applyDateAvailability(ticketsBase, null))
     trackEvent("tickets_page_view")
   }, [])
 
@@ -362,6 +365,7 @@ export default function IngressosPage() {
 
   function handleDateSelect(date: Date) {
     setSelectedDate(date)
+    setTickets(prev => applyDateAvailability(prev, date))
     trackEvent("date_selected", { date: date.toISOString(), multiplier: getPriceMultiplier(date) })
   }
 
@@ -501,7 +505,10 @@ export default function IngressosPage() {
             <DateBanner
               selectedDate={selectedDate}
               priceMultiplier={priceMultiplier}
-              onClear={() => setSelectedDate(null)}
+              onClear={() => {
+                setSelectedDate(null)
+                setTickets(applyDateAvailability(ticketsBase, null))
+              }}
             />
           </div>
         )}
