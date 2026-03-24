@@ -691,7 +691,7 @@ export default function PromocoesPage() {
           </div>
 
           <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
-            {["✅ Descontos verificados", "🎟️ Cupom CALDAS15", "💬 Suporte via WhatsApp"].map(item => (
+            {["✅ Cupons verificados", "💰 Economia real", "💬 Suporte WhatsApp"].map(item => (
               <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
             ))}
           </div>
@@ -729,6 +729,27 @@ export default function PromocoesPage() {
       </div>
 
       <SocialProofBanner pageName="promocoes" />
+      <div data-testid="section-trust" style={{
+        background: "#F0FDF4", borderTop: "1px solid #D1FAE5", borderBottom: "1px solid #D1FAE5",
+        padding: "14px 20px",
+      }}>
+        <div style={{
+          maxWidth: 900, margin: "0 auto",
+          display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center",
+        }}>
+          {[
+            { emoji: "🛡️", text: "Pagamento 100% seguro" },
+            { emoji: "✅", text: "Cupons verificados" },
+            { emoji: "💰", text: "Economia real garantida" },
+            { emoji: "💬", text: "Suporte WhatsApp 7 dias" },
+          ].map(item => (
+            <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18 }}>{item.emoji}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#065F46" }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       <PersonalizedBanner profile={profile} />
 
       {profile && topRecommended.length > 0 && (

@@ -411,7 +411,7 @@ export default function FlashDealsPage() {
             <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>⚡ Ofertas relâmpago — até 70% OFF por tempo limitado</span>
           </div>
           <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
-            Ofertas Relâmpago
+            ⚡ Flash Deals — Até 70% OFF
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
             {FLASH_DEALS.length} deals exclusivos com preços por tempo limitado — garanta antes que acabem!
@@ -498,6 +498,27 @@ export default function FlashDealsPage() {
       </div>
 
       <SocialProofBanner pageName="ofertas relâmpago" />
+      <div data-testid="section-trust" style={{
+        background: "#FEF2F2", borderTop: "1px solid #FECACA", borderBottom: "1px solid #FECACA",
+        padding: "14px 20px",
+      }}>
+        <div style={{
+          maxWidth: 900, margin: "0 auto",
+          display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center",
+        }}>
+          {[
+            { emoji: "🛡️", text: "Pagamento 100% seguro" },
+            { emoji: "⚡", text: "Preços exclusivos relâmpago" },
+            { emoji: "💰", text: "Melhor preço garantido" },
+            { emoji: "💬", text: "Suporte via WhatsApp" },
+          ].map(item => (
+            <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18 }}>{item.emoji}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#991B1B" }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {profile && (
         <div style={{

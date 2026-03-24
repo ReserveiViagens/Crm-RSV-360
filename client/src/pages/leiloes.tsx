@@ -394,6 +394,27 @@ export default function LeiloesPage() {
       </div>
 
       <SocialProofBanner viewers={onlineCompetitors} pageName="leilões" />
+      <div data-testid="section-trust" style={{
+        background: "#EFF6FF", borderTop: "1px solid #BFDBFE", borderBottom: "1px solid #BFDBFE",
+        padding: "14px 20px",
+      }}>
+        <div style={{
+          maxWidth: 900, margin: "0 auto",
+          display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center",
+        }}>
+          {[
+            { emoji: "🔒", text: "Lances 100% seguros" },
+            { emoji: "🏆", text: "Menores preços do mercado" },
+            { emoji: "💬", text: "Confirmação via WhatsApp" },
+            { emoji: "⚡", text: "Resultado imediato" },
+          ].map(item => (
+            <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18 }}>{item.emoji}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1D4ED8" }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       <PersonalizedBanner profile={profile} />
 
       {profile && (
