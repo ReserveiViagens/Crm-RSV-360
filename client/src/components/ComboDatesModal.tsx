@@ -41,7 +41,7 @@ function buildCalendarDays(year: number, month: number): (Date | null)[] {
 }
 
 interface ParkCalendarProps {
-  park: { id: string; name: string; emoji: string; city: string }
+  park: { id: string; name: string; emoji: string; city: string; color: string }
   selectedIso: string | null
   otherSelectedIsos: string[]
   onSelect: (iso: string) => void
@@ -79,7 +79,7 @@ function ParkCalendar({ park, selectedIso, otherSelectedIsos, onSelect }: ParkCa
       overflow: "hidden", flex: 1, minWidth: 0,
     }}>
       <div style={{
-        background: "linear-gradient(135deg, #0891B2, #2563EB)",
+        background: park.color,
         padding: "10px 14px",
         display: "flex", alignItems: "center", gap: 10,
       }}>
@@ -161,8 +161,8 @@ function ParkCalendar({ park, selectedIso, otherSelectedIsos, onSelect }: ParkCa
             let opacity = 1
 
             if (isSelected) {
-              bg = "#0891B2"
-              border = "1.5px solid #0891B2"
+              bg = park.color
+              border = `1.5px solid ${park.color}`
               color = "#fff"
             } else if (isConflict) {
               bg = "#FEF3C7"

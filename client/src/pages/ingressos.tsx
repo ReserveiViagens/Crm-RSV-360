@@ -212,8 +212,8 @@ const ticketsBase: TicketItem[] = [
     category: "parques", tags: ["combo", "família", "aventura"],
     alsoBoght: ["hot-park", "diroma-acqua-park"],
     parkSlots: [
-      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
-      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas" },
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente", color: "#0891B2" },
+      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas", color: "#7C3AED" },
     ],
   },
   {
@@ -231,7 +231,7 @@ const ticketsBase: TicketItem[] = [
     category: "parques", tags: ["família", "combo", "crianças"],
     alsoBoght: ["hot-park", "transp-goiania"],
     parkSlots: [
-      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente", color: "#0891B2" },
     ],
   },
   {
@@ -249,9 +249,9 @@ const ticketsBase: TicketItem[] = [
     category: "parques", tags: ["combo", "família", "melhor valor"],
     alsoBoght: ["kawana-park", "transp-goiania"],
     parkSlots: [
-      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
-      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas" },
-      { id: "lagoa-termas", name: "Lagoa Termas", emoji: "🌿", city: "caldas-novas" },
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente", color: "#0891B2" },
+      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas", color: "#7C3AED" },
+      { id: "lagoa-termas", name: "Lagoa Termas", emoji: "🌿", city: "caldas-novas", color: "#16A34A" },
     ],
   },
   {
@@ -617,8 +617,6 @@ export default function IngressosPage() {
       image: comboDatesTicket.image,
       comboDates,
     })
-    setCartModalTicket(comboDatesTicket)
-    setCartModalPrice(finalPrice)
     setComboDatesTicket(null)
     trackEvent("combo_dates_confirmed", { ticketId: comboDatesTicket.id, parks: Object.keys(comboDates) })
   }
