@@ -24,6 +24,8 @@ export interface TicketItem {
   tags: string[]
   alsoBoght?: string[]
   documentRequired?: string
+  enterprise?: string
+  destinationCity?: string
 }
 
 interface TicketsGridProps {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import { MapPin, Calendar, ShoppingCart, ArrowRight, ChevronUp, ChevronDown, ChevronDown as ChevronBounce, Trash2 } from "lucide-react"
 import { type CartItem } from "@/lib/cart-store"
-import { CATEGORY_SECTIONS } from "@/components/CategoryAccordion"
 
 interface IngressosSidebarProps {
   cart: CartItem[]
@@ -9,6 +8,7 @@ interface IngressosSidebarProps {
   selectedDate: Date | null
   onCheckout: () => void
   onRemove?: (ticketId: string) => void
+  onNavigate?: (enterpriseId: string, city: string) => void
 }
 
 function formatPrice(price: number) {
@@ -32,16 +32,20 @@ function useIsDesktop() {
 
 const PARK_NAME = "Caldas Novas / Rio Quente - GO"
 
-const TEASER_SECTIONS = CATEGORY_SECTIONS.slice(1)
+const ENTERPRISE_TEASERS = [
+  { id: "combos", enterpriseId: "combos", city: "multi-destino", icon: "✨", title: "Combos Multi-Parque", subtitle: "Economize até 25% combinando parques", color: "#DC2626", bgColor: "#FEF2F2" },
+  { id: "cabanas", enterpriseId: "cabanas", city: "multi-destino", icon: "🏕️", title: "Cabanas Exclusivas", subtitle: "Área VIP com serviço premium no parque", color: "#059669", bgColor: "#ECFDF5" },
+  { id: "meia-entrada", enterpriseId: "meia-entrada", city: "multi-destino", icon: "🆔", title: "Meia-Entrada Legal", subtitle: "50% OFF garantido por lei em todos os parques", color: "#2563EB", bgColor: "#EFF6FF" },
+]
 
-function scrollToSection(sectionId: string) {
-  const el = document.getElementById(`section-${sectionId}`)
+function scrollToEnterprise(enterpriseId: string) {
+  const el = document.getElementById(`section-enterprise-${enterpriseId}`)
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 }
 
-function SidebarTeasers() {
+function SidebarTeasers({ onNavigate }: { onNavigate?: (enterpriseId: string, city: string) => void }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   return (
@@ -71,14 +75,20 @@ function SidebarTeasers() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {TEASER_SECTIONS.map((section) => {
+          {ENTERPRISE_TEASERS.map((section) => {
             const isHovered = hoveredId === section.id
             return (
               <button
                 key={section.id}
                 type="button"
                 data-testid={`teaser-card-${section.id}`}
-                onClick={() => scrollToSection(section.id)}
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate(section.enterpriseId, section.city)
+                  } else {
+                    scrollToEnterprise(section.enterpriseId)
+                  }
+                }}
                 onMouseEnter={() => setHoveredId(section.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 style={{
@@ -278,7 +288,7 @@ export function IngressosSidebar(props: IngressosSidebarProps) {
     return (
       <div style={{ position: "sticky", top: 20 }}>
         <SidebarContent {...props} />
-        <SidebarTeasers />
+        <SidebarTeasers onNavigate={props.onNavigate} />
       </div>
     )
   }

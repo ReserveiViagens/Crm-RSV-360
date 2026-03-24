@@ -66,7 +66,7 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
-function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ticketCategory?: string }) {
+export function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ticketCategory?: string }) {
   const details = PARK_DETAILS[ticketId]
   if (!details) return null
   const isMeiaOrMorador = ticketCategory === "meia-entrada" || ticketCategory === "morador"
@@ -207,7 +207,7 @@ function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ti
   )
 }
 
-function TicketRowCard({
+export function TicketRowCard({
   ticket,
   cart,
   onBuy,
@@ -473,7 +473,7 @@ function TicketRowCard({
   )
 }
 
-function TicketGridCard({
+export function TicketGridCard({
   ticket,
   cart,
   onBuy,

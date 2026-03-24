@@ -15,11 +15,10 @@ import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
 import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilityForTicket } from "@/components/CalendarioIngressos"
-import { CategoryAccordion } from "@/components/CategoryAccordion"
+import { EnterpriseAccordion } from "@/components/EnterpriseAccordion"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { CartAddModal } from "@/components/CartAddModal"
-
-type TicketCategoryTab = "ingressos" | "morador" | "meia-entrada"
+import { DESTINATION_CITIES, type DestinationCity } from "@/lib/enterprises"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -28,6 +27,7 @@ const ticketsBase: TicketItem[] = [
     id: "hot-park",
     name: "Ingresso Hot Park — Adulto",
     categorySection: "ingresso-1-dia",
+    enterprise: "hot-park", destinationCity: "rio-quente",
     description: "Aventura e relaxamento no maior parque de águas quentes da América do Sul! Toboáguas emocionantes e piscinas termais.",
     price: 189, originalPrice: 220, discount: 14,
     image: "/images/lagoa-termas-parque.jpeg",
@@ -42,6 +42,7 @@ const ticketsBase: TicketItem[] = [
     id: "hot-park-crianca",
     name: "Ingresso Hot Park — Criança",
     categorySection: "ingresso-1-dia",
+    enterprise: "hot-park", destinationCity: "rio-quente",
     description: "Diversão garantida para as crianças de 4 a 12 anos no parque mais incrível da região!",
     price: 99, originalPrice: 130, discount: 24,
     image: "/images/hot-park.jpeg",
@@ -53,121 +54,10 @@ const ticketsBase: TicketItem[] = [
     alsoBoght: ["hot-park", "diroma-acqua-park"],
   },
   {
-    id: "diroma-acqua-park",
-    name: "Ingresso diRoma Acqua Park",
-    categorySection: "ingresso-1-dia",
-    description: "Diversão aquática para todas as idades com toboáguas emocionantes e piscinas de ondas incríveis.",
-    price: 90, originalPrice: 110, discount: 18,
-    image: "/images/diroma-acqua-park.jpeg",
-    features: ["Toboáguas variados", "Piscina de ondas", "Área kids", "Bar molhado", "Espreguiçadeiras"],
-    location: "Caldas Novas - GO",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["família", "diversão", "ondas"],
-    alsoBoght: ["hot-park", "kawana-park"],
-  },
-  {
-    id: "lagoa-termas",
-    name: "Ingresso Lagoa Termas Parque",
-    categorySection: "ingresso-1-dia",
-    description: "Relaxe nas águas termais da Lagoa Quente e aproveite a natureza exuberante em ambiente único.",
-    price: 75, originalPrice: 95, discount: 21,
-    image: "/images/kawana-park.jpeg",
-    features: ["Águas termais naturais", "Trilhas ecológicas", "Área de descanso", "Lanchonete", "Estacionamento"],
-    location: "Caldas Novas - GO",
-    duration: "Meio dia", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "natureza", tags: ["relaxamento", "natureza", "casal"],
-    alsoBoght: ["hot-park", "diroma-acqua-park"],
-  },
-  {
-    id: "passaporte-kawana",
-    name: "Passaporte Kawana (3 dias)",
-    categorySection: "ingresso-1-dia",
-    description: "Aproveite 3 dias de diversão com acesso ilimitado ao Kawana Park e suas atrações exclusivas.",
-    price: 210, originalPrice: 265, discount: 21,
-    image: "/images/water-park.jpeg",
-    features: ["3 dias de acesso", "Piscinas termais", "Toboáguas familiares", "Estacionamento grátis", "Área kids"],
-    location: "Caldas Novas - GO",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["família", "multidia", "águas termais"],
-    alsoBoght: ["lagoa-termas", "diroma-acqua-park"],
-  },
-  {
-    id: "transp-goiania",
-    name: "Transporte Goiânia → Caldas Novas",
-    categorySection: "transporte",
-    description: "Conforto e segurança na viagem. Ônibus executivo com ar-condicionado, saída pontual e retorno garantido.",
-    price: 65, originalPrice: 90, discount: 28,
-    image: "/images/hot-park.jpeg",
-    features: ["Ônibus executivo", "Ar-condicionado", "Wi-Fi a bordo", "Saída garantida", "Seguro viagem"],
-    location: "Goiânia → Caldas Novas",
-    duration: "Translado (3h)", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "transporte", tags: ["transporte", "conforto", "família"],
-    alsoBoght: ["hot-park", "diroma-acqua-park"],
-  },
-  {
-    id: "transp-brasilia",
-    name: "Transporte Brasília → Caldas Novas",
-    categorySection: "transporte",
-    description: "Saída de Brasília com horário fixo. Ônibus moderno com poltronas reclináveis e paradas programadas.",
-    price: 85, originalPrice: 120, discount: 29,
-    image: "/images/lagoa-termas-parque.jpeg",
-    features: ["Ônibus moderno", "Poltronas reclináveis", "Wi-Fi a bordo", "Lanche incluso", "Seguro viagem"],
-    location: "Brasília → Caldas Novas",
-    duration: "Translado (4h)", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "transporte", tags: ["transporte", "conforto", "família"],
-    alsoBoght: ["hot-park", "passaporte-kawana"],
-  },
-  {
-    id: "water-park",
-    name: "Combo Hot Park + diRoma Acqua",
-    categorySection: "combos",
-    description: "O combo mais pedido! Acesse dois dos melhores parques da região com um desconto imperdível.",
-    price: 245, originalPrice: 299, discount: 18,
-    image: "/images/water-park.jpeg",
-    features: ["2 parques no mesmo dia", "Hot Park completo", "diRoma Acqua Park", "Entrada prioritária", "Guia-mapa incluso"],
-    location: "Rio Quente + Caldas Novas",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
-    popular: true, soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["combo", "família", "aventura"],
-    alsoBoght: ["hot-park", "diroma-acqua-park"],
-  },
-  {
-    id: "kawana-park",
-    name: "Combo Família (2 Adultos + 1 Criança)",
-    categorySection: "combos",
-    description: "Pacote especial para a família! Dois ingressos adulto e um ingresso criança com desconto exclusivo.",
-    price: 380, originalPrice: 450, discount: 16,
-    image: "/images/kawana-park.jpeg",
-    features: ["2 adultos + 1 criança", "Hot Park incluído", "Área infantil VIP", "Almoço incluso", "Pulseira ID kids"],
-    location: "Rio Quente - GO",
-    duration: "Dia inteiro", ageGroup: "Família",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["família", "combo", "crianças"],
-    alsoBoght: ["hot-park", "transp-goiania"],
-  },
-  {
-    id: "combo-3-parques",
-    name: "Combo 3 Parques — Semana Completa",
-    categorySection: "combos",
-    description: "A experiência definitiva! Acesse 3 dos melhores parques e aproveite 3 dias de pura diversão.",
-    price: 320, originalPrice: 395, discount: 19,
-    image: "/images/diroma-acqua-park.jpeg",
-    features: ["Hot Park + diRoma + Lagoa Termas", "3 dias de acesso", "Café da manhã incluso", "Transfer entre parques"],
-    location: "Rio Quente + Caldas Novas",
-    duration: "3 dias", ageGroup: "Todas as idades",
-    popular: true, soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["combo", "família", "melhor valor"],
-    alsoBoght: ["kawana-park", "transp-goiania"],
-  },
-  {
     id: "ingresso-vip",
     name: "Ingresso VIP — Acesso Prioritário",
     categorySection: "especiais",
+    enterprise: "hot-park", destinationCity: "rio-quente",
     description: "A experiência mais completa! Acesso VIP sem filas, área exclusiva e serviços premium.",
     price: 320, originalPrice: 380, discount: 16,
     image: "/images/hot-park.jpeg",
@@ -182,6 +72,7 @@ const ticketsBase: TicketItem[] = [
     id: "ingresso-noturno",
     name: "Ingresso Noturno — Sunset Edition",
     categorySection: "especiais",
+    enterprise: "hot-park", destinationCity: "rio-quente",
     description: "Viva a magia do parque ao entardecer! Iluminação especial, música ao vivo e clima incrível.",
     price: 150, originalPrice: 190, discount: 21,
     image: "/images/lagoa-termas-parque.jpeg",
@@ -193,9 +84,168 @@ const ticketsBase: TicketItem[] = [
     alsoBoght: ["ingresso-vip", "cabana-standard"],
   },
   {
+    id: "morador-hot-park",
+    name: "Hot Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    enterprise: "hot-park", destinationCity: "rio-quente",
+    description: "Exclusivo para moradores de Caldas Novas e Rio Quente. 30% de desconto com apresentação de RG + comprovante de residência.",
+    price: 132, originalPrice: 189, discount: 30,
+    image: "/images/lagoa-termas-parque.jpeg",
+    features: ["Acesso completo ao parque", "Toboáguas", "Piscinas termais", "Rio lento", "Área infantil"],
+    location: "Rio Quente - GO",
+    duration: "Dia inteiro", ageGroup: "Adulto (13+)",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "águas termais"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-diroma", "morador-lagoa"],
+  },
+  {
+    id: "diroma-acqua-park",
+    name: "Ingresso diRoma Acqua Park",
+    categorySection: "ingresso-1-dia",
+    enterprise: "diroma", destinationCity: "caldas-novas",
+    description: "Diversão aquática para todas as idades com toboáguas emocionantes e piscinas de ondas incríveis.",
+    price: 90, originalPrice: 110, discount: 18,
+    image: "/images/diroma-acqua-park.jpeg",
+    features: ["Toboáguas variados", "Piscina de ondas", "Área kids", "Bar molhado", "Espreguiçadeiras"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["família", "diversão", "ondas"],
+    alsoBoght: ["hot-park", "kawana-park"],
+  },
+  {
+    id: "morador-diroma",
+    name: "diRoma Acqua Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    enterprise: "diroma", destinationCity: "caldas-novas",
+    description: "Desconto especial para moradores de Caldas Novas. Apresente seu RG e comprovante de residência na bilheteria.",
+    price: 63, originalPrice: 90, discount: 30,
+    image: "/images/diroma-acqua-park.jpeg",
+    features: ["Toboáguas variados", "Piscina de ondas", "Área kids", "Bar molhado"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "diversão"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-hot-park", "morador-lagoa"],
+  },
+  {
+    id: "lagoa-termas",
+    name: "Ingresso Lagoa Termas Parque",
+    categorySection: "ingresso-1-dia",
+    enterprise: "lagoa-termas", destinationCity: "caldas-novas",
+    description: "Relaxe nas águas termais da Lagoa Quente e aproveite a natureza exuberante em ambiente único.",
+    price: 75, originalPrice: 95, discount: 21,
+    image: "/images/kawana-park.jpeg",
+    features: ["Águas termais naturais", "Trilhas ecológicas", "Área de descanso", "Lanchonete", "Estacionamento"],
+    location: "Caldas Novas - GO",
+    duration: "Meio dia", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "natureza", tags: ["relaxamento", "natureza", "casal"],
+    alsoBoght: ["hot-park", "diroma-acqua-park"],
+  },
+  {
+    id: "morador-lagoa",
+    name: "Lagoa Termas — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    enterprise: "lagoa-termas", destinationCity: "caldas-novas",
+    description: "Benefício exclusivo para moradores. Relaxe nas termais com 30% de desconto especial.",
+    price: 53, originalPrice: 75, discount: 30,
+    image: "/images/kawana-park.jpeg",
+    features: ["Águas termais naturais", "Área de descanso", "Lanchonete", "Estacionamento grátis"],
+    location: "Caldas Novas - GO",
+    duration: "Meio dia", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "natureza", tags: ["morador", "relaxamento", "natureza"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-diroma", "morador-kawana"],
+  },
+  {
+    id: "passaporte-kawana",
+    name: "Passaporte Kawana (3 dias)",
+    categorySection: "ingresso-1-dia",
+    enterprise: "kawana", destinationCity: "caldas-novas",
+    description: "Aproveite 3 dias de diversão com acesso ilimitado ao Kawana Park e suas atrações exclusivas.",
+    price: 210, originalPrice: 265, discount: 21,
+    image: "/images/water-park.jpeg",
+    features: ["3 dias de acesso", "Piscinas termais", "Toboáguas familiares", "Estacionamento grátis", "Área kids"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["família", "multidia", "águas termais"],
+    alsoBoght: ["lagoa-termas", "diroma-acqua-park"],
+  },
+  {
+    id: "morador-kawana",
+    name: "Kawana Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    enterprise: "kawana", destinationCity: "caldas-novas",
+    description: "O parque mais radical do Centro-Oeste com desconto exclusivo para moradores da região.",
+    price: 72, originalPrice: 105, discount: 32,
+    image: "/images/water-park.jpeg",
+    features: ["Piscinas termais", "Toboáguas gigantes", "Piscina de ondas", "Rio lento"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "aventura"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-hot-park", "morador-diroma"],
+  },
+  {
+    id: "water-park",
+    name: "Combo Hot Park + diRoma Acqua",
+    categorySection: "combos",
+    enterprise: "combos", destinationCity: "multi-destino",
+    description: "O combo mais pedido! Acesse dois dos melhores parques da região com um desconto imperdível.",
+    price: 245, originalPrice: 299, discount: 18,
+    image: "/images/water-park.jpeg",
+    features: ["2 parques no mesmo dia", "Hot Park completo", "diRoma Acqua Park", "Entrada prioritária", "Guia-mapa incluso"],
+    location: "Rio Quente + Caldas Novas",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    popular: true, soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["combo", "família", "aventura"],
+    alsoBoght: ["hot-park", "diroma-acqua-park"],
+  },
+  {
+    id: "kawana-park",
+    name: "Combo Família (2 Adultos + 1 Criança)",
+    categorySection: "combos",
+    enterprise: "combos", destinationCity: "multi-destino",
+    description: "Pacote especial para a família! Dois ingressos adulto e um ingresso criança com desconto exclusivo.",
+    price: 380, originalPrice: 450, discount: 16,
+    image: "/images/kawana-park.jpeg",
+    features: ["2 adultos + 1 criança", "Hot Park incluído", "Área infantil VIP", "Almoço incluso", "Pulseira ID kids"],
+    location: "Rio Quente - GO",
+    duration: "Dia inteiro", ageGroup: "Família",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["família", "combo", "crianças"],
+    alsoBoght: ["hot-park", "transp-goiania"],
+  },
+  {
+    id: "combo-3-parques",
+    name: "Combo 3 Parques — Semana Completa",
+    categorySection: "combos",
+    enterprise: "combos", destinationCity: "multi-destino",
+    description: "A experiência definitiva! Acesse 3 dos melhores parques e aproveite 3 dias de pura diversão.",
+    price: 320, originalPrice: 395, discount: 19,
+    image: "/images/diroma-acqua-park.jpeg",
+    features: ["Hot Park + diRoma + Lagoa Termas", "3 dias de acesso", "Café da manhã incluso", "Transfer entre parques"],
+    location: "Rio Quente + Caldas Novas",
+    duration: "3 dias", ageGroup: "Todas as idades",
+    popular: true, soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["combo", "família", "melhor valor"],
+    alsoBoght: ["kawana-park", "transp-goiania"],
+  },
+  {
     id: "ingresso-open-hotel",
     name: "Open Parques + Hotel (1 Noite)",
     categorySection: "especiais",
+    enterprise: "combos", destinationCity: "multi-destino",
     description: "A viagem completa! Ingresso open para todos os parques + 1 noite em hotel parceiro com café da manhã.",
     price: 540, originalPrice: 680, discount: 21,
     image: "/images/diroma-acqua-park.jpeg",
@@ -207,9 +257,40 @@ const ticketsBase: TicketItem[] = [
     alsoBoght: ["ingresso-vip", "transp-brasilia"],
   },
   {
+    id: "transp-goiania",
+    name: "Transporte Goiânia → Caldas Novas",
+    categorySection: "transporte",
+    enterprise: "transporte", destinationCity: "multi-destino",
+    description: "Conforto e segurança na viagem. Ônibus executivo com ar-condicionado, saída pontual e retorno garantido.",
+    price: 65, originalPrice: 90, discount: 28,
+    image: "/images/hot-park.jpeg",
+    features: ["Ônibus executivo", "Ar-condicionado", "Wi-Fi a bordo", "Saída garantida", "Seguro viagem"],
+    location: "Goiânia → Caldas Novas",
+    duration: "Translado (3h)", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "transporte", tags: ["transporte", "conforto", "família"],
+    alsoBoght: ["hot-park", "diroma-acqua-park"],
+  },
+  {
+    id: "transp-brasilia",
+    name: "Transporte Brasília → Caldas Novas",
+    categorySection: "transporte",
+    enterprise: "transporte", destinationCity: "multi-destino",
+    description: "Saída de Brasília com horário fixo. Ônibus moderno com poltronas reclináveis e paradas programadas.",
+    price: 85, originalPrice: 120, discount: 29,
+    image: "/images/lagoa-termas-parque.jpeg",
+    features: ["Ônibus moderno", "Poltronas reclináveis", "Wi-Fi a bordo", "Lanche incluso", "Seguro viagem"],
+    location: "Brasília → Caldas Novas",
+    duration: "Translado (4h)", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "transporte", tags: ["transporte", "conforto", "família"],
+    alsoBoght: ["hot-park", "passaporte-kawana"],
+  },
+  {
     id: "cabana-standard",
     name: "Cabana Standard — até 4 pessoas",
     categorySection: "cabanas",
+    enterprise: "cabanas", destinationCity: "multi-destino",
     description: "Tenha sua área exclusiva no parque. Espreguiçadeiras, mesa, guarda-sol e serviço de praia incluso.",
     price: 280, originalPrice: 350, discount: 20,
     image: "/images/kawana-park.jpeg",
@@ -224,6 +305,7 @@ const ticketsBase: TicketItem[] = [
     id: "cabana-premium",
     name: "Cabana Premium — até 6 pessoas",
     categorySection: "cabanas",
+    enterprise: "cabanas", destinationCity: "multi-destino",
     description: "Mais espaço, mais conforto e experiência premium completa. Perfeita para grupos e aniversários.",
     price: 450, originalPrice: 560, discount: 20,
     image: "/images/water-park.jpeg",
@@ -238,6 +320,7 @@ const ticketsBase: TicketItem[] = [
     id: "cabana-exclusive",
     name: "Cabana Exclusive — até 10 pessoas",
     categorySection: "cabanas",
+    enterprise: "cabanas", destinationCity: "multi-destino",
     description: "A experiência definitiva em grupo! Cabana privativa com vista privilegiada e serviço 5 estrelas.",
     price: 680, originalPrice: 850, discount: 20,
     image: "/images/hot-park.jpeg",
@@ -249,74 +332,11 @@ const ticketsBase: TicketItem[] = [
     alsoBoght: ["ingresso-vip", "combo-3-parques"],
   },
   {
-    id: "morador-hot-park",
-    name: "Hot Park — Ingresso Morador",
-    categorySection: "ingresso-1-dia",
-    ticketCategory: "morador",
-    description: "Exclusivo para moradores de Caldas Novas e Rio Quente. 30% de desconto com apresentação de RG + comprovante de residência.",
-    price: 132, originalPrice: 189, discount: 30,
-    image: "/images/lagoa-termas-parque.jpeg",
-    features: ["Acesso completo ao parque", "Toboáguas", "Piscinas termais", "Rio lento", "Área infantil"],
-    location: "Rio Quente - GO",
-    duration: "Dia inteiro", ageGroup: "Adulto (13+)",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["morador", "desconto", "águas termais"],
-    documentRequired: "RG com endereço local + comprovante de residência",
-    alsoBoght: ["morador-diroma", "morador-lagoa"],
-  },
-  {
-    id: "morador-diroma",
-    name: "diRoma Acqua Park — Ingresso Morador",
-    categorySection: "ingresso-1-dia",
-    ticketCategory: "morador",
-    description: "Desconto especial para moradores de Caldas Novas. Apresente seu RG e comprovante de residência na bilheteria.",
-    price: 63, originalPrice: 90, discount: 30,
-    image: "/images/diroma-acqua-park.jpeg",
-    features: ["Toboáguas variados", "Piscina de ondas", "Área kids", "Bar molhado"],
-    location: "Caldas Novas - GO",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["morador", "desconto", "diversão"],
-    documentRequired: "RG com endereço local + comprovante de residência",
-    alsoBoght: ["morador-hot-park", "morador-lagoa"],
-  },
-  {
-    id: "morador-lagoa",
-    name: "Lagoa Termas — Ingresso Morador",
-    categorySection: "ingresso-1-dia",
-    ticketCategory: "morador",
-    description: "Benefício exclusivo para moradores. Relaxe nas termais com 30% de desconto especial.",
-    price: 53, originalPrice: 75, discount: 30,
-    image: "/images/kawana-park.jpeg",
-    features: ["Águas termais naturais", "Área de descanso", "Lanchonete", "Estacionamento grátis"],
-    location: "Caldas Novas - GO",
-    duration: "Meio dia", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "natureza", tags: ["morador", "relaxamento", "natureza"],
-    documentRequired: "RG com endereço local + comprovante de residência",
-    alsoBoght: ["morador-diroma", "morador-kawana"],
-  },
-  {
-    id: "morador-kawana",
-    name: "Kawana Park — Ingresso Morador",
-    categorySection: "ingresso-1-dia",
-    ticketCategory: "morador",
-    description: "O parque mais radical do Centro-Oeste com desconto exclusivo para moradores da região.",
-    price: 72, originalPrice: 105, discount: 32,
-    image: "/images/water-park.jpeg",
-    features: ["Piscinas termais", "Toboáguas gigantes", "Piscina de ondas", "Rio lento"],
-    location: "Caldas Novas - GO",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
-    soldToday: 0, availableToday: 0,
-    category: "parques", tags: ["morador", "desconto", "aventura"],
-    documentRequired: "RG com endereço local + comprovante de residência",
-    alsoBoght: ["morador-hot-park", "morador-diroma"],
-  },
-  {
     id: "meia-idoso",
     name: "Meia-Entrada — Idoso (60+)",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
+    enterprise: "meia-entrada", destinationCity: "multi-destino",
     description: "Direito garantido por lei federal para maiores de 60 anos. Válido em todos os parques conveniados.",
     price: 95, originalPrice: 189, discount: 50,
     image: "/images/lagoa-termas-parque.jpeg",
@@ -333,6 +353,7 @@ const ticketsBase: TicketItem[] = [
     name: "Meia-Entrada — Estudante",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
+    enterprise: "meia-entrada", destinationCity: "multi-destino",
     description: "Lei da Meia-Entrada para estudantes com carteirinha nacional válida (CIE/UNE/ANIPES).",
     price: 95, originalPrice: 189, discount: 50,
     image: "/images/hot-park.jpeg",
@@ -349,6 +370,7 @@ const ticketsBase: TicketItem[] = [
     name: "Ingresso Especial — PCD",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
+    enterprise: "meia-entrada", destinationCity: "multi-destino",
     description: "Ingresso especial para Pessoas com Deficiência (PCD). Alguns parques oferecem gratuidade total com laudo.",
     price: 50, originalPrice: 189, discount: 74,
     image: "/images/kawana-park.jpeg",
@@ -365,6 +387,7 @@ const ticketsBase: TicketItem[] = [
     name: "Meia-Entrada — Professor",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
+    enterprise: "meia-entrada", destinationCity: "multi-destino",
     description: "Desconto especial para professores no Water Park e Clube Privé. Apresentar contracheque na bilheteria.",
     price: 50, originalPrice: 100, discount: 50,
     image: "/images/water-park.jpeg",
@@ -425,7 +448,7 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [activeCategory, setActiveCategory] = useState<TicketCategoryTab>("ingressos")
+  const [activeCity, setActiveCity] = useState<DestinationCity>("rio-quente")
   const [skeletonLoading, setSkeletonLoading] = useState(false)
   const [cartModalTicket, setCartModalTicket] = useState<TicketItem | null>(null)
   const [cartModalPrice, setCartModalPrice] = useState(0)
@@ -510,17 +533,14 @@ export default function IngressosPage() {
     }
   }, [tickets, activeFilter, activePick])
 
-  const categorizedTickets = useMemo(() => {
-    if (activeCategory === "ingressos") {
-      return filteredTickets.filter(t => !t.ticketCategory || t.ticketCategory === "ingressos")
-    }
-    return filteredTickets.filter(t => t.ticketCategory === activeCategory)
-  }, [filteredTickets, activeCategory])
+  const cityFilteredTickets = useMemo(() => {
+    return filteredTickets.filter(t => t.destinationCity === activeCity)
+  }, [filteredTickets, activeCity])
 
-  function handleCategoryChange(cat: TicketCategoryTab) {
-    if (cat === activeCategory) return
+  function handleCityChange(city: DestinationCity) {
+    if (city === activeCity) return
     setSkeletonLoading(true)
-    setActiveCategory(cat)
+    setActiveCity(city)
     setTimeout(() => setSkeletonLoading(false), 450)
   }
 
@@ -580,6 +600,15 @@ export default function IngressosPage() {
     setShowWizard(false)
     setActivePick(null)
     trackEvent("wizard_confirm", { items: items.length })
+  }
+
+  function handleSidebarNavigate(enterpriseId: string, city: string) {
+    const dest = city as DestinationCity
+    setActiveCity(dest)
+    setTimeout(() => {
+      const el = document.getElementById(`section-enterprise-${enterpriseId}`)
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 350)
   }
 
   const toggleCompare = (id: string) => {
@@ -950,57 +979,57 @@ export default function IngressosPage() {
           display: "flex", alignItems: "stretch", gap: 0,
           padding: "0 16px", marginBottom: 12,
           borderBottom: "2px solid #F3F4F6",
-        }} data-testid="category-tabs">
-          {([
-            { key: "ingressos" as TicketCategoryTab, label: "Ingressos", icon: "🎟️", color: "#0891B2", count: filteredTickets.filter(t => !t.ticketCategory || t.ticketCategory === "ingressos").length },
-            { key: "morador" as TicketCategoryTab, label: "Morador", icon: "🏠", color: "#059669", count: filteredTickets.filter(t => t.ticketCategory === "morador").length },
-            { key: "meia-entrada" as TicketCategoryTab, label: "Meia-Entrada", icon: "⭐", color: "#7C3AED", count: filteredTickets.filter(t => t.ticketCategory === "meia-entrada").length },
-          ]).map((tab) => {
-            const isActive = activeCategory === tab.key
+          overflowX: "auto",
+        }} data-testid="city-tabs">
+          {DESTINATION_CITIES.map((city) => {
+            const isActive = activeCity === city.id
+            const cityCount = filteredTickets.filter(t => t.destinationCity === city.id).length
             return (
               <button
-                key={tab.key}
-                data-testid={`tab-category-${tab.key}`}
-                onClick={() => handleCategoryChange(tab.key)}
+                key={city.id}
+                data-testid={`tab-city-${city.id}`}
+                onClick={() => handleCityChange(city.id)}
                 style={{
-                  flex: 1,
-                  padding: "10px 6px 12px",
+                  flex: "0 0 auto",
+                  padding: "10px 14px 12px",
                   border: "none",
                   background: "transparent",
                   cursor: "pointer",
                   position: "relative",
-                  borderBottom: isActive ? `2.5px solid ${tab.color}` : "2.5px solid transparent",
+                  borderBottom: isActive ? `2.5px solid ${city.color}` : "2.5px solid transparent",
                   marginBottom: -2,
                   transition: "all 0.2s",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 3,
+                  minWidth: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ fontSize: 14 }}>{tab.icon}</span>
+                  <span style={{ fontSize: 16 }}>{city.emoji}</span>
                   <span style={{
-                    fontSize: 12, fontWeight: isActive ? 800 : 500,
-                    color: isActive ? tab.color : "#6B7280",
+                    fontSize: 13, fontWeight: isActive ? 800 : 500,
+                    color: isActive ? city.color : "#6B7280",
                     transition: "all 0.2s",
                   }}>
-                    {tab.label}
+                    {city.label}
                   </span>
                   <span style={{
                     fontSize: 9, fontWeight: 700,
-                    background: isActive ? tab.color : "#F3F4F6",
+                    background: isActive ? city.color : "#F3F4F6",
                     color: isActive ? "#fff" : "#6B7280",
-                    borderRadius: 20, padding: "1px 5px",
+                    borderRadius: 20, padding: "1px 6px",
                     transition: "all 0.2s",
                     lineHeight: 1.5,
                   }}>
-                    {tab.count}
+                    {cityCount}
                   </span>
                 </div>
                 {isActive && (
-                  <span style={{ fontSize: 9, color: tab.color, fontWeight: 600, opacity: 0.8 }}>
-                    {tab.key === "morador" ? "Desconto residencial" : tab.key === "meia-entrada" ? "50% OFF garantido" : "Todos os parques"}
+                  <span style={{ fontSize: 9, color: city.color, fontWeight: 600, opacity: 0.8, maxWidth: 140, textAlign: "center", lineHeight: 1.3 }}>
+                    {city.description}
                   </span>
                 )}
               </button>
@@ -1012,23 +1041,16 @@ export default function IngressosPage() {
           <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
             {[1, 2, 3].map((i) => (
               <div key={i} style={{
-                borderRadius: 14, marginBottom: 8, overflow: "hidden",
+                borderRadius: 16, marginBottom: 10, overflow: "hidden",
                 border: "1px solid #F3F4F6",
               }}>
                 <div style={{
-                  height: 52, background: "#F3F4F6",
-                  borderRadius: "14px 14px 0 0",
+                  height: 78, background: "#F3F4F6",
+                  borderRadius: "16px 16px 0 0",
                   animation: "rsv-skeleton-pulse 1.2s ease-in-out infinite",
                   backgroundImage: "linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%)",
                   backgroundSize: "400% 100%",
                 }} />
-                <div style={{ padding: "12px 14px" }}>
-                  <div style={{ height: 100, background: "#F9FAFB", borderRadius: 10,
-                    backgroundImage: "linear-gradient(90deg, #F9FAFB 25%, #F3F4F6 50%, #F9FAFB 75%)",
-                    backgroundSize: "400% 100%",
-                    animation: "rsv-skeleton-pulse 1.2s ease-in-out infinite",
-                  }} />
-                </div>
               </div>
             ))}
             <style>{`
@@ -1039,8 +1061,9 @@ export default function IngressosPage() {
             `}</style>
           </div>
         ) : (
-          <CategoryAccordion
-            tickets={categorizedTickets}
+          <EnterpriseAccordion
+            key={activeCity}
+            tickets={cityFilteredTickets}
             cart={cart}
             onBuy={handleBuy}
             onInc={handleIncrease}
@@ -1071,6 +1094,7 @@ export default function IngressosPage() {
               total={cartTotal}
               selectedDate={selectedDate}
               onRemove={handleRemove}
+              onNavigate={handleSidebarNavigate}
               onCheckout={() => {
                 trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
                 navigate("/ingressos/checkout")
@@ -1125,6 +1149,7 @@ export default function IngressosPage() {
           total={cartTotal}
           selectedDate={selectedDate}
           onRemove={handleRemove}
+          onNavigate={handleSidebarNavigate}
           onCheckout={() => {
             trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
             navigate("/ingressos/checkout")
