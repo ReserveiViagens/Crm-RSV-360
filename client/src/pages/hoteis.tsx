@@ -1069,6 +1069,7 @@ export default function HoteisPage() {
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button
               data-testid={`button-saiba-mais-${hotel.id}`}
+              className="rsv-tab-btn"
               onClick={(e) => toggleSaibaMais(hotel.id, e)}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -1093,6 +1094,7 @@ export default function HoteisPage() {
 
             <button
               data-testid={`button-detalhes-${hotel.id}`}
+              className="rsv-tab-btn-orange"
               onClick={(e) => toggleDetalhes(hotel.id, e)}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -1116,16 +1118,15 @@ export default function HoteisPage() {
           </div>
 
           {/* ── SAIBA MAIS PANEL ── */}
-          {isSaibaMaisOpen && (
-            <div
-              data-testid={`panel-saiba-mais-${hotel.id}`}
-              style={{
-                background: "#F8FAFF", borderRadius: 12, padding: "12px 14px",
-                marginBottom: 12, border: "1px solid #DBEAFE",
-                animation: "fadeInUp 0.2s ease",
-              }}
-              onClick={e => e.stopPropagation()}
-            >
+          <div
+            data-testid={`panel-saiba-mais-${hotel.id}`}
+            className={`rsv-accordion-panel${isSaibaMaisOpen ? " open" : ""}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              background: "#F8FAFF", borderRadius: 12, padding: "12px 14px",
+              marginBottom: 12, border: "1px solid #DBEAFE",
+            }}>
               <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, margin: "0 0 10px" }}>
                 {hotel.description}
               </p>
@@ -1178,19 +1179,18 @@ export default function HoteisPage() {
                 </div>
               ))}
             </div>
-          )}
+          </div>
 
           {/* ── + DETALHES PANEL ── */}
-          {isDetalhesOpen && (
-            <div
-              data-testid={`panel-detalhes-${hotel.id}`}
-              style={{
-                background: "#FFFBF5", borderRadius: 12, padding: "12px 14px",
-                marginBottom: 12, border: "1px solid #FED7AA",
-                animation: "fadeInUp 0.2s ease",
-              }}
-              onClick={e => e.stopPropagation()}
-            >
+          <div
+            data-testid={`panel-detalhes-${hotel.id}`}
+            className={`rsv-accordion-panel${isDetalhesOpen ? " open" : ""}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              background: "#FFFBF5", borderRadius: 12, padding: "12px 14px",
+              marginBottom: 12, border: "1px solid #FED7AA",
+            }}>
               {/* Tags */}
               {hotel.tags && hotel.tags.length > 0 && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
@@ -1249,7 +1249,7 @@ export default function HoteisPage() {
                 </span>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Price row */}
           <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 12, marginTop: 4 }}>
@@ -1332,6 +1332,28 @@ export default function HoteisPage() {
         @keyframes shimmer {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
+        }
+        @keyframes tickerSlide {
+          from { opacity: 0; transform: translateX(28px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .rsv-accordion-panel {
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s;
+          opacity: 0;
+        }
+        .rsv-accordion-panel.open {
+          max-height: 800px;
+          opacity: 1;
+        }
+        .rsv-tab-btn:hover {
+          filter: brightness(0.94);
+          box-shadow: 0 4px 18px rgba(37,99,235,0.25) !important;
+        }
+        .rsv-tab-btn-orange:hover {
+          filter: brightness(0.94);
+          box-shadow: 0 4px 18px rgba(245,124,0,0.25) !important;
         }
       `}</style>
 
@@ -1425,7 +1447,7 @@ export default function HoteisPage() {
               style={{
                 fontSize: 12, color: "rgba(255,255,255,0.85)", fontWeight: 500,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                animation: "fadeInUp 0.4s ease",
+                animation: "tickerSlide 0.45s cubic-bezier(0.22,1,0.36,1) both",
               }}
             >
               🏨 <strong>{LIVE_TICKER[tickerIndex].name}</strong> de {LIVE_TICKER[tickerIndex].city} reservou &quot;{LIVE_TICKER[tickerIndex].hotel}&quot; há {LIVE_TICKER[tickerIndex].ago}
