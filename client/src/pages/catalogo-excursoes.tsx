@@ -1017,33 +1017,45 @@ export default function CatalogoExcursoes() {
             )}
           </div>
 
-          {/* Profile chips */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {[
-              { id: "família", emoji: "👨‍👩‍👧‍👦", label: "Família" },
-              { id: "aventura", emoji: "🏄", label: "Aventura" },
-              { id: "luxo", emoji: "👑", label: "Luxo" },
-              { id: "econômico", emoji: "💰", label: "Econômico" },
-            ].map(p => (
-              <button
-                key={p.id}
-                data-testid={`btn-perfil-catalogo-${p.id}`}
-                onClick={() => setCategoria(prev => prev === p.id ? "todas" : p.id)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "7px 14px", borderRadius: 999,
-                  background: categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.12)",
-                  border: `1.5px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.25)"}`,
-                  color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                  transition: "all 0.15s",
-                }}
-              >
-                <span>{p.emoji}</span>
-                {p.label}
-              </button>
-            ))}
-          </div>
         </div>
+      </div>
+
+      <div
+        data-testid="filter-bar-catalogo"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {[
+          { id: "todas",     emoji: "🗺️",         label: "Todas" },
+          { id: "família",   emoji: "👨‍👩‍👧‍👦", label: "Família" },
+          { id: "aventura",  emoji: "🏄",          label: "Aventura" },
+          { id: "luxo",      emoji: "👑",          label: "Luxo" },
+          { id: "econômico", emoji: "💰",          label: "Econômico" },
+        ].map(p => {
+          const isActive = categoria === p.id || (p.id === "todas" && categoria === "todas")
+          return (
+            <button
+              key={p.id}
+              data-testid={`btn-perfil-catalogo-${p.id}`}
+              onClick={() => setCategoria(prev => prev === p.id && p.id !== "todas" ? "todas" : p.id)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
+                background: isActive ? "#F57C00" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.15s", flexShrink: 0,
+              }}
+            >
+              <span>{p.emoji}</span>
+              {p.label}
+            </button>
+          )
+        })}
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">

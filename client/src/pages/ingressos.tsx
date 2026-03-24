@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Percent } from "lucide-react"
+import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
 import { Link, useLocation } from "wouter";
 import {
   SocialProofBanner,
@@ -550,7 +550,7 @@ export default function IngressosPage() {
   { label: "Dia Inteiro",   value: "Dia Inteiro",    icon: Sun },
   { label: "Meio Dia",      value: "Meio Dia",       icon: Clock },
   { label: "Mais Popular",  value: "Mais Popular",   icon: Flame },
-  { label: "Maior Desconto",value: "Maior Desconto", icon: Percent },
+  { label: "Maior Desconto",value: "Maior Desconto", icon: Tag },
 ]
   const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
 

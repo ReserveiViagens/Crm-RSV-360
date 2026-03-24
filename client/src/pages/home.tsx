@@ -782,6 +782,43 @@ export default function RSV360Landing() {
         </div>
       </div>
 
+      <div
+        data-testid="filter-bar-home"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {TABS.map((tab) => {
+          const Icon = tab.icon
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id)
+                if (productsRef.current) {
+                  productsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+                }
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: isActive ? "#2563EB" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              <Icon size={13} />
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Main Content with Sidebars */}
       <div className="rsv-container">
         <div className="rsv-main-layout">
