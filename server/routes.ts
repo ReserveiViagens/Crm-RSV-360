@@ -48,11 +48,14 @@ import {
   validateInvite,
   consumeInvite,
 } from "./social-commerce";
+import { registerWeatherRoutes } from "./routes/weather-routes.js";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express,
 ): Promise<Server> {
+  registerWeatherRoutes(app);
+
   const getActorFromHeaders = (req: Request) => {
     const userId = String(req.get("x-user-id") ?? "").trim();
     const nome = String(req.get("x-user-name") ?? "").trim() || "Usuário";

@@ -20,6 +20,7 @@ import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { CartAddModal } from "@/components/CartAddModal"
 import { ComboDatesModal } from "@/components/ComboDatesModal"
 import { DESTINATION_CITIES, ENTERPRISE_CONFIG, type DestinationCity } from "@/lib/enterprises"
+import { WeatherCard } from "@/components/WeatherCard"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -1085,6 +1086,18 @@ export default function IngressosPage() {
             )
           })}
         </div>
+
+        {activeCity !== "multi-destino" && (
+          <div style={{ padding: "0 16px", marginBottom: 12 }} data-testid="section-weather">
+            <WeatherCard
+              options={{
+                mode: "city",
+                city: activeCity === "rio-quente" ? "Rio Quente" : "Caldas Novas",
+                country: "BR",
+              }}
+            />
+          </div>
+        )}
 
         {skeletonLoading ? (
           <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
