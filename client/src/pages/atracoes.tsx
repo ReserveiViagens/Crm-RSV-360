@@ -175,14 +175,14 @@ const CATEGORIA_TO_MOOD: Record<string, string> = {
   passeios: "Aventura",
 }
 
-const MOOD_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  Todos:      { bg: "#F3F4F6", text: "#374151", border: "#E5E7EB" },
-  Relaxamento:{ bg: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
-  Aventura:   { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
-  "Família":  { bg: "#FFFBEB", text: "#D97706", border: "#FDE68A" },
-  "Romântico":{ bg: "#FDF2F8", text: "#DB2777", border: "#FBCFE8" },
-  Cultura:    { bg: "#F5F3FF", text: "#7C3AED", border: "#DDD6FE" },
-  Natureza:   { bg: "#F0FDF4", text: "#16A34A", border: "#BBF7D0" },
+const MOOD_COLORS: Record<string, { bg: string; text: string; border: string; solid: string }> = {
+  Todos:      { bg: "#F3F4F6", text: "#374151", border: "#E5E7EB",  solid: "#374151" },
+  Relaxamento:{ bg: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE",  solid: "#2563EB" },
+  Aventura:   { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA",  solid: "#DC2626" },
+  "Família":  { bg: "#FFFBEB", text: "#D97706", border: "#FDE68A",  solid: "#D97706" },
+  "Romântico":{ bg: "#FDF2F8", text: "#DB2777", border: "#FBCFE8",  solid: "#DB2777" },
+  Cultura:    { bg: "#F5F3FF", text: "#7C3AED", border: "#DDD6FE",  solid: "#7C3AED" },
+  Natureza:   { bg: "#F0FDF4", text: "#16A34A", border: "#BBF7D0",  solid: "#16A34A" },
 }
 
 export default function AtracoesPage() {
@@ -805,11 +805,11 @@ export default function AtracoesPage() {
               data-testid={`button-mood-${f.value}`}
               onClick={() => setActiveMood(f.value)}
               style={{
-                padding: "8px 16px",
-                border: isActive ? `2px solid ${colors.border}` : "2px solid transparent",
-                borderRadius: 20,
-                background: isActive ? colors.bg : "#F9FAFB",
-                color: isActive ? colors.text : "#6B7280",
+                padding: "7px 14px",
+                border: isActive ? `1.5px solid ${colors.solid}` : "1.5px solid #E5E7EB",
+                borderRadius: 999,
+                background: isActive ? colors.solid : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
                 fontSize: 13,
                 fontWeight: isActive ? 700 : 500,
                 cursor: "pointer",

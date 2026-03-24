@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2 } from "lucide-react"
+import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Percent } from "lucide-react"
 import { Link, useLocation } from "wouter";
 import {
   SocialProofBanner,
@@ -545,7 +545,13 @@ export default function IngressosPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const FILTERS = ["Todos", "Dia Inteiro", "Meio Dia", "Mais Popular", "Maior Desconto"]
+  const FILTERS = [
+  { label: "Todos",         value: "Todos",          icon: LayoutGrid },
+  { label: "Dia Inteiro",   value: "Dia Inteiro",    icon: Sun },
+  { label: "Meio Dia",      value: "Meio Dia",       icon: Clock },
+  { label: "Mais Popular",  value: "Mais Popular",   icon: Flame },
+  { label: "Maior Desconto",value: "Maior Desconto", icon: Percent },
+]
   const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
 
   const filteredTickets = useMemo(() => {
@@ -719,40 +725,52 @@ export default function IngressosPage() {
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
-          {FILTERS.map((filter) => (
+      </div>
+
+      <div
+        data-testid="filter-bar-ingressos"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30, alignItems: "center",
+        }}
+      >
+        {FILTERS.map((f) => {
+          const Icon = f.icon
+          const isActive = activeFilter === f.value
+          return (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              data-testid={`button-filter-${filter.toLowerCase().replace(/ /g, "-")}`}
+              key={f.value}
+              onClick={() => setActiveFilter(f.value)}
+              data-testid={`button-filter-${f.value.toLowerCase().replace(/ /g, "-")}`}
               style={{
-                flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
-                color: activeFilter === filter ? "#fff" : "rgba(255,255,255,0.6)",
-                fontSize: 13, fontWeight: activeFilter === filter ? 700 : 500,
-                cursor: "pointer", position: "relative",
-                borderBottom: activeFilter === filter ? "2px solid #F57C00" : "2px solid transparent",
-                marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
+                background: isActive ? "#F57C00" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
               }}
             >
-              {filter}
+              <Icon size={13} />
+              {f.label}
             </button>
-          ))}
-          <button
-            data-testid="button-help-choose"
-            onClick={() => setShowWizard(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.35)",
-              borderRadius: "8px 8px 0 0", padding: "7px 12px", color: "#fff",
-              fontSize: 11, fontWeight: 700, cursor: "pointer",
-              marginBottom: -2, borderBottom: "2px solid transparent",
-              transition: "all 0.15s ease", whiteSpace: "nowrap",
-            }}
-          >
-            <Wand2 style={{ width: 12, height: 12 }} />
-            Me ajude a escolher
-          </button>
-        </div>
+          )
+        })}
+        <button
+          data-testid="button-help-choose"
+          onClick={() => setShowWizard(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: 5, flexShrink: 0, marginLeft: "auto",
+            background: "#FFF7ED", border: "1.5px solid #FDE68A",
+            borderRadius: 999, padding: "7px 12px", color: "#D97706",
+            fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          <Wand2 style={{ width: 12, height: 12 }} />
+          Me ajude a escolher
+        </button>
       </div>
 
       <div style={{ display: "flex", alignItems: "flex-start" }}>

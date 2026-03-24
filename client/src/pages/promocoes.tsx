@@ -696,36 +696,39 @@ export default function PromocoesPage() {
             ))}
           </div>
         </div>
+      </div>
 
-        <div style={{
-          display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12,
-          borderBottom: "2px solid rgba(255,255,255,0.15)", padding: "0 20px 12px",
-        }}>
-          {filters.map((f) => {
-            const Icon = f.icon
-            const isActive = activeFilter === f.value
-            return (
-              <button
-                key={f.value}
-                data-testid={`button-filter-${f.value}`}
-                onClick={() => setActiveFilter(f.value)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 4,
-                  padding: "8px 14px", border: "none",
-                  background: isActive ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.7)",
-                  fontSize: 12, fontWeight: isActive ? 700 : 500,
-                  cursor: "pointer", borderRadius: 8,
-                  transition: "all 0.2s", whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon style={{ width: 13, height: 13 }} />
-                {f.label}
-              </button>
-            )
-          })}
-        </div>
+      <div
+        data-testid="filter-bar-promocoes"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {filters.map((f) => {
+          const Icon = f.icon
+          const isActive = activeFilter === f.value
+          return (
+            <button
+              key={f.value}
+              data-testid={`button-filter-${f.value}`}
+              onClick={() => setActiveFilter(f.value)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #22C55E" : "1.5px solid #E5E7EB",
+                background: isActive ? "#22C55E" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 12, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              <Icon style={{ width: 13, height: 13 }} />
+              {f.label}
+            </button>
+          )
+        })}
       </div>
 
       <SocialProofBanner pageName="promocoes" />

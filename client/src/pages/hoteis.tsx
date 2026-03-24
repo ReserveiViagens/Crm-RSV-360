@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag } from "lucide-react"
+import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet } from "lucide-react"
 import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 import {
@@ -196,7 +196,13 @@ const hotels: Hotel[] = [
   },
 ]
 
-const FILTERS = ["Todos", "5 Estrelas", "4 Estrelas", "Resort", "Econômico"]
+const FILTERS = [
+  { label: "Todos",      value: "Todos",       icon: LayoutGrid },
+  { label: "5 Estrelas", value: "5 Estrelas",  icon: Star },
+  { label: "4 Estrelas", value: "4 Estrelas",  icon: Star },
+  { label: "Resort",     value: "Resort",      icon: Waves },
+  { label: "Econômico",  value: "Econômico",   icon: Wallet },
+]
 
 const TAG_COLORS: Record<string, { bg: string; color: string }> = {
   "Resort": { bg: "#DBEAFE", color: "#1D4ED8" },
@@ -1251,26 +1257,40 @@ export default function HoteisPage() {
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
-            {FILTERS.map((filter) => (
-              <button
-                key={filter}
-                data-testid={`button-filter-${filter}`}
-                onClick={() => setActiveFilter(filter)}
-                style={{
-                  flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
-                  color: activeFilter === filter ? "#fff" : "rgba(255,255,255,0.6)",
-                  fontSize: 13, fontWeight: activeFilter === filter ? 700 : 500,
-                  cursor: "pointer", position: "relative",
-                  borderBottom: activeFilter === filter ? "2px solid #F57C00" : "2px solid transparent",
-                  marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
-                }}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
         </div>
+      </div>
+
+      <div
+        data-testid="filter-bar-hoteis"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {FILTERS.map((f) => {
+          const Icon = f.icon
+          const isActive = activeFilter === f.value
+          return (
+            <button
+              key={f.value}
+              data-testid={`button-filter-${f.value}`}
+              onClick={() => setActiveFilter(f.value)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: isActive ? "#2563EB" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              <Icon size={13} />
+              {f.label}
+            </button>
+          )
+        })}
       </div>
 
       <div style={{

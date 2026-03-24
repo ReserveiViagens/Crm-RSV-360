@@ -154,25 +154,22 @@ export default function Excursoes() {
           </p>
 
           {/* Profile quick-picks */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: 32 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 32 }}>
             {PERFIS.map(p => (
               <button
                 key={p.id}
                 data-testid={`btn-perfil-excursoes-${p.id}`}
                 onClick={() => setPerfilAtivo(prev => prev === p.id ? null : p.id)}
                 style={{
-                  display: "flex", flexDirection: "column", alignItems: "center",
-                  gap: 4, padding: "10px 18px", borderRadius: 14,
+                  display: "flex", alignItems: "center",
+                  gap: 6, padding: "8px 16px", borderRadius: 999,
                   background: perfil === p.id ? p.bg : "rgba(255,255,255,0.10)",
-                  border: `2px solid ${perfil === p.id ? p.cor : "rgba(255,255,255,0.18)"}`,
+                  border: `1.5px solid ${perfil === p.id ? p.cor : "rgba(255,255,255,0.25)"}`,
                   cursor: "pointer", transition: "all 0.18s",
-                  backdropFilter: "blur(6px)",
-                  minWidth: 90,
                 }}
               >
-                <span style={{ fontSize: 22 }}>{p.emoji}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: perfil === p.id ? p.cor : "#fff" }}>{p.label}</span>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>{p.desc}</span>
+                <span style={{ fontSize: 16 }}>{p.emoji}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: perfil === p.id ? p.cor : "#fff" }}>{p.label}</span>
               </button>
             ))}
           </div>

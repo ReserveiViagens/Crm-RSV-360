@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Gavel, Clock, Star, MapPin, TrendingUp, Users, Flame, X, Plus, Minus, Bell, ChevronRight, Sparkles, Zap, Pause, Play } from "lucide-react"
+import { Gavel, Clock, Star, MapPin, TrendingUp, Users, Flame, X, Plus, Minus, Bell, ChevronRight, Sparkles, Zap, Pause, Play, LayoutGrid, Timer, Building2, Package } from "lucide-react"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -386,25 +386,44 @@ export default function LeiloesPage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)", position: "relative", zIndex: 1 }}>
-          {["Todos", "Encerrando", "Hotéis", "Pacotes"].map((tab) => (
+      </div>
+
+      <div
+        data-testid="filter-bar-leiloes"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {[
+          { label: "Todos",      value: "Todos",      icon: LayoutGrid },
+          { label: "Encerrando", value: "Encerrando", icon: Timer },
+          { label: "Hotéis",     value: "Hotéis",     icon: Building2 },
+          { label: "Pacotes",    value: "Pacotes",    icon: Package },
+        ].map((f) => {
+          const Icon = f.icon
+          const isActive = activeFilter === f.value
+          return (
             <button
-              key={tab}
-              data-testid={`button-filter-${tab.toLowerCase()}`}
-              onClick={() => setActiveFilter(tab)}
+              key={f.value}
+              data-testid={`button-filter-${f.value.toLowerCase()}`}
+              onClick={() => setActiveFilter(f.value)}
               style={{
-                flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
-                color: activeFilter === tab ? "#fff" : "rgba(255,255,255,0.5)",
-                fontSize: 13, fontWeight: activeFilter === tab ? 700 : 500,
-                cursor: "pointer", position: "relative",
-                borderBottom: activeFilter === tab ? "2px solid #F57C00" : "2px solid transparent",
-                marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #F59E0B" : "1.5px solid #E5E7EB",
+                background: isActive ? "#F59E0B" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
               }}
             >
-              {tab}
+              <Icon size={13} />
+              {f.label}
             </button>
-          ))}
-        </div>
+          )
+        })}
       </div>
 
       <SocialProofBanner viewers={onlineCompetitors} pageName="leilões" />

@@ -1033,7 +1033,7 @@ export default function CatalogoExcursoes() {
                   display: "flex", alignItems: "center", gap: 6,
                   padding: "7px 14px", borderRadius: 999,
                   background: categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.12)",
-                  border: `1px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.2)"}`,
+                  border: `1.5px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.25)"}`,
                   color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
                   transition: "all 0.15s",
                 }}

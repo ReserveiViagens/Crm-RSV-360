@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react"
-import { Search, Star, Phone, Shield, CheckCircle, Award, Calendar, Users, ChevronRight, Zap, Clock, MapPin, TrendingUp, Eye, Flame, Filter, Heart, Gavel, Minus, Plus, X, Gift, Trophy, Ticket, UserCheck, ChevronLeft } from "lucide-react"
+import { Search, Star, Phone, Shield, CheckCircle, Award, Calendar, Users, ChevronRight, Zap, Clock, MapPin, TrendingUp, Eye, Flame, Filter, Heart, Gavel, Minus, Plus, X, Gift, Trophy, Ticket, UserCheck, ChevronLeft, LayoutGrid, Building2, Waves } from "lucide-react"
 import { Link } from "wouter";
 import LGPDPopup from "@/components/lgpd-popup"
 import ReviewsSection from "@/components/reviews-section"
@@ -7,10 +7,10 @@ import ChatAgent from "@/components/chat-agent"
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 
 const TABS = [
-  { id: "tudo", label: "Tudo" },
-  { id: "hoteis", label: "Hotéis" },
-  { id: "parques", label: "Parques" },
-  { id: "passeios", label: "Passeios" },
+  { id: "tudo",     label: "Tudo",     icon: LayoutGrid },
+  { id: "hoteis",   label: "Hotéis",   icon: Building2  },
+  { id: "parques",  label: "Parques",  icon: Waves      },
+  { id: "passeios", label: "Passeios", icon: MapPin     },
 ]
 
 const POPULAR_TAGS = ["Hot Park", "diRoma", "Lagoa Quente", "Náutico", "Water Park"]
@@ -563,26 +563,34 @@ export default function RSV360Landing() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id)
-                  if (productsRef.current) {
-                    productsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
-                  }
-                }}
-                style={{
-                  flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
-                  color: activeTab === tab.id ? "#fff" : "rgba(255,255,255,0.6)",
-                  fontSize: 14, fontWeight: activeTab === tab.id ? 700 : 500,
-                  cursor: "pointer", position: "relative",
-                  borderBottom: activeTab === tab.id ? "2px solid #F57C00" : "2px solid transparent",
-                  marginBottom: -2, transition: "all 0.2s",
-                }}
-              >{tab.label}</button>
-            ))}
+          <div style={{ display: "flex", gap: 6, padding: "6px 0 10px" }}>
+            {TABS.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id)
+                    if (productsRef.current) {
+                      productsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    padding: "6px 13px", borderRadius: 999,
+                    border: isActive ? "1.5px solid rgba(255,255,255,0.9)" : "1.5px solid rgba(255,255,255,0.25)",
+                    background: isActive ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.07)",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
+                    fontSize: 13, fontWeight: isActive ? 700 : 500,
+                    cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0,
+                  }}
+                >
+                  <Icon size={12} />
+                  {tab.label}
+                </button>
+              )
+            })}
           </div>
         </div>
       </header>
@@ -1038,24 +1046,28 @@ export default function RSV360Landing() {
               </div>
 
               <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "auto" }}>
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    style={{
-                      padding: "6px 16px",
-                      borderRadius: 20,
-                      border: activeTab === tab.id ? "2px solid #2563EB" : "1px solid #D1D5DB",
-                      background: activeTab === tab.id ? "#EFF6FF" : "#fff",
-                      color: activeTab === tab.id ? "#2563EB" : "#6B7280",
-                      fontSize: 13,
-                      fontWeight: activeTab === tab.id ? 700 : 500,
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.2s",
-                    }}
-                  >{tab.label}</button>
-                ))}
+                {TABS.map((tab) => {
+                  const Icon = tab.icon
+                  const isActive = activeTab === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        padding: "6px 14px", borderRadius: 999,
+                        border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                        background: isActive ? "#2563EB" : "#F3F4F6",
+                        color: isActive ? "#fff" : "#6B7280",
+                        fontSize: 13, fontWeight: isActive ? 700 : 500,
+                        cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+                      }}
+                    >
+                      <Icon size={12} />
+                      {tab.label}
+                    </button>
+                  )
+                })}
               </div>
 
               {(priceMin || priceMax || minStars) && (
