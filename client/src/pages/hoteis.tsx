@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag } from "lucide-react"
 import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
@@ -1089,8 +1089,6 @@ export default function HoteisPage() {
     )
   }
 
-  const heroRef = useRef<HTMLDivElement>(null)
-
   const scrollToHotels = () => {
     const el = document.getElementById("hoteis-grid")
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -1116,7 +1114,6 @@ export default function HoteisPage() {
       <HomeHeader />
 
       <div
-        ref={heroRef}
         style={{
           background: "linear-gradient(135deg, #0f2850 0%, #1a3a6e 45%, #1e4fa3 100%)",
           color: "#fff",
