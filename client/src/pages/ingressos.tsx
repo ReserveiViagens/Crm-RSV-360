@@ -615,11 +615,11 @@ export default function IngressosPage() {
 
   function handleSidebarNavigate(enterpriseId: string, city: string) {
     const dest = city as DestinationCity
-    setActiveCity(dest)
+    handleCityChange(dest)
     setTimeout(() => {
       const el = document.getElementById(`section-enterprise-${enterpriseId}`)
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
-    }, 350)
+    }, 500)
   }
 
   const toggleCompare = (id: string) => {
@@ -994,7 +994,12 @@ export default function IngressosPage() {
         }} data-testid="city-tabs">
           {DESTINATION_CITIES.map((city) => {
             const isActive = activeCity === city.id
-            const cityCount = filteredTickets.filter(t => t.destinationCity === city.id).length
+            const cityEnterpriseIds = ENTERPRISE_CONFIG.filter(e => e.city === city.id).map(e => e.id)
+            const cityCount = filteredTickets.filter(t => {
+              if (t.destinationCity === city.id) return true
+              const tEnterprises = t.enterprises ?? (t.enterprise ? [t.enterprise] : [])
+              return tEnterprises.some(eid => cityEnterpriseIds.includes(eid as typeof cityEnterpriseIds[number]))
+            }).length
             return (
               <button
                 key={city.id}
