@@ -88,7 +88,7 @@ export default function RankingOrganizadoresPage() {
         </div>
 
         <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.2 }}>
-          Ranking de Organizadores
+          Ranking de Organizadores — Mês Atual
         </h1>
         <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, margin: "0 0 20px", lineHeight: 1.5 }}>
           {ranking.length > 0

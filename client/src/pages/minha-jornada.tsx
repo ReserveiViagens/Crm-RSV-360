@@ -336,30 +336,45 @@ export default function MinhaJornadaPage() {
             <Clock size={17} style={{ color: "#2563EB" }} />
             <span style={{ fontWeight: 800, fontSize: 15, color: "#1F2937" }}>Histórico de Pontos</span>
           </div>
-          <div style={{ padding: "12px 16px" }}>
+          <div style={{ padding: "16px 20px" }}>
             {historico.length === 0 ? (
               <p style={{ fontSize: 13, color: "#9CA3AF", textAlign: "center", padding: "16px 0", margin: 0 }}>
                 Nenhum ponto acumulado ainda. Faça sua primeira reserva!
               </p>
             ) : (
-              <div>
+              <div style={{ position: "relative", paddingLeft: 28 }}>
+                <div style={{
+                  position: "absolute", left: 10, top: 8, bottom: 8,
+                  width: 2, background: "linear-gradient(to bottom, #2563EB, #93C5FD)",
+                  borderRadius: 2,
+                }} />
                 {historico.map((item, i) => (
                   <div
                     key={i}
                     data-testid={`historico-item-${i}`}
                     style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "10px 8px", borderRadius: 10,
-                      borderBottom: i < historico.length - 1 ? "1px solid #F9FAFB" : "none",
+                      position: "relative",
+                      display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+                      marginBottom: i < historico.length - 1 ? 16 : 0,
                     }}
                   >
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "#1F2937", margin: 0 }}>{item.motivo}</p>
+                    <div style={{
+                      position: "absolute", left: -22, top: 3,
+                      width: 10, height: 10, borderRadius: "50%",
+                      background: "#2563EB", border: "2px solid #fff",
+                      boxShadow: "0 0 0 2px #2563EB",
+                    }} />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "#1F2937", margin: "0 0 2px" }}>{item.motivo}</p>
                       <p style={{ fontSize: 11, color: "#9CA3AF", margin: 0 }}>
                         {new Date(item.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                       </p>
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 900, color: "#D97706" }}>+{item.valor} pts</span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 900, color: "#D97706",
+                      background: "#FEF3C7", borderRadius: 20,
+                      padding: "2px 10px", marginLeft: 8, whiteSpace: "nowrap",
+                    }}>+{item.valor} pts</span>
                   </div>
                 ))}
               </div>
