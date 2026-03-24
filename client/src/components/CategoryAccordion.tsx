@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { ChevronDown, ChevronUp, ShoppingCart, Minus, Plus, Trash2, Info, ChevronRight, MapPin, Clock, Users, Flame, AlertTriangle, Zap, FileText, CheckCircle2, ShoppingBag } from "lucide-react"
+import { ChevronDown, ChevronUp, ShoppingCart, Minus, Plus, Trash2, Info, ChevronRight, MapPin, Clock, Users, Flame, AlertTriangle, Zap, FileText, CheckCircle2, ShoppingBag, XCircle } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TicketItem } from "@/components/TicketsGrid"
 import { trackEvent } from "@/lib/analytics"
@@ -95,6 +95,24 @@ function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ti
         </div>
       )}
 
+      {!isMeiaOrMorador && details.meiaEntrada.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#4338CA", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+            <Users style={{ width: 11, height: 11, color: "#6366F1" }} />
+            Meia-entrada válida para
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {details.meiaEntrada.map((d) => (
+              <span key={d} style={{
+                background: "#EEF2FF", border: "1px solid #C7D2FE",
+                borderRadius: 5, padding: "2px 7px",
+                fontSize: 9, color: "#3730A3", fontWeight: 600,
+              }}>{d}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "#15803D", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
           <CheckCircle2 style={{ width: 11, height: 11, color: "#22C55E" }} />
@@ -107,11 +125,31 @@ function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ti
               borderRadius: 5, padding: "2px 6px",
               fontSize: 9, color: "#15803D", fontWeight: 600,
             }}>
-              {item}
+              ✓ {item}
             </span>
           ))}
         </div>
       </div>
+
+      {details.naInclui.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+            <XCircle style={{ width: 11, height: 11, color: "#EF4444" }} />
+            Não incluso
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {details.naInclui.map((item) => (
+              <span key={item} style={{
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                borderRadius: 5, padding: "2px 6px",
+                fontSize: 9, color: "#DC2626", fontWeight: 600,
+              }}>
+                ✗ {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
@@ -133,7 +171,7 @@ function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ti
 
       <div style={{
         background: "#FFF7ED", borderRadius: 7, padding: "8px 10px",
-        border: "1px solid #FED7AA",
+        border: "1px solid #FED7AA", marginBottom: 8,
       }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: "#92400E", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
           <Info style={{ width: 10, height: 10, color: "#D97706" }} />
@@ -142,10 +180,21 @@ function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ti
         <p style={{ margin: 0, fontSize: 10, color: "#78350F", lineHeight: 1.4 }}>{details.alimentacao}</p>
       </div>
 
+      <div style={{
+        background: "#F5F3FF", borderRadius: 7, padding: "8px 10px",
+        border: "1px solid #DDD6FE", marginBottom: details.observacoes ? 8 : 0,
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#5B21B6", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
+          <MapPin style={{ width: 10, height: 10, color: "#7C3AED" }} />
+          Estacionamento
+        </div>
+        <p style={{ margin: 0, fontSize: 10, color: "#4C1D95", lineHeight: 1.4 }}>{details.estacionamento}</p>
+      </div>
+
       {details.observacoes && (
         <div style={{
           background: "#EFF6FF", borderRadius: 7, padding: "8px 10px",
-          border: "1px solid #BFDBFE", marginTop: 8,
+          border: "1px solid #BFDBFE", marginTop: 0,
         }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: "#1E40AF", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
             <FileText style={{ width: 10, height: 10, color: "#2563EB" }} />
@@ -568,9 +617,13 @@ function TicketGridCard({
                     ))}
                   </div>
                 </div>
-                <div style={{ background: "#FFF7ED", borderRadius: 6, padding: "5px 8px", border: "1px solid #FED7AA" }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#92400E" }}>🅿 Estacionamento: </span>
-                  <span style={{ fontSize: 9, color: "#78350F" }}>{details.estacionamento}</span>
+                <div style={{ background: "#FFF7ED", borderRadius: 6, padding: "5px 8px", border: "1px solid #FED7AA", marginBottom: 4 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "#92400E" }}>🍽 Alimentação: </span>
+                  <span style={{ fontSize: 9, color: "#78350F" }}>{details.alimentacao}</span>
+                </div>
+                <div style={{ background: "#F5F3FF", borderRadius: 6, padding: "5px 8px", border: "1px solid #DDD6FE" }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "#5B21B6" }}>🅿 Estacionamento: </span>
+                  <span style={{ fontSize: 9, color: "#4C1D95" }}>{details.estacionamento}</span>
                 </div>
               </div>
             )}
