@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Brain, ArrowLeft, Search, MapPin, Star, Heart, Sparkles, ChevronRight, Eye, Compass, Waves, TreePine, Utensils, Users, Briefcase, GraduationCap, Stethoscope, Palette, Target, TrendingUp, Zap, Check, ThumbsUp, Award, Coffee, Flame, Shield, ChevronDown, MessageCircle } from "lucide-react"
-import { Link } from "wouter"
+import { Brain, Search, MapPin, Star, Heart, Sparkles, ChevronRight, Eye, Compass, Waves, TreePine, Utensils, Users, Briefcase, GraduationCap, Stethoscope, Palette, Target, TrendingUp, Zap, Check, ThumbsUp, Award, Coffee, Flame, Shield, ChevronDown, MessageCircle } from "lucide-react"
+import { useSearch } from "wouter"
 import ChatAgent from "@/components/chat-agent"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 import { getTravelerProfile, saveTravelerProfile, TravelerProfileModal, calculateMatchScore, type TravelerProfile, BehaviorTracker } from "@/components/ai-conversion-elements"
 
@@ -216,12 +219,16 @@ const TRENDING_SEARCHES = [
 ]
 
 export default function CaldasAIPage() {
+  const search = useSearch()
+  const qParam = new URLSearchParams(search).get("q") || ""
+
   const [activeCategory, setActiveCategory] = useState("todos")
   const [selectedDestination, setSelectedDestination] = useState(DESTINATIONS[0])
   const [searchQuery, setSearchQuery] = useState("")
   const [favorites, setFavorites] = useState<number[]>([])
   const [showAISuggestions, setShowAISuggestions] = useState(false)
-  const [showChat, setShowChat] = useState(false)
+  const [showChat, setShowChat] = useState(!!qParam)
+  const [initialChatMessage, setInitialChatMessage] = useState(qParam)
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -409,163 +416,178 @@ export default function CaldasAIPage() {
     return dest.matchReasons[0]
   }
 
+  const QUICK_CHIPS = [
+    "Qual parque é melhor para família?",
+    "Me dê um roteiro de 3 dias",
+    "Quais hotéis têm termas?",
+  ]
+
   return (
     <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }} data-testid="page-caldas-ai">
       <BehaviorTracker pageName="caldas-ai" category="ai" />
 
-      <div style={{
-        background: "linear-gradient(135deg, #1e3a5f 0%, #0D47A1 50%, #2563EB 100%)",
-        padding: "16px 20px 24px",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          position: "absolute", top: -40, right: -40, width: 120, height: 120,
-          borderRadius: "50%", background: "rgba(255,255,255,0.05)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -30, left: -30, width: 100, height: 100,
-          borderRadius: "50%", background: "rgba(255,255,255,0.03)",
-        }} />
-        <div style={{
-          position: "absolute", top: 60, right: 30, width: 60, height: 60,
-          borderRadius: "50%", background: "rgba(255,255,255,0.02)",
-        }} />
+      <HomeHeader />
+      <div style={{ height: 64 }} />
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, position: "relative", zIndex: 1 }}>
-          <Link href="/" style={{ color: "#fff", display: "flex", alignItems: "center" }} data-testid="link-back-home">
-            <ArrowLeft size={22} />
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#fff", fontSize: 20, fontWeight: 800, letterSpacing: 1 }}>RSV</span>
-            <span style={{ color: "#F57C00", fontSize: 20, fontWeight: 800 }}>360</span>
-            <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 600, marginLeft: 2 }}>BRAIN</span>
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "rgba(255,255,255,0.15)", display: "flex",
-              alignItems: "center", justifyContent: "center",
-            }}>
-              <Brain size={18} style={{ color: "#fff" }} />
-            </div>
+      <div style={{
+        background: "linear-gradient(135deg, #1e3a5f 0%, #0D47A1 55%, #2563EB 100%)",
+        padding: "28px 20px 28px", position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: -40, right: -40, width: 140, height: 140, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+        <div style={{ position: "absolute", bottom: -30, left: -30, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+
+        <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)",
+            borderRadius: 20, padding: "5px 14px", marginBottom: 14,
+          }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#F57C00", animation: "pulse 2s infinite" }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>CALDAS AI • GUIA INTELIGENTE</span>
           </div>
-          <div style={{ width: 22 }} />
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: "50%",
+              background: "rgba(255,255,255,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "1px solid rgba(255,255,255,0.25)",
+            }}>
+              <Brain size={24} style={{ color: "#fff" }} />
+            </div>
+            <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: 0, lineHeight: 1.2 }}>
+              Seu Guia <span style={{ color: "#F57C00" }}>Inteligente</span>
+            </h1>
+          </div>
+
+          <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, margin: "0 0 20px", lineHeight: 1.5 }}>
+            {profile
+              ? "Recomendações personalizadas para você"
+              : "Pergunte qualquer coisa sobre Caldas Novas e Rio Quente"}
+          </p>
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 16 }}>
+            {QUICK_CHIPS.map((chip) => (
+              <button
+                key={chip}
+                onClick={() => { setShowChat(true); setInitialChatMessage(chip) }}
+                data-testid={`chip-quick-${chip.slice(0, 10)}`}
+                style={{
+                  padding: "8px 14px", borderRadius: 20,
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  transition: "background 0.2s",
+                  display: "flex", alignItems: "center", gap: 5,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.24)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.14)")}
+              >
+                <Sparkles size={11} style={{ color: "#F57C00" }} />
+                {chip}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+            {[
+              { step: "1", text: "Faça uma pergunta", icon: MessageCircle },
+              { step: "2", text: "Receba recomendações", icon: Sparkles },
+              { step: "3", text: "Reserve pelo WhatsApp", icon: Check },
+            ].map(({ step, text, icon: Icon }) => (
+              <div key={step} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{
+                  width: 20, height: 20, borderRadius: "50%",
+                  background: "#F57C00", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 800, color: "#fff", flexShrink: 0,
+                }}>{step}</div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ position: "relative", zIndex: 0 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          background: "#fff", margin: "16px 16px 0", borderRadius: 12, padding: "10px 14px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.07)", border: "1px solid #E5E7EB",
+        }}>
+          <Search size={18} style={{ color: "#6B7280", flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder={profile ? "O que voce procura hoje?" : "Pergunte ao CaldasAI..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowAISuggestions(true)}
+            onBlur={() => setTimeout(() => setShowAISuggestions(false), 200)}
+            style={{
+              border: "none", outline: "none", flex: 1, fontSize: 14,
+              background: "transparent", color: "#1F2937",
+            }}
+            data-testid="input-search"
+          />
+          <Sparkles size={18} style={{ color: "#F57C00", flexShrink: 0 }} />
         </div>
 
-        <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, textAlign: "center", margin: "0 0 6px", position: "relative", zIndex: 1 }}>
-          {profile ? `Recomendacoes personalizadas para voce` : "Descubra os melhores destinos com inteligencia artificial"}
-        </p>
-
-        {profile && (
+        {showAISuggestions && (
           <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            marginBottom: 10, position: "relative", zIndex: 1,
-          }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 4,
-              background: "rgba(255,255,255,0.12)", borderRadius: 20,
-              padding: "4px 10px",
-            }}>
-              <Shield size={10} style={{ color: "#22C55E" }} />
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
-                Perfil ativo
-              </span>
+            position: "absolute", top: "100%", left: 16, right: 16, marginTop: 4,
+            background: "#fff", borderRadius: 12, padding: 8,
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)", zIndex: 10,
+          }} data-testid="dropdown-suggestions">
+            <div style={{ padding: "6px 10px", fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase" as const }}>
+              {profile ? `Sugestoes para ${profile.profession || "seu perfil"}` : "Sugestoes do CaldasAI"}
             </div>
-            {profile.profession && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 4,
-                background: "rgba(255,255,255,0.12)", borderRadius: 20,
-                padding: "4px 10px",
-              }}>
-                <Briefcase size={10} style={{ color: "#F57C00" }} />
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
-                  {profile.profession}
-                </span>
+            {contextualSuggestions.map((s, i) => (
+              <div
+                key={i}
+                onClick={() => { setSearchQuery(s); setShowAISuggestions(false) }}
+                style={{
+                  padding: "10px 12px", fontSize: 13, color: "#374151", cursor: "pointer",
+                  borderRadius: 8, display: "flex", alignItems: "center", gap: 8,
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                data-testid={`suggestion-item-${i}`}
+              >
+                <Sparkles size={14} style={{ color: "#F57C00" }} />
+                {s}
               </div>
+            ))}
+
+            {!profile && (
+              <>
+                <div style={{ height: 1, background: "#E5E7EB", margin: "6px 0" }} />
+                <div style={{ padding: "6px 10px", fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase" as const }}>
+                  Buscas populares agora
+                </div>
+                {TRENDING_SEARCHES.slice(0, 3).map((t, i) => (
+                  <div
+                    key={`trend-${i}`}
+                    onClick={() => { setSearchQuery(t.text); setShowAISuggestions(false) }}
+                    style={{
+                      padding: "8px 12px", fontSize: 12, color: "#6B7280", cursor: "pointer",
+                      borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    data-testid={`trending-item-${i}`}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Flame size={13} style={{ color: "#EF4444" }} />
+                      {t.text}
+                    </div>
+                    <span style={{ fontSize: 10, color: "#9CA3AF" }}>{t.count} buscas</span>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         )}
-
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 10,
-            background: "rgba(255,255,255,0.95)", borderRadius: 12, padding: "10px 14px",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-          }}>
-            <Search size={18} style={{ color: "#6B7280", flexShrink: 0 }} />
-            <input
-              type="text"
-              placeholder={profile ? "O que voce procura hoje?" : "Pergunte ao CaldasAI..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowAISuggestions(true)}
-              onBlur={() => setTimeout(() => setShowAISuggestions(false), 200)}
-              style={{
-                border: "none", outline: "none", flex: 1, fontSize: 14,
-                background: "transparent", color: "#1F2937",
-              }}
-              data-testid="input-search"
-            />
-            <Sparkles size={18} style={{ color: "#F57C00", flexShrink: 0 }} />
-          </div>
-
-          {showAISuggestions && (
-            <div style={{
-              position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4,
-              background: "#fff", borderRadius: 12, padding: 8,
-              boxShadow: "0 8px 30px rgba(0,0,0,0.15)", zIndex: 10,
-            }} data-testid="dropdown-suggestions">
-              <div style={{ padding: "6px 10px", fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase" as const }}>
-                {profile ? `Sugestoes para ${profile.profession || "seu perfil"}` : "Sugestoes do CaldasAI"}
-              </div>
-              {contextualSuggestions.map((s, i) => (
-                <div
-                  key={i}
-                  onClick={() => { setSearchQuery(s); setShowAISuggestions(false) }}
-                  style={{
-                    padding: "10px 12px", fontSize: 13, color: "#374151", cursor: "pointer",
-                    borderRadius: 8, display: "flex", alignItems: "center", gap: 8,
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  data-testid={`suggestion-item-${i}`}
-                >
-                  <Sparkles size={14} style={{ color: "#F57C00" }} />
-                  {s}
-                </div>
-              ))}
-
-              {!profile && (
-                <>
-                  <div style={{ height: 1, background: "#E5E7EB", margin: "6px 0" }} />
-                  <div style={{ padding: "6px 10px", fontSize: 11, color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase" as const }}>
-                    Buscas populares agora
-                  </div>
-                  {TRENDING_SEARCHES.slice(0, 3).map((t, i) => (
-                    <div
-                      key={`trend-${i}`}
-                      onClick={() => { setSearchQuery(t.text); setShowAISuggestions(false) }}
-                      style={{
-                        padding: "8px 12px", fontSize: 12, color: "#6B7280", cursor: "pointer",
-                        borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between",
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                      data-testid={`trending-item-${i}`}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <Flame size={13} style={{ color: "#EF4444" }} />
-                        {t.text}
-                      </div>
-                      <span style={{ fontSize: 10, color: "#9CA3AF" }}>{t.count} buscas</span>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       <div style={{
@@ -1486,9 +1508,16 @@ export default function CaldasAIPage() {
         </div>
       </div>
 
-      <div style={{ height: 80 }} />
+      <HomeFooter />
+      <MobileCTABar />
 
-      {showChat && <ChatAgent defaultOpen={true} onOpenHotelDetail={(hotel) => setSelectedHotel(hotel)} />}
+      {showChat && (
+        <ChatAgent
+          defaultOpen={true}
+          initialMessage={initialChatMessage || undefined}
+          onOpenHotelDetail={(hotel) => setSelectedHotel(hotel)}
+        />
+      )}
 
       {selectedHotel && (
         <HotelDetailPanel hotel={selectedHotel} onClose={() => setSelectedHotel(null)} />

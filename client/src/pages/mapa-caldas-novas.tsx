@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, Search, MapPin, Star, Zap, Gavel, X, Filter, Navigation, Route, Sparkles, ChevronRight, Hotel, Waves, Utensils, Landmark, SlidersHorizontal, Users, Heart, Mountain, Clock, Phone } from "lucide-react"
-import { Link } from "wouter"
+import { Search, MapPin, Star, Zap, Gavel, X, Filter, Navigation, Route, Sparkles, ChevronRight, Hotel, Waves, Utensils, Landmark, SlidersHorizontal, Users, Heart, Mountain, Clock, Phone } from "lucide-react"
 import { getTravelerProfile, TravelerProfile, calculateMatchScore, AIRecommendedBadge, SocialProofBanner } from "@/components/ai-conversion-elements"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 type PinType = "hotel" | "parque" | "restaurante" | "atracao" | "flash" | "leilao"
 
@@ -198,43 +200,75 @@ export default function MapaCaldas() {
 
   return (
     <div data-testid="page-mapa" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
+      <HomeHeader />
+      <div style={{ height: 64 }} />
+
       <div style={{
-        background: "#fff", padding: "12px 16px",
-        display: "flex", alignItems: "center", gap: 12,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 40,
+        background: "linear-gradient(135deg, #1E3A5F 0%, #1565C0 60%, #0D47A1 100%)",
+        padding: "28px 20px 24px", position: "relative", overflow: "hidden",
       }}>
-        <Link href="/" data-testid="link-home" style={{ color: "#1F2937", display: "flex" }}>
-          <ArrowLeft style={{ width: 24, height: 24 }} />
-        </Link>
-        <span style={{ fontSize: 18, fontWeight: 900, color: "#1F2937" }}>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "#6B7280" }}>Mapa</span>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button
-            data-testid="button-toggle-search"
-            onClick={() => setShowSearch(!showSearch)}
-            style={{
-              padding: "6px 12px", borderRadius: 8, border: "1px solid #E5E7EB",
-              background: showSearch ? "#EFF6FF" : "#fff", cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 4,
-              fontSize: 13, color: "#374151",
-            }}
-          >
-            <Search style={{ width: 14, height: 14 }} />
-            Buscar
-          </button>
-          <button
-            data-testid="button-toggle-filters"
-            onClick={() => setShowFilters(!showFilters)}
-            style={{
-              padding: "6px 12px", borderRadius: 8, border: "1px solid #E5E7EB",
-              background: showFilters ? "#EFF6FF" : "#fff", cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 4,
-              fontSize: 13, color: "#374151",
-            }}
-          >
-            <SlidersHorizontal style={{ width: 14, height: 14 }} />
-            Filtros
-          </button>
+        <div style={{ position: "absolute", top: -40, right: -40, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+        <div style={{ position: "absolute", bottom: -30, left: -30, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+        <div style={{ position: "absolute", top: 50, right: 50, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+
+        <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)",
+            borderRadius: 20, padding: "5px 14px", marginBottom: 12,
+          }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#F57C00", animation: "pulse 2s infinite" }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>MAPA INTERATIVO</span>
+          </div>
+
+          <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.25 }}>
+            Explore Caldas Novas
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, margin: "0 0 18px", lineHeight: 1.5 }}>
+            Descubra hotéis, parques e atrações em um mapa interativo com rotas IA
+          </p>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 18 }}>
+            {CATEGORIES.filter(c => c.key !== "all").map(cat => (
+              <div key={cat.key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: cat.color, boxShadow: `0 0 6px ${cat.color}80` }} />
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{cat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+            <button
+              data-testid="button-toggle-search"
+              onClick={() => setShowSearch(!showSearch)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 16px", borderRadius: 20,
+                background: showSearch ? "#F57C00" : "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              <Search style={{ width: 14, height: 14 }} />
+              Buscar
+            </button>
+            <button
+              data-testid="button-toggle-filters"
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 16px", borderRadius: 20,
+                background: showFilters ? "#F57C00" : "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              <SlidersHorizontal style={{ width: 14, height: 14 }} />
+              Filtros
+            </button>
+          </div>
         </div>
       </div>
 
@@ -726,6 +760,9 @@ export default function MapaCaldas() {
           ))}
         </div>
       </div>
+
+      <HomeFooter />
+      <MobileCTABar />
 
       {selectedPin && (
         <div

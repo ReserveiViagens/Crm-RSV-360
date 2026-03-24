@@ -345,10 +345,11 @@ const quickQuestions = [
 
 interface ChatAgentProps {
   defaultOpen?: boolean
+  initialMessage?: string
   onOpenHotelDetail?: (hotel: HotelDetailData) => void
 }
 
-export default function ChatAgent({ defaultOpen = false, onOpenHotelDetail }: ChatAgentProps) {
+export default function ChatAgent({ defaultOpen = false, initialMessage, onOpenHotelDetail }: ChatAgentProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -390,6 +391,14 @@ export default function ChatAgent({ defaultOpen = false, onOpenHotelDetail }: Ch
       setIsTyping(false)
     }, 800 + Math.random() * 800)
   }, [inputValue])
+
+  const hasInitialized = useRef(false)
+  useEffect(() => {
+    if (initialMessage && isOpen && !hasInitialized.current) {
+      hasInitialized.current = true
+      setTimeout(() => handleSendMessage(initialMessage), 600)
+    }
+  }, [isOpen])
 
   const formatPrice = (p: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p)
 
