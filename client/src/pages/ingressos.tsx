@@ -760,6 +760,89 @@ export default function IngressosPage() {
       <PersonalizedBanner profile={profile} />
       <QuickDecisionSection onPick={handleQuickPick} activePick={activePick === "combo" ? null : activePick} />
 
+      <div style={{
+        margin: "16px 16px 0", padding: 20, borderRadius: 16,
+        background: "linear-gradient(135deg, #7C3AED, #DB2877)",
+        color: "#fff", position: "relative", overflow: "hidden",
+      }} data-testid="section-combo-ia">
+        <div style={{
+          position: "absolute", top: -20, right: -20, width: 100, height: 100,
+          borderRadius: "50%", background: "rgba(255,255,255,0.1)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: -30, left: -30, width: 80, height: 80,
+          borderRadius: "50%", background: "rgba(255,255,255,0.05)",
+        }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <Sparkles style={{ width: 20, height: 20, color: "#FDE68A" }} />
+          <span style={{ fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+            Combo IA — Sugestão Inteligente
+          </span>
+        </div>
+        <p style={{ fontSize: 13, margin: "0 0 12px", opacity: 0.9 }}>
+          {profile
+            ? `Baseado no seu perfil, a IA selecionou ${comboTickets.length} combos ideais para você:`
+            : "A IA analisou os parques e sugere a melhor combinação para você:"}
+        </p>
+        <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+          {comboTickets.map((t) => (
+            <div key={t.id} style={{
+              flex: 1, minWidth: 100, background: "rgba(255,255,255,0.15)",
+              borderRadius: 10, padding: "10px 12px",
+            }}>
+              <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 4px" }}>{t.name}</p>
+              <span style={{ fontSize: 12, opacity: 0.8 }}>{formatPrice(t.price)}</span>
+              {profile && t.matchScore > 0 && (
+                <div style={{
+                  marginTop: 4, fontSize: 10, fontWeight: 700,
+                  background: "rgba(255,255,255,0.2)", borderRadius: 4,
+                  padding: "2px 6px", display: "inline-block",
+                }}>
+                  {t.matchScore}% match
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14, textDecoration: "line-through", opacity: 0.6 }}>
+            {formatPrice(comboOriginalPrice)}
+          </span>
+          <span style={{ fontSize: 24, fontWeight: 800 }}>
+            {formatPrice(comboDiscountedPrice)}
+          </span>
+          <span style={{
+            background: "#FACC15", color: "#000", fontSize: 11, fontWeight: 800,
+            padding: "3px 8px", borderRadius: 6,
+          }}>
+            -15% IA
+          </span>
+          <span style={{
+            background: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: 600,
+            padding: "3px 8px", borderRadius: 6,
+          }}>
+            Economia de {formatPrice(comboOriginalPrice - comboDiscountedPrice)}
+          </span>
+        </div>
+        <button
+          data-testid="button-combo-ia-buy"
+          onClick={() =>
+            window.open(
+              `https://wa.me/5564993197555?text=Olá! Quero o Combo IA: ${comboTickets.map(t => t.name).join(" + ")} com 15% de desconto!`,
+              "_blank"
+            )
+          }
+          style={{
+            width: "100%", padding: "13px 0", border: "none", borderRadius: 10,
+            background: "#fff", color: "#7C3AED", fontSize: 15, fontWeight: 800,
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          <ShoppingCart style={{ width: 18, height: 18 }} />
+          Quero esse Combo!
+        </button>
+      </div>
+
       {compareIds.length >= 1 && (
         <div style={{
           position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
@@ -1015,89 +1098,6 @@ export default function IngressosPage() {
             />
           </div>
         )}
-
-        <div style={{
-          margin: "0 16px 16px", padding: 20, borderRadius: 16,
-          background: "linear-gradient(135deg, #7C3AED, #DB2777)",
-          color: "#fff", position: "relative", overflow: "hidden",
-        }} data-testid="section-combo-ia">
-          <div style={{
-            position: "absolute", top: -20, right: -20, width: 100, height: 100,
-            borderRadius: "50%", background: "rgba(255,255,255,0.1)",
-          }} />
-          <div style={{
-            position: "absolute", bottom: -30, left: -30, width: 80, height: 80,
-            borderRadius: "50%", background: "rgba(255,255,255,0.05)",
-          }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <Sparkles style={{ width: 20, height: 20, color: "#FDE68A" }} />
-            <span style={{ fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Combo IA — Sugestão Inteligente
-            </span>
-          </div>
-          <p style={{ fontSize: 13, margin: "0 0 12px", opacity: 0.9 }}>
-            {profile
-              ? `Baseado no seu perfil, a IA selecionou ${comboTickets.length} combos ideais para você:`
-              : "A IA analisou os parques e sugere a melhor combinação para você:"}
-          </p>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-            {comboTickets.map((t) => (
-              <div key={t.id} style={{
-                flex: 1, minWidth: 100, background: "rgba(255,255,255,0.15)",
-                borderRadius: 10, padding: "10px 12px",
-              }}>
-                <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 4px" }}>{t.name}</p>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>{formatPrice(t.price)}</span>
-                {profile && t.matchScore > 0 && (
-                  <div style={{
-                    marginTop: 4, fontSize: 10, fontWeight: 700,
-                    background: "rgba(255,255,255,0.2)", borderRadius: 4,
-                    padding: "2px 6px", display: "inline-block",
-                  }}>
-                    {t.matchScore}% match
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 14, textDecoration: "line-through", opacity: 0.6 }}>
-              {formatPrice(comboOriginalPrice)}
-            </span>
-            <span style={{ fontSize: 24, fontWeight: 800 }}>
-              {formatPrice(comboDiscountedPrice)}
-            </span>
-            <span style={{
-              background: "#FACC15", color: "#000", fontSize: 11, fontWeight: 800,
-              padding: "3px 8px", borderRadius: 6,
-            }}>
-              -15% IA
-            </span>
-            <span style={{
-              background: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: 600,
-              padding: "3px 8px", borderRadius: 6,
-            }}>
-              Economia de {formatPrice(comboOriginalPrice - comboDiscountedPrice)}
-            </span>
-          </div>
-          <button
-            data-testid="button-combo-ia-buy"
-            onClick={() =>
-              window.open(
-                `https://wa.me/5564993197555?text=Olá! Quero o Combo IA: ${comboTickets.map(t => t.name).join(" + ")} com 15% de desconto!`,
-                "_blank"
-              )
-            }
-            style={{
-              width: "100%", padding: "13px 0", border: "none", borderRadius: 10,
-              background: "#fff", color: "#7C3AED", fontSize: 15, fontWeight: 800,
-              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            }}
-          >
-            <ShoppingCart style={{ width: 18, height: 18 }} />
-            Quero esse Combo!
-          </button>
-        </div>
 
         {skeletonLoading ? (
           <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
