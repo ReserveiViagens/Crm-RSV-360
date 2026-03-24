@@ -20,8 +20,10 @@ export interface TicketItem {
   availableToday?: number
   category: string
   categorySection?: string
+  ticketCategory?: "ingressos" | "morador" | "meia-entrada"
   tags: string[]
   alsoBoght?: string[]
+  documentRequired?: string
 }
 
 interface TicketsGridProps {

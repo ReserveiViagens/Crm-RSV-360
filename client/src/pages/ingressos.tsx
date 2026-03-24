@@ -17,6 +17,9 @@ import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
 import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilityForTicket } from "@/components/CalendarioIngressos"
 import { CategoryAccordion } from "@/components/CategoryAccordion"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
+import { CartAddModal } from "@/components/CartAddModal"
+
+type TicketCategoryTab = "ingressos" | "morador" | "meia-entrada"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -245,6 +248,134 @@ const ticketsBase: TicketItem[] = [
     category: "cabanas", tags: ["cabana", "luxury", "vip"],
     alsoBoght: ["ingresso-vip", "combo-3-parques"],
   },
+  {
+    id: "morador-hot-park",
+    name: "Hot Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    description: "Exclusivo para moradores de Caldas Novas e Rio Quente. 30% de desconto com apresentação de RG + comprovante de residência.",
+    price: 132, originalPrice: 189, discount: 30,
+    image: "/images/lagoa-termas-parque.jpeg",
+    features: ["Acesso completo ao parque", "Toboáguas", "Piscinas termais", "Rio lento", "Área infantil"],
+    location: "Rio Quente - GO",
+    duration: "Dia inteiro", ageGroup: "Adulto (13+)",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "águas termais"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-diroma", "morador-lagoa"],
+  },
+  {
+    id: "morador-diroma",
+    name: "diRoma Acqua Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    description: "Desconto especial para moradores de Caldas Novas. Apresente seu RG e comprovante de residência na bilheteria.",
+    price: 63, originalPrice: 90, discount: 30,
+    image: "/images/diroma-acqua-park.jpeg",
+    features: ["Toboáguas variados", "Piscina de ondas", "Área kids", "Bar molhado"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "diversão"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-hot-park", "morador-lagoa"],
+  },
+  {
+    id: "morador-lagoa",
+    name: "Lagoa Termas — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    description: "Benefício exclusivo para moradores. Relaxe nas termais com 30% de desconto especial.",
+    price: 53, originalPrice: 75, discount: 30,
+    image: "/images/kawana-park.jpeg",
+    features: ["Águas termais naturais", "Área de descanso", "Lanchonete", "Estacionamento grátis"],
+    location: "Caldas Novas - GO",
+    duration: "Meio dia", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "natureza", tags: ["morador", "relaxamento", "natureza"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-diroma", "morador-kawana"],
+  },
+  {
+    id: "morador-kawana",
+    name: "Kawana Park — Ingresso Morador",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "morador",
+    description: "O parque mais radical do Centro-Oeste com desconto exclusivo para moradores da região.",
+    price: 72, originalPrice: 105, discount: 32,
+    image: "/images/water-park.jpeg",
+    features: ["Piscinas termais", "Toboáguas gigantes", "Piscina de ondas", "Rio lento"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["morador", "desconto", "aventura"],
+    documentRequired: "RG com endereço local + comprovante de residência",
+    alsoBoght: ["morador-hot-park", "morador-diroma"],
+  },
+  {
+    id: "meia-idoso",
+    name: "Meia-Entrada — Idoso (60+)",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "meia-entrada",
+    description: "Direito garantido por lei federal para maiores de 60 anos. Válido em todos os parques conveniados.",
+    price: 95, originalPrice: 189, discount: 50,
+    image: "/images/lagoa-termas-parque.jpeg",
+    features: ["Hot Park", "diRoma Acqua Park", "Lagoa Termas", "Kawana Park", "Todos os parques parceiros"],
+    location: "Todos os parques - GO",
+    duration: "Dia inteiro", ageGroup: "Idosos (60+)",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["meia-entrada", "idoso", "legal"],
+    documentRequired: "RG ou CNH com data de nascimento",
+    alsoBoght: ["meia-pcd", "meia-estudante"],
+  },
+  {
+    id: "meia-estudante",
+    name: "Meia-Entrada — Estudante",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "meia-entrada",
+    description: "Lei da Meia-Entrada para estudantes com carteirinha nacional válida (CIE/UNE/ANIPES).",
+    price: 95, originalPrice: 189, discount: 50,
+    image: "/images/hot-park.jpeg",
+    features: ["Hot Park", "diRoma Acqua Park", "Lagoa Termas", "Kawana Park", "Todos os parques parceiros"],
+    location: "Todos os parques - GO",
+    duration: "Dia inteiro", ageGroup: "Estudantes",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["meia-entrada", "estudante", "legal"],
+    documentRequired: "Carteirinha estudantil nacional (CIE/UNE) válida + documento com foto",
+    alsoBoght: ["meia-idoso", "meia-professor"],
+  },
+  {
+    id: "meia-pcd",
+    name: "Ingresso Especial — PCD",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "meia-entrada",
+    description: "Ingresso especial para Pessoas com Deficiência (PCD). Alguns parques oferecem gratuidade total com laudo.",
+    price: 50, originalPrice: 189, discount: 74,
+    image: "/images/kawana-park.jpeg",
+    features: ["Hot Park — Day Use PCD", "Vaga preferencial de estacionamento", "Acessibilidade especial", "Acompanhante pode ter desconto"],
+    location: "Todos os parques - GO",
+    duration: "Dia inteiro", ageGroup: "PCD (com laudo)",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["meia-entrada", "pcd", "acessibilidade"],
+    documentRequired: "Laudo médico com CID + documento de identidade",
+    alsoBoght: ["meia-idoso", "meia-estudante"],
+  },
+  {
+    id: "meia-professor",
+    name: "Meia-Entrada — Professor",
+    categorySection: "ingresso-1-dia",
+    ticketCategory: "meia-entrada",
+    description: "Desconto especial para professores no Water Park e Clube Privé. Apresentar contracheque na bilheteria.",
+    price: 50, originalPrice: 100, discount: 50,
+    image: "/images/water-park.jpeg",
+    features: ["Water Park", "Clube Privé", "Acesso ao dia todo", "Desconto comprovado por lei"],
+    location: "Caldas Novas - GO",
+    duration: "Dia inteiro", ageGroup: "Professores",
+    soldToday: 0, availableToday: 0,
+    category: "parques", tags: ["meia-entrada", "professor", "desconto"],
+    documentRequired: "Último contracheque + documento com foto",
+    alsoBoght: ["meia-estudante", "meia-idoso"],
+  },
 ]
 
 function formatPrice(price: number) {
@@ -294,6 +425,10 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [activeCategory, setActiveCategory] = useState<TicketCategoryTab>("ingressos")
+  const [skeletonLoading, setSkeletonLoading] = useState(false)
+  const [cartModalTicket, setCartModalTicket] = useState<TicketItem | null>(null)
+  const [cartModalPrice, setCartModalPrice] = useState(0)
 
   const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
@@ -375,6 +510,20 @@ export default function IngressosPage() {
     }
   }, [tickets, activeFilter, activePick])
 
+  const categorizedTickets = useMemo(() => {
+    if (activeCategory === "ingressos") {
+      return filteredTickets.filter(t => !t.ticketCategory || t.ticketCategory === "ingressos")
+    }
+    return filteredTickets.filter(t => t.ticketCategory === activeCategory)
+  }, [filteredTickets, activeCategory])
+
+  function handleCategoryChange(cat: TicketCategoryTab) {
+    if (cat === activeCategory) return
+    setSkeletonLoading(true)
+    setActiveCategory(cat)
+    setTimeout(() => setSkeletonLoading(false), 450)
+  }
+
   function handleDateSelect(date: Date) {
     setSelectedDate(date)
     setTickets(prev => applyDateAvailability(prev, date))
@@ -394,14 +543,17 @@ export default function IngressosPage() {
   }
 
   function handleBuy(ticket: TicketItem) {
+    const adjPrice = Math.round(ticket.price * priceMultiplier)
     addTicket({
       ticketId: ticket.id,
       name: ticket.name,
-      unitPrice: Math.round(ticket.price * priceMultiplier),
+      unitPrice: adjPrice,
       originalPrice: Math.round(ticket.originalPrice * priceMultiplier),
       discount: ticket.discount,
       image: ticket.image,
     })
+    setCartModalTicket(ticket)
+    setCartModalPrice(adjPrice)
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
   }
 
@@ -794,14 +946,108 @@ export default function IngressosPage() {
       )}
 
       <div style={{ marginTop: 16 }}>
-        <CategoryAccordion
-          tickets={filteredTickets}
-          cart={cart}
-          onBuy={handleBuy}
-          onInc={handleIncrease}
-          onDec={handleDecrease}
-          priceMultiplier={priceMultiplier}
-        />
+        <div style={{
+          display: "flex", alignItems: "stretch", gap: 0,
+          padding: "0 16px", marginBottom: 12,
+          borderBottom: "2px solid #F3F4F6",
+        }} data-testid="category-tabs">
+          {([
+            { key: "ingressos" as TicketCategoryTab, label: "Ingressos", icon: "🎟️", color: "#0891B2", count: filteredTickets.filter(t => !t.ticketCategory || t.ticketCategory === "ingressos").length },
+            { key: "morador" as TicketCategoryTab, label: "Morador", icon: "🏠", color: "#059669", count: filteredTickets.filter(t => t.ticketCategory === "morador").length },
+            { key: "meia-entrada" as TicketCategoryTab, label: "Meia-Entrada", icon: "⭐", color: "#7C3AED", count: filteredTickets.filter(t => t.ticketCategory === "meia-entrada").length },
+          ]).map((tab) => {
+            const isActive = activeCategory === tab.key
+            return (
+              <button
+                key={tab.key}
+                data-testid={`tab-category-${tab.key}`}
+                onClick={() => handleCategoryChange(tab.key)}
+                style={{
+                  flex: 1,
+                  padding: "10px 6px 12px",
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  position: "relative",
+                  borderBottom: isActive ? `2.5px solid ${tab.color}` : "2.5px solid transparent",
+                  marginBottom: -2,
+                  transition: "all 0.2s",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 3,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: 14 }}>{tab.icon}</span>
+                  <span style={{
+                    fontSize: 12, fontWeight: isActive ? 800 : 500,
+                    color: isActive ? tab.color : "#6B7280",
+                    transition: "all 0.2s",
+                  }}>
+                    {tab.label}
+                  </span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700,
+                    background: isActive ? tab.color : "#F3F4F6",
+                    color: isActive ? "#fff" : "#6B7280",
+                    borderRadius: 20, padding: "1px 5px",
+                    transition: "all 0.2s",
+                    lineHeight: 1.5,
+                  }}>
+                    {tab.count}
+                  </span>
+                </div>
+                {isActive && (
+                  <span style={{ fontSize: 9, color: tab.color, fontWeight: 600, opacity: 0.8 }}>
+                    {tab.key === "morador" ? "Desconto residencial" : tab.key === "meia-entrada" ? "50% OFF garantido" : "Todos os parques"}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {skeletonLoading ? (
+          <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{
+                borderRadius: 14, marginBottom: 8, overflow: "hidden",
+                border: "1px solid #F3F4F6",
+              }}>
+                <div style={{
+                  height: 52, background: "#F3F4F6",
+                  borderRadius: "14px 14px 0 0",
+                  animation: "rsv-skeleton-pulse 1.2s ease-in-out infinite",
+                  backgroundImage: "linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%)",
+                  backgroundSize: "400% 100%",
+                }} />
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ height: 100, background: "#F9FAFB", borderRadius: 10,
+                    backgroundImage: "linear-gradient(90deg, #F9FAFB 25%, #F3F4F6 50%, #F9FAFB 75%)",
+                    backgroundSize: "400% 100%",
+                    animation: "rsv-skeleton-pulse 1.2s ease-in-out infinite",
+                  }} />
+                </div>
+              </div>
+            ))}
+            <style>{`
+              @keyframes rsv-skeleton-pulse {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+            `}</style>
+          </div>
+        ) : (
+          <CategoryAccordion
+            tickets={categorizedTickets}
+            cart={cart}
+            onBuy={handleBuy}
+            onInc={handleIncrease}
+            onDec={handleDecrease}
+            priceMultiplier={priceMultiplier}
+          />
+        )}
       </div>
 
       <div style={{ padding: "0 16px 16px" }}>
@@ -824,6 +1070,7 @@ export default function IngressosPage() {
               cart={cart}
               total={cartTotal}
               selectedDate={selectedDate}
+              onRemove={handleRemove}
               onCheckout={() => {
                 trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
                 navigate("/ingressos/checkout")
@@ -877,12 +1124,23 @@ export default function IngressosPage() {
           cart={cart}
           total={cartTotal}
           selectedDate={selectedDate}
+          onRemove={handleRemove}
           onCheckout={() => {
             trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
             navigate("/ingressos/checkout")
           }}
         />
       )}
+
+      <CartAddModal
+        ticket={cartModalTicket}
+        adjPrice={cartModalPrice}
+        onClose={() => setCartModalTicket(null)}
+        onGoToCart={() => {
+          setCartModalTicket(null)
+          navigate("/ingressos/checkout")
+        }}
+      />
     </div>
   )
 }

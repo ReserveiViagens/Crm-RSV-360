@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react"
-import { ChevronDown, ChevronUp, ShoppingCart, Minus, Plus, Trash2, Info, ChevronRight, MapPin, Clock, Users, Flame, AlertTriangle, Zap } from "lucide-react"
+import { ChevronDown, ChevronUp, ShoppingCart, Minus, Plus, Trash2, Info, ChevronRight, MapPin, Clock, Users, Flame, AlertTriangle, Zap, FileText, CheckCircle2, ShoppingBag } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TicketItem } from "@/components/TicketsGrid"
 import { trackEvent } from "@/lib/analytics"
+import { PARK_DETAILS } from "@/lib/park-details"
 
 interface CategorySectionDef {
   id: string
@@ -65,6 +66,98 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
+function TicketDetailsPanel({ ticketId, ticketCategory }: { ticketId: string; ticketCategory?: string }) {
+  const details = PARK_DETAILS[ticketId]
+  if (!details) return null
+  const isMeiaOrMorador = ticketCategory === "meia-entrada" || ticketCategory === "morador"
+  return (
+    <div style={{
+      background: "#F8FAFC", border: "1px solid #E2E8F0",
+      borderRadius: 10, padding: "12px 14px", marginBottom: 10,
+    }} data-testid={`panel-details-${ticketId}`}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, borderBottom: "1px solid #E5E7EB", paddingBottom: 8 }}>
+        <Clock style={{ width: 12, height: 12, color: "#2563EB" }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#1E40AF" }}>Horário:</span>
+        <span style={{ fontSize: 11, color: "#374151" }}>{details.horario}</span>
+      </div>
+
+      {isMeiaOrMorador && details.meiaEntrada.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+            <AlertTriangle style={{ width: 11, height: 11, color: "#D97706" }} />
+            Documentos obrigatórios
+          </div>
+          <ul style={{ margin: 0, padding: "0 0 0 14px" }}>
+            {details.meiaEntrada.map((d) => (
+              <li key={d} style={{ fontSize: 10, color: "#78350F", marginBottom: 2, lineHeight: 1.4 }}>{d}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#15803D", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+          <CheckCircle2 style={{ width: 11, height: 11, color: "#22C55E" }} />
+          Incluso
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {details.inclui.map((item) => (
+            <span key={item} style={{
+              background: "#F0FDF4", border: "1px solid #BBF7D0",
+              borderRadius: 5, padding: "2px 6px",
+              fontSize: 9, color: "#15803D", fontWeight: 600,
+            }}>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+          <ShoppingBag style={{ width: 11, height: 11, color: "#6366F1" }} />
+          O que levar
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {details.oQueTrazer.map((item) => (
+            <span key={item} style={{
+              background: "#EEF2FF", border: "1px solid #C7D2FE",
+              borderRadius: 5, padding: "2px 6px",
+              fontSize: 9, color: "#4338CA", fontWeight: 600,
+            }}>
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        background: "#FFF7ED", borderRadius: 7, padding: "8px 10px",
+        border: "1px solid #FED7AA",
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "#92400E", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
+          <Info style={{ width: 10, height: 10, color: "#D97706" }} />
+          Alimentação
+        </div>
+        <p style={{ margin: 0, fontSize: 10, color: "#78350F", lineHeight: 1.4 }}>{details.alimentacao}</p>
+      </div>
+
+      {details.observacoes && (
+        <div style={{
+          background: "#EFF6FF", borderRadius: 7, padding: "8px 10px",
+          border: "1px solid #BFDBFE", marginTop: 8,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#1E40AF", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
+            <FileText style={{ width: 10, height: 10, color: "#2563EB" }} />
+            Informação importante
+          </div>
+          <p style={{ margin: 0, fontSize: 10, color: "#1E3A8A", lineHeight: 1.4 }}>{details.observacoes}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TicketRowCard({
   ticket,
   cart,
@@ -83,6 +176,7 @@ function TicketRowCard({
   priceMultiplier: number
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
   const qty = getCartItemQty(cart, ticket.id)
   const adjPrice = Math.round(ticket.price * priceMultiplier)
   const adjOriginal = Math.round(ticket.originalPrice * priceMultiplier)
@@ -199,22 +293,44 @@ function TicketRowCard({
             </div>
           )}
 
-          <button
-            data-testid={`button-saiba-mais-${ticket.id}`}
-            onClick={() => setExpanded(e => !e)}
-            style={{
-              background: "none", border: "none", padding: 0, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 3,
-              fontSize: 11, fontWeight: 600, color: "#0891B2",
-              marginBottom: 8,
-            }}
-          >
-            <Info style={{ width: 11, height: 11 }} />
-            {expanded ? "Ver menos" : "Saiba mais"}
-            {expanded
-              ? <ChevronUp style={{ width: 11, height: 11 }} />
-              : <ChevronRight style={{ width: 11, height: 11 }} />}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <button
+              data-testid={`button-saiba-mais-${ticket.id}`}
+              onClick={() => setExpanded(e => !e)}
+              style={{
+                background: "none", border: "none", padding: 0, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 3,
+                fontSize: 11, fontWeight: 600, color: "#0891B2",
+              }}
+            >
+              <Info style={{ width: 11, height: 11 }} />
+              {expanded ? "Ver menos" : "Saiba mais"}
+              {expanded
+                ? <ChevronUp style={{ width: 11, height: 11 }} />
+                : <ChevronRight style={{ width: 11, height: 11 }} />}
+            </button>
+            {PARK_DETAILS[ticket.id] && (
+              <button
+                data-testid={`button-detalhes-${ticket.id}`}
+                onClick={() => setShowDetails(d => !d)}
+                style={{
+                  background: showDetails ? "#EFF6FF" : "none",
+                  border: `1px solid ${showDetails ? "#BFDBFE" : "#E5E7EB"}`,
+                  padding: "2px 8px", borderRadius: 5, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 3,
+                  fontSize: 11, fontWeight: 600, color: showDetails ? "#1D4ED8" : "#6B7280",
+                  transition: "all 0.15s",
+                }}
+              >
+                <FileText style={{ width: 11, height: 11 }} />
+                {showDetails ? "− Fechar" : "+ Detalhes"}
+              </button>
+            )}
+          </div>
+
+          {showDetails && (
+            <TicketDetailsPanel ticketId={ticket.id} ticketCategory={ticket.ticketCategory} />
+          )}
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <div>

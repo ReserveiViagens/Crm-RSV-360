@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { MapPin, Calendar, ShoppingCart, ArrowRight, ChevronUp, ChevronDown, ChevronDown as ChevronBounce } from "lucide-react"
+import { MapPin, Calendar, ShoppingCart, ArrowRight, ChevronUp, ChevronDown, ChevronDown as ChevronBounce, Trash2 } from "lucide-react"
 import { type CartItem } from "@/lib/cart-store"
 import { CATEGORY_SECTIONS } from "@/components/CategoryAccordion"
 
@@ -8,6 +8,7 @@ interface IngressosSidebarProps {
   total: number
   selectedDate: Date | null
   onCheckout: () => void
+  onRemove?: (ticketId: string) => void
 }
 
 function formatPrice(price: number) {
@@ -136,7 +137,7 @@ function SidebarTeasers() {
   )
 }
 
-function SidebarContent({ cart, total, selectedDate, onCheckout }: IngressosSidebarProps) {
+function SidebarContent({ cart, total, selectedDate, onCheckout, onRemove }: IngressosSidebarProps) {
   const itemsCount = cart.reduce((sum, it) => sum + it.quantity, 0)
 
   return (
@@ -200,15 +201,32 @@ function SidebarContent({ cart, total, selectedDate, onCheckout }: IngressosSide
               {cart.map((item) => (
                 <div key={item.ticketId} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "6px 0", borderBottom: "1px solid #F9FAFB",
+                  padding: "7px 0", borderBottom: "1px solid #F9FAFB", gap: 6,
                 }} data-testid={`sidebar-item-${item.ticketId}`}>
-                  <div style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#1F2937", lineHeight: 1.3 }}>{item.name}</p>
                     <p style={{ margin: 0, fontSize: 11, color: "#6B7280" }}>{item.quantity}x {formatPrice(item.unitPrice)}</p>
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#16A34A", flexShrink: 0 }}>
                     {formatPrice(item.unitPrice * item.quantity)}
                   </span>
+                  {onRemove && (
+                    <button
+                      data-testid={`button-remove-item-${item.ticketId}`}
+                      onClick={() => onRemove(item.ticketId)}
+                      title="Remover do carrinho"
+                      style={{
+                        width: 26, height: 26, border: "none", borderRadius: 7,
+                        background: "#FEE2E2", color: "#EF4444",
+                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#FECACA")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#FEE2E2")}
+                    >
+                      <Trash2 style={{ width: 12, height: 12 }} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -254,7 +272,7 @@ function SidebarContent({ cart, total, selectedDate, onCheckout }: IngressosSide
 export function IngressosSidebar(props: IngressosSidebarProps) {
   const isDesktop = useIsDesktop()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { cart, total, onCheckout } = props
+  const { cart, total, onCheckout, onRemove } = props
 
   if (isDesktop) {
     return (
