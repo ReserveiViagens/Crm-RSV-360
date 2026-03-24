@@ -498,6 +498,29 @@ export default function IngressosPage() {
     setProfile(getTravelerProfile())
     setTickets(applyDateAvailability(ticketsBase, null))
     trackEvent("tickets_page_view")
+
+    const params = new URLSearchParams(window.location.search)
+    const perfil = params.get("perfil")
+    const destino = params.get("destino") as DestinationCity | null
+
+    if (perfil) {
+      const pickMap: Record<string, QuickPick> = {
+        familia: "familia",
+        economy: "custo",
+        economia: "custo",
+        popular: "popular",
+        combo: "combo",
+        relaxar: "custo",
+        aventura: "popular",
+      }
+      const pick = pickMap[perfil]
+      if (pick) setActivePick(pick)
+      if (perfil === "combo") setActiveFilter("Todos")
+    }
+
+    if (destino === "caldas-novas" || destino === "rio-quente") {
+      setActiveCity(destino)
+    }
   }, [])
 
   useEffect(() => {

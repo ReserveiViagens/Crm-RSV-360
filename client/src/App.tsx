@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ProtectedRoute from "@/components/protected-route";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import LandingPage from "@/pages/landing";
 import Hoteis from "@/pages/hoteis";
 import Promocoes from "@/pages/promocoes";
 import FlashDeals from "@/pages/flash-deals";
@@ -61,7 +62,8 @@ import AdminConfiguracoesSistema from "@/pages/admin/configuracoes-sistema";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/home" component={Home} />
       <Route path="/hoteis" component={Hoteis} />
       <Route path="/hoteis/:id" component={Hoteis} />
       <Route path="/excursoes" component={Excursoes} />
