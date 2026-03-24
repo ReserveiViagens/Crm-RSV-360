@@ -1,5 +1,9 @@
-import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const FAQS = [
   {
@@ -37,8 +41,6 @@ const FAQS = [
 ]
 
 export function FaqSection() {
-  const [openIdx, setOpenIdx] = useState<number | null>(null)
-
   return (
     <section
       id="faq"
@@ -64,54 +66,43 @@ export function FaqSection() {
           </h2>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Accordion type="single" collapsible style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {FAQS.map((faq, idx) => (
-            <div
+            <AccordionItem
               key={idx}
+              value={`faq-${idx}`}
               data-testid={`faq-item-${idx}`}
               style={{
                 background: "#fff",
-                border: `1.5px solid ${openIdx === idx ? "#2563EB" : "#F3F4F6"}`,
+                border: "1.5px solid #F3F4F6",
                 borderRadius: 14,
                 overflow: "hidden",
-                transition: "border-color 0.2s",
+                paddingLeft: 4,
+                paddingRight: 4,
               }}
             >
-              <button
+              <AccordionTrigger
                 data-testid={`faq-toggle-${idx}`}
-                onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
                 style={{
-                  width: "100%", padding: "18px 20px",
-                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                  background: "none", border: "none", cursor: "pointer",
+                  padding: "16px 16px",
+                  fontSize: 15, fontWeight: 700, color: "#111827",
                   textAlign: "left",
                 }}
               >
-                <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", flex: 1 }}>
-                  {faq.q}
-                </span>
-                <ChevronDown
-                  style={{
-                    width: 18, height: 18, color: "#6B7280", flexShrink: 0,
-                    transform: openIdx === idx ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s",
-                  }}
-                />
-              </button>
-              {openIdx === idx && (
-                <div
-                  data-testid={`faq-answer-${idx}`}
-                  style={{
-                    padding: "0 20px 18px",
-                    fontSize: 14, color: "#4B5563", lineHeight: 1.65,
-                  }}
-                >
-                  {faq.a}
-                </div>
-              )}
-            </div>
+                {faq.q}
+              </AccordionTrigger>
+              <AccordionContent
+                data-testid={`faq-answer-${idx}`}
+                style={{
+                  padding: "0 16px 16px",
+                  fontSize: 14, color: "#4B5563", lineHeight: 1.65,
+                }}
+              >
+                {faq.a}
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
     </section>
   )

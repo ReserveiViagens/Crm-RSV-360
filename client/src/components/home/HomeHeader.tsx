@@ -98,7 +98,7 @@ export function HomeHeader() {
             >
               <Phone style={{ width: 16, height: 16, color: "#fff" }} />
             </a>
-            <Link href="/ingressos">
+            <Link href="/ingressos" className="hidden-mobile">
               <button
                 data-testid="header-btn-ingressos"
                 style={{
