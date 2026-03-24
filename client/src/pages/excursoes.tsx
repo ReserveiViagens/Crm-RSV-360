@@ -88,7 +88,7 @@ export default function Excursoes() {
   const isLider = user?.role === "LIDER" || user?.role === "admin"
 
   function getCatalogoLink() {
-    if (perfil) return `/catalogo-excursoes?perfil=${perfil}`
+    if (perfil) return `/catalogo-excursoes?perfil=${encodeURIComponent(perfil)}`
     return "/catalogo-excursoes"
   }
 
