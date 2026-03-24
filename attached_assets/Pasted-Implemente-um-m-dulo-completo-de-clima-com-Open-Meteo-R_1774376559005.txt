@@ -1,0 +1,70 @@
+Implemente um módulo completo de clima com Open-Meteo.
+
+Regras obrigatórias:
+- usar Node.js + Express no backend
+- usar React no frontend
+- o frontend nunca pode chamar Open-Meteo diretamente
+- criar API interna com:
+  - GET /api/weather?city=&country=
+  - GET /api/weather/by-coords?lat=&lon=
+  - POST /internal/weather/warmup
+- criar provider isolado da Open-Meteo
+- criar service de clima separado da route
+- criar normalização obrigatória do payload
+- criar cache em memória com Map
+- TTL de 60 min
+- fallback stale por até 6 horas
+- timeout externo entre 4s e 6s
+- tratar erros 400 e 500 sem expor stack trace
+- mapear weather_code para label legível
+- não retornar payload bruto do provider ao frontend
+- preparar arquitetura para Redis e múltiplos providers no futuro
+
+Estrutura esperada:
+- server/routes/weather-routes.js
+- server/services/weather-service.js
+- server/providers/open-meteo-provider.js
+- server/lib/weather-cache.js
+- server/utils/weather-code-map.js
+- server/utils/weather-normalizer.js
+- server/utils/weather-validators.js
+- client/src/services/weather-api.js
+- client/src/hooks/useWeather.js
+- client/src/components/WeatherCard.jsx
+
+O backend deve retornar JSON normalizado com:
+- location
+- current
+- today
+- daily
+- updatedAt
+- cacheTtlMinutes
+
+Buscar do Open-Meteo apenas:
+- current: temperature_2m, weather_code, wind_speed_10m
+- daily: weather_code, temperature_2m_max, temperature_2m_min, precipitation_sum, precipitation_probability_max
+- hourly: temperature_2m, precipitation_probability, precipitation
+
+O WeatherCard deve mostrar:
+- nome do local
+- temperatura atual
+- condição atual
+- vento
+- máxima e mínima do dia
+- chance de chuva
+- previsão de 3 dias
+
+Implementar estados:
+- loading
+- erro
+- sucesso
+- ausência de dados
+
+Prioridades:
+1. desacoplamento
+2. cache
+3. normalização
+4. robustez de erro
+5. clareza de código
+
+Entregue o código já organizado por arquivos, com rotas finas, service centralizando a lógica, provider isolado e frontend consumindo apenas a API interna.
