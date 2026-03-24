@@ -1224,6 +1224,33 @@ export default function HoteisPage() {
             </a>
           </div>
 
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 16, paddingBottom: 2 }}>
+            {[
+              { label: "👨‍👩‍👧‍👦 Família", perfil: "familia", filter: "Família" },
+              { label: "💑 Casal", perfil: "casal", filter: "Casal" },
+              { label: "💼 Negócios", perfil: "negocios", filter: "Negócios" },
+              { label: "💰 Econômico", perfil: "economico", filter: "Econômico" },
+            ].map((item) => (
+              <Link
+                key={item.perfil}
+                href={`/hoteis?perfil=${item.perfil}`}
+                data-testid={`button-perfil-${item.perfil}`}
+                style={{
+                  flexShrink: 0, padding: "7px 14px", borderRadius: 20,
+                  border: activeFilter === item.filter ? "2px solid rgba(255,255,255,0.9)" : "1px solid rgba(255,255,255,0.3)",
+                  background: activeFilter === item.filter ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)",
+                  color: "#fff",
+                  fontSize: 13, fontWeight: activeFilter === item.filter ? 700 : 500,
+                  cursor: "pointer", textDecoration: "none",
+                  whiteSpace: "nowrap", display: "inline-flex", alignItems: "center",
+                  backdropFilter: "blur(4px)", transition: "all 0.2s",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
           <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
             {FILTERS.map((filter) => (
               <button
@@ -1267,36 +1294,6 @@ export default function HoteisPage() {
             {badge.icon}
             <span style={{ fontSize: 12, fontWeight: 600, color: "#065F46" }}>{badge.text}</span>
           </div>
-        ))}
-      </div>
-
-      <div style={{
-        display: "flex", gap: 0, overflowX: "auto", padding: "12px 16px",
-        background: "#fff", borderBottom: "1px solid #F3F4F6",
-      }}>
-        {[
-          { label: "👨‍👩‍👧‍👦 Família", perfil: "familia", filter: "Família" },
-          { label: "💑 Casal", perfil: "casal", filter: "Casal" },
-          { label: "💼 Negócios", perfil: "negocios", filter: "Negócios" },
-          { label: "💰 Econômico", perfil: "economico", filter: "Econômico" },
-        ].map((item) => (
-          <Link
-            key={item.perfil}
-            href={`/hoteis?perfil=${item.perfil}`}
-            data-testid={`button-perfil-${item.perfil}`}
-            style={{
-              flexShrink: 0, padding: "8px 16px", borderRadius: 20,
-              border: activeFilter === item.filter ? "2px solid #2563EB" : "1px solid #E5E7EB",
-              background: activeFilter === item.filter ? "#EFF6FF" : "#F9FAFB",
-              color: activeFilter === item.filter ? "#2563EB" : "#374151",
-              fontSize: 13, fontWeight: activeFilter === item.filter ? 700 : 500,
-              cursor: "pointer", textDecoration: "none", marginRight: 8,
-              whiteSpace: "nowrap", display: "inline-flex", alignItems: "center",
-              transition: "all 0.2s",
-            }}
-          >
-            {item.label}
-          </Link>
         ))}
       </div>
 
