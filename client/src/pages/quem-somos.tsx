@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { ArrowLeft, MapPin, Shield, CheckCircle, Award, Calendar, Star, Users, Heart, MessageCircle, Phone, ChevronRight, Lock, FileCheck, BadgeCheck, TrendingUp, Building, Sparkles } from "lucide-react"
-import { Link } from "wouter";
+import { MapPin, Shield, CheckCircle, Award, Calendar, Star, Users, Heart, MessageCircle, Phone, Lock, FileCheck, BadgeCheck, TrendingUp, Building, Sparkles } from "lucide-react"
 import { SiWhatsapp } from "react-icons/si"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 const TIMELINE = [
   { year: "2010", title: "Fundacao", desc: "Inicio das operacoes em Caldas Novas com foco em turismo local e parcerias com hoteis da regiao.", color: "#2563EB", icon: Building },
@@ -166,50 +168,57 @@ export default function QuemSomosPage() {
 
   return (
     <div className="rsv-subpage" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
-      <div style={{
-        background: "#fff", padding: "12px 16px",
-        display: "flex", alignItems: "center", gap: 12,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)", position: "sticky", top: 0, zIndex: 40,
-      }}>
-        <Link href="/" style={{ color: "#1F2937", display: "flex" }} data-testid="link-back-home">
-          <ArrowLeft style={{ width: 24, height: 24 }} />
-        </Link>
-        <span style={{ fontSize: 18, fontWeight: 900, color: "#1F2937" }}>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-      </div>
+      <HomeHeader />
+      <div style={{ height: 64 }} />
+
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
 
       <div style={{
         background: "linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)",
-        padding: "40px 16px 48px",
-        textAlign: "center",
-        position: "relative",
-        overflow: "hidden",
+        padding: "36px 16px 40px", textAlign: "center", position: "relative", overflow: "hidden",
       }}>
+        <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+        <div style={{ position: "absolute", bottom: -20, left: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+
         <div style={{
-          position: "absolute", top: -40, right: -40,
-          width: 160, height: 160, borderRadius: "50%",
-          background: "rgba(255,255,255,0.05)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -20, left: -20,
-          width: 100, height: 100, borderRadius: "50%",
-          background: "rgba(255,255,255,0.03)",
-        }} />
-        <h1 data-testid="text-page-title" style={{
-          fontSize: 28, fontWeight: 900, color: "#fff",
-          marginBottom: 8, position: "relative",
+          display: "inline-flex", alignItems: "center", gap: 6,
+          background: "rgba(245,124,0,0.18)", border: "1px solid rgba(245,124,0,0.35)",
+          borderRadius: 20, padding: "4px 12px", marginBottom: 14,
         }}>
-          Quem Somos
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#F57C00", animation: "pulse 2s infinite" }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>QUEM SOMOS</span>
+        </div>
+
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.15)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          border: "1px solid rgba(255,255,255,0.25)", margin: "0 auto 12px",
+        }}>
+          <Heart size={22} style={{ color: "#fff" }} />
+        </div>
+
+        <h1 data-testid="text-page-title" style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.25, position: "relative" }}>
+          A Maior Plataforma de Turismo de Caldas Novas
         </h1>
-        <p style={{
-          fontSize: 15, color: "rgba(255,255,255,0.85)",
-          lineHeight: 1.6, maxWidth: 360, margin: "0 auto",
-          position: "relative",
-        }}>
-          Transformando sonhos de viagem em realidade desde 2010. Somos a maior plataforma de turismo de Caldas Novas.
+        <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, margin: "0 0 20px", lineHeight: 1.5, position: "relative", maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
+          Transformando sonhos de viagem em realidade desde 2010
         </p>
+
+        <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          {[
+            { value: "+5.000", label: "Clientes satisfeitos" },
+            { value: "+50", label: "Hotéis parceiros" },
+            { value: "15 anos", label: "de experiência" },
+          ].map(({ value, label }) => (
+            <div key={label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#F57C00" }}>{value}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ padding: "24px 16px 120px" }}>
+      <div style={{ padding: "24px 16px 32px" }}>
         <div style={{ marginBottom: 32 }}>
           <p style={{ fontSize: 14, lineHeight: 1.8, color: "#4B5563", marginBottom: 0 }}>
             A Reservei Viagens nasceu com o sonho de tornar Caldas Novas acessivel para todos.
@@ -461,16 +470,10 @@ export default function QuemSomosPage() {
             ))}
           </div>
         </div>
-
-        <div style={{
-          textAlign: "center", padding: "16px 0",
-          borderTop: "1px solid #E5E7EB",
-        }}>
-          <p style={{ fontSize: 12, color: "#9CA3AF", margin: 0 }}>
-            Reservei Viagens - RSV360 - Todos os direitos reservados
-          </p>
-        </div>
       </div>
+
+      <HomeFooter />
+      <MobileCTABar />
     </div>
   )
 }
