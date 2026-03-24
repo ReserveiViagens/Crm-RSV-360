@@ -35,7 +35,7 @@ const PARK_NAME = "Caldas Novas / Rio Quente - GO"
 const ENTERPRISE_TEASERS = [
   { id: "combos", enterpriseId: "combos", city: "multi-destino", icon: "✨", title: "Combos Multi-Parque", subtitle: "Economize até 25% combinando parques", color: "#DC2626", bgColor: "#FEF2F2" },
   { id: "cabanas", enterpriseId: "cabanas", city: "multi-destino", icon: "🏕️", title: "Cabanas Exclusivas", subtitle: "Área VIP com serviço premium no parque", color: "#059669", bgColor: "#ECFDF5" },
-  { id: "meia-entrada", enterpriseId: "meia-entrada", city: "multi-destino", icon: "🆔", title: "Meia-Entrada Legal", subtitle: "50% OFF garantido por lei em todos os parques", color: "#2563EB", bgColor: "#EFF6FF" },
+  { id: "hot-park-meia", enterpriseId: "hot-park", city: "rio-quente", icon: "🆔", title: "Meia-Entrada Legal", subtitle: "50% OFF por lei — Idoso, Estudante e PCD", color: "#2563EB", bgColor: "#EFF6FF" },
 ]
 
 function scrollToEnterprise(enterpriseId: string) {

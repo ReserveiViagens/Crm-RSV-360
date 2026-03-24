@@ -7,7 +7,6 @@ export type EnterpriseId =
   | "combos"
   | "transporte"
   | "cabanas"
-  | "meia-entrada"
 
 export interface DestinationCityDef {
   id: DestinationCity
@@ -18,9 +17,9 @@ export interface DestinationCityDef {
 }
 
 export const DESTINATION_CITIES: DestinationCityDef[] = [
-  { id: "rio-quente", label: "Rio Quente", emoji: "🌊", description: "Hot Park — águas quentes da América do Sul", color: "#0891B2" },
-  { id: "caldas-novas", label: "Caldas Novas", emoji: "♨️", description: "diRoma, Lagoa Termas e Kawana Park", color: "#7C3AED" },
-  { id: "multi-destino", label: "Multi-Destino", emoji: "✈️", description: "Combos, transporte e meia-entrada", color: "#D97706" },
+  { id: "rio-quente", label: "Rio Quente", emoji: "🌊", description: "Hot Park — águas quentes + meia-entrada", color: "#0891B2" },
+  { id: "caldas-novas", label: "Caldas Novas", emoji: "♨️", description: "diRoma, Lagoa Termas e Kawana Park + meia-entrada", color: "#7C3AED" },
+  { id: "multi-destino", label: "Multi-Destino", emoji: "✈️", description: "Combos, transporte e cabanas exclusivas", color: "#D97706" },
 ]
 
 export interface EnterpriseDef {
@@ -41,5 +40,4 @@ export const ENTERPRISE_CONFIG: EnterpriseDef[] = [
   { id: "combos", city: "multi-destino", name: "Combos Multi-Parque", emoji: "✨", description: "Combine parques e economize até 25%", color: "#DC2626", bgColor: "#FEF2F2" },
   { id: "transporte", city: "multi-destino", name: "Transporte Promocional", emoji: "🚌", description: "Ida e volta de Goiânia ou Brasília com conforto garantido", color: "#6366F1", bgColor: "#EEF2FF" },
   { id: "cabanas", city: "multi-destino", name: "Cabanas & Espaços Exclusivos", emoji: "🏕️", description: "Área privativa com serviço premium no Aqua Park", color: "#059669", bgColor: "#ECFDF5" },
-  { id: "meia-entrada", city: "multi-destino", name: "Meia-Entrada — Todos os Parques", emoji: "🆔", description: "Direitos legais de desconto garantidos em todos os parques", color: "#2563EB", bgColor: "#EFF6FF" },
 ]
