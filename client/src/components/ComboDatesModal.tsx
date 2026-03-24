@@ -5,7 +5,6 @@ import { type TicketItem } from "@/components/TicketsGrid"
 
 interface ComboDatesModalProps {
   ticket: TicketItem
-  priceMultiplier: number
   onConfirm: (comboDates: Record<string, string>, finalPrice: number) => void
   onClose: () => void
 }
@@ -252,7 +251,7 @@ function ParkCalendar({ park, selectedIso, otherSelectedIsos, onSelect }: ParkCa
   )
 }
 
-export function ComboDatesModal({ ticket, priceMultiplier, onConfirm, onClose }: ComboDatesModalProps) {
+export function ComboDatesModal({ ticket, onConfirm, onClose }: ComboDatesModalProps) {
   const slots = ticket.parkSlots ?? []
   const [dates, setDates] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {}
@@ -267,8 +266,8 @@ export function ComboDatesModal({ ticket, priceMultiplier, onConfirm, onClose }:
       return getPriceMultiplier(d)
     })
     const maxMult = multipliers.length > 0 ? Math.max(...multipliers) : 1
-    return Math.round(ticket.price * priceMultiplier * maxMult)
-  }, [dates, ticket.price, priceMultiplier])
+    return Math.round(ticket.price * maxMult)
+  }, [dates, ticket.price])
 
   function handleSelect(parkId: string, iso: string) {
     setDates(prev => ({ ...prev, [parkId]: iso }))

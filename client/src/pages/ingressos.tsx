@@ -588,7 +588,7 @@ export default function IngressosPage() {
   }
 
   function handleBuy(ticket: TicketItem) {
-    if (ticket.parkSlots && ticket.parkSlots.length > 1) {
+    if (ticket.categorySection === "combos") {
       setComboDatesTicket(ticket)
       return
     }
@@ -612,7 +612,7 @@ export default function IngressosPage() {
       ticketId: comboDatesTicket.id,
       name: comboDatesTicket.name,
       unitPrice: finalPrice,
-      originalPrice: Math.round(comboDatesTicket.originalPrice * priceMultiplier),
+      originalPrice: comboDatesTicket.originalPrice,
       discount: comboDatesTicket.discount,
       image: comboDatesTicket.image,
       comboDates,
@@ -1226,7 +1226,6 @@ export default function IngressosPage() {
       {comboDatesTicket && (
         <ComboDatesModal
           ticket={comboDatesTicket}
-          priceMultiplier={priceMultiplier}
           onConfirm={handleComboDatesConfirm}
           onClose={() => setComboDatesTicket(null)}
         />
