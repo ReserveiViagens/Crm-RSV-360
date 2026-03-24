@@ -1,355 +1,708 @@
 import { useState } from "react"
-import { Link } from "wouter"
+import { Link, useSearch } from "wouter"
 import {
-  Bus, Users, Star,
-  ArrowRight, Shield, Headphones, Zap,
-  Thermometer, Waves, Share2,
-  CheckCircle2, Plus, Sparkles,
-  Crown, Rocket, ArrowLeft, Search,
+  Bus, Users, Star, ArrowRight, Shield, Headphones,
+  Zap, Thermometer, Waves, Share2, CheckCircle2,
+  Plus, Sparkles, Crown, Rocket, Search, MapPin,
+  Phone, Calendar, Clock,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { LiderApplicationDialog } from "@/components/lider-application-dialog"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
+
+const WA_URL = "https://wa.me/5564993197555?text=Olá! Quero informações sobre excursões para Caldas Novas."
+
+const PERFIS = [
+  { id: "família", label: "Família", emoji: "👨‍👩‍👧‍👦", desc: "Crianças bem-vindas", cor: "#EF4444", bg: "rgba(239,68,68,0.12)" },
+  { id: "aventura", label: "Aventura", emoji: "🏄", desc: "Radical & adrenalina", cor: "#F57C00", bg: "rgba(245,124,0,0.12)" },
+  { id: "luxo", label: "Luxo", emoji: "👑", desc: "Resort 5★ & all-inclusive", cor: "#7C3AED", bg: "rgba(124,58,237,0.12)" },
+  { id: "econômico", label: "Econômico", emoji: "💰", desc: "A partir de R$ 290", cor: "#16A34A", bg: "rgba(22,163,74,0.12)" },
+]
+
+const TOP_EXCURSOES = [
+  {
+    id: "1",
+    titulo: "Caldas Novas Família Total",
+    destino: "Caldas Novas, GO",
+    saida: "Goiânia, GO",
+    data: "18–21 Abr",
+    dias: 4,
+    preco: 890,
+    precoOriginal: 1190,
+    vagas: 7,
+    rating: 4.9,
+    avaliacoes: 312,
+    tag: "Mais vendida",
+    imagem: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
+    inclui: ["Transporte", "Hotel 4★", "Café da manhã", "Guia"],
+    slug: "caldas-novas-familia-total",
+  },
+  {
+    id: "2",
+    titulo: "Hot Park & Rio Quente Fest",
+    destino: "Rio Quente, GO",
+    saida: "Brasília, DF",
+    data: "25–27 Abr",
+    dias: 3,
+    preco: 720,
+    precoOriginal: 950,
+    vagas: 11,
+    rating: 4.8,
+    avaliacoes: 184,
+    tag: "Ingresso incluso",
+    imagem: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80",
+    inclui: ["Transporte", "Hotel 5★", "Hot Park", "Jantar"],
+    slug: "hot-park-rio-quente-fest",
+  },
+  {
+    id: "11",
+    titulo: "Caldas All Inclusive Deluxe",
+    destino: "Caldas Novas, GO",
+    saida: "Goiânia, GO",
+    data: "30 Mai–3 Jun",
+    dias: 5,
+    preco: 1680,
+    precoOriginal: 2100,
+    vagas: 5,
+    rating: 5.0,
+    avaliacoes: 152,
+    tag: "Premium",
+    imagem: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
+    inclui: ["Transporte VIP", "Resort 5★", "All Inclusive", "Spa"],
+    slug: "caldas-all-inclusive-deluxe",
+  },
+]
 
 export default function Excursoes() {
   const [liderDialogOpen, setLiderDialogOpen] = useState(false)
+  const [perfilAtivo, setPerfilAtivo] = useState<string | null>(null)
   const { user } = useAuth()
+  const search = useSearch()
+  const params = new URLSearchParams(search)
+  const perfilParam = params.get("perfil")
+  const perfil = perfilAtivo ?? perfilParam
 
   const isLider = user?.role === "LIDER" || user?.role === "admin"
 
+  function getCatalogoLink() {
+    if (perfil) return `/catalogo-excursoes?perfil=${perfil}`
+    return "/catalogo-excursoes"
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=60')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/30 to-blue-900/70" />
+    <div style={{ minHeight: "100vh", background: "#F8F9FA" }}>
+      <HomeHeader />
 
-        <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
-          <div className="absolute top-4 left-4">
-            <button
-              onClick={() => window.history.back()}
-              className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
-              data-testid="button-voltar"
-            >
-              <ArrowLeft className="w-4 h-4" /> Voltar
-            </button>
-          </div>
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-            <Thermometer className="w-4 h-4 text-amber-300" />
-            Caldas Novas & Rio Quente — Maior polo termal do Brasil
+      {/* ── HERO ─────────────────────────────────────── */}
+      <section
+        data-testid="excursoes-hero"
+        style={{
+          position: "relative", overflow: "hidden",
+          background: "#0F1F38",
+          minHeight: 520,
+        }}
+      >
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1600&q=60')",
+          backgroundSize: "cover", backgroundPosition: "center",
+          opacity: 0.25,
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(15,31,56,0.6) 0%, rgba(15,31,56,0.85) 100%)",
+        }} />
+
+        <div style={{
+          position: "relative", maxWidth: 1100, margin: "0 auto",
+          padding: "60px 20px 40px",
+          display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+        }}>
+          {/* Live badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: 999, padding: "6px 16px", marginBottom: 24,
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: "50%",
+              background: "#22C55E", display: "inline-block",
+              boxShadow: "0 0 0 2px rgba(34,197,94,0.3)",
+            }} />
+            <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+              {TOP_EXCURSOES.reduce((a, e) => a + e.vagas, 0)} vagas abertas agora
+            </span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 tracking-tight">
-            Excursões em Grupo<br />
-            <span className="text-amber-300">com tudo incluso</span>
+          <h1 style={{
+            fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 900,
+            color: "#fff", lineHeight: 1.15, marginBottom: 14, letterSpacing: -1,
+          }}>
+            Excursões em grupo com<br />
+            <span style={{ color: "#F59E0B" }}>tudo incluso</span>
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Viaje com segurança, conforto e economia. Ônibus, hotel, passeios e guia — tudo organizado para você aproveitar sem preocupação.
+
+          <p style={{
+            fontSize: 16, color: "rgba(255,255,255,0.75)",
+            maxWidth: 560, lineHeight: 1.7, marginBottom: 32,
+          }}>
+            Viaje com conforto e segurança para Caldas Novas e Rio Quente. Ônibus, hotel, passeios e guia — tudo organizado para você.
           </p>
 
-          <div className="flex flex-wrap gap-3 justify-center mb-10">
-            {["Transporte incluso", "Hotel garantido", "Guia especializado", "Parcelamento"].map((item) => (
-              <span
-                key={item}
-                className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm"
+          {/* Profile quick-picks */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: 32 }}>
+            {PERFIS.map(p => (
+              <button
+                key={p.id}
+                data-testid={`btn-perfil-excursoes-${p.id}`}
+                onClick={() => setPerfilAtivo(prev => prev === p.id ? null : p.id)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  gap: 4, padding: "10px 18px", borderRadius: 14,
+                  background: perfil === p.id ? p.bg : "rgba(255,255,255,0.10)",
+                  border: `2px solid ${perfil === p.id ? p.cor : "rgba(255,255,255,0.18)"}`,
+                  cursor: "pointer", transition: "all 0.18s",
+                  backdropFilter: "blur(6px)",
+                  minWidth: 90,
+                }}
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                {item}
-              </span>
+                <span style={{ fontSize: 22 }}>{p.emoji}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: perfil === p.id ? p.cor : "#fff" }}>{p.label}</span>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>{p.desc}</span>
+              </button>
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/catalogo-excursoes">
-              <Button
+          {/* CTAs */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            <Link href={getCatalogoLink()}>
+              <button
                 data-testid="btn-hero-ver-excursoes"
-                size="lg"
-                className="rounded-2xl bg-white text-blue-700 hover:bg-blue-50 font-bold px-8 h-12 shadow-lg"
+                style={{
+                  padding: "14px 32px", borderRadius: 12,
+                  background: "linear-gradient(135deg, #F57C00, #EA580C)",
+                  color: "#fff", fontWeight: 800, fontSize: 15,
+                  border: "none", cursor: "pointer",
+                  boxShadow: "0 4px 20px rgba(245,124,0,0.4)",
+                  display: "flex", alignItems: "center", gap: 8,
+                }}
               >
-                Ver Excursões Disponíveis
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+                Ver excursões disponíveis
+                <ArrowRight style={{ width: 18, height: 18 }} />
+              </button>
             </Link>
-            {isLider ? (
-              <Link href="/criar-excursao">
-                <Button
-                  data-testid="btn-hero-criar-excursao"
-                  size="lg"
-                  className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-8 h-12 shadow-lg gap-2"
-                >
-                  <Crown className="w-5 h-5" />
-                  Criar minha excursão
-                </Button>
-              </Link>
-            ) : (
-              <Button
-                data-testid="btn-hero-quero-criar"
-                size="lg"
-                variant="outline"
-                onClick={() => setLiderDialogOpen(true)}
-                className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2"
-              >
-                <Crown className="w-5 h-5 text-amber-300" />
-                Quero criar minha excursão
-              </Button>
-            )}
+            <a
+              href={WA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="btn-hero-whatsapp"
+              style={{
+                padding: "14px 28px", borderRadius: 12,
+                background: "#25D366", color: "#fff",
+                fontWeight: 700, fontSize: 15, textDecoration: "none",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              <Phone style={{ width: 16, height: 16 }} />
+              Falar no WhatsApp
+            </a>
           </div>
-        </div>
 
-        {/* Stats bar */}
-        <div className="relative border-t border-white/10 bg-black/20 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          {/* Stats bar */}
+          <div style={{
+            display: "flex", gap: 32, flexWrap: "wrap", justifyContent: "center",
+            marginTop: 40, paddingTop: 32, borderTop: "1px solid rgba(255,255,255,0.12)",
+          }}>
             {[
               { icon: Users, value: "12.400+", label: "Viajantes satisfeitos" },
               { icon: Bus, value: "280+", label: "Excursões realizadas" },
               { icon: Star, value: "4.9", label: "Avaliação média" },
               { icon: Shield, value: "100%", label: "Seguro e garantido" },
             ].map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <Icon className="w-5 h-5 text-amber-300 mb-0.5" />
-                <p className="text-xl font-bold">{value}</p>
-                <p className="text-xs text-blue-200">{label}</p>
+              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <Icon style={{ width: 18, height: 18, color: "#F59E0B" }} />
+                <span style={{ fontSize: 20, fontWeight: 900, color: "#fff" }}>{value}</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{label}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Como funciona */}
-      <section className="bg-muted/40 border-b border-border py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-center text-2xl font-bold text-foreground mb-8">Como funciona</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Search,
-                step: "1",
-                titulo: "Escolha sua excursão",
-                desc: "Filtre por data, destino e categoria. Compare preços e o que está incluso.",
-                cor: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
-              },
-              {
-                icon: Users,
-                step: "2",
-                titulo: "Reserve sua vaga",
-                desc: "Garanta seu lugar com pagamento seguro. Parcelamos em até 12x sem juros.",
-                cor: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
-              },
-              {
-                icon: Waves,
-                step: "3",
-                titulo: "Aproveite sem preocupação",
-                desc: "Tudo organizado pela agência. Você só precisa aparecer para embarcar.",
-                cor: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
-              },
-            ].map(({ icon: Icon, step, titulo, desc, cor }) => (
-              <div key={step} className="flex gap-4 bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-border shadow-sm">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${cor}`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Passo {step}</p>
-                  <h3 className="font-semibold text-foreground mb-1">{titulo}</h3>
-                  <p className="text-sm text-muted-foreground">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA — Liderança */}
-      <section className="mx-4 mb-10 max-w-6xl md:mx-auto" data-testid="cta-lideranca">
-        {isLider ? (
-          /* ── Líder ativo ── */
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white py-14 px-6">
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=50')", backgroundSize: "cover" }} />
-            <div className="relative max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm mb-5 border border-white/30">
-                <Crown className="w-4 h-4 text-amber-200" />
-                Você é um Líder Reservei Viagens ✓
-              </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-3">Pronto para criar sua excursão?</h2>
-              <p className="text-amber-100 text-lg mb-8">Você tem acesso exclusivo ao wizard completo de criação e gestão de grupos.</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/criar-excursao">
-                  <Button data-testid="btn-criar-excursao-cta" size="lg" className="rounded-2xl bg-white text-amber-700 hover:bg-amber-50 font-bold px-8 h-12 shadow-lg gap-2">
-                    <Plus className="w-5 h-5" /> Criar minha excursão
-                  </Button>
-                </Link>
-                <Link href="/viagens-grupo">
-                  <Button data-testid="btn-gerenciar-grupos-cta" size="lg" variant="outline" className="rounded-2xl border-white/40 text-white hover:bg-white/10 font-semibold px-8 h-12 gap-2">
-                    <Users className="w-5 h-5" /> Meus Grupos
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* ── Benefícios de ser Líder ── */
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-blue-700 to-indigo-800 text-white py-14 px-6">
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1200&q=50')", backgroundSize: "cover" }} />
-            <div className="relative max-w-4xl mx-auto">
-              <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/30 rounded-full px-4 py-1.5 text-sm mb-5">
-                  <Crown className="w-4 h-4 text-amber-300" />
-                  <span className="text-amber-200 font-semibold">Benefício exclusivo — Programa Líder</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Torne-se um Líder Reservei</h2>
-                <p className="text-blue-100 text-lg max-w-2xl mx-auto">
-                  Crie e gerencie suas próprias excursões com todas as ferramentas profissionais — de graça, sem comissões escondidas.
-                </p>
-              </div>
-
-              {/* Benefícios em grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-                {[
-                  { icon: Rocket, title: "Wizard de criação", desc: "Monte seu roteiro completo com hotel, parques, passeios e veículo em minutos." },
-                  { icon: Users, title: "Gestão de grupo", desc: "Lista de passageiros, aprovações, convites e controle de vagas em tempo real." },
-                  { icon: Share2, title: "Link de compartilhamento", desc: "Compartilhe sua excursão via WhatsApp e comece a receber inscrições na hora." },
-                  { icon: Shield, title: "Grupo privado", desc: "Controle quem entra no seu grupo com sistema de convites e aprovação." },
-                  { icon: Zap, title: "Pix integrado", desc: "Receba pagamentos direto pelo app com split automático entre organizador e plataforma." },
-                  { icon: Sparkles, title: "CaldasAI Insights", desc: "Sugestões inteligentes de roteiro, preços e dicas para maximizar inscrições." },
-                ].map(({ icon: Icon, title, desc }) => (
-                  <div key={title} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4">
-                    <div className="w-9 h-9 rounded-xl bg-amber-400/20 flex items-center justify-center mb-3">
-                      <Icon className="w-5 h-5 text-amber-300" />
-                    </div>
-                    <p className="font-bold text-sm mb-1">{title}</p>
-                    <p className="text-blue-200 text-xs leading-relaxed">{desc}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <div className="text-center space-y-3">
-                <Button
-                  data-testid="btn-tornar-lider-cta"
-                  size="lg"
-                  onClick={() => setLiderDialogOpen(true)}
-                  className="rounded-2xl bg-amber-400 text-amber-900 hover:bg-amber-300 font-bold px-10 shadow-lg gap-2"
-                >
-                  <Crown className="w-5 h-5" />
-                  Quero criar minha excursão — É grátis!
-                </Button>
-                <p className="text-blue-300 text-xs">Sem taxas de adesão · Ative em 1 clique · Cancele quando quiser</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Depoimentos */}
-      <section className="max-w-6xl mx-auto px-4 pb-16">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-foreground">O que dizem nossos viajantes</h2>
-          <div className="flex items-center gap-1 text-amber-500">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} className="w-4 h-4 fill-amber-400 stroke-amber-400" />
-            ))}
-            <span className="ml-1 text-sm font-semibold text-foreground">4.9/5</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ── TRUST BAR ─────────────────────────────────── */}
+      <div style={{
+        background: "#fff", borderBottom: "1px solid #E5E7EB",
+        padding: "16px 20px",
+      }}>
+        <div style={{
+          maxWidth: 1100, margin: "0 auto",
+          display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center",
+        }}>
           {[
-            {
-              nome: "Mariana R.",
-              cidade: "Goiânia",
-              avatar: "MR",
-              nota: 5,
-              texto: "Melhor excursão que já fiz! Tudo muito organizado, guia atencioso e hotel excelente. Já reservei para o próximo mês.",
-              excursao: "Caldas Novas Família Total",
-            },
-            {
-              nome: "Ricardo S.",
-              cidade: "Brasília",
-              avatar: "RS",
-              nota: 5,
-              texto: "Viagem incrível ao Hot Park! O ônibus saiu no horário e o hotel era ainda melhor do que esperávamos. Recomendo!",
-              excursao: "Hot Park & Rio Quente Fest",
-            },
-            {
-              nome: "Carla M.",
-              cidade: "Uberlândia",
-              avatar: "CM",
-              nota: 5,
-              texto: "Fui na Semana Santa e superou todas as expectativas. All inclusive de verdade, atendimento impecável. Nota 10!",
-              excursao: "Semana Santa Caldas Premium",
-            },
-          ].map((d) => (
-            <div
-              key={d.nome}
-              data-testid={`card-depoimento-${d.nome.replace(" ", "")}`}
-              className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-border shadow-sm"
+            { emoji: "🛡️", text: "Pagamento seguro e protegido" },
+            { emoji: "✅", text: "Organizadores verificados" },
+            { emoji: "📞", text: "Suporte via WhatsApp 7 dias" },
+            { emoji: "🎯", text: "Melhores preços garantidos" },
+          ].map(item => (
+            <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18 }}>{item.emoji}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TOP EXCURSÕES ─────────────────────────────── */}
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "52px 20px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+          <div>
+            <h2 style={{ fontSize: 26, fontWeight: 900, color: "#1E3A5F", marginBottom: 4 }}>
+              Excursões em destaque
+            </h2>
+            <p style={{ fontSize: 14, color: "#6B7280" }}>Vagas limitadas — garanta a sua hoje</p>
+          </div>
+          <Link href="/catalogo-excursoes">
+            <button
+              data-testid="btn-ver-todas-excursoes"
+              style={{
+                padding: "10px 20px", borderRadius: 10,
+                background: "transparent", border: "2px solid #1E3A5F",
+                color: "#1E3A5F", fontWeight: 700, fontSize: 13, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center">
-                  {d.avatar}
+              Ver todas <ArrowRight style={{ width: 14, height: 14 }} />
+            </button>
+          </Link>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+          {TOP_EXCURSOES.map(exc => {
+            const desconto = Math.round(((exc.precoOriginal - exc.preco) / exc.precoOriginal) * 100)
+            return (
+              <div
+                key={exc.id}
+                data-testid={`card-excursao-destaque-${exc.id}`}
+                style={{
+                  background: "#fff", borderRadius: 16,
+                  border: "1px solid #E5E7EB", overflow: "hidden",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                  display: "flex", flexDirection: "column",
+                }}
+              >
+                <div style={{ position: "relative", height: 200, overflow: "hidden" }}>
+                  <img
+                    src={exc.imagem}
+                    alt={exc.titulo}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)",
+                  }} />
+                  <div style={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 6 }}>
+                    <span style={{
+                      background: "#F57C00", color: "#fff",
+                      fontSize: 11, fontWeight: 700,
+                      padding: "3px 10px", borderRadius: 999,
+                    }}>{exc.tag}</span>
+                    <span style={{
+                      background: "#16A34A", color: "#fff",
+                      fontSize: 11, fontWeight: 700,
+                      padding: "3px 10px", borderRadius: 999,
+                    }}>-{desconto}%</span>
+                  </div>
+                  <div style={{ position: "absolute", bottom: 12, left: 12, right: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 13 }}>
+                      <MapPin style={{ width: 12, height: 12 }} />
+                      {exc.destino}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ padding: 20, flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, color: "#1E3A5F", lineHeight: 1.3 }}>
+                    {exc.titulo}
+                  </h3>
+
+                  <div style={{ display: "flex", gap: 14, fontSize: 12, color: "#6B7280" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Calendar style={{ width: 12, height: 12 }} /> {exc.data}
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Clock style={{ width: 12, height: 12 }} /> {exc.dias} dias
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Star style={{ width: 12, height: 12, fill: "#F59E0B", color: "#F59E0B" }} />
+                      {exc.rating} ({exc.avaliacoes})
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {exc.inclui.map(item => (
+                      <span key={item} style={{
+                        fontSize: 11, background: "#F0FDF4",
+                        color: "#16A34A", border: "1px solid #BBF7D0",
+                        borderRadius: 999, padding: "2px 8px",
+                        display: "flex", alignItems: "center", gap: 3,
+                      }}>
+                        <CheckCircle2 style={{ width: 10, height: 10 }} />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Urgency */}
+                  <div style={{
+                    fontSize: 12, color: exc.vagas <= 5 ? "#DC2626" : "#D97706",
+                    fontWeight: 600,
+                  }}>
+                    🔥 Apenas {exc.vagas} vagas restantes
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: "auto" }}>
+                    <div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>
+                        R$ {exc.precoOriginal.toLocaleString("pt-BR")}
+                      </div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: "#1E3A5F" }}>
+                        R$ {exc.preco.toLocaleString("pt-BR")}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#6B7280" }}>por pessoa</div>
+                    </div>
+                    <Link href={`/excursoes/${exc.slug}`}>
+                      <button
+                        data-testid={`btn-reservar-destaque-${exc.id}`}
+                        style={{
+                          padding: "10px 20px", borderRadius: 10,
+                          background: "linear-gradient(135deg, #F57C00, #EA580C)",
+                          color: "#fff", fontWeight: 700, fontSize: 13,
+                          border: "none", cursor: "pointer",
+                        }}
+                      >
+                        Reservar
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <Link href="/catalogo-excursoes">
+            <button
+              data-testid="btn-catalogo-completo"
+              style={{
+                padding: "14px 40px", borderRadius: 12,
+                background: "linear-gradient(135deg, #1E3A5F, #2563EB)",
+                color: "#fff", fontWeight: 700, fontSize: 15,
+                border: "none", cursor: "pointer",
+                display: "inline-flex", alignItems: "center", gap: 8,
+              }}
+            >
+              Ver catálogo completo ({18} excursões)
+              <ArrowRight style={{ width: 18, height: 18 }} />
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── COMO FUNCIONA ─────────────────────────────── */}
+      <section style={{ background: "#F0F4FF", borderTop: "1px solid #E5E7EB", marginTop: 52, padding: "52px 20px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#1E3A5F", marginBottom: 8 }}>
+            Como funciona
+          </h2>
+          <p style={{ textAlign: "center", color: "#6B7280", marginBottom: 40 }}>
+            Simples assim — você foca no prazer, a gente cuida do resto
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
+            {[
+              { icon: Search, step: "1", titulo: "Escolha a excursão", desc: "Filtre por data, destino e categoria. Compare preços e o que está incluso.", cor: "#2563EB", bg: "#EFF6FF" },
+              { icon: Users, step: "2", titulo: "Reserve sua vaga", desc: "Garanta seu lugar com pagamento seguro. Parcelamos em até 12x sem juros.", cor: "#16A34A", bg: "#F0FDF4" },
+              { icon: Thermometer, step: "3", titulo: "Receba confirmação", desc: "Você recebe todos os detalhes da viagem por WhatsApp e e-mail.", cor: "#F57C00", bg: "#FFF7ED" },
+              { icon: Waves, step: "4", titulo: "Aproveite sem preocupação", desc: "Tudo organizado. Você só aparece para embarcar e curtir!", cor: "#7C3AED", bg: "#F5F3FF" },
+            ].map(({ icon: Icon, step, titulo, desc, cor, bg }) => (
+              <div key={step} style={{
+                background: "#fff", borderRadius: 16,
+                border: "1px solid #E5E7EB",
+                padding: 20,
+                display: "flex", gap: 16,
+                boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                  background: bg, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Icon style={{ width: 22, height: 22, color: cor }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-foreground">{d.nome}</p>
-                  <p className="text-xs text-muted-foreground">{d.cidade}</p>
-                </div>
-                <div className="ml-auto flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 ${i <= d.nota ? "fill-amber-400 stroke-amber-400" : "stroke-muted-foreground"}`}
-                    />
-                  ))}
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
+                    Passo {step}
+                  </p>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1E3A5F", marginBottom: 4 }}>{titulo}</h3>
+                  <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>{desc}</p>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">"{d.texto}"</p>
-              <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                <Bus className="w-3.5 h-3.5" />
-                {d.excursao}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── POR QUE RESERVAR ─────────────────────────── */}
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "52px 20px" }}>
+        <h2 style={{ textAlign: "center", fontSize: 26, fontWeight: 900, color: "#1E3A5F", marginBottom: 40 }}>
+          Por que reservar com a Reservei?
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
+          {[
+            { icon: Shield, titulo: "Pagamento 100% seguro", desc: "Seus dados e dinheiro protegidos com criptografia de ponta.", cor: "#2563EB" },
+            { icon: Rocket, titulo: "Confirmação imediata", desc: "Reserva confirmada na hora. Sem burocracia, sem espera.", cor: "#16A34A" },
+            { icon: Zap, titulo: "Melhor preço garantido", desc: "Encontrou mais barato? Te devolvemos a diferença.", cor: "#F57C00" },
+            { icon: Share2, titulo: "Compartilhe com amigos", desc: "Leve mais pessoas e ganhe descontos adicionais no grupo.", cor: "#7C3AED" },
+          ].map(({ icon: Icon, titulo, desc, cor }) => (
+            <div key={titulo} style={{
+              background: "#fff", borderRadius: 16,
+              border: "1px solid #E5E7EB",
+              padding: 24, textAlign: "center",
+              boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+            }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 16, margin: "0 auto 14px",
+                background: `${cor}18`, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon style={{ width: 24, height: 24, color: cor }} />
               </div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, color: "#1E3A5F", marginBottom: 8 }}>{titulo}</h3>
+              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Suporte */}
-      <div className="border-t border-border bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Headphones className="w-8 h-8 text-primary" />
-            <div>
-              <p className="font-semibold text-foreground">Precisa de ajuda para escolher?</p>
-              <p className="text-sm text-muted-foreground">Nosso time está disponível de segunda a sábado, 8h–20h</p>
+      {/* ── CTA LIDERANÇA ─────────────────────────────── */}
+      <section style={{ maxWidth: 1100, margin: "0 0 52px", padding: "0 20px" }} data-testid="cta-lideranca">
+        {isLider ? (
+          <div style={{
+            borderRadius: 20, overflow: "hidden", position: "relative",
+            background: "linear-gradient(135deg, #F59E0B, #EA580C)",
+            padding: "48px 40px", textAlign: "center", color: "#fff",
+          }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(255,255,255,0.2)", borderRadius: 999,
+              padding: "6px 16px", fontSize: 13, marginBottom: 16,
+              border: "1px solid rgba(255,255,255,0.3)",
+            }}>
+              <Crown style={{ width: 14, height: 14, color: "#FDE68A" }} />
+              Você é um Líder Reservei ✓
+            </div>
+            <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 10 }}>Pronto para criar sua excursão?</h2>
+            <p style={{ fontSize: 15, opacity: 0.85, marginBottom: 24 }}>Acesse o wizard completo e monte seu roteiro profissional.</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/criar-excursao">
+                <button
+                  data-testid="btn-criar-excursao-cta"
+                  style={{
+                    padding: "13px 32px", borderRadius: 12,
+                    background: "#fff", color: "#D97706",
+                    fontWeight: 800, fontSize: 15, border: "none", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 8,
+                  }}
+                >
+                  <Plus style={{ width: 18, height: 18 }} /> Criar minha excursão
+                </button>
+              </Link>
+              <Link href="/viagens-grupo">
+                <button
+                  data-testid="btn-meus-grupos-cta"
+                  style={{
+                    padding: "13px 32px", borderRadius: 12,
+                    background: "transparent", color: "#fff",
+                    fontWeight: 700, fontSize: 15,
+                    border: "1px solid rgba(255,255,255,0.4)", cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 8,
+                  }}
+                >
+                  <Users style={{ width: 18, height: 18 }} /> Meus Grupos
+                </button>
+              </Link>
             </div>
           </div>
-          <div className="flex gap-3">
+        ) : (
+          <div style={{
+            borderRadius: 20, overflow: "hidden",
+            background: "linear-gradient(135deg, #1E3A5F, #2563EB)",
+            padding: "48px 40px", textAlign: "center", color: "#fff",
+          }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.3)",
+              borderRadius: 999, padding: "6px 16px", fontSize: 13, marginBottom: 16,
+            }}>
+              <Crown style={{ width: 14, height: 14, color: "#FCD34D" }} />
+              <span style={{ color: "#FCD34D", fontWeight: 700 }}>Programa Líder</span>
+            </div>
+            <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 10 }}>Quer organizar sua própria excursão?</h2>
+            <p style={{ fontSize: 15, opacity: 0.8, marginBottom: 28, maxWidth: 520, margin: "0 auto 28px" }}>
+              Crie e gerencie excursões com ferramentas profissionais — de graça, sem comissões escondidas.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, maxWidth: 700, margin: "0 auto 28px" }}>
+              {[
+                { icon: Rocket, title: "Wizard de criação", desc: "Monte roteiro completo em minutos" },
+                { icon: Users, title: "Gestão de grupo", desc: "Controle de vagas em tempo real" },
+                { icon: Share2, title: "Link direto", desc: "Compartilhe via WhatsApp" },
+                { icon: Sparkles, title: "CaldasAI Insights", desc: "Sugestões inteligentes de preço" },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} style={{
+                  background: "rgba(255,255,255,0.10)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 12, padding: "14px 16px", textAlign: "left",
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: "rgba(252,211,77,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8,
+                  }}>
+                    <Icon style={{ width: 16, height: 16, color: "#FCD34D" }} />
+                  </div>
+                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{title}</p>
+                  <p style={{ fontSize: 12, opacity: 0.7 }}>{desc}</p>
+                </div>
+              ))}
+            </div>
+            <button
+              data-testid="btn-tornar-lider-cta"
+              onClick={() => setLiderDialogOpen(true)}
+              style={{
+                padding: "14px 40px", borderRadius: 12,
+                background: "linear-gradient(135deg, #F59E0B, #F57C00)",
+                color: "#7C2D12", fontWeight: 800, fontSize: 15,
+                border: "none", cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(245,124,0,0.4)",
+              }}
+            >
+              <Crown style={{ width: 18, height: 18, display: "inline", marginRight: 8 }} />
+              Quero criar minha excursão — É grátis!
+            </button>
+            <p style={{ fontSize: 12, opacity: 0.55, marginTop: 10 }}>
+              Sem taxas de adesão · Ative em 1 clique
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ── DEPOIMENTOS ───────────────────────────────── */}
+      <section style={{ background: "#F0F4FF", borderTop: "1px solid #E5E7EB", padding: "52px 20px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: "#1E3A5F" }}>O que dizem nossos viajantes</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} style={{ width: 16, height: 16, fill: "#F59E0B", color: "#F59E0B" }} />
+              ))}
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1E3A5F", marginLeft: 6 }}>4.9/5</span>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+            {[
+              { nome: "Mariana R.", cidade: "Goiânia", avatar: "MR", nota: 5, texto: "Melhor excursão que já fiz! Tudo muito organizado, guia atencioso e hotel excelente. Já reservei para o próximo mês.", excursao: "Caldas Novas Família Total" },
+              { nome: "Ricardo S.", cidade: "Brasília", avatar: "RS", nota: 5, texto: "Viagem incrível ao Hot Park! O ônibus saiu no horário e o hotel era ainda melhor do que esperávamos. Recomendo!", excursao: "Hot Park & Rio Quente Fest" },
+              { nome: "Carla M.", cidade: "Uberlândia", avatar: "CM", nota: 5, texto: "Fui na Semana Santa e superou todas as expectativas. All inclusive de verdade, atendimento impecável. Nota 10!", excursao: "Semana Santa Caldas Premium" },
+            ].map(d => (
+              <div key={d.nome}
+                data-testid={`card-depoimento-${d.nome.replace(" ", "")}`}
+                style={{
+                  background: "#fff", borderRadius: 16,
+                  border: "1px solid #E5E7EB", padding: 20,
+                  boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    background: "#EFF6FF", color: "#2563EB",
+                    fontWeight: 800, fontSize: 13,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>{d.avatar}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: 700, fontSize: 14, color: "#1E3A5F" }}>{d.nome}</p>
+                    <p style={{ fontSize: 12, color: "#9CA3AF" }}>{d.cidade}</p>
+                  </div>
+                  <div style={{ display: "flex", gap: 2 }}>
+                    {[1,2,3,4,5].map(i => (
+                      <Star key={i} style={{ width: 13, height: 13, fill: i <= d.nota ? "#F59E0B" : "none", color: "#F59E0B" }} />
+                    ))}
+                  </div>
+                </div>
+                <p style={{ fontSize: 13, color: "#4B5563", lineHeight: 1.6, marginBottom: 12 }}>"{d.texto}"</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#2563EB", fontWeight: 600 }}>
+                  <Bus style={{ width: 13, height: 13 }} />
+                  {d.excursao}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SUPORTE ───────────────────────────────────── */}
+      <div style={{ borderTop: "1px solid #E5E7EB", background: "#fff", padding: "24px 20px" }}>
+        <div style={{
+          maxWidth: 1100, margin: "0 auto",
+          display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Headphones style={{ width: 32, height: 32, color: "#2563EB" }} />
+            <div>
+              <p style={{ fontWeight: 700, fontSize: 15, color: "#1E3A5F" }}>Precisa de ajuda para escolher?</p>
+              <p style={{ fontSize: 13, color: "#6B7280" }}>Nosso time está disponível de segunda a sábado, 8h–20h</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
             <Link href="/caldas-ai">
-              <Button data-testid="btn-caldas-ai-suporte" variant="outline" className="rounded-xl gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
+              <button
+                data-testid="btn-caldas-ai-suporte"
+                style={{
+                  padding: "10px 20px", borderRadius: 10,
+                  background: "transparent", border: "2px solid #E5E7EB",
+                  color: "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <Sparkles style={{ width: 14, height: 14, color: "#2563EB" }} />
                 Falar com CaldasAI
-              </Button>
+              </button>
             </Link>
-            <Link href="/contato">
-              <Button data-testid="btn-contato-suporte" className="rounded-xl gap-2">
-                <Headphones className="w-4 h-4" />
-                Falar com agente
-              </Button>
-            </Link>
+            <a
+              href={WA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="btn-whatsapp-suporte"
+              style={{
+                padding: "10px 20px", borderRadius: 10,
+                background: "#25D366", color: "#fff",
+                fontWeight: 700, fontSize: 13, textDecoration: "none",
+                display: "flex", alignItems: "center", gap: 6,
+              }}
+            >
+              <Phone style={{ width: 14, height: 14 }} />
+              WhatsApp
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Líder Application Dialog */}
-      <LiderApplicationDialog
-        open={liderDialogOpen}
-        onOpenChange={setLiderDialogOpen}
-        user={user}
-      />
+      <HomeFooter />
+      <MobileCTABar />
+
+      <LiderApplicationDialog open={liderDialogOpen} onOpenChange={setLiderDialogOpen} user={user} />
     </div>
   )
 }

@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from "react"
-import { Link } from "wouter"
+import { Link, useSearch } from "wouter"
 import {
   Bus, Calendar, Users, MapPin, Star, Clock, ChevronRight, ChevronDown,
-  Search, Filter, ArrowRight, Shield, ArrowLeft, SlidersHorizontal,
+  Search, Filter, ArrowRight, Shield, SlidersHorizontal,
   CheckCircle2, Plus, Sparkles, TrendingUp,
-  Crown, Lock, Heart, Home, Thermometer, Eye,
+  Crown, Lock, Heart, Eye,
   X, MessageCircle, Loader2, Navigation,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/use-auth"
 import { LiderApplicationDialog } from "@/components/lider-application-dialog"
 import { buscarCEP, formatCEP, ESTADOS_BR } from "@/lib/viacep"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 interface Excursao {
   id: string
@@ -765,9 +768,21 @@ function ChipFiltro({ label, tipo, onRemove }: { label: string; tipo: string; on
   )
 }
 
+const PERFIL_TO_CATEGORIA: Record<string, string> = {
+  "família": "família",
+  "aventura": "aventura",
+  "luxo": "luxo",
+  "econômico": "econômico",
+}
+
 export default function CatalogoExcursoes() {
+  const search = useSearch()
+  const params = new URLSearchParams(search)
+  const perfilParam = params.get("perfil") || ""
+  const categoriaInicial = PERFIL_TO_CATEGORIA[perfilParam] || "todas"
+
   const [busca, setBusca] = useState("")
-  const [categoria, setCategoria] = useState("todas")
+  const [categoria, setCategoria] = useState(categoriaInicial)
   const [ordenacao, setOrdenacao] = useState("destaque")
   const [liderDialogOpen, setLiderDialogOpen] = useState(false)
   const { user } = useAuth()
@@ -934,44 +949,63 @@ export default function CatalogoExcursoes() {
   }, [limparLocalidade])
 
   return (
-    <div className="min-h-screen bg-background" data-testid="catalogo-excursoes">
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/excursoes"
-                className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 text-sm text-white hover:bg-white/25 transition-colors"
-                data-testid="button-voltar-catalogo"
-              >
-                <ArrowLeft className="w-4 h-4" /> Voltar
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold">Catálogo de Excursões</h1>
-                <nav className="flex items-center gap-1.5 text-xs text-blue-200" data-testid="breadcrumb-catalogo">
-                  <Link href="/" className="hover:text-white transition-colors flex items-center gap-1">
-                    <Home className="w-3 h-3" /> Início
-                  </Link>
-                  <span>/</span>
-                  <Link href="/excursoes" className="hover:text-white transition-colors">Excursões</Link>
-                  <span>/</span>
-                  <span className="text-white font-medium">Catálogo</span>
-                </nav>
-              </div>
+    <div style={{ minHeight: "100vh", background: "#F8F9FA" }} data-testid="catalogo-excursoes">
+      <HomeHeader />
+
+      {/* ── COMPACT HERO ─────────────────────────────── */}
+      <div style={{
+        background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
+        padding: "36px 20px 32px",
+        position: "relative", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1600&q=40')",
+          backgroundSize: "cover", backgroundPosition: "center", opacity: 0.12,
+        }} />
+        <div style={{ position: "relative", maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ marginBottom: 6 }}>
+            <nav style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 10 }} data-testid="breadcrumb-catalogo">
+              <Link href="/" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>Início</Link>
+              <span>/</span>
+              <Link href="/excursoes" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>Excursões</Link>
+              <span>/</span>
+              <span style={{ color: "#fff", fontWeight: 600 }}>Catálogo</span>
+            </nav>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
+                Catálogo de Excursões
+              </h1>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)" }}>
+                {EXCURSOES.length} excursões disponíveis · {totalVagas} vagas abertas · A partir de R$ {precoMin}
+              </p>
             </div>
-            <div className="hidden md:flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-                <Thermometer className="w-3.5 h-3.5 text-amber-300" />
-                <span>{EXCURSOES.length} excursões</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-                <Users className="w-3.5 h-3.5 text-emerald-300" />
-                <span>{totalVagas} vagas abertas</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-                <TrendingUp className="w-3.5 h-3.5 text-amber-300" />
-                <span>A partir de R$ {precoMin}</span>
-              </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {[
+                { id: "família", emoji: "👨‍👩‍👧‍👦", label: "Família" },
+                { id: "aventura", emoji: "🏄", label: "Aventura" },
+                { id: "luxo", emoji: "👑", label: "Luxo" },
+                { id: "econômico", emoji: "💰", label: "Econômico" },
+              ].map(p => (
+                <button
+                  key={p.id}
+                  data-testid={`btn-perfil-catalogo-${p.id}`}
+                  onClick={() => setCategoria(prev => prev === p.id ? "todas" : p.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "7px 14px", borderRadius: 999,
+                    background: categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.12)",
+                    border: `1px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.2)"}`,
+                    color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <span>{p.emoji}</span>
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -1371,6 +1405,9 @@ export default function CatalogoExcursoes() {
       </section>
 
       <LiderApplicationDialog open={liderDialogOpen} onOpenChange={setLiderDialogOpen} user={user} />
+
+      <HomeFooter />
+      <MobileCTABar />
     </div>
   )
 }
