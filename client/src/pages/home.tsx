@@ -563,35 +563,6 @@ export default function RSV360Landing() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 6, padding: "6px 0 10px" }}>
-            {TABS.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id)
-                    if (productsRef.current) {
-                      productsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
-                    }
-                  }}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    padding: "6px 13px", borderRadius: 999,
-                    border: isActive ? "1.5px solid rgba(255,255,255,0.9)" : "1.5px solid rgba(255,255,255,0.25)",
-                    background: isActive ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.07)",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
-                    fontSize: 13, fontWeight: isActive ? 700 : 500,
-                    cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0,
-                  }}
-                >
-                  <Icon size={12} />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
         </div>
       </header>
 
