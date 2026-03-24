@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import {
   ArrowLeft, ArrowRight, Copy, Check, Clock, AlertCircle, CheckCircle2,
   XCircle, Loader2, ShoppingCart, Phone, CreditCard, Smartphone, Search,
-  Mail, User, MapPin, Lock,
+  Mail, User, MapPin, Lock, Shield,
 } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useQuery, useMutation } from "@tanstack/react-query"
@@ -10,6 +10,8 @@ import { getCart, getCartTotal, clearCart, getSelectedDate, type CartItem } from
 import { trackEvent } from "@/lib/analytics"
 import { apiRequest } from "@/lib/queryClient"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
@@ -377,6 +379,8 @@ export default function IngressosCheckoutPage() {
 
   return (
     <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }}>
+      <HomeHeader />
+
       <div style={{
         background: "linear-gradient(135deg, #0891B2 0%, #2563EB 100%)",
         color: "#fff", padding: "20px 20px 24px",
@@ -401,6 +405,28 @@ export default function IngressosCheckoutPage() {
           </h1>
         </div>
         <ProgressBar step={step} />
+      </div>
+
+      <div style={{
+        background: "#fff", borderBottom: "1px solid #F3F4F6",
+        padding: "10px 20px",
+      }}>
+        <div style={{
+          maxWidth: 1100, margin: "0 auto",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          gap: 24, flexWrap: "wrap",
+        }}>
+          {[
+            { icon: <Lock style={{ width: 13, height: 13, color: "#16A34A" }} />, label: "Ambiente SSL seguro" },
+            { icon: <Shield style={{ width: 13, height: 13, color: "#2563EB" }} />, label: "Pagamento 100% protegido" },
+            { icon: <Phone style={{ width: 13, height: 13, color: "#25D366" }} />, label: "Suporte via WhatsApp" },
+          ].map(({ icon, label }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {icon}
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#6B7280" }}>{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={{
@@ -1174,6 +1200,8 @@ export default function IngressosCheckoutPage() {
       {!isDesktop && (
         <IngressosSidebar {...sidebarProps} />
       )}
+
+      <HomeFooter />
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

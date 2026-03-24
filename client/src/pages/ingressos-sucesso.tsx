@@ -1,8 +1,11 @@
 import { useEffect } from "react"
-import { CheckCircle2, Download, Phone, ArrowLeft, Ticket, Hotel, MapPin, Star } from "lucide-react"
+import { CheckCircle2, Download, Phone, ArrowLeft, Ticket, Hotel, MapPin, Star, Share2 } from "lucide-react"
 import { Link, useSearch } from "wouter"
 import { useQuery } from "@tanstack/react-query"
 import { trackEvent } from "@/lib/analytics"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
@@ -68,19 +71,50 @@ Dúvidas? WhatsApp: (64) 99319-7555
     URL.revokeObjectURL(url)
   }
 
+  function handleWhatsAppShare() {
+    trackEvent("ticket_whatsapp_share_click", { transactionId: txnId })
+    const msg = encodeURIComponent(
+      `🎟️ Comprei meus ingressos pelo RSV360!\n\nParque: Caldas Novas / Rio Quente\nTotal: ${formatPrice(txnData?.totalAmount ?? 0)}\n\nAdquira também em: https://rsv360.com.br/ingressos`
+    )
+    window.open(`https://wa.me/?text=${msg}`, "_blank")
+  }
+
   return (
     <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }}>
+      <HomeHeader />
+
       <div style={{
         background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-        color: "#fff", padding: "24px 20px 28px", textAlign: "center",
+        color: "#fff", padding: "32px 20px 36px", textAlign: "center",
       }}>
-        <CheckCircle2 style={{ width: 56, height: 56, margin: "0 auto 12px", display: "block" }} />
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 6px" }} data-testid="text-success-title">
+        <div style={{
+          width: 72, height: 72, borderRadius: "50%",
+          background: "rgba(255,255,255,0.20)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 14px",
+        }}>
+          <CheckCircle2 style={{ width: 44, height: 44 }} />
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-success-title">
           Pagamento Confirmado!
         </h1>
-        <p style={{ fontSize: 14, opacity: 0.9, margin: 0 }}>
-          Seu ingresso foi gerado com sucesso
+        <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 20px" }}>
+          Seu ingresso foi gerado com sucesso. Aproveite sua visita! 🎉
         </p>
+        <button
+          data-testid="button-whatsapp-share"
+          onClick={handleWhatsAppShare}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "10px 20px", borderRadius: 10,
+            background: "rgba(255,255,255,0.95)", color: "#16A34A",
+            fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          <Share2 style={{ width: 15, height: 15 }} />
+          Compartilhar no WhatsApp
+        </button>
       </div>
 
       <div style={{ padding: 16, maxWidth: 560, margin: "0 auto" }}>
@@ -173,7 +207,7 @@ Dúvidas? WhatsApp: (64) 99319-7555
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             padding: "14px 0", background: "#22C55E", borderRadius: 12,
             color: "#fff", fontSize: 15, fontWeight: 700, textDecoration: "none",
-            marginBottom: 24, boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
+            marginBottom: 28, boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
           }}
         >
           <Phone style={{ width: 18, height: 18 }} />
@@ -181,13 +215,13 @@ Dúvidas? WhatsApp: (64) 99319-7555
         </a>
 
         <div data-testid="section-related-hotels">
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Hotel style={{ width: 18, height: 18, color: "#2563EB" }} />
             <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#1F2937" }}>
               Complete sua viagem com um hotel
             </h3>
           </div>
-          <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 12px" }}>
+          <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 14px" }}>
             Garanta sua hospedagem próxima aos parques com desconto exclusivo
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -248,6 +282,9 @@ Dúvidas? WhatsApp: (64) 99319-7555
           Ver mais ingressos
         </Link>
       </div>
+
+      <HomeFooter />
+      <MobileCTABar />
 
       <style>{`@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }`}</style>
     </div>
