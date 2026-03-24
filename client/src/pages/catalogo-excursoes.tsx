@@ -973,40 +973,75 @@ export default function CatalogoExcursoes() {
               <span style={{ color: "#fff", fontWeight: 600 }}>Catálogo</span>
             </nav>
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-            <div>
-              <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
-                Catálogo de Excursões
-              </h1>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)" }}>
-                {EXCURSOES.length} excursões disponíveis · {totalVagas} vagas abertas · A partir de R$ {precoMin}
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {[
-                { id: "família", emoji: "👨‍👩‍👧‍👦", label: "Família" },
-                { id: "aventura", emoji: "🏄", label: "Aventura" },
-                { id: "luxo", emoji: "👑", label: "Luxo" },
-                { id: "econômico", emoji: "💰", label: "Econômico" },
-              ].map(p => (
-                <button
-                  key={p.id}
-                  data-testid={`btn-perfil-catalogo-${p.id}`}
-                  onClick={() => setCategoria(prev => prev === p.id ? "todas" : p.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    padding: "7px 14px", borderRadius: 999,
-                    background: categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.12)",
-                    border: `1px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.2)"}`,
-                    color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <span>{p.emoji}</span>
-                  {p.label}
-                </button>
-              ))}
-            </div>
+          <div style={{ marginBottom: 16 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
+              Catálogo de Excursões
+            </h1>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)" }}>
+              {EXCURSOES.length} excursões disponíveis · {totalVagas} vagas abertas · A partir de R$ {precoMin}
+            </p>
+          </div>
+
+          {/* Integrated search bar */}
+          <div style={{ position: "relative", marginBottom: 16 }}>
+            <Search style={{
+              position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+              width: 18, height: 18, color: "rgba(255,255,255,0.5)", pointerEvents: "none",
+            }} />
+            <input
+              data-testid="input-busca-hero"
+              type="text"
+              placeholder="Buscar por destino, cidade de saída, título ou organizador..."
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "13px 14px 13px 44px",
+                borderRadius: 12, fontSize: 14,
+                background: "rgba(255,255,255,0.12)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                color: "#fff", outline: "none",
+              }}
+            />
+            {busca && (
+              <button
+                onClick={() => setBusca("")}
+                style={{
+                  position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                  background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)",
+                  display: "flex", alignItems: "center",
+                }}
+              >
+                <X style={{ width: 16, height: 16 }} />
+              </button>
+            )}
+          </div>
+
+          {/* Profile chips */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { id: "família", emoji: "👨‍👩‍👧‍👦", label: "Família" },
+              { id: "aventura", emoji: "🏄", label: "Aventura" },
+              { id: "luxo", emoji: "👑", label: "Luxo" },
+              { id: "econômico", emoji: "💰", label: "Econômico" },
+            ].map(p => (
+              <button
+                key={p.id}
+                data-testid={`btn-perfil-catalogo-${p.id}`}
+                onClick={() => setCategoria(prev => prev === p.id ? "todas" : p.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "7px 14px", borderRadius: 999,
+                  background: categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.12)",
+                  border: `1px solid ${categoria === p.id ? "#F57C00" : "rgba(255,255,255,0.2)"}`,
+                  color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                <span>{p.emoji}</span>
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>

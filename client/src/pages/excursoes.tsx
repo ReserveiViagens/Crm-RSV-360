@@ -134,7 +134,7 @@ export default function Excursoes() {
               boxShadow: "0 0 0 2px rgba(34,197,94,0.3)",
             }} />
             <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
-              {TOP_EXCURSOES.reduce((a, e) => a + e.vagas, 0)} vagas abertas agora
+              18 excursões disponíveis · {TOP_EXCURSOES.reduce((a, e) => a + e.vagas, 0)} vagas abertas agora
             </span>
           </div>
 
@@ -210,6 +210,25 @@ export default function Excursoes() {
               <Phone style={{ width: 16, height: 16 }} />
               Falar no WhatsApp
             </a>
+          </div>
+
+          {/* Testimonial highlight */}
+          <div style={{
+            marginTop: 28, display: "flex", alignItems: "center", gap: 10,
+            background: "rgba(255,255,255,0.09)", backdropFilter: "blur(6px)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 12, padding: "10px 18px",
+            maxWidth: 460,
+          }}>
+            <div style={{ display: "flex", gap: 1, flexShrink: 0 }}>
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} style={{ width: 13, height: 13, fill: "#F59E0B", color: "#F59E0B" }} />
+              ))}
+            </div>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.4 }}>
+              <strong>"Melhor excursão que já fiz!"</strong> — Mariana R., Goiânia
+            </p>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", flexShrink: 0 }}>4.9/5</span>
           </div>
 
           {/* Stats bar */}
