@@ -786,6 +786,18 @@ export default function HoteisPage() {
     return scores
   }, [profile])
 
+  const maisReservadoId = useMemo(() => {
+    return [...hotels].sort((a, b) => (b.reviewCount || b.reviews?.length || 0) - (a.reviewCount || a.reviews?.length || 0))[0]?.id
+  }, [])
+
+  const melhorCustoBeneficioId = useMemo(() => {
+    return [...hotels].sort((a, b) => {
+      const scoreA = (a.stars * 100) / (a.price || 1)
+      const scoreB = (b.stars * 100) / (b.price || 1)
+      return scoreB - scoreA
+    })[0]?.id
+  }, [])
+
   const recommendedHotels = useMemo(() => {
     return [...hotels].sort((a, b) => (matchScores[b.id] || 0) - (matchScores[a.id] || 0)).slice(0, 3)
   }, [matchScores])
@@ -842,6 +854,8 @@ export default function HoteisPage() {
     const savings = hotel.original_price ? hotel.original_price - hotel.price : 0
     const reasons = getMatchReasons(profile, hotel)
     const isAnimated = animatedCards.has(hotel.id)
+    const isMaisReservado = hotel.id === maisReservadoId
+    const isMelhorCusto = hotel.id === melhorCustoBeneficioId && !isMaisReservado
 
     return (
       <div
@@ -899,6 +913,34 @@ export default function HoteisPage() {
             >
               <Sparkles style={{ width: 12, height: 12 }} />
               IA RECOMENDA
+            </span>
+          )}
+          {!isRecommended && isMaisReservado && (
+            <span
+              data-testid={`badge-mais-reservado-${hotel.id}`}
+              style={{
+                position: "absolute", top: 12, left: 12,
+                background: "linear-gradient(135deg, #D97706, #B45309)", color: "#fff",
+                fontSize: 11, fontWeight: 700,
+                padding: "5px 10px", borderRadius: 12,
+                display: "flex", alignItems: "center", gap: 4,
+              }}
+            >
+              🏆 Mais Reservado
+            </span>
+          )}
+          {!isRecommended && !isMaisReservado && isMelhorCusto && (
+            <span
+              data-testid={`badge-melhor-custo-${hotel.id}`}
+              style={{
+                position: "absolute", top: 12, left: 12,
+                background: "linear-gradient(135deg, #059669, #047857)", color: "#fff",
+                fontSize: 11, fontWeight: 700,
+                padding: "5px 10px", borderRadius: 12,
+                display: "flex", alignItems: "center", gap: 4,
+              }}
+            >
+              💎 Melhor Custo-Benefício
             </span>
           )}
 
