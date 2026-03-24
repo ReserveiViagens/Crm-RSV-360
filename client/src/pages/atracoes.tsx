@@ -672,7 +672,6 @@ export default function AtracoesPage() {
       <div
         data-testid="hero-atracoes"
         style={{
-          background: "linear-gradient(135deg, #0F1F38 0%, #065F46 100%)",
           color: "#fff",
           paddingTop: 104,
           paddingBottom: 56,
@@ -680,12 +679,15 @@ export default function AtracoesPage() {
           paddingRight: 20,
           position: "relative",
           overflow: "hidden",
+          backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/O-que-fazer-em-Caldas-Novas-alem-dos-parques-.jpg-hggVCc4sV9K9nxiHfEglNOYL1NO3Mr.jpeg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         <div style={{
-          position: "absolute", inset: 0, opacity: 0.06,
-          backgroundImage: "radial-gradient(circle at 25% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 75% 80%, #fff 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, rgba(15,31,56,0.88) 0%, rgba(6,95,70,0.80) 100%)",
         }} />
 
         <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 1 }}>
