@@ -18,6 +18,7 @@ import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilit
 import { EnterpriseAccordion } from "@/components/EnterpriseAccordion"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { CartAddModal } from "@/components/CartAddModal"
+import { ComboDatesModal } from "@/components/ComboDatesModal"
 import { DESTINATION_CITIES, ENTERPRISE_CONFIG, type DestinationCity } from "@/lib/enterprises"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
@@ -204,12 +205,16 @@ const ticketsBase: TicketItem[] = [
     description: "O combo mais pedido! Acesse dois dos melhores parques da região com um desconto imperdível.",
     price: 245, originalPrice: 299, discount: 18,
     image: "/images/water-park.jpeg",
-    features: ["2 parques no mesmo dia", "Hot Park completo", "diRoma Acqua Park", "Entrada prioritária", "Guia-mapa incluso"],
+    features: ["2 parques em dias separados", "Hot Park completo", "diRoma Acqua Park", "Entrada prioritária", "Guia-mapa incluso"],
     location: "Rio Quente + Caldas Novas",
-    duration: "Dia inteiro", ageGroup: "Todas as idades",
+    duration: "2 dias", ageGroup: "Todas as idades",
     popular: true, soldToday: 0, availableToday: 0,
     category: "parques", tags: ["combo", "família", "aventura"],
     alsoBoght: ["hot-park", "diroma-acqua-park"],
+    parkSlots: [
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
+      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas" },
+    ],
   },
   {
     id: "kawana-park",
@@ -225,6 +230,9 @@ const ticketsBase: TicketItem[] = [
     soldToday: 0, availableToday: 0,
     category: "parques", tags: ["família", "combo", "crianças"],
     alsoBoght: ["hot-park", "transp-goiania"],
+    parkSlots: [
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
+    ],
   },
   {
     id: "combo-3-parques",
@@ -234,12 +242,17 @@ const ticketsBase: TicketItem[] = [
     description: "A experiência definitiva! Acesse 3 dos melhores parques e aproveite 3 dias de pura diversão.",
     price: 320, originalPrice: 395, discount: 19,
     image: "/images/diroma-acqua-park.jpeg",
-    features: ["Hot Park + diRoma + Lagoa Termas", "3 dias de acesso", "Café da manhã incluso", "Transfer entre parques"],
+    features: ["Hot Park + diRoma + Lagoa Termas", "3 dias em parques diferentes", "Café da manhã incluso", "Transfer entre parques"],
     location: "Rio Quente + Caldas Novas",
     duration: "3 dias", ageGroup: "Todas as idades",
     popular: true, soldToday: 0, availableToday: 0,
     category: "parques", tags: ["combo", "família", "melhor valor"],
     alsoBoght: ["kawana-park", "transp-goiania"],
+    parkSlots: [
+      { id: "hot-park", name: "Hot Park", emoji: "🌊", city: "rio-quente" },
+      { id: "diroma", name: "diRoma Acqua Park", emoji: "🏊", city: "caldas-novas" },
+      { id: "lagoa-termas", name: "Lagoa Termas", emoji: "🌿", city: "caldas-novas" },
+    ],
   },
   {
     id: "ingresso-open-hotel",
@@ -456,6 +469,7 @@ export default function IngressosPage() {
   const [skeletonLoading, setSkeletonLoading] = useState(false)
   const [cartModalTicket, setCartModalTicket] = useState<TicketItem | null>(null)
   const [cartModalPrice, setCartModalPrice] = useState(0)
+  const [comboDatesTicket, setComboDatesTicket] = useState<TicketItem | null>(null)
 
   const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
@@ -574,6 +588,10 @@ export default function IngressosPage() {
   }
 
   function handleBuy(ticket: TicketItem) {
+    if (ticket.parkSlots && ticket.parkSlots.length > 1) {
+      setComboDatesTicket(ticket)
+      return
+    }
     const adjPrice = Math.round(ticket.price * priceMultiplier)
     addTicket({
       ticketId: ticket.id,
@@ -586,6 +604,23 @@ export default function IngressosPage() {
     setCartModalTicket(ticket)
     setCartModalPrice(adjPrice)
     trackEvent("ticket_add_to_cart", { ticketId: ticket.id, quantity: 1 })
+  }
+
+  function handleComboDatesConfirm(comboDates: Record<string, string>, finalPrice: number) {
+    if (!comboDatesTicket) return
+    addTicket({
+      ticketId: comboDatesTicket.id,
+      name: comboDatesTicket.name,
+      unitPrice: finalPrice,
+      originalPrice: Math.round(comboDatesTicket.originalPrice * priceMultiplier),
+      discount: comboDatesTicket.discount,
+      image: comboDatesTicket.image,
+      comboDates,
+    })
+    setCartModalTicket(comboDatesTicket)
+    setCartModalPrice(finalPrice)
+    setComboDatesTicket(null)
+    trackEvent("combo_dates_confirmed", { ticketId: comboDatesTicket.id, parks: Object.keys(comboDates) })
   }
 
   function handleIncrease(ticket: TicketItem, qty: number) {
@@ -1187,6 +1222,15 @@ export default function IngressosPage() {
           }
         }}
       />
+
+      {comboDatesTicket && (
+        <ComboDatesModal
+          ticket={comboDatesTicket}
+          priceMultiplier={priceMultiplier}
+          onConfirm={handleComboDatesConfirm}
+          onClose={() => setComboDatesTicket(null)}
+        />
+      )}
     </div>
   )
 }

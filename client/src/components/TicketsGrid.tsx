@@ -27,6 +27,7 @@ export interface TicketItem {
   enterprise?: string
   enterprises?: string[]
   destinationCity?: string
+  parkSlots?: { id: string; name: string; emoji: string; city: string }[]
 }
 
 interface TicketsGridProps {

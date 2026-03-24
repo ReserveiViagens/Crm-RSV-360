@@ -216,6 +216,32 @@ function SidebarContent({ cart, total, selectedDate, onCheckout, onRemove }: Ing
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#1F2937", lineHeight: 1.3 }}>{item.name}</p>
                     <p style={{ margin: 0, fontSize: 11, color: "#6B7280" }}>{item.quantity}x {formatPrice(item.unitPrice)}</p>
+                    {item.comboDates && Object.keys(item.comboDates).length > 0 && (
+                      <div
+                        data-testid={`sidebar-combo-dates-${item.ticketId}`}
+                        style={{
+                          marginTop: 3, fontSize: 10, color: "#2563EB",
+                          fontWeight: 600, lineHeight: 1.5,
+                          display: "flex", flexWrap: "wrap", gap: "2px 6px",
+                        }}
+                      >
+                        {Object.entries(item.comboDates).map(([parkId, iso]) => {
+                          const d = new Date(iso + "T12:00:00")
+                          const label = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+                          const emojiMap: Record<string, string> = {
+                            "hot-park": "🌊",
+                            "diroma": "🏊",
+                            "lagoa-termas": "🌿",
+                            "kawana": "⚡",
+                          }
+                          return (
+                            <span key={parkId} style={{ whiteSpace: "nowrap" }}>
+                              {emojiMap[parkId] ?? "📅"} {label}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#16A34A", flexShrink: 0 }}>
                     {formatPrice(item.unitPrice * item.quantity)}

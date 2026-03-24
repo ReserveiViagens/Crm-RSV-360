@@ -6,6 +6,7 @@ export interface CartItem {
   discount?: number;
   quantity: number;
   image?: string;
+  comboDates?: Record<string, string>;
 }
 
 const CART_KEY = "rsv_tickets_cart";
