@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { CheckCircle2, X, Clock, ShoppingBag, Info, ChevronRight, AlertCircle, FileText } from "lucide-react"
+import { CheckCircle2, X, Clock, ShoppingBag, Info, ChevronRight, AlertCircle, FileText, ShieldCheck } from "lucide-react"
 import { PARK_DETAILS } from "@/lib/park-details"
 import { type TicketItem } from "@/components/TicketsGrid"
 
@@ -268,6 +268,33 @@ export function CartAddModal({ ticket, onClose, onGoToCart, adjPrice }: CartAddM
           </>
         )}
 
+        <div style={{
+          background: "#F0FDF4", border: "1px solid #BBF7D0",
+          borderRadius: 10, padding: "12px 14px", marginBottom: 16,
+        }} data-testid="section-ticket-rules">
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#15803D", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <ShieldCheck style={{ width: 13, height: 13, color: "#16A34A" }} />
+            Regras do ingresso
+          </div>
+          <ul style={{ margin: 0, padding: "0 0 0 16px" }}>
+            <li style={{ fontSize: 11, color: "#166534", marginBottom: 4, lineHeight: 1.4 }}>
+              Válido apenas para a data selecionada — não permite reagendamento
+            </li>
+            <li style={{ fontSize: 11, color: "#166534", marginBottom: 4, lineHeight: 1.4 }}>
+              Sem direito a re-entrada (saída = encerramento da visita)
+            </li>
+            <li style={{ fontSize: 11, color: "#166534", marginBottom: 4, lineHeight: 1.4 }}>
+              Crianças até 4 anos entram gratuitamente (conforme o parque)
+            </li>
+            <li style={{ fontSize: 11, color: "#166534", marginBottom: 4, lineHeight: 1.4 }}>
+              Não é permitido trazer alimentos ou bebidas de fora do parque
+            </li>
+            <li style={{ fontSize: 11, color: "#166534", lineHeight: 1.4 }}>
+              Apresente o ingresso digital na entrada (QR Code ou comprovante PDF)
+            </li>
+          </ul>
+        </div>
+
         <div style={{ display: "flex", gap: 10 }}>
           <button
             data-testid="button-continue-shopping"
@@ -285,7 +312,7 @@ export function CartAddModal({ ticket, onClose, onGoToCart, adjPrice }: CartAddM
             onClick={onGoToCart}
             style={{
               flex: 1, padding: "13px 0", border: "none",
-              borderRadius: 12, background: "linear-gradient(135deg, #22C55E, #16A34A)",
+              borderRadius: 12, background: "linear-gradient(135deg, #0891B2, #2563EB)",
               color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             }}

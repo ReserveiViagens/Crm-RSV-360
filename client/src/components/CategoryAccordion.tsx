@@ -441,9 +441,11 @@ function TicketGridCard({
   cabana?: boolean
   priceMultiplier: number
 }) {
+  const [showDetails, setShowDetails] = useState(false)
   const qty = getCartItemQty(cart, ticket.id)
   const adjPrice = Math.round(ticket.price * priceMultiplier)
   const adjOriginal = Math.round(ticket.originalPrice * priceMultiplier)
+  const details = PARK_DETAILS[ticket.id]
 
   return (
     <div
@@ -482,9 +484,98 @@ function TicketGridCard({
         >
           {ticket.name}
         </h3>
-        <p style={{ fontSize: 11, color: "#6B7280", margin: "0 0 8px", lineHeight: 1.4, flex: 1 }}>
+        <p style={{ fontSize: 11, color: "#6B7280", margin: "0 0 6px", lineHeight: 1.4, flex: 1 }}>
           {ticket.description}
         </p>
+
+        {details && (
+          <>
+            <button
+              data-testid={`button-detalhes-${ticket.id}`}
+              onClick={() => setShowDetails(d => !d)}
+              style={{
+                background: showDetails ? "#EFF6FF" : "#F9FAFB",
+                border: `1px solid ${showDetails ? "#BFDBFE" : "#E5E7EB"}`,
+                borderRadius: 6, padding: "4px 8px",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 4,
+                fontSize: 10, fontWeight: 600,
+                color: showDetails ? "#1D4ED8" : "#6B7280",
+                marginBottom: 8, transition: "all 0.15s", width: "fit-content",
+              }}
+            >
+              <FileText style={{ width: 10, height: 10 }} />
+              {showDetails ? "− Fechar detalhes" : "+ Ver detalhes"}
+            </button>
+
+            {showDetails && (
+              <div style={{
+                background: "#F8FAFC", border: "1px solid #E2E8F0",
+                borderRadius: 8, padding: "10px 12px", marginBottom: 8,
+              }} data-testid={`panel-details-${ticket.id}`}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7, borderBottom: "1px solid #E5E7EB", paddingBottom: 6 }}>
+                  <Clock style={{ width: 10, height: 10, color: "#2563EB" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#1E40AF" }}>Horário:</span>
+                  <span style={{ fontSize: 10, color: "#374151" }}>{details.horario}</span>
+                </div>
+                {(ticket.ticketCategory === "meia-entrada" || ticket.ticketCategory === "morador") && details.meiaEntrada.length > 0 && (
+                  <div style={{ marginBottom: 7 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#92400E", marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                      <AlertTriangle style={{ width: 10, height: 10, color: "#D97706" }} />
+                      Documentação obrigatória
+                    </div>
+                    <ul style={{ margin: 0, padding: "0 0 0 12px" }}>
+                      {details.meiaEntrada.map((d) => (
+                        <li key={d} style={{ fontSize: 9, color: "#78350F", marginBottom: 2, lineHeight: 1.4 }}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div style={{ marginBottom: 6 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#15803D", marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    <CheckCircle2 style={{ width: 10, height: 10, color: "#22C55E" }} />
+                    Incluso
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                    {details.inclui.slice(0, 4).map((item) => (
+                      <span key={item} style={{
+                        background: "#F0FDF4", border: "1px solid #BBF7D0",
+                        borderRadius: 4, padding: "1px 5px",
+                        fontSize: 9, color: "#15803D", fontWeight: 600,
+                      }}>✓ {item}</span>
+                    ))}
+                    {details.naInclui.length > 0 && details.naInclui.slice(0, 2).map((item) => (
+                      <span key={item} style={{
+                        background: "#FEF2F2", border: "1px solid #FECACA",
+                        borderRadius: 4, padding: "1px 5px",
+                        fontSize: 9, color: "#DC2626", fontWeight: 600,
+                      }}>✗ {item}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: "#374151", marginBottom: 3, display: "flex", alignItems: "center", gap: 4 }}>
+                    <ShoppingBag style={{ width: 9, height: 9, color: "#6366F1" }} />
+                    O que levar
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                    {details.oQueTrazer.slice(0, 4).map((item) => (
+                      <span key={item} style={{
+                        background: "#EEF2FF", border: "1px solid #C7D2FE",
+                        borderRadius: 4, padding: "1px 5px",
+                        fontSize: 9, color: "#4338CA", fontWeight: 600,
+                      }}>{item}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: "#FFF7ED", borderRadius: 6, padding: "5px 8px", border: "1px solid #FED7AA" }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "#92400E" }}>🅿 Estacionamento: </span>
+                  <span style={{ fontSize: 9, color: "#78350F" }}>{details.estacionamento}</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         <div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>

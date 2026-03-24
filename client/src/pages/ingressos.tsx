@@ -1065,7 +1065,7 @@ export default function IngressosPage() {
         </div>
 
         {isDesktop && (
-          <div style={{ width: 340, flexShrink: 0, padding: "20px 16px 20px 0" }}>
+          <div id="ingressos-sidebar" style={{ width: 340, flexShrink: 0, padding: "20px 16px 20px 0" }}>
             <IngressosSidebar
               cart={cart}
               total={cartTotal}
@@ -1138,7 +1138,12 @@ export default function IngressosPage() {
         onClose={() => setCartModalTicket(null)}
         onGoToCart={() => {
           setCartModalTicket(null)
-          navigate("/ingressos/checkout")
+          const sidebarEl = document.getElementById("ingressos-sidebar")
+          if (sidebarEl) {
+            sidebarEl.scrollIntoView({ behavior: "smooth", block: "nearest" })
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          }
         }}
       />
     </div>
