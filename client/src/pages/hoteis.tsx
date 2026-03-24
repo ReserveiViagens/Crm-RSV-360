@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet } from "lucide-react"
+import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet, Info, ChevronDown, ChevronUp } from "lucide-react"
 import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 import {
@@ -202,6 +202,16 @@ const FILTERS = [
   { label: "4 Estrelas", value: "4 Estrelas",  icon: Star },
   { label: "Resort",     value: "Resort",      icon: Waves },
   { label: "Econômico",  value: "Econômico",   icon: Wallet },
+]
+
+const LIVE_TICKER = [
+  { name: "Maria S.", city: "São Paulo", hotel: "Hot Park Rio Quente", ago: "2 min" },
+  { name: "Pedro A.", city: "Brasília", hotel: "diRoma Acqua Park", ago: "5 min" },
+  { name: "Lucas M.", city: "Goiânia", hotel: "Lagoa Quente Resort", ago: "8 min" },
+  { name: "Ana C.", city: "Belo Horizonte", hotel: "Náutico Praia Clube", ago: "11 min" },
+  { name: "Camila F.", city: "Curitiba", hotel: "Tauá Resort", ago: "14 min" },
+  { name: "Rafael B.", city: "Rio de Janeiro", hotel: "Hot Park Rio Quente", ago: "17 min" },
+  { name: "Juliana P.", city: "Salvador", hotel: "diRoma Acqua Park", ago: "20 min" },
 ]
 
 const TAG_COLORS: Record<string, { bg: string; color: string }> = {
@@ -733,6 +743,9 @@ export default function HoteisPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [viewerCounts, setViewerCounts] = useState<Record<string, number>>({})
   const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set())
+  const [expandedSaibaMais, setExpandedSaibaMais] = useState<Set<string>>(new Set())
+  const [expandedDetalhes, setExpandedDetalhes] = useState<Set<string>>(new Set())
+  const [tickerIndex, setTickerIndex] = useState(0)
 
   useEffect(() => {
     const params = new URLSearchParams(search)
@@ -782,6 +795,13 @@ export default function HoteisPage() {
       setAnimatedCards(ids)
     }, 100)
     return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTickerIndex(prev => (prev + 1) % LIVE_TICKER.length)
+    }, 4000)
+    return () => clearInterval(interval)
   }, [])
 
   const matchScores = useMemo(() => {
@@ -851,6 +871,24 @@ export default function HoteisPage() {
     })
   }
 
+  const toggleSaibaMais = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setExpandedSaibaMais(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const toggleDetalhes = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setExpandedDetalhes(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
   const renderHotelCard = (hotel: Hotel, isRecommended = false, index = 0) => {
     const discount = calculateDiscount(hotel.price, hotel.original_price)
     const isHovered = hoveredCard === hotel.id
@@ -862,6 +900,9 @@ export default function HoteisPage() {
     const isAnimated = animatedCards.has(hotel.id)
     const isMaisReservado = hotel.id === maisReservadoId
     const isMelhorCusto = hotel.id === melhorCustoBeneficioId && !isMaisReservado
+    const isSaibaMaisOpen = expandedSaibaMais.has(hotel.id)
+    const isDetalhesOpen = expandedDetalhes.has(hotel.id)
+    const isLowAvailability = hotel.roomsLeft != null && hotel.roomsLeft <= 3
 
     return (
       <div
@@ -872,15 +913,15 @@ export default function HoteisPage() {
           borderRadius: 16,
           overflow: "hidden",
           boxShadow: isHovered
-            ? "0 8px 30px rgba(0,0,0,0.15)"
+            ? "0 12px 40px rgba(37,99,235,0.18), 0 4px 16px rgba(0,0,0,0.10)"
             : isRecommended
               ? "0 4px 20px rgba(37,99,235,0.15)"
               : "0 2px 12px rgba(0,0,0,0.08)",
           cursor: "pointer",
-          transition: "box-shadow 0.3s, transform 0.5s, opacity 0.5s",
-          transform: isHovered ? "scale(1.02)" : isAnimated ? "scale(1)" : "scale(0.95)",
+          transition: "box-shadow 0.3s, transform 0.35s, opacity 0.5s",
+          transform: isHovered ? "translateY(-3px) scale(1.01)" : isAnimated ? "scale(1)" : "scale(0.95)",
           opacity: isAnimated ? 1 : 0,
-          border: isRecommended ? "2px solid #2563EB" : isInCompare ? "2px solid #F57C00" : "none",
+          border: isRecommended ? "2px solid #2563EB" : isInCompare ? "2px solid #F57C00" : "1px solid #F3F4F6",
           position: "relative",
           transitionDelay: `${index * 80}ms`,
         }}
@@ -888,6 +929,7 @@ export default function HoteisPage() {
         onMouseLeave={() => setHoveredCard(null)}
         onClick={() => openHotelDetail(hotel)}
       >
+        {/* Image section */}
         <div style={{ position: "relative" }}>
           <img
             src={hotel.images[0]}
@@ -907,16 +949,15 @@ export default function HoteisPage() {
               -{discount}% OFF
             </span>
           )}
+
+          {/* Top-left badge: priority order */}
           {isRecommended && (
-            <span
-              style={{
-                position: "absolute", top: 12, left: 12,
-                background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff",
-                fontSize: 11, fontWeight: 700,
-                padding: "5px 10px", borderRadius: 12,
-                display: "flex", alignItems: "center", gap: 4,
-              }}
-            >
+            <span style={{
+              position: "absolute", top: 12, left: 12,
+              background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff",
+              fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 12,
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
               <Sparkles style={{ width: 12, height: 12 }} />
               IA RECOMENDA
             </span>
@@ -927,12 +968,12 @@ export default function HoteisPage() {
               style={{
                 position: "absolute", top: 12, left: 12,
                 background: "linear-gradient(135deg, #D97706, #B45309)", color: "#fff",
-                fontSize: 11, fontWeight: 700,
-                padding: "5px 10px", borderRadius: 12,
+                fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 12,
                 display: "flex", alignItems: "center", gap: 4,
+                animation: "pulse 2s infinite",
               }}
             >
-              🏆 Mais Reservado
+              🔥 Oferta do Dia
             </span>
           )}
           {!isRecommended && !isMaisReservado && isMelhorCusto && (
@@ -941,8 +982,7 @@ export default function HoteisPage() {
               style={{
                 position: "absolute", top: 12, left: 12,
                 background: "linear-gradient(135deg, #059669, #047857)", color: "#fff",
-                fontSize: 11, fontWeight: 700,
-                padding: "5px 10px", borderRadius: 12,
+                fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 12,
                 display: "flex", alignItems: "center", gap: 4,
               }}
             >
@@ -970,20 +1010,36 @@ export default function HoteisPage() {
           </button>
         </div>
 
+        {/* Scarcity bar for very low availability */}
+        {isLowAvailability && (
+          <div style={{
+            background: "linear-gradient(90deg, #FEE2E2, #FECACA)",
+            padding: "6px 16px",
+            display: "flex", alignItems: "center", gap: 6,
+            borderBottom: "1px solid #FCA5A5",
+          }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", animation: "pulse 1.5s infinite" }}>
+              ⚠️ Apenas {hotel.roomsLeft} quartos disponíveis — reserva antes que acabe!
+            </span>
+          </div>
+        )}
+
         <div style={{ padding: 16 }}>
+          {/* Title + match badge */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1F2937", flex: 1 }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: "#1F2937", flex: 1, lineHeight: 1.3 }}>
               {hotel.title}
             </h3>
             <MatchBadge score={matchScore} />
           </div>
 
+          {/* Stars + rating */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <div style={{ display: "flex", gap: 2 }}>
               {Array.from({ length: 5 }, (_, i) => (
                 <Star
                   key={i}
-                  size={14}
+                  size={13}
                   fill={i < hotel.stars ? "#FBBF24" : "transparent"}
                   style={{ color: i < hotel.stars ? "#FBBF24" : "#D1D5DB" }}
                 />
@@ -991,97 +1047,212 @@ export default function HoteisPage() {
             </div>
             {hotel.rating && (
               <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 600 }}>
-                {hotel.rating} · {hotel.reviewCount?.toLocaleString("pt-BR")} avaliacoes
+                {hotel.rating} · {hotel.reviewCount?.toLocaleString("pt-BR")} avaliações
               </span>
             )}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#6B7280", marginBottom: 8 }}>
-            <MapPin size={14} />
+          {/* Location */}
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#6B7280", marginBottom: 10 }}>
+            <MapPin size={13} />
             {hotel.location}
           </div>
 
-          <p
-            style={{
-              fontSize: 13, color: "#6B7280", lineHeight: 1.5, margin: "0 0 10px",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical" as const,
-              overflow: "hidden",
-            }}
-          >
-            {hotel.description}
-          </p>
-
-          {reasons.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-              {reasons.map((r) => (
-                <span key={r} style={{
-                  fontSize: 10, padding: "3px 8px", borderRadius: 6,
-                  background: "#EFF6FF", color: "#2563EB", fontWeight: 600,
-                  display: "flex", alignItems: "center", gap: 3,
-                }}>
-                  <Check style={{ width: 10, height: 10 }} />
-                  {r}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {hotel.tags && hotel.tags.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-              {hotel.tags.map((tag) => {
-                const tagStyle = TAG_COLORS[tag] || { bg: "#F3F4F6", color: "#374151" }
-                return (
-                  <span
-                    key={tag}
-                    data-testid={`tag-${tag}-${hotel.id}`}
-                    style={{
-                      fontSize: 11, padding: "3px 10px", borderRadius: 20,
-                      background: tagStyle.bg, color: tagStyle.color,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {tag}
-                  </span>
-                )
-              })}
-            </div>
-          )}
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-            {hotel.features.map((feature) => (
-              <span
-                key={feature}
-                style={{
-                  fontSize: 11, padding: "3px 8px", borderRadius: 6,
-                  background: "#EFF6FF", color: "#2563EB", fontWeight: 500,
-                }}
-              >
-                {feature}
-              </span>
-            ))}
-          </div>
-
-          {hotel.roomsLeft && hotel.roomsLeft <= 5 && (
+          {/* Urgency (non-scarcity bar case) */}
+          {hotel.roomsLeft && hotel.roomsLeft > 3 && hotel.roomsLeft <= 5 && (
             <div style={{ marginBottom: 10 }}>
               <UrgencyIndicator roomsLeft={hotel.roomsLeft} />
             </div>
           )}
 
-          {hotel.reviews && hotel.reviews.length > 0 && (
-            <ReviewsHighlight
-              reviews={hotel.reviews}
-              rating={hotel.rating}
-              reviewCount={hotel.reviewCount}
-            />
+          {/* ── ACCORDION TOGGLE BUTTONS ── */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <button
+              data-testid={`button-saiba-mais-${hotel.id}`}
+              onClick={(e) => toggleSaibaMais(hotel.id, e)}
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "9px 0", borderRadius: 999, cursor: "pointer",
+                background: isSaibaMaisOpen
+                  ? "linear-gradient(135deg, #2563EB, #1D4ED8)"
+                  : "linear-gradient(135deg, #EFF6FF, #DBEAFE)",
+                border: isSaibaMaisOpen ? "1.5px solid #1D4ED8" : "1.5px solid #BFDBFE",
+                color: isSaibaMaisOpen ? "#fff" : "#2563EB",
+                fontSize: 12, fontWeight: 700,
+                boxShadow: isSaibaMaisOpen ? "0 4px 14px rgba(37,99,235,0.35)" : "none",
+                transition: "all 0.2s",
+              }}
+            >
+              <Info size={13} />
+              Saiba mais
+              {isSaibaMaisOpen
+                ? <ChevronUp size={13} style={{ transition: "transform 0.2s" }} />
+                : <ChevronDown size={13} style={{ transition: "transform 0.2s" }} />
+              }
+            </button>
+
+            <button
+              data-testid={`button-detalhes-${hotel.id}`}
+              onClick={(e) => toggleDetalhes(hotel.id, e)}
+              style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "9px 0", borderRadius: 999, cursor: "pointer",
+                background: isDetalhesOpen
+                  ? "linear-gradient(135deg, #F57C00, #EA580C)"
+                  : "linear-gradient(135deg, #FFF7ED, #FFEDD5)",
+                border: isDetalhesOpen ? "1.5px solid #EA580C" : "1.5px solid #FED7AA",
+                color: isDetalhesOpen ? "#fff" : "#EA580C",
+                fontSize: 12, fontWeight: 700,
+                boxShadow: isDetalhesOpen ? "0 4px 14px rgba(245,124,0,0.35)" : "none",
+                transition: "all 0.2s",
+              }}
+            >
+              {isDetalhesOpen
+                ? <ChevronUp size={13} style={{ transition: "transform 0.2s" }} />
+                : <ChevronDown size={13} style={{ transition: "transform 0.2s" }} />
+              }
+              + Detalhes
+            </button>
+          </div>
+
+          {/* ── SAIBA MAIS PANEL ── */}
+          {isSaibaMaisOpen && (
+            <div
+              data-testid={`panel-saiba-mais-${hotel.id}`}
+              style={{
+                background: "#F8FAFF", borderRadius: 12, padding: "12px 14px",
+                marginBottom: 12, border: "1px solid #DBEAFE",
+                animation: "fadeInUp 0.2s ease",
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, margin: "0 0 10px" }}>
+                {hotel.description}
+              </p>
+
+              {hotel.features.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                  {hotel.features.map((feature) => (
+                    <span key={feature} style={{
+                      fontSize: 11, padding: "3px 9px", borderRadius: 6,
+                      background: "#EFF6FF", color: "#2563EB", fontWeight: 500,
+                      display: "flex", alignItems: "center", gap: 3,
+                    }}>
+                      <Check style={{ width: 9, height: 9 }} />
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {reasons.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                  {reasons.map((r) => (
+                    <span key={r} style={{
+                      fontSize: 10, padding: "3px 8px", borderRadius: 6,
+                      background: "#ECFDF5", color: "#065F46", fontWeight: 600,
+                      display: "flex", alignItems: "center", gap: 3,
+                    }}>
+                      <Sparkles style={{ width: 9, height: 9 }} />
+                      {r}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {hotel.reviews && hotel.reviews.slice(0, 2).map((rev, i) => (
+                <div key={i} style={{
+                  padding: "8px 0", borderTop: i === 0 ? "1px solid #DBEAFE" : "none",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, fontWeight: 700, color: "#fff", flexShrink: 0,
+                    }}>{rev.avatar}</div>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#1F2937" }}>{rev.name}</span>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: "auto" }}>{rev.date}</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#4B5563", margin: 0, lineHeight: 1.5 }}>{rev.text}</p>
+                </div>
+              ))}
+            </div>
           )}
 
-          {hotel.proximity && hotel.proximity.length > 0 && (
-            <ProximityMap points={hotel.proximity} />
+          {/* ── + DETALHES PANEL ── */}
+          {isDetalhesOpen && (
+            <div
+              data-testid={`panel-detalhes-${hotel.id}`}
+              style={{
+                background: "#FFFBF5", borderRadius: 12, padding: "12px 14px",
+                marginBottom: 12, border: "1px solid #FED7AA",
+                animation: "fadeInUp 0.2s ease",
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Tags */}
+              {hotel.tags && hotel.tags.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                  {hotel.tags.map((tag) => {
+                    const tagStyle = TAG_COLORS[tag] || { bg: "#F3F4F6", color: "#374151" }
+                    return (
+                      <span key={tag} data-testid={`tag-${tag}-${hotel.id}`} style={{
+                        fontSize: 11, padding: "3px 10px", borderRadius: 20,
+                        background: tagStyle.bg, color: tagStyle.color, fontWeight: 600,
+                      }}>{tag}</span>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Capacity */}
+              <div style={{ display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6B7280" }}>
+                  <Users size={13} style={{ color: "#F57C00" }} />
+                  <span>Capacidade: <strong>{hotel.capacity} pessoa{hotel.capacity > 1 ? "s" : ""}</strong></span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6B7280" }}>
+                  <Shield size={13} style={{ color: "#22C55E" }} />
+                  <span>Cancelamento flexível</span>
+                </div>
+              </div>
+
+              {/* Proximity */}
+              {hotel.proximity && hotel.proximity.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#92400E", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    📍 Pontos próximos
+                  </p>
+                  {hotel.proximity.slice(0, 4).map((pt, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "4px 0", borderTop: i > 0 ? "1px solid #FED7AA" : "none",
+                      fontSize: 12, color: "#374151",
+                    }}>
+                      <span>{pt.name}</span>
+                      <span style={{ fontWeight: 600, color: "#EA580C" }}>{pt.distance}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Policy note */}
+              <div style={{
+                marginTop: 10, padding: "7px 10px", borderRadius: 8,
+                background: "#ECFDF5", border: "1px solid #A7F3D0",
+                display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <Check size={12} style={{ color: "#059669", flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: "#065F46", fontWeight: 600 }}>
+                  O que está incluído: diária + café da manhã + acesso às áreas comuns
+                </span>
+              </div>
+            </div>
           )}
 
-          <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 12, marginTop: 10 }}>
+          {/* Price row */}
+          <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 12, marginTop: 4 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <div>
                 {hotel.original_price && hotel.original_price > hotel.price && (
@@ -1089,11 +1260,15 @@ export default function HoteisPage() {
                     {formatPrice(hotel.original_price)}
                   </span>
                 )}
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#22C55E", margin: "2px 0 2px" }}>
+                <div style={{
+                  fontSize: 22, fontWeight: 800, margin: "2px 0 2px",
+                  color: isHovered ? "#16A34A" : "#22C55E",
+                  transition: "color 0.25s",
+                }}>
                   {formatPrice(hotel.price)}
                 </div>
                 <span style={{ fontSize: 11, color: "#9CA3AF" }}>
-                  diaria p/ {hotel.capacity} pessoa{hotel.capacity > 1 ? "s" : ""}
+                  diária p/ {hotel.capacity} pessoa{hotel.capacity > 1 ? "s" : ""}
                 </span>
               </div>
               {savings > 0 && (
@@ -1122,10 +1297,11 @@ export default function HoteisPage() {
               )
             }}
             style={{
-              width: "100%", marginTop: 12, padding: "12px 0", border: "none", borderRadius: 10,
+              width: "100%", marginTop: 12, padding: "13px 0", border: "none", borderRadius: 12,
               cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
               background: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
-              transition: "opacity 0.2s",
+              boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
+              transition: "opacity 0.2s, box-shadow 0.2s",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
@@ -1228,6 +1404,32 @@ export default function HoteisPage() {
               <Phone style={{ width: 16, height: 16 }} />
               Falar com especialista
             </a>
+          </div>
+
+          {/* Live activity ticker */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8, marginBottom: 20,
+            background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "8px 14px",
+            border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(6px)",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              width: 7, height: 7, borderRadius: "50%", background: "#4ade80",
+              flexShrink: 0, animation: "pulse 1.5s infinite",
+            }} />
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 600, flexShrink: 0 }}>
+              AO VIVO
+            </span>
+            <span
+              key={tickerIndex}
+              style={{
+                fontSize: 12, color: "rgba(255,255,255,0.85)", fontWeight: 500,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                animation: "fadeInUp 0.4s ease",
+              }}
+            >
+              🏨 <strong>{LIVE_TICKER[tickerIndex].name}</strong> de {LIVE_TICKER[tickerIndex].city} reservou &quot;{LIVE_TICKER[tickerIndex].hotel}&quot; há {LIVE_TICKER[tickerIndex].ago}
+            </span>
           </div>
 
           <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 16, paddingBottom: 2 }}>
