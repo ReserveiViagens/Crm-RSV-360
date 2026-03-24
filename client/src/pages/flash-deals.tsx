@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Zap, Clock, ArrowLeft, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingUp, Check, AlertTriangle } from "lucide-react"
-import { Link } from "wouter";
+import { Zap, Clock, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingUp, Check, AlertTriangle } from "lucide-react"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -398,66 +400,62 @@ export default function FlashDealsPage() {
         onDone={handleFeedbackDone}
       />
 
+      <HomeHeader />
       <div style={{
-        background: "linear-gradient(135deg, #DC2626 0%, #F57C00 100%)",
-        padding: "16px 16px 24px", color: "#fff",
+        background: "linear-gradient(135deg, #0F1F38 0%, #7C1010 100%)",
+        padding: "40px 16px 0", color: "#fff",
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" style={{ color: "#fff", display: "flex" }} data-testid="link-back-home">
-              <ArrowLeft style={{ width: 22, height: 22 }} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#FDE68A" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(220,38,38,0.25)", border: "1px solid rgba(220,38,38,0.5)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#EF4444", animation: "blink 1s infinite" }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>⚡ Ofertas relâmpago — até 70% OFF por tempo limitado</span>
           </div>
-          <Zap style={{ width: 28, height: 28 }} />
-        </div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 4px" }} data-testid="text-page-title">
-          <Zap style={{ width: 22, height: 22, display: "inline", verticalAlign: "middle", marginRight: 4 }} />
-          Ofertas Relâmpago
-        </h1>
-        <p style={{ fontSize: 13, opacity: 0.9, margin: "0 0 14px" }}>
-          Ofertas por tempo limitado com descontos de até 70%!
-        </p>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          background: globalTimer < 3600 ? "rgba(220,38,38,0.35)" : "rgba(0,0,0,0.25)",
-          borderRadius: 14, padding: "14px 18px",
-          backdropFilter: "blur(4px)",
-          animation: globalTimer < 3600 ? "globalCountdownPulse 2s ease-in-out infinite" : "none",
-          border: globalTimer < 3600 ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
-          transition: "background 0.5s ease, border 0.5s ease",
-        }} data-testid="countdown-global">
-          <Clock style={{ width: 20, height: 20, flexShrink: 0 }} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              {globalTimer < 3600 ? "Encerrando em breve!" : "Próxima rodada em"}
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {formatSeconds(globalTimer).split(":").map((segment, idx) => (
-                <span key={idx} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{
-                    fontSize: 26, fontWeight: 900, fontVariantNumeric: "tabular-nums",
-                    letterSpacing: 1, background: "rgba(255,255,255,0.15)",
-                    borderRadius: 8, padding: "2px 8px", minWidth: 42, textAlign: "center",
-                    display: "inline-block",
-                  }}>
-                    {segment}
+          <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
+            Ofertas Relâmpago
+          </h1>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
+            {FLASH_DEALS.length} deals exclusivos com preços por tempo limitado — garanta antes que acabem!
+          </p>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            background: globalTimer < 3600 ? "rgba(220,38,38,0.35)" : "rgba(0,0,0,0.25)",
+            borderRadius: 14, padding: "14px 18px",
+            backdropFilter: "blur(4px)",
+            animation: globalTimer < 3600 ? "globalCountdownPulse 2s ease-in-out infinite" : "none",
+            border: globalTimer < 3600 ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.1)",
+            transition: "background 0.5s ease, border 0.5s ease",
+            marginBottom: 20,
+          }} data-testid="countdown-global">
+            <Clock style={{ width: 20, height: 20, flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {globalTimer < 3600 ? "Encerrando em breve!" : "Próxima rodada em"}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                {formatSeconds(globalTimer).split(":").map((segment, idx) => (
+                  <span key={idx} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{
+                      fontSize: 26, fontWeight: 900, fontVariantNumeric: "tabular-nums",
+                      letterSpacing: 1, background: "rgba(255,255,255,0.15)",
+                      borderRadius: 8, padding: "2px 8px", minWidth: 42, textAlign: "center",
+                      display: "inline-block",
+                    }}>
+                      {segment}
+                    </span>
+                    {idx < 2 && <span style={{ fontSize: 22, fontWeight: 900, opacity: 0.7 }}>:</span>}
                   </span>
-                  {idx < 2 && <span style={{ fontSize: 22, fontWeight: 900, opacity: 0.7 }}>:</span>}
-                </span>
-              ))}
+                ))}
+              </div>
             </div>
+            {globalTimer < 3600 && (
+              <AlertTriangle style={{ width: 18, height: 18, color: "#FDE68A", flexShrink: 0, marginLeft: "auto" }} />
+            )}
           </div>
-          {globalTimer < 3600 && (
-            <AlertTriangle style={{ width: 18, height: 18, color: "#FDE68A", flexShrink: 0, marginLeft: "auto" }} />
-          )}
+          <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
+            {["⚡ Preços exclusivos", "🔒 Vagas limitadas", "💬 Confirme via WhatsApp"].map(item => (
+              <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -879,6 +877,9 @@ export default function FlashDealsPage() {
         </a>
       </div>
 
+      <HomeFooter />
+      <MobileCTABar />
+
       {notificationVisible && notification && (
         <div style={{
           position: "fixed", bottom: 90, left: 16, right: 16,
@@ -908,23 +909,6 @@ export default function FlashDealsPage() {
           </div>
         </div>
       )}
-
-      <a
-        href="https://wa.me/5564993197555?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20as%20ofertas%20rel%C3%A2mpago%20do%20RSV360!"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="button-whatsapp-float"
-        style={{
-          position: "fixed", bottom: 24, right: 24,
-          width: 56, height: 56, borderRadius: "50%",
-          background: "#25D366", color: "#fff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(37,211,102,0.4)",
-          zIndex: 50, textDecoration: "none",
-        }}
-      >
-        <Phone style={{ width: 26, height: 26 }} />
-      </a>
 
       <style>{`
         @keyframes flashBlink {

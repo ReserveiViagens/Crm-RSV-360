@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Gavel, Clock, ArrowLeft, Star, MapPin, TrendingUp, Users, Flame, X, Plus, Minus, Bell, ChevronRight, Sparkles, Zap, Pause, Play } from "lucide-react"
-import { Link } from "wouter";
+import { Gavel, Clock, Star, MapPin, TrendingUp, Users, Flame, X, Plus, Minus, Bell, ChevronRight, Sparkles, Zap, Pause, Play } from "lucide-react"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -327,57 +329,47 @@ export default function LeiloesPage() {
         ))}
       </div>
 
+      <HomeHeader />
       <div style={{
-        background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #2563EB 100%)",
-        padding: "16px 16px 24px", color: "#fff", position: "relative", overflow: "hidden",
+        background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%)",
+        padding: "40px 16px 0", color: "#fff", position: "relative", overflow: "hidden",
       }}>
         <div style={{
           position: "absolute", top: -50, right: -50, width: 200, height: 200,
           borderRadius: "50%", background: "rgba(245,124,0,0.1)", filter: "blur(40px)",
         }} />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" data-testid="link-back-home" style={{ color: "#fff", display: "flex" }}>
-              <ArrowLeft style={{ width: 22, height: 22 }} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 4, background: "rgba(220,38,38,0.2)",
-              padding: "4px 10px", borderRadius: 20, border: "1px solid rgba(220,38,38,0.3)",
-            }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(220,38,38,0.2)", border: "1px solid rgba(220,38,38,0.4)", borderRadius: 20, padding: "5px 14px" }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", animation: "pulse 1.5s infinite" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#FCA5A5" }}>AO VIVO</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>🔨 Leilão Ao Vivo</span>
             </div>
           </div>
-        </div>
 
-        <h1 style={{ fontSize: 28, fontWeight: 900, margin: "0 0 4px", position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 10 }}>
-          <Gavel style={{ width: 26, height: 26 }} />
-          Leilão Ao Vivo
-        </h1>
-        <p style={{ fontSize: 13, opacity: 0.85, margin: "0 0 8px", position: "relative", zIndex: 1 }}>
-          Dê lances e garanta os melhores preços em hotéis e pacotes!
-        </p>
+          <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
+            Lances em Tempo Real
+          </h1>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 16px", lineHeight: 1.6 }}>
+            Dê lances e garanta os melhores preços em hotéis e pacotes para Caldas Novas!
+          </p>
 
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
-          background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
-          border: "1px solid rgba(255,255,255,0.1)", position: "relative", zIndex: 1,
-        }}>
-          <Users style={{ width: 16, height: 16, color: "#F59E0B" }} />
-          <span data-testid="text-online-competitors" style={{ fontSize: 13, fontWeight: 700, color: "#FDE68A" }}>
-            {onlineCompetitors} competidores online agora
-          </span>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", animation: "pulse 1.5s infinite", marginLeft: "auto" }} />
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
+            background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}>
+            <Users style={{ width: 16, height: 16, color: "#F59E0B" }} />
+            <span data-testid="text-online-competitors" style={{ fontSize: 13, fontWeight: 700, color: "#FDE68A" }}>
+              {onlineCompetitors} competidores online agora
+            </span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", animation: "pulse 1.5s infinite", marginLeft: "auto" }} />
+          </div>
+
+          <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
+            {["🏆 Lances ao vivo", "⚡ Preços abaixo do mercado", "💬 Confirme no WhatsApp"].map(item => (
+              <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)", position: "relative", zIndex: 1 }}>
@@ -669,7 +661,8 @@ export default function LeiloesPage() {
 
       <CrossSellSection title="Enquanto espera, veja também..." items={crossSellItems} />
 
-      <div style={{ height: 100 }} />
+      <HomeFooter />
+      <MobileCTABar />
 
       {bidModal && (
         <div

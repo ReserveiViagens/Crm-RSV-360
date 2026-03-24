@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { ArrowLeft, Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer } from "lucide-react"
-import { Link } from "wouter";
+import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer } from "lucide-react"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -618,63 +620,64 @@ export default function PromocoesPage() {
         }
       `}</style>
 
+      <HomeHeader />
       <div style={{
-        background: "linear-gradient(135deg, #F57C00 0%, #DC2626 100%)",
-        color: "#fff", padding: "24px 20px 0",
+        background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
+        color: "#fff", padding: "40px 20px 0",
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" data-testid="link-back-home" style={{ color: "#fff", display: "flex", alignItems: "center" }}>
-              <ArrowLeft style={{ width: 22, height: 22 }} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#FDE68A" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F57C00", animation: "blink 1.5s infinite" }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>🔥 8 promoções ativas — até 75% OFF</span>
           </div>
-        </div>
-        <h1 data-testid="text-page-title" style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>Promocoes Especiais</h1>
+          <h1 data-testid="text-page-title" style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>Promoções Especiais</h1>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
+            Caldas Novas e Rio Quente com cupom exclusivo CALDAS15 — pacotes, hotéis e ingressos
+          </p>
 
-        <div style={{
-          background: "rgba(0,0,0,0.2)", borderRadius: 16,
-          padding: "16px 18px", textAlign: "center", marginBottom: 16,
-          border: "1px solid rgba(255,255,255,0.15)",
-        }}>
           <div style={{
-            fontSize: 14, fontWeight: 700, marginBottom: 10,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            background: "rgba(0,0,0,0.2)", borderRadius: 16,
+            padding: "16px 18px", textAlign: "center", marginBottom: 16,
+            border: "1px solid rgba(255,255,255,0.15)",
           }}>
-            <Flame style={{ width: 16, height: 16, color: "#FDE68A" }} /> Oferta Relampago — Acaba em:
-          </div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-            {[
-              { val: timeLeft.hours, label: "Horas" },
-              { val: timeLeft.minutes, label: "Min" },
-              { val: timeLeft.seconds, label: "Seg" },
-            ].map((t) => (
-              <div key={t.label} style={{
-                background: "rgba(255,255,255,0.15)", borderRadius: 12,
-                padding: "10px 16px", minWidth: 60, textAlign: "center",
-                backdropFilter: "blur(4px)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                animation: t.label === "Seg" ? "countdownPulse 1s infinite" : "none",
-              }}>
-                <div style={{ fontSize: 26, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>
-                  {t.val.toString().padStart(2, "0")}
+            <div style={{
+              fontSize: 14, fontWeight: 700, marginBottom: 10,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}>
+              <Flame style={{ width: 16, height: 16, color: "#FDE68A" }} /> Oferta Relampago — Acaba em:
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              {[
+                { val: timeLeft.hours, label: "Horas" },
+                { val: timeLeft.minutes, label: "Min" },
+                { val: timeLeft.seconds, label: "Seg" },
+              ].map((t) => (
+                <div key={t.label} style={{
+                  background: "rgba(255,255,255,0.15)", borderRadius: 12,
+                  padding: "10px 16px", minWidth: 60, textAlign: "center",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  animation: t.label === "Seg" ? "countdownPulse 1s infinite" : "none",
+                }}>
+                  <div style={{ fontSize: 26, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>
+                    {t.val.toString().padStart(2, "0")}
+                  </div>
+                  <div style={{ fontSize: 10, opacity: 0.8, fontWeight: 600 }}>{t.label}</div>
                 </div>
-                <div style={{ fontSize: 10, opacity: 0.8, fontWeight: 600 }}>{t.label}</div>
-              </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
+            {["✅ Descontos verificados", "🎟️ Cupom CALDAS15", "💬 Suporte via WhatsApp"].map(item => (
+              <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
             ))}
           </div>
         </div>
 
         <div style={{
           display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12,
-          borderBottom: "2px solid rgba(255,255,255,0.15)",
+          borderBottom: "2px solid rgba(255,255,255,0.15)", padding: "0 20px 12px",
         }}>
           {filters.map((f) => {
             const Icon = f.icon
@@ -850,29 +853,8 @@ export default function PromocoesPage() {
         </div>
       </div>
 
-      <div style={{ textAlign: "center", padding: "0 16px 80px" }}>
-        <Link href="/" data-testid="link-back-bottom" style={{
-          display: "inline-flex", alignItems: "center", gap: 6,
-          color: "#666", fontSize: 14, textDecoration: "none",
-        }}>
-          <ArrowLeft style={{ width: 16, height: 16 }} /> Voltar ao Inicio
-        </Link>
-      </div>
-
-      <a
-        data-testid="button-whatsapp-float"
-        href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre as promoções especiais."
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          position: "fixed", bottom: 80, right: 16,
-          width: 56, height: 56, background: "#22C55E",
-          borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(34,197,94,0.4)", zIndex: 50,
-        }}
-      >
-        <Phone style={{ width: 24, height: 24, color: "#fff" }} />
-      </a>
+      <HomeFooter />
+      <MobileCTABar />
 
       {showProfileModal && (
         <TravelerProfileModal
