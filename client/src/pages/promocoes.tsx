@@ -650,7 +650,7 @@ export default function PromocoesPage() {
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F57C00", animation: "blink 1.5s infinite" }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>🔥 8 promoções ativas — até 75% OFF</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>🔥 Ofertas por tempo limitado — até 75% OFF</span>
           </div>
           <h1 data-testid="text-page-title" style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>Promoções Especiais</h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>

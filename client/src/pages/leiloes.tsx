@@ -353,16 +353,30 @@ export default function LeiloesPage() {
             {leiloes.filter(l => l.timeLeftSeconds > 0).length} leilões ativos agora — dê lances e conquiste os melhores preços em Caldas Novas!
           </p>
 
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
-            background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}>
-            <Users style={{ width: 16, height: 16, color: "#F59E0B" }} />
-            <span data-testid="text-online-competitors" style={{ fontSize: 13, fontWeight: 700, color: "#FDE68A" }}>
-              {onlineCompetitors} competidores online agora
-            </span>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", animation: "pulse 1.5s infinite", marginLeft: "auto" }} />
+          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+            <div style={{
+              flex: 1, minWidth: 160, display: "flex", alignItems: "center", gap: 8,
+              background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <Users style={{ width: 16, height: 16, color: "#F59E0B" }} />
+              <span data-testid="text-online-competitors" style={{ fontSize: 13, fontWeight: 700, color: "#FDE68A" }}>
+                {onlineCompetitors} competidores online
+              </span>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", animation: "pulse 1.5s infinite", marginLeft: "auto" }} />
+            </div>
+            {leiloes.filter(l => l.timeLeftSeconds > 0 && l.timeLeftSeconds <= 600).length > 0 && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "rgba(220,38,38,0.25)", borderRadius: 10, padding: "8px 12px",
+                border: "1px solid rgba(220,38,38,0.4)",
+              }} data-testid="text-ending-soon">
+                <Flame style={{ width: 14, height: 14, color: "#FCA5A5", flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#FCA5A5" }}>
+                  {leiloes.filter(l => l.timeLeftSeconds > 0 && l.timeLeftSeconds <= 600).length} encerrando em breve!
+                </span>
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
