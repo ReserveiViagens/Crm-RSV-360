@@ -84,6 +84,20 @@ export function HomeHeader() {
               <Phone style={{ width: 14, height: 14 }} />
               WhatsApp
             </a>
+            <a
+              href={WA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="header-btn-whatsapp-mobile"
+              style={{
+                display: "none", alignItems: "center", justifyContent: "center",
+                width: 36, height: 36, borderRadius: 8,
+                background: "#25D366", textDecoration: "none", flexShrink: 0,
+              }}
+              className="show-mobile"
+            >
+              <Phone style={{ width: 16, height: 16, color: "#fff" }} />
+            </a>
             <Link href="/ingressos">
               <button
                 data-testid="header-btn-ingressos"

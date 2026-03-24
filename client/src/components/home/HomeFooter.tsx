@@ -113,8 +113,6 @@ export function HomeFooter() {
                 <Link
                   href={link.href}
                   style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", textDecoration: "none", lineHeight: 1.6 }}
-                  onMouseEnter={(e: any) => (e.currentTarget.style.color = "#fff")}
-                  onMouseLeave={(e: any) => (e.currentTarget.style.color = "rgba(255,255,255,0.65)")}
                 >
                   {link.label}
                 </Link>
