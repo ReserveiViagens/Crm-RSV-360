@@ -18,7 +18,7 @@ import { CalendarioIngressos, DateBanner, getPriceMultiplier, getDateAvailabilit
 import { EnterpriseAccordion } from "@/components/EnterpriseAccordion"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { CartAddModal } from "@/components/CartAddModal"
-import { DESTINATION_CITIES, type DestinationCity } from "@/lib/enterprises"
+import { DESTINATION_CITIES, ENTERPRISE_CONFIG, type DestinationCity } from "@/lib/enterprises"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -336,7 +336,8 @@ const ticketsBase: TicketItem[] = [
     name: "Meia-Entrada — Idoso (60+)",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
-    enterprise: "hot-park", destinationCity: "rio-quente",
+    enterprise: "hot-park", enterprises: ["hot-park", "diroma", "lagoa-termas", "kawana"],
+    destinationCity: "rio-quente",
     description: "Direito garantido por lei federal para maiores de 60 anos. Válido em todos os parques conveniados.",
     price: 95, originalPrice: 189, discount: 50,
     image: "/images/lagoa-termas-parque.jpeg",
@@ -353,7 +354,8 @@ const ticketsBase: TicketItem[] = [
     name: "Meia-Entrada — Estudante",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
-    enterprise: "hot-park", destinationCity: "rio-quente",
+    enterprise: "hot-park", enterprises: ["hot-park", "diroma", "lagoa-termas", "kawana"],
+    destinationCity: "rio-quente",
     description: "Lei da Meia-Entrada para estudantes com carteirinha nacional válida (CIE/UNE/ANIPES).",
     price: 95, originalPrice: 189, discount: 50,
     image: "/images/hot-park.jpeg",
@@ -370,7 +372,8 @@ const ticketsBase: TicketItem[] = [
     name: "Ingresso Especial — PCD",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
-    enterprise: "diroma", destinationCity: "caldas-novas",
+    enterprise: "hot-park", enterprises: ["hot-park", "diroma", "lagoa-termas", "kawana"],
+    destinationCity: "rio-quente",
     description: "Ingresso especial para Pessoas com Deficiência (PCD). Alguns parques oferecem gratuidade total com laudo.",
     price: 50, originalPrice: 189, discount: 74,
     image: "/images/kawana-park.jpeg",
@@ -387,7 +390,8 @@ const ticketsBase: TicketItem[] = [
     name: "Meia-Entrada — Professor",
     categorySection: "ingresso-1-dia",
     ticketCategory: "meia-entrada",
-    enterprise: "diroma", destinationCity: "caldas-novas",
+    enterprise: "diroma", enterprises: ["hot-park", "diroma", "lagoa-termas", "kawana"],
+    destinationCity: "caldas-novas",
     description: "Desconto especial para professores no Water Park e Clube Privé. Apresentar contracheque na bilheteria.",
     price: 50, originalPrice: 100, discount: 50,
     image: "/images/water-park.jpeg",
@@ -534,7 +538,14 @@ export default function IngressosPage() {
   }, [tickets, activeFilter, activePick])
 
   const cityFilteredTickets = useMemo(() => {
-    return filteredTickets.filter(t => t.destinationCity === activeCity)
+    const cityEnterprises = ENTERPRISE_CONFIG
+      .filter(e => e.city === activeCity)
+      .map(e => e.id)
+    return filteredTickets.filter(t => {
+      if (t.destinationCity === activeCity) return true
+      const ticketEnterprises = t.enterprises ?? (t.enterprise ? [t.enterprise] : [])
+      return ticketEnterprises.some(eid => cityEnterprises.includes(eid as typeof cityEnterprises[number]))
+    })
   }, [filteredTickets, activeCity])
 
   function handleCityChange(city: DestinationCity) {

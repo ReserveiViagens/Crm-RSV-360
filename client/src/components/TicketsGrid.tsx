@@ -25,6 +25,7 @@ export interface TicketItem {
   alsoBoght?: string[]
   documentRequired?: string
   enterprise?: string
+  enterprises?: string[]
   destinationCity?: string
 }
 

@@ -54,9 +54,11 @@ export function EnterpriseAccordion({
     const map = new Map<EnterpriseId, TicketItem[]>()
     for (const e of ENTERPRISE_CONFIG) map.set(e.id, [])
     for (const t of tickets) {
-      const eid = t.enterprise as EnterpriseId | undefined
-      if (eid && map.has(eid)) {
-        map.get(eid)!.push(t)
+      const eids: string[] = t.enterprises ?? (t.enterprise ? [t.enterprise] : [])
+      for (const eid of eids) {
+        if (map.has(eid as EnterpriseId)) {
+          map.get(eid as EnterpriseId)!.push(t)
+        }
       }
     }
     return map
