@@ -6,7 +6,7 @@ export interface WeatherCodeInfo {
 
 const WEATHER_CODE_MAP: Record<number, WeatherCodeInfo> = {
   0:  { label: "Céu limpo",              emoji: "☀️",  group: "clear" },
-  1:  { label: "Predominantly clear",    emoji: "🌤️", group: "clear" },
+  1:  { label: "Predominantemente limpo", emoji: "🌤️", group: "clear" },
   2:  { label: "Parcialmente nublado",   emoji: "⛅",  group: "cloudy" },
   3:  { label: "Nublado",                emoji: "☁️",  group: "cloudy" },
   45: { label: "Neblina",                emoji: "🌫️", group: "fog" },

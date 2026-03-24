@@ -44,12 +44,20 @@ export interface OpenMeteoDailyResponse {
   precipitation_probability_max: number[];
 }
 
+export interface OpenMeteoHourlyResponse {
+  time: string[];
+  temperature_2m: number[];
+  precipitation_probability: number[];
+  precipitation: number[];
+}
+
 export interface OpenMeteoForecastPayload {
   latitude: number;
   longitude: number;
   timezone: string;
   current: OpenMeteoCurrentResponse;
   daily: OpenMeteoDailyResponse;
+  hourly: OpenMeteoHourlyResponse;
 }
 
 export function normalizeWeather(

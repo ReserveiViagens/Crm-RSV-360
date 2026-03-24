@@ -65,6 +65,7 @@ export async function fetchForecast(
     timezone,
     current: "temperature_2m,weather_code,wind_speed_10m",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
+    hourly: "temperature_2m,precipitation_probability,precipitation",
     forecast_days: "3",
     wind_speed_unit: "kmh",
   });
