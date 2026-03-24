@@ -1,0 +1,912 @@
+Perfeito. Vou te entregar um wireframe completo de landing page com foco em conversão, pensado para tráfego vindo de WhatsApp, Facebook, Instagram, TikTok, Google Ads, Meta Ads e YouTube.
+
+A ideia é esta:
+
+a landing page vira a etapa 1 do funil
+sua página atual de calendário vira a etapa 2
+o checkout vira a etapa 3
+
+Assim você não joga tráfego frio direto numa tela de decisão.
+
+Objetivo da landing
+
+A landing precisa fazer 5 coisas, nessa ordem:
+
+prender atenção em 3 segundos
+mostrar valor e desejo
+gerar confiança
+ajudar a pessoa a se identificar com uma opção
+levar para a página de escolha de data/ingresso
+Estrutura ideal do funil
+
+Etapa 1: Landing/Home
+Etapa 2: Escolha do parque + data
+Etapa 3: Checkout
+Etapa 4: Upsell de hotel / combo / passeio
+
+Rotas sugeridas:
+
+/ → landing page
+/ingressos → página atual
+/ingressos?perfil=familia
+/ingressos?perfil=economia
+/ingressos?destino=rio-quente
+/parque/hot-park
+/checkout
+Wireframe completo da landing page
+1. Header fixo
+Função
+
+Dar navegação mínima, confiança e CTA rápido.
+
+Estrutura
+
+Esquerda
+
+logo Reservei Viagens
+
+Centro ou navegação curta
+
+Parques
+Combos
+Hotéis
+Dúvidas
+
+Direita
+
+botão secundário: Falar no WhatsApp
+botão principal: Ver ingressos
+UX
+
+No mobile:
+
+logo
+ícone menu
+botão WhatsApp fixo ou CTA no header
+2. Hero principal
+
+Essa é a seção mais importante da página.
+
+Objetivo
+
+Responder rápido:
+
+o que é
+onde é
+por que vale a pena
+qual o próximo passo
+Layout
+
+Esquerda
+
+headline forte
+subtítulo
+CTAs
+prova social curta
+
+Direita
+
+imagem principal grande ou vídeo curto autoplay sem som
+Headline sugerida
+
+Ingressos com desconto para os melhores parques de Caldas Novas e Rio Quente
+
+Subheadline sugerida
+
+Compare parques, encontre a melhor opção para sua viagem e reserve com suporte rápido no WhatsApp.
+
+CTAs
+
+Botão principal:
+Ver ingressos com desconto
+
+Botão secundário:
+Falar com especialista no WhatsApp
+
+Prova social curta abaixo dos botões
+milhares de viajantes atendidos
+compra simples e segura
+ofertas e combos exclusivos
+Elementos visuais obrigatórios
+foto real de parque aquático
+pessoas se divertindo
+água, sol, família, férias
+ou vídeo curto com cenas de parque
+Gatilhos aqui
+desejo
+antecipação
+prova social
+clareza
+confiança
+3. Barra de confiança imediata
+
+Logo abaixo do hero.
+
+Objetivo
+
+Diminuir medo e aumentar sensação de segurança.
+
+Layout
+
+4 blocos horizontais com ícone.
+
+Conteúdo sugerido
+Compra rápida e segura
+Atendimento no WhatsApp
+Ingressos e combos com desconto
+Escolha fácil por perfil da viagem
+
+Essa seção deve ser curta e bem escaneável.
+
+4. Seção “Escolha pelo seu perfil”
+
+Essa seção é muito importante para conversão.
+
+Objetivo
+
+Fazer a pessoa pensar:
+“essa página entendeu meu tipo de viagem”
+
+Título
+
+Qual experiência combina mais com sua viagem?
+
+Subtítulo
+
+Escolha a forma mais fácil de encontrar os ingressos ideais para seu passeio.
+
+Layout
+
+Grid com 4 a 6 cards.
+
+Cards sugeridos
+Melhor custo-benefício
+Ideal para quem quer economizar sem perder a diversão.
+Vou com crianças
+Parques e opções mais procuradas por famílias.
+Mais popular
+Os ingressos mais reservados por viajantes.
+Quero combo
+Combine parques e economize mais.
+Quero relaxar
+Águas quentes, lazer e menos correria.
+Quero aventura
+Opções para quem busca mais emoção.
+Ação de cada card
+
+Levar para /ingressos?perfil=...
+
+Gatilhos
+personalização
+fluidez de decisão
+redução de esforço mental
+5. Seção dos parques principais
+
+Aqui você sai do abstrato e entra no produto.
+
+Objetivo
+
+Transformar cada parque em uma oferta desejável.
+
+Título
+
+Conheça os parques mais procurados da região
+
+Layout
+
+Cards visuais grandes, com foto.
+
+Estrutura de cada card
+foto forte do parque
+nome
+microdescrição
+selo
+faixa de preço ou “até X% OFF”
+para quem é ideal
+CTA
+Exemplo de card
+
+Hot Park
+O parque mais famoso da região, ideal para famílias e quem quer experiência premium.
+Selo: Mais procurado
+Faixa: a partir de R$ ...
+Botão: Ver ingressos
+
+diRoma Acqua Park
+Ótima opção para quem busca diversão com bom custo-benefício.
+Selo: Bom para economizar
+Botão: Ver opções
+
+Lagoa Termas Parques
+Águas termais e ambiente mais tranquilo para relaxar.
+Selo: Relaxar e curtir
+Botão: Quero conhecer
+
+Kawana Park
+Perfil mais aventureiro e experiência com mais energia.
+Selo: Para quem gosta de emoção
+
+Gatilhos
+visual
+identificação
+ancoragem
+escolha assistida
+6. Bloco de oferta e benefício
+Objetivo
+
+Responder: “por que comprar aqui?”
+
+Título
+
+Por que reservar com a Reservei Viagens?
+
+Layout
+
+2 colunas ou 4 cards.
+
+Benefícios sugeridos
+Descontos especiais em ingressos e combos
+Suporte rápido no WhatsApp
+Escolha guiada para não errar o parque
+Compra simples e sem complicação
+Ofertas pensadas para famílias, casais e grupos
+Possibilidade de combinar parque + hotel
+Complemento de copy
+
+Aqui você não precisa perder tempo comparando tudo sozinho. Nós organizamos as melhores opções para sua viagem.
+
+Gatilhos
+autoridade
+conveniência
+redução de atrito
+7. Seção “Como funciona”
+Objetivo
+
+Deixar o processo fácil e seguro.
+
+Título
+
+Reserve em poucos passos
+
+Passos
+Escolha o parque ou o perfil da sua viagem
+Selecione a melhor data
+Compare as opções e combos
+Finalize sua reserva com rapidez
+UX
+
+Usar números grandes, ícones e texto curto.
+
+Gatilhos
+simplicidade
+previsibilidade
+redução de ansiedade
+8. Seção de prova social forte
+
+Hoje isso falta muito na sua estrutura.
+
+Objetivo
+
+Mostrar que outras pessoas já confiaram.
+
+Título
+
+Quem viaja para Caldas Novas e Rio Quente escolhe as melhores opções com a gente
+
+Formatos que funcionam
+avaliações com estrelas
+depoimentos curtos
+selos “mais vendido”
+reservas recentes
+contadores reais
+Exemplo
+
+“Foi super fácil escolher. Já cheguei com tudo resolvido.”
+— Juliana, Goiânia
+
+“O combo compensou muito para nossa família.”
+— Rafael, Brasília
+
+Bloco adicional
++X clientes atendidos
+X reservas nesta semana
+favorito das famílias
+Gatilhos
+prova social
+validação
+segurança
+9. Bloco de WhatsApp / ajuda humana
+
+Muito importante para tráfego social.
+
+Objetivo
+
+Capturar quem ainda não está pronto para clicar em compra.
+
+Título
+
+Está em dúvida sobre qual parque escolher?
+
+Texto
+
+Fale com nossa equipe no WhatsApp e receba uma sugestão rápida para sua viagem.
+
+CTA
+
+Falar com especialista
+
+Visual
+foto ou ilustração humanizada
+balão de conversa
+aparência acolhedora
+Gatilhos
+proximidade
+confiança
+suporte humano
+remoção de objeção
+10. Seção de combos
+
+Seu bloco de combo atual tem potencial. Na landing ele deve aparecer como oferta estratégica.
+
+Título
+
+Economize mais com combos inteligentes
+
+Subtítulo
+
+Combine parques e aproveite melhor sua viagem pagando menos.
+
+Layout
+
+2 ou 3 cards grandes.
+
+Exemplo
+
+Combo Família
+Ideal para quem vai com crianças e quer praticidade.
+
+Combo Semana Completa
+Mais economia para quem vai aproveitar vários dias.
+
+Combo Parque + Hotel
+Perfeito para quem quer resolver tudo em um só lugar.
+
+CTA
+
+Quero ver combos
+
+Gatilhos
+ancoragem de preço
+economia
+praticidade
+ticket maior
+11. Seção do clima e melhor data
+
+Você já tem isso na página interna. Na landing ele deve vender decisão, não só informar.
+
+Título
+
+Escolha o melhor dia para aproveitar seu passeio
+
+Texto
+
+Veja a previsão do tempo para organizar sua visita e aproveitar melhor parques aquáticos, águas quentes e atrações ao ar livre.
+
+Estrutura
+card curto de clima
+texto orientado para decisão
+botão: Escolher minha data
+Exemplo de copy dinâmica
+
+Semana com calor e chance de chuva isolada. Ótima para planejar dias de parque aquático.
+
+Gatilhos
+utilidade
+segurança
+planejamento
+12. Seção de FAQ
+
+Fundamental para reduzir abandono.
+
+Título
+
+Dúvidas frequentes
+
+Perguntas recomendadas
+O ingresso é digital?
+Preciso imprimir?
+Posso comprar para o mesmo dia?
+Como recebo meu ingresso?
+Posso falar com alguém no WhatsApp?
+É seguro comprar?
+Tem combo com desconto?
+Como escolher o melhor parque para crianças?
+UX
+
+Accordion simples, limpo, sem exagero.
+
+Gatilhos
+redução de objeção
+segurança
+clareza
+13. CTA final forte
+
+Fechamento da página.
+
+Objetivo
+
+Não deixar o usuário sair sem um próximo passo.
+
+Headline
+
+Pronto para escolher seu parque e garantir sua viagem?
+
+Subheadline
+
+Compare opções, veja datas e encontre a melhor oferta para seu perfil.
+
+Botões
+Ver ingressos agora
+Falar no WhatsApp
+Visual
+
+Bloco maior, mais vibrante, com fundo chamativo.
+
+14. Footer
+Conteúdo
+logo
+links rápidos
+WhatsApp
+termos
+política
+perguntas frequentes
+destino principal: Caldas Novas / Rio Quente
+Ordem visual ideal da landing
+
+Essa é a sequência que eu recomendo:
+
+Header
+Hero
+Barra de confiança
+Escolha pelo perfil
+Parques principais
+Benefícios / por que reservar aqui
+Como funciona
+Prova social
+WhatsApp / ajuda humana
+Combos
+Clima / melhor data
+FAQ
+CTA final
+Footer
+Versão mobile ideal
+
+No mobile, a ordem deve ser ainda mais direta:
+
+Hero
+CTA principal
+Prova social curta
+Perfil da viagem
+Parques
+WhatsApp
+Combos
+FAQ
+CTA final
+
+E usar CTA fixo na parte inferior com:
+
+Ver ingressos
+WhatsApp
+
+Isso faz muita diferença em conversão vindo de anúncio.
+
+Elementos visuais obrigatórios
+
+Para essa landing não ficar fria, eu colocaria obrigatoriamente:
+
+foto hero forte
+fotos reais dos parques
+pelo menos 1 vídeo curto no topo ou no meio
+ícones simples nos benefícios
+selos como:
+Mais vendido
+Ideal para famílias
+Melhor custo-benefício
+Combo com economia
+provas visuais de confiança
+cards com profundidade e contraste melhor
+Gatilhos mentais que a landing deve usar
+
+Sem exagero, mas com inteligência:
+
+prova social
+personalização
+autoridade
+conveniência
+antecipação
+economia
+urgência leve
+escassez controlada
+redução de risco
+suporte humano
+CTA principal da página
+
+O CTA principal da landing deve ser sempre um destes:
+
+Ver ingressos com desconto
+ou
+Escolher meu parque
+
+CTA secundário:
+Falar no WhatsApp
+
+Não recomendo ter 5 CTAs diferentes no topo.
+
+Wireframe em formato visual simples
+[HEADER]
+Logo | Parques | Combos | Hotéis | FAQ | WhatsApp | Ver ingressos
+
+[HERO]
+Headline forte
+Subheadline
+[CTA principal] [CTA WhatsApp]
+Prova social curta
+[Imagem ou vídeo forte]
+
+[BARRA DE CONFIANÇA]
+Compra segura | Suporte WhatsApp | Descontos | Escolha fácil
+
+[ESCOLHA PELO PERFIL]
+Card custo-benefício
+Card com crianças
+Card mais popular
+Card combo
+Card relaxar
+Card aventura
+
+[PARQUES PRINCIPAIS]
+Card Hot Park
+Card diRoma
+Card Lagoa Termas
+Card Kawana
+
+[POR QUE RESERVAR AQUI]
+Benefícios + diferenciais
+
+[COMO FUNCIONA]
+1 Escolha
+2 Data
+3 Compare
+4 Reserve
+
+[PROVA SOCIAL]
+Depoimentos + números + avaliações
+
+[AJUDA HUMANA / WHATSAPP]
+Texto + CTA
+
+[COMBOS]
+Combo família
+Combo semana
+Combo parque + hotel
+
+[CLIMA / MELHOR DATA]
+Resumo de clima + CTA escolher data
+
+[FAQ]
+Perguntas frequentes
+
+[CTA FINAL]
+Headline
+[Ver ingressos] [WhatsApp]
+
+[FOOTER]
+Links + contato + institucional
+Copy-base pronta para o topo
+
+Você pode usar algo assim:
+
+Ingressos com desconto para os melhores parques de Caldas Novas e Rio Quente
+Compare opções, descubra o parque ideal para sua viagem e reserve com suporte rápido no WhatsApp.
+
+Botões:
+
+Ver ingressos com desconto
+Falar com especialista
+Estratégia de transição para sua página atual
+
+A sua página atual não precisa ser jogada fora. Ela vira a próxima etapa.
+
+Jornada ideal
+
+Landing → usuário escolhe perfil/parque → cai na página atual já com filtro → escolhe data → compra
+
+Exemplo:
+
+clicou em “Vou com crianças”
+vai para /ingressos?perfil=familia
+página atual já destaca opções adequadas
+
+Isso melhora muito a experiência.
+
+Minha recomendação final
+
+Faça primeiro uma landing enxuta, mas forte, com:
+
+hero
+perfil da viagem
+parques
+benefícios
+prova social
+WhatsApp
+FAQ
+CTA final
+
+E mantenha sua página atual como etapa 2.
+
+Esse é o melhor equilíbrio entre:
+
+velocidade para lançar
+melhora de conversão
+melhor uso do que você já construiu
+
+No próximo passo, eu posso te entregar isso em formato de prompt pronto para Cursor/Replit, para ele gerar essa landing page em React + Tailwind, já com seções, componentes e copy inicial.
+
+Perfeito. Aqui está um prompt pronto para colar no Cursor ou no Replit AI para gerar a landing page em React + Tailwind, aproveitando sua página atual como etapa 2 do funil.
+
+Crie uma nova landing page/home page para o projeto existente de venda de ingressos para parques de Caldas Novas e Rio Quente.
+
+Contexto:
+- hoje o projeto está entrando direto na página de calendário e escolha de datas
+- essa página atual deve continuar existindo, mas passar a ser a etapa 2 do funil
+- a nova landing page será a etapa 1 do funil para tráfego vindo de WhatsApp, Facebook, Instagram, TikTok, Google Ads, Meta Ads e YouTube
+- o foco da nova página é conversão, desejo, confiança, prova social, CTA forte e melhor UX para tráfego frio
+- manter o estilo visual moderno do projeto, mas deixar a interface mais viva, mais emocional e mais persuasiva
+- a página atual de calendário deve continuar como rota de compra/seleção
+
+Objetivo:
+Criar uma home/landing page que:
+- apresente a oferta de forma forte e clara
+- gere desejo com visual mais rico
+- conduza o usuário até a página de ingressos
+- aumente confiança com prova social e benefícios
+- tenha CTA para WhatsApp e CTA para ver ingressos
+- seja mobile-first
+- tenha design com aparência premium e alta conversão
+- use React + Tailwind
+- use componentes reutilizáveis
+
+Regras obrigatórias:
+- não remover a página atual de calendário
+- criar uma nova rota principal `/`
+- manter a página atual como `/ingressos` ou rota equivalente
+- a landing page deve ser a nova entrada principal do projeto
+- usar React + Tailwind
+- criar layout responsivo
+- criar seções reutilizáveis e organizadas
+- usar hierarquia visual forte
+- usar cards mais vivos
+- usar imagens placeholders elegantes se não houver assets reais
+- incluir espaço preparado para vídeo hero
+- incluir microinterações suaves com Tailwind
+- manter performance boa
+- não exagerar em efeitos pesados
+- design focado em conversão e legibilidade
+- texto em português-BR
+
+Estrutura da landing page:
+1. Header fixo
+- logo da marca
+- links curtos: Parques, Combos, Hotéis, FAQ
+- botão secundário: Falar no WhatsApp
+- botão principal: Ver ingressos
+
+2. Hero principal
+- headline forte
+- subtítulo claro
+- botão principal: Ver ingressos com desconto
+- botão secundário: Falar com especialista
+- prova social curta abaixo dos CTAs
+- imagem hero grande ou bloco preparado para vídeo
+- usar copy emocional e comercial
+
+Copy sugerida no hero:
+Título:
+Ingressos com desconto para os melhores parques de Caldas Novas e Rio Quente
+
+Subtítulo:
+Compare opções, descubra o parque ideal para sua viagem e reserve com suporte rápido no WhatsApp.
+
+Prova social curta:
+- Compra simples e segura
+- Atendimento rápido
+- Ofertas e combos exclusivos
+
+3. Barra de confiança
+Criar 4 itens com ícones:
+- Compra rápida e segura
+- Atendimento no WhatsApp
+- Descontos especiais
+- Escolha fácil por perfil da viagem
+
+4. Seção "Escolha pelo seu perfil"
+Criar cards clicáveis para levar o usuário para `/ingressos` com filtros por query string
+Exemplos:
+- Melhor custo-benefício
+- Vou com crianças
+- Mais popular
+- Quero combo
+- Quero relaxar
+- Quero aventura
+
+Cada card precisa:
+- título
+- descrição curta
+- ícone
+- hover bonito
+- CTA implícito
+- link para `/ingressos?perfil=...`
+
+5. Seção "Parques mais procurados"
+Criar cards maiores com foto placeholder, selo e CTA
+Parques sugeridos:
+- Hot Park
+- diRoma Acqua Park
+- Lagoa Termas Parques
+- Kawana Park
+
+Cada card deve ter:
+- imagem
+- nome
+- descrição curta
+- selo tipo “Mais procurado”, “Família”, “Bom custo-benefício”, etc.
+- botão “Ver ingressos”
+- visual muito mais vendedor do que lista simples
+
+6. Seção "Por que reservar com a Reservei Viagens?"
+Criar uma seção com benefícios:
+- descontos em ingressos e combos
+- suporte rápido no WhatsApp
+- escolha guiada para não errar
+- compra simples
+- opções para famílias, casais e grupos
+- possibilidade de combinar parque + hospedagem
+
+7. Seção "Como funciona"
+Criar 4 passos visuais:
+- Escolha o parque ou o perfil da viagem
+- Selecione a melhor data
+- Compare opções e combos
+- Finalize sua reserva
+
+8. Seção de prova social
+Criar cards ou bloco com:
+- avaliações
+- frases curtas de clientes
+- número de reservas ou selo de confiança
+- aparência premium
+- sem exagero visual
+Exemplos de depoimentos:
+“Foi muito fácil escolher e comprar.”
+“Conseguimos um combo ótimo para a família.”
+“Atendimento rápido e prático no WhatsApp.”
+
+9. Seção de ajuda humana / WhatsApp
+Criar um bloco forte com:
+- título chamativo
+- texto curto
+- botão para WhatsApp
+Sugestão:
+“Está em dúvida sobre qual parque escolher?”
+“Fale com nossa equipe e receba uma sugestão rápida para sua viagem.”
+
+10. Seção de combos
+Criar cards para:
+- Combo Família
+- Combo Semana Completa
+- Combo Parque + Hotel
+Cada card com:
+- destaque de economia
+- mini descrição
+- CTA “Quero ver combos”
+
+11. Seção de clima / melhor data
+Criar um bloco visual conectado com o módulo de clima já existente no projeto
+Não precisa implementar integração completa agora, mas preparar UI
+Texto sugerido:
+“Veja a previsão do tempo e escolha o melhor dia para aproveitar seu passeio.”
+Adicionar CTA:
+“Escolher minha data”
+
+12. FAQ
+Criar accordion com perguntas:
+- O ingresso é digital?
+- Preciso imprimir?
+- Posso comprar para o mesmo dia?
+- Como recebo meu ingresso?
+- Posso falar com alguém no WhatsApp?
+- É seguro comprar?
+- Tem combo com desconto?
+- Como escolher o melhor parque para crianças?
+
+13. CTA final
+Criar bloco final forte com fundo de destaque
+Título:
+Pronto para escolher seu parque e garantir sua viagem?
+Subtítulo:
+Compare opções, veja datas e encontre a melhor oferta para seu perfil.
+Botões:
+- Ver ingressos agora
+- Falar no WhatsApp
+
+14. Footer
+- logo
+- links rápidos
+- contato
+- WhatsApp
+- FAQ
+- termos e política
+
+Requisitos de UI/UX:
+- deixar a página mais viva, mais quente e mais desejável
+- usar boas áreas de respiro, mas sem cara de vazio
+- melhorar hierarquia visual
+- priorizar contraste entre seções
+- usar gradientes com moderação
+- usar sombras suaves, bordas elegantes e cards premium
+- deixar visual moderno de turismo/lazer
+- evitar aparência de dashboard
+- criar sensação de experiência, não só de sistema
+- incluir placeholders de fotos grandes
+- preparar espaço para vídeo hero
+- priorizar emoção + clareza + conversão
+
+Requisitos técnicos:
+- criar componentes reutilizáveis
+- separar seções por componentes
+- usar Tailwind de forma limpa
+- manter código organizado
+- nomes claros de arquivos
+- não quebrar rotas existentes
+- criar CTA para navegar para `/ingressos`
+- preparar estrutura para filtros futuros
+- manter acessibilidade básica
+- responsividade excelente no mobile
+
+Sugestão de estrutura de componentes:
+- `src/pages/HomePage.jsx`
+- `src/components/home/HomeHeader.jsx`
+- `src/components/home/HeroSection.jsx`
+- `src/components/home/TrustBar.jsx`
+- `src/components/home/ProfileSelector.jsx`
+- `src/components/home/ParksSection.jsx`
+- `src/components/home/BenefitsSection.jsx`
+- `src/components/home/HowItWorksSection.jsx`
+- `src/components/home/SocialProofSection.jsx`
+- `src/components/home/WhatsAppHelpSection.jsx`
+- `src/components/home/CombosSection.jsx`
+- `src/components/home/WeatherPreviewSection.jsx`
+- `src/components/home/FaqSection.jsx`
+- `src/components/home/FinalCtaSection.jsx`
+- `src/components/home/HomeFooter.jsx`
+
+Entregáveis:
+- implementar a nova landing page completa
+- conectar a rota `/`
+- manter a página de ingressos como próxima etapa do funil
+- entregar o código já organizado por componentes
+- incluir copy inicial em português
+- usar placeholders elegantes para imagens
+- criar visual pronto para produção
+- deixar a experiência claramente superior à tela atual em termos de conversão, emoção e clareza
+
+Critérios de aceite:
+- existe uma nova home page na rota `/`
+- a home está orientada para tráfego frio
+- a home conduz para `/ingressos`
+- a página atual de calendário continua funcionando
+- a home está mais viva e persuasiva que a tela atual
+- há CTA para ingressos e WhatsApp
+- layout responsivo e premium
+- componentes organizados e reutilizáveis
+- textos em português-BR
