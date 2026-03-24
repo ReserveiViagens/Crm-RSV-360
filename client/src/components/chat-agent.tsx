@@ -398,7 +398,7 @@ export default function ChatAgent({ defaultOpen = false, initialMessage, onOpenH
       hasInitialized.current = true
       setTimeout(() => handleSendMessage(initialMessage), 600)
     }
-  }, [isOpen])
+  }, [isOpen, initialMessage])
 
   const formatPrice = (p: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p)
 

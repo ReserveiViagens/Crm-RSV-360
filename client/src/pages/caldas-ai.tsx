@@ -230,6 +230,16 @@ export default function CaldasAIPage() {
   const [showChat, setShowChat] = useState(!!qParam)
   const [initialChatMessage, setInitialChatMessage] = useState(qParam)
   const [chatKey, setChatKey] = useState(0)
+
+  useEffect(() => {
+    const q = new URLSearchParams(search).get("q") || ""
+    if (q) {
+      setInitialChatMessage(q)
+      setChatKey(k => k + 1)
+      setShowChat(true)
+    }
+  }, [search])
+
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
