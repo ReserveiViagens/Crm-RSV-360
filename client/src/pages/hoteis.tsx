@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react"
-import { ArrowLeft, Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, Landmark, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart } from "lucide-react"
-import { Link } from "wouter";
+import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag } from "lucide-react"
+import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 import {
   SocialProofBanner,
@@ -13,6 +13,9 @@ import {
   TravelerProfileModal,
   type TravelerProfile,
 } from "@/components/ai-conversion-elements"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 interface HotelReview {
   name: string
@@ -714,6 +717,7 @@ function getMatchReasons(profile: TravelerProfile | null, hotel: Hotel): string[
 }
 
 export default function HoteisPage() {
+  const search = useSearch()
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
@@ -723,6 +727,20 @@ export default function HoteisPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [viewerCounts, setViewerCounts] = useState<Record<string, number>>({})
   const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const params = new URLSearchParams(search)
+    const perfil = params.get("perfil")
+    const perfilMap: Record<string, string> = {
+      familia: "Família",
+      casal: "Casal",
+      negocios: "5 Estrelas",
+      economico: "Econômico",
+    }
+    if (perfil && perfilMap[perfil]) {
+      setActiveFilter(perfilMap[perfil])
+    }
+  }, [search])
 
   useEffect(() => {
     const p = getTravelerProfile()
@@ -778,6 +796,8 @@ export default function HoteisPage() {
     if (activeFilter === "4 Estrelas") return hotel.stars === 4
     if (activeFilter === "Resort") return hotel.tags?.includes("Resort")
     if (activeFilter === "Econômico") return hotel.tags?.includes("Econômico")
+    if (activeFilter === "Família") return hotel.tags?.includes("Família")
+    if (activeFilter === "Casal") return hotel.tags?.includes("Casal")
     return true
   })
 
@@ -1068,6 +1088,13 @@ export default function HoteisPage() {
     )
   }
 
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  const scrollToHotels = () => {
+    const el = document.getElementById("hoteis-grid")
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
   return (
     <div className="rsv-subpage">
       <style>{`
@@ -1085,70 +1112,152 @@ export default function HoteisPage() {
         }
       `}</style>
 
+      <HomeHeader />
+
       <div
+        ref={heroRef}
         style={{
-          background: "linear-gradient(135deg, #1e3a5f 0%, #0D47A1 50%, #2563EB 100%)",
+          background: "linear-gradient(135deg, #0f2850 0%, #1a3a6e 45%, #1e4fa3 100%)",
           color: "#fff",
-          padding: "24px 20px 28px",
+          padding: "36px 20px 32px",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" style={{ color: "#fff", display: "flex", alignItems: "center" }}>
-              <ArrowLeft size={22} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
-          </div>
-          {!profile && (
-            <button
-              data-testid="button-create-profile"
-              onClick={() => setShowProfileModal(true)}
-              style={{
-                padding: "8px 14px", border: "1px solid rgba(255,255,255,0.3)",
-                borderRadius: 10, background: "rgba(255,255,255,0.1)", color: "#fff",
-                fontSize: 12, fontWeight: 600, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 6,
-                backdropFilter: "blur(4px)",
-              }}
-            >
-              <Sparkles style={{ width: 14, height: 14 }} />
-              Personalizar
-            </button>
-          )}
-        </div>
-        <h1 data-testid="text-page-title" style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>
-          Hoteis em Caldas Novas
-        </h1>
-        <p style={{ fontSize: 14, margin: 0, opacity: 0.85, lineHeight: 1.5 }}>
-          Encontre as melhores hospedagens em Caldas Novas e Rio Quente com precos exclusivos
-        </p>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle at 80% 20%, rgba(245,124,0,0.12) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(37,99,235,0.2) 0%, transparent 40%)",
+          pointerEvents: "none",
+        }} />
 
-        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)", marginTop: 16 }}>
-          {FILTERS.map((filter) => (
+        <div style={{ position: "relative", maxWidth: 700, margin: "0 auto" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)",
+            borderRadius: 20, padding: "5px 14px", marginBottom: 16,
+          }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", animation: "pulse 2s infinite" }} />
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24" }}>
+              {hotels.length} hotéis disponíveis agora · até 35% OFF
+            </span>
+          </div>
+
+          <h1
+            data-testid="text-page-title"
+            style={{ fontSize: 28, fontWeight: 900, margin: "0 0 12px", lineHeight: 1.2, letterSpacing: -0.5 }}
+          >
+            Os melhores hotéis de Caldas Novas com <span style={{ color: "#F57C00" }}>até 35% de desconto</span>
+          </h1>
+
+          <p style={{ fontSize: 15, margin: "0 0 24px", opacity: 0.88, lineHeight: 1.6 }}>
+            Hospedagens com piscinas termais, parques aquáticos e café da manhã incluído. Reserva segura e suporte 24h.
+          </p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
             <button
-              key={filter}
-              data-testid={`button-filter-${filter}`}
-              onClick={() => setActiveFilter(filter)}
+              data-testid="button-hero-cta"
+              onClick={scrollToHotels}
               style={{
-                flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
-                color: activeFilter === filter ? "#fff" : "rgba(255,255,255,0.6)",
-                fontSize: 13, fontWeight: activeFilter === filter ? 700 : 500,
-                cursor: "pointer", position: "relative",
-                borderBottom: activeFilter === filter ? "2px solid #F57C00" : "2px solid transparent",
-                marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
+                padding: "14px 28px", border: "none", borderRadius: 12, cursor: "pointer",
+                fontSize: 15, fontWeight: 800, color: "#fff",
+                background: "linear-gradient(135deg, #F57C00, #EA580C)",
+                boxShadow: "0 4px 20px rgba(245,124,0,0.45)",
+                display: "flex", alignItems: "center", gap: 8,
               }}
             >
-              {filter}
+              🏨 Ver ofertas
             </button>
-          ))}
+            <a
+              href="https://wa.me/5564993197555?text=Olá! Quero saber mais sobre os hotéis em Caldas Novas."
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="button-hero-whatsapp"
+              style={{
+                padding: "14px 22px", border: "1px solid rgba(255,255,255,0.35)",
+                borderRadius: 12, cursor: "pointer", fontSize: 14, fontWeight: 700,
+                color: "#fff", background: "rgba(255,255,255,0.10)", backdropFilter: "blur(6px)",
+                display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
+              }}
+            >
+              <Phone style={{ width: 16, height: 16 }} />
+              Falar com especialista
+            </a>
+          </div>
+
+          <div style={{ display: "flex", gap: 0, borderBottom: "2px solid rgba(255,255,255,0.15)" }}>
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                data-testid={`button-filter-${filter}`}
+                onClick={() => setActiveFilter(filter)}
+                style={{
+                  flex: 1, maxWidth: 120, padding: "10px 0", border: "none", background: "transparent",
+                  color: activeFilter === filter ? "#fff" : "rgba(255,255,255,0.6)",
+                  fontSize: 13, fontWeight: activeFilter === filter ? 700 : 500,
+                  cursor: "pointer", position: "relative",
+                  borderBottom: activeFilter === filter ? "2px solid #F57C00" : "2px solid transparent",
+                  marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
+                }}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      <div style={{
+        display: "flex", gap: 0, overflowX: "auto", padding: "12px 16px",
+        background: "#fff", borderBottom: "1px solid #F3F4F6",
+      }}>
+        {[
+          { label: "👨‍👩‍👧‍👦 Família", perfil: "familia", filter: "Família" },
+          { label: "💑 Casal", perfil: "casal", filter: "Casal" },
+          { label: "💼 Negócios", perfil: "negocios", filter: "5 Estrelas" },
+          { label: "💰 Econômico", perfil: "economico", filter: "Econômico" },
+        ].map((item) => (
+          <Link
+            key={item.perfil}
+            href={`/hoteis?perfil=${item.perfil}`}
+            data-testid={`button-perfil-${item.perfil}`}
+            style={{
+              flexShrink: 0, padding: "8px 16px", borderRadius: 20,
+              border: activeFilter === item.filter ? "2px solid #2563EB" : "1px solid #E5E7EB",
+              background: activeFilter === item.filter ? "#EFF6FF" : "#F9FAFB",
+              color: activeFilter === item.filter ? "#2563EB" : "#374151",
+              fontSize: 13, fontWeight: activeFilter === item.filter ? 700 : 500,
+              cursor: "pointer", textDecoration: "none", marginRight: 8,
+              whiteSpace: "nowrap", display: "inline-flex", alignItems: "center",
+              transition: "all 0.2s",
+            }}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+
+      <div style={{
+        display: "flex", gap: 0, overflowX: "auto", padding: "14px 16px",
+        background: "linear-gradient(135deg, #F0FDF4, #ECFDF5)",
+        borderBottom: "1px solid #D1FAE5", flexWrap: "nowrap",
+      }}>
+        {[
+          { icon: <Lock style={{ width: 16, height: 16, color: "#059669" }} />, text: "Reserva 100% segura" },
+          { icon: <Tag style={{ width: 16, height: 16, color: "#059669" }} />, text: "Melhores preços" },
+          { icon: <Phone style={{ width: 16, height: 16, color: "#059669" }} />, text: "Suporte 24h" },
+          { icon: <Check style={{ width: 16, height: 16, color: "#059669" }} />, text: "Cancelamento flexível" },
+        ].map((badge, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
+              marginRight: 20, whiteSpace: "nowrap",
+            }}
+          >
+            {badge.icon}
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#065F46" }}>{badge.text}</span>
+          </div>
+        ))}
       </div>
 
       <SocialProofBanner pageName="hoteis" />
@@ -1236,7 +1345,52 @@ export default function HoteisPage() {
         </div>
       )}
 
-      <div style={{ padding: "20px 16px" }}>
+      <div style={{
+        margin: "0 16px 28px", padding: "28px 24px", borderRadius: 20,
+        background: "linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)",
+        border: "1px solid #BFDBFE",
+      }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 6px", textAlign: "center" }}>
+          Por que reservar com a Reservei?
+        </h2>
+        <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 20px", textAlign: "center" }}>
+          Mais de 3.000 viajantes confiam em nós todo mês
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {[
+            {
+              icon: "🔒", title: "Pagamento Seguro",
+              desc: "Ambiente criptografado SSL e pagamento 100% protegido",
+            },
+            {
+              icon: "💰", title: "Melhor Preço",
+              desc: "Garantimos os menores preços ou devolvemos a diferença",
+            },
+            {
+              icon: "📞", title: "Suporte 24h",
+              desc: "Time de especialistas disponível 7 dias por semana",
+            },
+            {
+              icon: "✅", title: "Cancelamento Fácil",
+              desc: "Cancele ou remarque sem burocracia quando precisar",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              style={{
+                background: "#fff", borderRadius: 14, padding: "16px 14px",
+                boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+              }}
+            >
+              <div style={{ fontSize: 26, marginBottom: 8 }}>{item.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937", marginBottom: 4 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: "#6B7280", lineHeight: 1.5 }}>{item.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div id="hoteis-grid" style={{ padding: "20px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <h2 data-testid="text-all-hotels-title" style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: 0 }}>
             {activeFilter === "Todos" ? "Todos os Hoteis" : `Hoteis: ${activeFilter}`}
@@ -1306,21 +1460,8 @@ export default function HoteisPage() {
         </button>
       </div>
 
-      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 50 }}>
-        <button
-          data-testid="button-whatsapp-float"
-          onClick={() =>
-            window.open("https://wa.me/5564993197555?text=Olá! Quero saber mais sobre os hotéis em Caldas Novas.", "_blank")
-          }
-          style={{
-            width: 56, height: 56, borderRadius: "50%", border: "none", cursor: "pointer",
-            background: "#22C55E", display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 16px rgba(34,197,94,0.4)",
-          }}
-        >
-          <Phone size={26} style={{ color: "#fff" }} />
-        </button>
-      </div>
+      <HomeFooter />
+      <MobileCTABar />
 
       {selectedHotel && (
         <HotelDetailPanel hotel={selectedHotel} onClose={() => setSelectedHotel(null)} />
