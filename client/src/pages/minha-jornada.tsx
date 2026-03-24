@@ -1,17 +1,18 @@
-import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Trophy, Flame, Gift, Clock, Rocket } from "lucide-react";
+import { Loader2, Trophy, Flame, Gift, Clock, Rocket } from "lucide-react";
 import { Link } from "wouter";
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 type PontosData = { pontos: number; streak: number; nome: string };
 type HistoricoItem = { data: string; motivo: string; valor: number };
 type Conquista = { id: string; titulo: string; descricao: string; icone: string; desbloqueada: boolean };
 
 export default function MinhaJornadaPage() {
-  const [, setLocation] = useLocation();
   const { user } = useAuth();
 
   const { data: pontosData, isLoading: loadingPontos } = useQuery<PontosData>({
@@ -41,22 +42,62 @@ export default function MinhaJornadaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20" data-testid="minha-jornada-page">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setLocation("/perfil")} className="text-muted-foreground hover:text-foreground" data-testid="btn-voltar-jornada">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-              <Trophy className="w-7 h-7 text-amber-500" /> Minha Jornada RSV
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Olá, {user?.nome ?? "Viajante"}! Acompanhe seus pontos e conquistas.
-            </p>
-          </div>
+    <div style={{ background: "#F9FAFB", minHeight: "100vh" }} data-testid="minha-jornada-page">
+      <HomeHeader />
+      <div style={{ height: 64 }} />
+
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+
+      <div style={{
+        background: "linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)",
+        padding: "36px 16px 40px", textAlign: "center", position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+        <div style={{ position: "absolute", bottom: -20, left: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          background: "rgba(245,124,0,0.18)", border: "1px solid rgba(245,124,0,0.35)",
+          borderRadius: 20, padding: "4px 12px", marginBottom: 14,
+        }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#F57C00", animation: "pulse 2s infinite" }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>MINHA JORNADA</span>
         </div>
 
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.15)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          border: "1px solid rgba(255,255,255,0.25)", margin: "0 auto 12px",
+        }}>
+          <Trophy size={22} style={{ color: "#F59E0B" }} />
+        </div>
+
+        <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 6px", lineHeight: 1.25 }}>
+          Minha Jornada RSV
+        </h1>
+        <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, margin: "0 0 18px", lineHeight: 1.5 }}>
+          Olá, {user?.nome ?? "Viajante"}! Acompanhe seus pontos e conquistas.
+        </p>
+
+        <div style={{ display: "flex", gap: 20, justifyContent: "center" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#F57C00" }}>{pontos.toLocaleString("pt-BR")}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Pontos acumulados</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.15)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#EF4444" }}>{streak}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Sequência consecutiva</div>
+          </div>
+          <div style={{ width: 1, background: "rgba(255,255,255,0.15)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: "#22C55E" }}>{conquistas.filter(c => c.desbloqueada).length}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>Conquistas desbloqueadas</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 py-8" style={{ paddingBottom: 32 }}>
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div
             className="rounded-2xl p-5 text-center"
@@ -156,6 +197,9 @@ export default function MinhaJornadaPage() {
           </CardContent>
         </Card>
       </div>
+
+      <HomeFooter />
+      <MobileCTABar />
     </div>
   );
 }
