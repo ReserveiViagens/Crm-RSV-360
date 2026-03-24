@@ -165,6 +165,14 @@ const CATEGORIA_TO_MOOD: Record<string, string> = {
   relaxamento: "Relaxamento",
   familia: "Família",
   romantico: "Romântico",
+  restaurantes: "Cultura",
+  gastronomia: "Cultura",
+  historico: "Cultura",
+  ecoturismo: "Natureza",
+  esportes: "Aventura",
+  spa: "Relaxamento",
+  trilhas: "Natureza",
+  passeios: "Aventura",
 }
 
 const MOOD_COLORS: Record<string, { bg: string; text: string; border: string }> = {
