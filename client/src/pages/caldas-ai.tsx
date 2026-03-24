@@ -229,6 +229,7 @@ export default function CaldasAIPage() {
   const [showAISuggestions, setShowAISuggestions] = useState(false)
   const [showChat, setShowChat] = useState(!!qParam)
   const [initialChatMessage, setInitialChatMessage] = useState(qParam)
+  const [chatKey, setChatKey] = useState(0)
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -455,22 +456,27 @@ export default function CaldasAIPage() {
             }}>
               <Brain size={24} style={{ color: "#fff" }} />
             </div>
-            <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: 0, lineHeight: 1.2 }}>
-              Seu Guia <span style={{ color: "#F57C00" }}>Inteligente</span>
-            </h1>
           </div>
+
+          <h1 style={{ color: "#fff", fontSize: 21, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.25 }}>
+            Caldas AI — seu guia pessoal de Caldas Novas
+          </h1>
 
           <p style={{ color: "rgba(255,255,255,0.82)", fontSize: 13, margin: "0 0 20px", lineHeight: 1.5 }}>
             {profile
-              ? "Recomendações personalizadas para você"
+              ? "Recomendações personalizadas com IA para sua viagem"
               : "Pergunte qualquer coisa sobre Caldas Novas e Rio Quente"}
           </p>
 
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
             {QUICK_CHIPS.map((chip) => (
               <button
                 key={chip}
-                onClick={() => { setShowChat(true); setInitialChatMessage(chip) }}
+                onClick={() => {
+                  setInitialChatMessage(chip)
+                  setChatKey(k => k + 1)
+                  setShowChat(true)
+                }}
                 data-testid={`chip-quick-${chip.slice(0, 10)}`}
                 style={{
                   padding: "8px 14px", borderRadius: 20,
@@ -488,23 +494,30 @@ export default function CaldasAIPage() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
 
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            {[
-              { step: "1", text: "Faça uma pergunta", icon: MessageCircle },
-              { step: "2", text: "Receba recomendações", icon: Sparkles },
-              { step: "3", text: "Reserve pelo WhatsApp", icon: Check },
-            ].map(({ step, text, icon: Icon }) => (
-              <div key={step} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{
-                  width: 20, height: 20, borderRadius: "50%",
-                  background: "#F57C00", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 800, color: "#fff", flexShrink: 0,
-                }}>{step}</div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{text}</span>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: "1px solid #E5E7EB" }} data-testid="section-como-usar">
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1F2937", margin: "0 0 12px", textAlign: "center" }}>
+          Como usar o Caldas AI
+        </h3>
+        <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          {[
+            { step: "1", text: "Faça uma pergunta", icon: MessageCircle, color: "#2563EB" },
+            { step: "2", text: "Receba recomendações personalizadas", icon: Sparkles, color: "#7C3AED" },
+            { step: "3", text: "Reserve pelo WhatsApp", icon: Check, color: "#22C55E" },
+          ].map(({ step, text, icon: Icon, color }) => (
+            <div key={step} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: color, display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <Icon size={14} style={{ color: "#fff" }} />
               </div>
-            ))}
-          </div>
+              <span style={{ fontSize: 12, color: "#374151", fontWeight: 500 }}>{step}. {text}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -1513,6 +1526,7 @@ export default function CaldasAIPage() {
 
       {showChat && (
         <ChatAgent
+          key={chatKey}
           defaultOpen={true}
           initialMessage={initialChatMessage || undefined}
           onOpenHotelDetail={(hotel) => setSelectedHotel(hotel)}

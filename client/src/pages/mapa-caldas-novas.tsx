@@ -221,20 +221,32 @@ export default function MapaCaldas() {
             <span style={{ fontSize: 11, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>MAPA INTERATIVO</span>
           </div>
 
-          <h1 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.25 }}>
-            Explore Caldas Novas
+          <h1 style={{ color: "#fff", fontSize: 21, fontWeight: 900, margin: "0 0 8px", lineHeight: 1.25 }}>
+            Explore Caldas Novas no Mapa Interativo
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, margin: "0 0 18px", lineHeight: 1.5 }}>
-            Descubra hotéis, parques e atrações em um mapa interativo com rotas IA
+          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, margin: "0 0 6px", lineHeight: 1.5 }}>
+            Toque nos pins para ver detalhes, rotas e reservar
+          </p>
+          <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, margin: "0 0 18px" }}>
+            Hotéis, parques, restaurantes e muito mais em um só lugar
           </p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 18 }}>
-            {CATEGORIES.filter(c => c.key !== "all").map(cat => (
-              <div key={cat.key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: cat.color, boxShadow: `0 0 6px ${cat.color}80` }} />
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{cat.label}</span>
-              </div>
-            ))}
+            {CATEGORIES.filter(c => c.key !== "all").map(cat => {
+              const Icon = cat.icon
+              return (
+                <div key={cat.key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 6, background: `${cat.color}25`,
+                    border: `1px solid ${cat.color}60`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Icon style={{ width: 11, height: 11, color: cat.color }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{cat.label}</span>
+                </div>
+              )
+            })}
           </div>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
