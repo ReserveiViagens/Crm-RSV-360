@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Waves, Mountain, Baby, HeartHandshake, Landmark, TreePine } from "lucide-react"
-import { Link } from "wouter";
+import { useSearch } from "wouter"
+import { Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Waves, Mountain, Baby, HeartHandshake, Landmark, TreePine } from "lucide-react"
 import HotelDetailPanel, { HotelDetailData } from "@/components/hotel-detail-panel"
+import { HomeHeader } from "@/components/home/HomeHeader"
+import { HomeFooter } from "@/components/home/HomeFooter"
+import { MobileCTABar } from "@/components/home/MobileCTABar"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -152,8 +155,40 @@ const attractions: Attraction[] = [
   },
 ]
 
+const WA_URL = "https://wa.me/5564993197555"
+
+const CATEGORIA_TO_MOOD: Record<string, string> = {
+  parques: "Aventura",
+  aventura: "Aventura",
+  natureza: "Natureza",
+  cultura: "Cultura",
+  relaxamento: "Relaxamento",
+  familia: "Família",
+  romantico: "Romântico",
+}
+
+const MOOD_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Todos:      { bg: "#F3F4F6", text: "#374151", border: "#E5E7EB" },
+  Relaxamento:{ bg: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" },
+  Aventura:   { bg: "#FEF2F2", text: "#DC2626", border: "#FECACA" },
+  "Família":  { bg: "#FFFBEB", text: "#D97706", border: "#FDE68A" },
+  "Romântico":{ bg: "#FDF2F8", text: "#DB2777", border: "#FBCFE8" },
+  Cultura:    { bg: "#F5F3FF", text: "#7C3AED", border: "#DDD6FE" },
+  Natureza:   { bg: "#F0FDF4", text: "#16A34A", border: "#BBF7D0" },
+}
+
 export default function AtracoesPage() {
-  const [activeMood, setActiveMood] = useState("Todos")
+  const search = useSearch()
+  const params = new URLSearchParams(search)
+  const categoriaParam = params.get("categoria") || ""
+  const initialMood = CATEGORIA_TO_MOOD[categoriaParam.toLowerCase()] || "Todos"
+  const [activeMood, setActiveMood] = useState(initialMood)
+
+  useEffect(() => {
+    const newMood = CATEGORIA_TO_MOOD[categoriaParam.toLowerCase()] || "Todos"
+    setActiveMood(newMood)
+  }, [categoriaParam])
+
   const [selectedAttraction, setSelectedAttraction] = useState<HotelDetailData | null>(null)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -597,34 +632,32 @@ export default function AtracoesPage() {
             )}
           </div>
 
-          <button
+          <a
             data-testid={`button-directions-${attraction.id}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(
-                `https://wa.me/5564993197555?text=Olá! Quero informações sobre ${attraction.name} e como chegar lá!`,
-                "_blank",
-              )
-            }}
+            href={`${WA_URL}?text=Olá! Tenho interesse em ${attraction.name} e quero mais informações e dicas!`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
               padding: "12px 0",
               border: "none",
               borderRadius: 10,
-              background: "linear-gradient(135deg, #16A34A, #059669)",
+              background: "linear-gradient(135deg, #25D366, #128C7E)",
               color: "#fff",
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 6,
+              textDecoration: "none",
             }}
           >
-            <MapPin size={16} />
-            Como Chegar + Dicas
-          </button>
+            <Phone size={15} />
+            Reservar / Consultar via WhatsApp
+          </a>
         </div>
       </div>
     )
@@ -633,65 +666,156 @@ export default function AtracoesPage() {
   const compareAttractions = compareList.map((id) => attractions.find((a) => a.id === id)).filter(Boolean) as Attraction[]
 
   return (
-    <div className="rsv-subpage">
+    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+      <HomeHeader />
+
       <div
+        data-testid="hero-atracoes"
         style={{
-          background: "linear-gradient(135deg, #16A34A 0%, #059669 100%)",
+          background: "linear-gradient(135deg, #0F1F38 0%, #065F46 100%)",
           color: "#fff",
-          padding: "24px 20px 20px",
-          borderRadius: "0 0 24px 24px",
+          paddingTop: 104,
+          paddingBottom: 56,
+          paddingLeft: 20,
+          paddingRight: 20,
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link href="/" data-testid="link-back-home" style={{ color: "#fff", display: "flex", alignItems: "center" }}>
-              <ArrowLeft size={22} />
-            </Link>
-            <div style={{
-              width: 40, height: 40, borderRadius: "50%",
-              border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-            }}>
-              <span>RSV<span style={{ color: "#FDE68A" }}>360</span></span>
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
+        <div style={{
+          position: "absolute", inset: 0, opacity: 0.06,
+          backgroundImage: "radial-gradient(circle at 25% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 75% 80%, #fff 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }} />
+
+        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)",
+            borderRadius: 20, padding: "6px 14px", marginBottom: 20,
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: "50%", background: "#4ADE80",
+              display: "inline-block",
+              animation: "pulse 2s infinite",
+            }} />
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 0.5 }}>
+              🌿 {attractions.length} atrações únicas em Caldas Novas
+            </span>
+          </div>
+
+          <h1
+            data-testid="text-page-title"
+            style={{
+              fontSize: "clamp(26px, 5vw, 42px)",
+              fontWeight: 900,
+              margin: "0 0 14px",
+              lineHeight: 1.15,
+              letterSpacing: -0.5,
+            }}
+          >
+            Descubra as Melhores<br />
+            <span style={{ color: "#4ADE80" }}>Atrações de Caldas Novas</span>
+          </h1>
+
+          <p style={{ fontSize: 16, opacity: 0.88, margin: "0 0 28px", lineHeight: 1.6, maxWidth: 540 }}>
+            Parques termais, natureza exuberante, cultura e muito mais — guia completo com recomendações de IA para cada perfil de viajante.
+          </p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button
+              data-testid="button-hero-ver-parques"
+              onClick={() => setActiveMood("Aventura")}
+              style={{
+                padding: "14px 28px", borderRadius: 12, border: "none",
+                background: "#4ADE80", color: "#065F46",
+                fontSize: 15, fontWeight: 800, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              🎡 Ver parques
+            </button>
+            <a
+              data-testid="button-hero-whatsapp"
+              href={`${WA_URL}?text=Olá! Quero informações sobre atrações em Caldas Novas.`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: "14px 28px", borderRadius: 12,
+                border: "2px solid rgba(255,255,255,0.4)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#fff", fontSize: 15, fontWeight: 700,
+                cursor: "pointer", textDecoration: "none",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              <Phone size={16} />
+              Falar com especialista
+            </a>
+          </div>
+
+          <div style={{
+            display: "flex", gap: 24, marginTop: 32, flexWrap: "wrap",
+            borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 20,
+          }}>
+            {[
+              { icon: "🏞️", value: `${attractions.length}`, label: "atrações cadastradas" },
+              { icon: "⭐", value: "4.7", label: "avaliação média" },
+              { icon: "💬", value: "Suporte", label: "WhatsApp 24h" },
+            ].map((item) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 20 }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1 }}>{item.value}</div>
+                  <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>{item.label}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <h1 data-testid="text-page-title" style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>Atrações Turísticas</h1>
-        <p style={{ fontSize: 14, opacity: 0.9, margin: 0 }}>Explore o melhor de Caldas Novas com IA</p>
+      </div>
 
-        <div data-testid="filter-mood-bar" style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: 16, paddingBottom: 4 }}>
-          {moodFilters.map((f) => {
-            const isActive = activeMood === f.value
-            const MoodIcon = moodIcons[f.value]
-            return (
-              <button
-                key={f.value}
-                data-testid={`button-mood-${f.value}`}
-                onClick={() => setActiveMood(f.value)}
-                style={{
-                  padding: "8px 16px",
-                  border: "none",
-                  borderRadius: 20,
-                  background: isActive ? "#fff" : "rgba(255,255,255,0.15)",
-                  color: isActive ? "#059669" : "rgba(255,255,255,0.8)",
-                  fontSize: 13,
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "all 0.2s",
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                {MoodIcon && <MoodIcon size={14} />}
-                {f.label}
-              </button>
-            )
-          })}
-        </div>
+      <div
+        data-testid="filter-mood-bar"
+        style={{
+          background: "#fff",
+          borderBottom: "1px solid #E5E7EB",
+          padding: "14px 20px",
+          display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 64, zIndex: 30,
+        }}
+      >
+        {moodFilters.map((f) => {
+          const isActive = activeMood === f.value
+          const MoodIcon = moodIcons[f.value]
+          const colors = MOOD_COLORS[f.value] || MOOD_COLORS["Todos"]
+          return (
+            <button
+              key={f.value}
+              data-testid={`button-mood-${f.value}`}
+              onClick={() => setActiveMood(f.value)}
+              style={{
+                padding: "8px 16px",
+                border: isActive ? `2px solid ${colors.border}` : "2px solid transparent",
+                borderRadius: 20,
+                background: isActive ? colors.bg : "#F9FAFB",
+                color: isActive ? colors.text : "#6B7280",
+                fontSize: 13,
+                fontWeight: isActive ? 700 : 500,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 0.2s",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {MoodIcon && <MoodIcon size={13} />}
+              {f.label}
+            </button>
+          )
+        })}
       </div>
 
       <SocialProofBanner pageName="atrações" />
@@ -959,28 +1083,151 @@ export default function AtracoesPage() {
         ]}
       />
 
-      <a
-        data-testid="link-whatsapp-float"
-        href="https://wa.me/5564993197555?text=Olá! Gostaria de informações sobre as atrações turísticas de Caldas Novas."
-        target="_blank"
-        rel="noopener noreferrer"
+      <div
+        data-testid="section-roteiro-3-dias"
         style={{
-          position: "fixed",
-          bottom: 80,
-          right: 16,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          background: "#16A34A",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-          zIndex: 50,
+          margin: "0 16px 32px",
+          borderRadius: 20,
+          overflow: "hidden",
+          background: "#fff",
+          boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+          border: "1px solid #E5E7EB",
         }}
       >
-        <Phone size={26} style={{ color: "#fff" }} />
-      </a>
+        <div style={{
+          background: "linear-gradient(135deg, #0F1F38, #065F46)",
+          padding: "20px 24px",
+          color: "#fff",
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#4ADE80", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+            🗓️ Sugestão de roteiro
+          </div>
+          <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>
+            3 Dias em Caldas Novas
+          </h3>
+          <p style={{ fontSize: 13, opacity: 0.8, margin: "6px 0 0" }}>
+            O roteiro ideal para aproveitar ao máximo
+          </p>
+        </div>
+
+        <div style={{ padding: "20px 24px" }}>
+          {[
+            {
+              day: "Dia 1",
+              color: "#2563EB",
+              bg: "#EFF6FF",
+              items: [
+                { period: "Manhã", icon: "🌅", activity: "Monumento das Águas Termais", detail: "Início histórico · Gratuito" },
+                { period: "Tarde", icon: "🌿", activity: "Jardim Japonês", detail: "1–2h · Tranquilo e fotogênico" },
+                { period: "Noite", icon: "🌙", activity: "Feira do Luar", detail: "Gastronomia local · Gratuito" },
+              ],
+            },
+            {
+              day: "Dia 2",
+              color: "#16A34A",
+              bg: "#F0FDF4",
+              items: [
+                { period: "Manhã", icon: "🏊", activity: "Parque Aquático Hot Park", detail: "Dia inteiro · Reserve com antecedência" },
+                { period: "Tarde", icon: "🌊", activity: "Lago Corumbá", detail: "Paisagens únicas · Passeio de barco" },
+                { period: "Noite", icon: "🍽️", activity: "Restaurantes do centro", detail: "Culinária goiana típica" },
+              ],
+            },
+            {
+              day: "Dia 3",
+              color: "#7C3AED",
+              bg: "#F5F3FF",
+              items: [
+                { period: "Manhã", icon: "🏛️", activity: "Centro Histórico", detail: "Arquitetura e cultura local" },
+                { period: "Tarde", icon: "♨️", activity: "Piscinas Termais do Hotel", detail: "Relaxamento total · Incluso na hospedagem" },
+                { period: "Noite", icon: "✨", activity: "Livre para explorar", detail: "Shows e programação noturna" },
+              ],
+            },
+          ].map((dayPlan) => (
+            <div key={dayPlan.day} style={{ marginBottom: 20 }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: dayPlan.bg, color: dayPlan.color,
+                borderRadius: 8, padding: "4px 12px", marginBottom: 10,
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>{dayPlan.day}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                {dayPlan.items.map((item) => (
+                  <div key={item.period} style={{
+                    display: "flex", alignItems: "flex-start", gap: 12,
+                    padding: "10px 14px",
+                    background: dayPlan.bg, borderRadius: 10,
+                    border: `1px solid ${dayPlan.bg === "#EFF6FF" ? "#BFDBFE" : dayPlan.bg === "#F0FDF4" ? "#BBF7D0" : "#DDD6FE"}`,
+                  }}>
+                    <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase" as const, letterSpacing: 0.5 }}>
+                        {item.period}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>{item.activity}</div>
+                      <div style={{ fontSize: 12, color: "#6B7280" }}>{item.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <a
+            data-testid="button-roteiro-whatsapp"
+            href={`${WA_URL}?text=Olá! Quero montar um roteiro personalizado de 3 dias em Caldas Novas!`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              padding: "14px 0", borderRadius: 12, border: "none",
+              background: "linear-gradient(135deg, #25D366, #128C7E)",
+              color: "#fff", fontSize: 14, fontWeight: 800,
+              cursor: "pointer", textDecoration: "none", width: "100%",
+            }}
+          >
+            <Phone size={16} />
+            Montar meu roteiro personalizado via WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div style={{ padding: "0 16px 32px" }}>
+        <div
+          data-testid="section-trust-atracoes"
+          style={{
+            borderRadius: 16, padding: "24px",
+            background: "linear-gradient(135deg, #0F1F38, #1E3A5F)",
+            color: "#fff",
+          }}
+        >
+          <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 16px", textAlign: "center" as const }}>
+            Por que reservar com a Reservei360?
+          </h3>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 16,
+          }}>
+            {[
+              { emoji: "🏅", title: "Guia local", desc: "Especialistas em Caldas Novas" },
+              { emoji: "💬", title: "WhatsApp 24h", desc: "Suporte em tempo real" },
+              { emoji: "🎯", title: "IA personalizada", desc: "Roteiros sob medida" },
+              { emoji: "🔒", title: "100% seguro", desc: "Pagamento protegido" },
+            ].map((item) => (
+              <div key={item.title} style={{
+                background: "rgba(255,255,255,0.08)", borderRadius: 12,
+                padding: "16px 12px", textAlign: "center" as const,
+              }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>{item.emoji}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{item.title}</div>
+                <div style={{ fontSize: 11, opacity: 0.7 }}>{item.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <HomeFooter />
+      <MobileCTABar />
 
       {selectedAttraction && (
         <HotelDetailPanel hotel={selectedAttraction} onClose={() => setSelectedAttraction(null)} />
