@@ -5,7 +5,7 @@ import {
   Search, Filter, ArrowRight, Shield, SlidersHorizontal,
   CheckCircle2, Plus, Sparkles, TrendingUp,
   Crown, Lock, Heart, Eye,
-  X, MessageCircle, Loader2, Navigation,
+  X, MessageCircle, Loader2, Navigation, LayoutGrid, Zap, Wallet,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -1028,14 +1028,15 @@ export default function CatalogoExcursoes() {
           position: "sticky", top: 0, zIndex: 30,
         }}
       >
-        {[
-          { id: "todas",     emoji: "🗺️",         label: "Todas" },
-          { id: "família",   emoji: "👨‍👩‍👧‍👦", label: "Família" },
-          { id: "aventura",  emoji: "🏄",          label: "Aventura" },
-          { id: "luxo",      emoji: "👑",          label: "Luxo" },
-          { id: "econômico", emoji: "💰",          label: "Econômico" },
-        ].map(p => {
-          const isActive = categoria === p.id || (p.id === "todas" && categoria === "todas")
+        {([
+          { id: "todas",     label: "Todas",     icon: LayoutGrid },
+          { id: "família",   label: "Família",   icon: Users },
+          { id: "aventura",  label: "Aventura",  icon: Zap },
+          { id: "luxo",      label: "Luxo",      icon: Star },
+          { id: "econômico", label: "Econômico", icon: Wallet },
+        ]).map(p => {
+          const Icon = p.icon
+          const isActive = categoria === p.id
           return (
             <button
               key={p.id}
@@ -1044,14 +1045,14 @@ export default function CatalogoExcursoes() {
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
-                background: isActive ? "#F57C00" : "#F3F4F6",
+                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: isActive ? "#2563EB" : "#F3F4F6",
                 color: isActive ? "#fff" : "#6B7280",
                 fontSize: 13, fontWeight: isActive ? 700 : 500,
                 whiteSpace: "nowrap", transition: "all 0.15s", flexShrink: 0,
               }}
             >
-              <span>{p.emoji}</span>
+              <Icon size={13} />
               {p.label}
             </button>
           )

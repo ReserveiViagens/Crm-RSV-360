@@ -4,7 +4,7 @@ import {
   Bus, Users, Star, ArrowRight, Shield, Headphones,
   Zap, Thermometer, Waves, Share2, CheckCircle2,
   Plus, Sparkles, Crown, Rocket, Search, MapPin,
-  Phone, Calendar, Clock,
+  Phone, Calendar, Clock, LayoutGrid, Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
@@ -16,10 +16,11 @@ import { MobileCTABar } from "@/components/home/MobileCTABar"
 const WA_URL = "https://wa.me/5564993197555?text=Olá! Quero informações sobre excursões para Caldas Novas."
 
 const PERFIS = [
-  { id: "família", label: "Família", emoji: "👨‍👩‍👧‍👦", desc: "Crianças bem-vindas", cor: "#EF4444", bg: "rgba(239,68,68,0.12)" },
-  { id: "aventura", label: "Aventura", emoji: "🏄", desc: "Radical & adrenalina", cor: "#F57C00", bg: "rgba(245,124,0,0.12)" },
-  { id: "luxo", label: "Luxo", emoji: "👑", desc: "Resort 5★ & all-inclusive", cor: "#7C3AED", bg: "rgba(124,58,237,0.12)" },
-  { id: "econômico", label: "Econômico", emoji: "💰", desc: "A partir de R$ 290", cor: "#16A34A", bg: "rgba(22,163,74,0.12)" },
+  { id: "todos",     label: "Todos",     icon: LayoutGrid, desc: "Todas as excursões"      },
+  { id: "família",   label: "Família",   icon: Users,      desc: "Crianças bem-vindas"     },
+  { id: "aventura",  label: "Aventura",  icon: Zap,        desc: "Radical & adrenalina"    },
+  { id: "luxo",      label: "Luxo",      icon: Star,       desc: "Resort 5★ & all-inclusive"},
+  { id: "econômico", label: "Econômico", icon: Wallet,     desc: "A partir de R$ 290"      },
 ]
 
 const TOP_EXCURSOES = [
@@ -153,26 +154,6 @@ export default function Excursoes() {
             Viaje com conforto e segurança para Caldas Novas e Rio Quente. Ônibus, hotel, passeios e guia — tudo organizado para você.
           </p>
 
-          {/* Profile quick-picks */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 32 }}>
-            {PERFIS.map(p => (
-              <button
-                key={p.id}
-                data-testid={`btn-perfil-excursoes-${p.id}`}
-                onClick={() => setPerfilAtivo(prev => prev === p.id ? null : p.id)}
-                style={{
-                  display: "flex", alignItems: "center",
-                  gap: 6, padding: "8px 16px", borderRadius: 999,
-                  background: perfil === p.id ? p.bg : "rgba(255,255,255,0.10)",
-                  border: `1.5px solid ${perfil === p.id ? p.cor : "rgba(255,255,255,0.25)"}`,
-                  cursor: "pointer", transition: "all 0.18s",
-                }}
-              >
-                <span style={{ fontSize: 16 }}>{p.emoji}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: perfil === p.id ? p.cor : "#fff" }}>{p.label}</span>
-              </button>
-            ))}
-          </div>
 
           {/* CTAs */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -248,6 +229,39 @@ export default function Excursoes() {
           </div>
         </div>
       </section>
+
+      <div
+        data-testid="filter-bar-excursoes"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 0, zIndex: 30,
+        }}
+      >
+        {PERFIS.map((p) => {
+          const Icon = p.icon
+          const isActive = (perfil ?? "todos") === p.id
+          return (
+            <button
+              key={p.id}
+              data-testid={`btn-perfil-excursoes-${p.id}`}
+              onClick={() => { if (p.id === "todos") setPerfilAtivo(null); else setPerfilAtivo(prev => prev === p.id ? null : p.id) }}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: isActive ? "#2563EB" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              <Icon size={13} />
+              {p.label}
+            </button>
+          )
+        })}
+      </div>
 
       {/* ── TRUST BAR ─────────────────────────────────── */}
       <div style={{
