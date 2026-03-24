@@ -342,15 +342,15 @@ export default function LeiloesPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(220,38,38,0.2)", border: "1px solid rgba(220,38,38,0.4)", borderRadius: 20, padding: "5px 14px" }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", animation: "pulse 1.5s infinite" }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>🔨 Leilão Ao Vivo</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>🔨 Leilão Ao Vivo — últimas vagas</span>
             </div>
           </div>
 
           <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
-            Lances em Tempo Real
+            Lances ao Vivo — Garanta já!
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 16px", lineHeight: 1.6 }}>
-            Dê lances e garanta os melhores preços em hotéis e pacotes para Caldas Novas!
+            {leiloes.filter(l => l.timeLeftSeconds > 0).length} leilões ativos agora — dê lances e conquiste os melhores preços em Caldas Novas!
           </p>
 
           <div style={{

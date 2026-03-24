@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useSearch } from "wouter"
 import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer } from "lucide-react"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
@@ -170,13 +171,34 @@ function CouponUsageToday({ count }: { count: number }) {
 
 type FilterType = "Todas" | "Hotel" | "Parque" | "Ingresso" | ">30%" | ">50%" | ">70%" | "IA Recomenda"
 
+const CATEGORIA_MAP: Record<string, FilterType> = {
+  hotel: "Hotel",
+  parque: "Parque",
+  ingresso: "Ingresso",
+  ">30%": ">30%",
+  ">50%": ">50%",
+  ">70%": ">70%",
+  ia: "IA Recomenda",
+}
+
 export default function PromocoesPage() {
+  const search = useSearch()
+  const initialFilter = useMemo<FilterType>(() => {
+    const params = new URLSearchParams(search)
+    const cat = params.get("categoria")?.toLowerCase() || ""
+    return CATEGORIA_MAP[cat] || "Todas"
+  }, [search])
+
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 45, seconds: 30 })
-  const [activeFilter, setActiveFilter] = useState<FilterType>("Todas")
+  const [activeFilter, setActiveFilter] = useState<FilterType>(initialFilter)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setActiveFilter(initialFilter)
+  }, [initialFilter])
 
   useEffect(() => {
     const p = getTravelerProfile()

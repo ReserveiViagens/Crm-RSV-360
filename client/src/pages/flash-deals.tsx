@@ -451,6 +451,17 @@ export default function FlashDealsPage() {
               <AlertTriangle style={{ width: 18, height: 18, color: "#FDE68A", flexShrink: 0, marginLeft: "auto" }} />
             )}
           </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
+            background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
+            border: "1px solid rgba(255,255,255,0.12)",
+          }} data-testid="text-viewers-now">
+            <Eye style={{ width: 15, height: 15, color: "#FCA5A5", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#FDE68A" }}>
+              {Object.values(viewerCounts).reduce((a, b) => a + b, 0) || FLASH_DEALS.length * 8} pessoas visualizando agora
+            </span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", animation: "blink 1.5s infinite", marginLeft: "auto" }} />
+          </div>
           <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
             {["⚡ Preços exclusivos", "🔒 Vagas limitadas", "💬 Confirme via WhatsApp"].map(item => (
               <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
@@ -911,6 +922,10 @@ export default function FlashDealsPage() {
       )}
 
       <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
         @keyframes flashBlink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
