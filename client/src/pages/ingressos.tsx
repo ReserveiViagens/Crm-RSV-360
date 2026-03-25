@@ -699,7 +699,7 @@ export default function IngressosPage() {
         style={{
           background: "linear-gradient(135deg, #0891B2 0%, #2563EB 100%)",
           color: "#fff",
-          padding: "24px 20px 0",
+          padding: "40px 20px 0",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -715,8 +715,8 @@ export default function IngressosPage() {
           </div>
           <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
-        <p style={{ fontSize: 14, opacity: 0.9, margin: "0 0 8px" }}>Até 29% OFF + Entrada prioritária</p>
+        <h1 style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
+        <p style={{ fontSize: "clamp(13px, 2vw, 15px)", opacity: 0.9, margin: "0 0 8px" }}>Até 29% OFF + Entrada prioritária</p>
 
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
           <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />

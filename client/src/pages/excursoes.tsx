@@ -118,8 +118,8 @@ export default function Excursoes() {
         }} />
 
         <div style={{
-          position: "relative", maxWidth: 1100, margin: "0 auto",
-          padding: "60px 20px 40px",
+          position: "relative", maxWidth: 780, margin: "0 auto",
+          padding: "100px 20px 56px",
           display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
         }}>
           {/* Live badge */}

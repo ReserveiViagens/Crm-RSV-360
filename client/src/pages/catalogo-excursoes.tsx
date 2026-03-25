@@ -955,7 +955,7 @@ export default function CatalogoExcursoes() {
       {/* ── COMPACT HERO ─────────────────────────────── */}
       <div style={{
         background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
-        padding: "36px 20px 32px",
+        padding: "100px 20px 48px",
         position: "relative", overflow: "hidden",
       }}>
         <div style={{
@@ -963,7 +963,7 @@ export default function CatalogoExcursoes() {
           backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1600&q=40')",
           backgroundSize: "cover", backgroundPosition: "center", opacity: 0.12,
         }} />
-        <div style={{ position: "relative", maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto" }}>
           <div style={{ marginBottom: 6 }}>
             <nav style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 10 }} data-testid="breadcrumb-catalogo">
               <Link href="/" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>Início</Link>
@@ -974,7 +974,7 @@ export default function CatalogoExcursoes() {
             </nav>
           </div>
           <div style={{ marginBottom: 16 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
+            <h1 style={{ fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
               Catálogo de Excursões
             </h1>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)" }}>

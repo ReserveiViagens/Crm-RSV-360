@@ -1366,7 +1366,7 @@ export default function HoteisPage() {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           color: "#fff",
-          padding: "36px 20px 32px",
+          padding: "104px 20px 56px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -1377,7 +1377,7 @@ export default function HoteisPage() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ position: "relative", maxWidth: 700, margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)",
@@ -1391,12 +1391,12 @@ export default function HoteisPage() {
 
           <h1
             data-testid="text-page-title"
-            style={{ fontSize: 28, fontWeight: 900, margin: "0 0 12px", lineHeight: 1.2, letterSpacing: -0.5 }}
+            style={{ fontSize: "clamp(26px, 5vw, 40px)", fontWeight: 900, margin: "0 0 12px", lineHeight: 1.2, letterSpacing: -0.5 }}
           >
             Os melhores hotéis de Caldas Novas com <span style={{ color: "#F57C00" }}>até 35% de desconto</span>
           </h1>
 
-          <p style={{ fontSize: 15, margin: "0 0 24px", opacity: 0.88, lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", margin: "0 0 24px", opacity: 0.88, lineHeight: 1.6 }}>
             Hospedagens com piscinas termais, parques aquáticos e café da manhã incluído. Reserva segura e suporte 24h.
           </p>
 

@@ -332,13 +332,13 @@ export default function LeiloesPage() {
       <HomeHeader />
       <div style={{
         background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%)",
-        padding: "40px 16px 0", color: "#fff", position: "relative", overflow: "hidden",
+        padding: "104px 20px 0", color: "#fff", position: "relative", overflow: "hidden",
       }}>
         <div style={{
           position: "absolute", top: -50, right: -50, width: 200, height: 200,
           borderRadius: "50%", background: "rgba(245,124,0,0.1)", filter: "blur(40px)",
         }} />
-        <div style={{ maxWidth: 900, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(220,38,38,0.2)", border: "1px solid rgba(220,38,38,0.4)", borderRadius: 20, padding: "5px 14px" }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", animation: "pulse 1.5s infinite" }} />
@@ -346,10 +346,10 @@ export default function LeiloesPage() {
             </div>
           </div>
 
-          <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
+          <h1 style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
             Lances ao Vivo — Garanta já!
           </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 16px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "rgba(255,255,255,0.75)", margin: "0 0 16px", lineHeight: 1.6 }}>
             {leiloes.filter(l => l.timeLeftSeconds > 0).length} leilões ativos agora — dê lances e conquiste os melhores preços em Caldas Novas!
           </p>
 
@@ -501,7 +501,7 @@ export default function LeiloesPage() {
         </div>
       )}
 
-      <div style={{ padding: "16px 16px 24px", display: "grid", gap: 20 }}>
+      <div style={{ padding: "16px 20px 24px", maxWidth: 900, margin: "0 auto", display: "grid", gap: 20 }}>
         {sortedByMatch.map((leilao, idx) => {
           const time = formatSecondsToTime(leilao.timeLeftSeconds)
           const heat = getHeatColor(leilao.totalBids)

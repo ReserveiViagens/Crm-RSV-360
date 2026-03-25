@@ -645,15 +645,15 @@ export default function PromocoesPage() {
       <HomeHeader />
       <div style={{
         background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
-        color: "#fff", padding: "40px 20px 0",
+        color: "#fff", padding: "104px 20px 0",
       }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F57C00", animation: "blink 1.5s infinite" }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>🔥 Ofertas por tempo limitado — até 75% OFF</span>
           </div>
-          <h1 data-testid="text-page-title" style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>Promoções Especiais</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
+          <h1 data-testid="text-page-title" style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }}>Promoções Especiais</h1>
+          <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
             Caldas Novas e Rio Quente com cupom exclusivo CALDAS15 — pacotes, hotéis e ingressos
           </p>
 
@@ -806,7 +806,7 @@ export default function PromocoesPage() {
         </div>
       )}
 
-      <div className="rsv-subpage-grid" style={{ padding: "20px 16px 24px" }}>
+      <div className="rsv-subpage-grid" style={{ padding: "20px 20px 24px", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{
           display: "flex", alignItems: "center", gap: 8, marginBottom: 4,
           gridColumn: "1 / -1", flexWrap: "wrap",
