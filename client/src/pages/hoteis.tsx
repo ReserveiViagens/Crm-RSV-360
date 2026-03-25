@@ -1361,7 +1361,10 @@ export default function HoteisPage() {
 
       <div
         style={{
-          background: "linear-gradient(135deg, #0f2850 0%, #1a3a6e 45%, #1e4fa3 100%)",
+          backgroundImage: "url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           color: "#fff",
           padding: "36px 20px 32px",
           position: "relative",
@@ -1370,7 +1373,7 @@ export default function HoteisPage() {
       >
         <div style={{
           position: "absolute", inset: 0,
-          backgroundImage: "radial-gradient(circle at 80% 20%, rgba(245,124,0,0.12) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(37,99,235,0.2) 0%, transparent 40%)",
+          background: "linear-gradient(135deg, rgba(15,31,56,0.90) 0%, rgba(26,58,110,0.82) 100%)",
           pointerEvents: "none",
         }} />
 
