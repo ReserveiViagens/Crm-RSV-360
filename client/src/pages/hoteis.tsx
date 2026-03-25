@@ -1355,6 +1355,13 @@ export default function HoteisPage() {
           filter: brightness(0.94);
           box-shadow: 0 4px 18px rgba(245,124,0,0.25) !important;
         }
+        @media (max-width: 640px) {
+          .rsv-hero-ctas { flex-direction: column; }
+          .rsv-hero-ctas button, .rsv-hero-ctas a {
+            width: 100%; justify-content: center;
+          }
+          .rsv-filter-chip { font-size: 12px !important; padding: 5px 10px !important; }
+        }
       `}</style>
 
       <HomeHeader />
@@ -1400,7 +1407,7 @@ export default function HoteisPage() {
             Hospedagens com piscinas termais, parques aquáticos e café da manhã incluído. Reserva segura e suporte 24h.
           </p>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
+          <div className="rsv-hero-ctas" style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
             <button
               data-testid="button-hero-cta"
               onClick={scrollToHotels}
@@ -1488,11 +1495,12 @@ export default function HoteisPage() {
       </div>
 
       <div
+        className="rsv-filter-bar"
         data-testid="filter-bar-hoteis"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
           padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30,
+          position: "sticky", top: 64, zIndex: 30,
         }}
       >
         {FILTERS.map((f) => {

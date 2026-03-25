@@ -293,6 +293,13 @@ export default function LeiloesPage() {
         @keyframes heatPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); } 50% { box-shadow: 0 0 12px 4px rgba(220,38,38,0.15); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes bidFlash { 0% { background: rgba(34,197,94,0.3); } 100% { background: transparent; } }
+        @media (min-width: 768px) {
+          .rsv-leiloes-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .rsv-hero-ctas { flex-direction: column; }
+          .rsv-hero-ctas button, .rsv-hero-ctas a { width: 100%; justify-content: center; }
+        }
       `}</style>
 
       <div style={{ position: "fixed", top: 80, right: 16, zIndex: 10000, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -389,11 +396,12 @@ export default function LeiloesPage() {
       </div>
 
       <div
+        className="rsv-filter-bar"
         data-testid="filter-bar-leiloes"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
           padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30,
+          position: "sticky", top: 64, zIndex: 30,
         }}
       >
         {[
@@ -501,7 +509,7 @@ export default function LeiloesPage() {
         </div>
       )}
 
-      <div style={{ padding: "16px 20px 24px", maxWidth: 900, margin: "0 auto", display: "grid", gap: 20 }}>
+      <div className="rsv-leiloes-grid" style={{ padding: "16px 20px 24px", maxWidth: 900, margin: "0 auto", display: "grid", gap: 20 }}>
         {sortedByMatch.map((leilao, idx) => {
           const time = formatSecondsToTime(leilao.timeLeftSeconds)
           const heat = getHeatColor(leilao.totalBids)

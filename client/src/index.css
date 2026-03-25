@@ -659,6 +659,20 @@
   }
 }
 
+@media (max-width: 640px) {
+  .rsv-filter-bar { padding: 10px 12px !important; gap: 6px !important; }
+  .rsv-filter-bar button, .rsv-filter-bar a {
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+  }
+  .rsv-hero-ctas { flex-direction: column !important; }
+  .rsv-hero-ctas button, .rsv-hero-ctas a {
+    width: 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+}
+
 @keyframes notifSlideIn {
   from { transform: translateX(100px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }

@@ -640,6 +640,11 @@ export default function PromocoesPage() {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @media (max-width: 640px) {
+          .rsv-hero-ctas { flex-direction: column; }
+          .rsv-hero-ctas button, .rsv-hero-ctas a { width: 100%; justify-content: center; }
+          .rsv-filter-chip { font-size: 12px !important; padding: 5px 10px !important; }
+        }
       `}</style>
 
       <HomeHeader />
@@ -699,11 +704,12 @@ export default function PromocoesPage() {
       </div>
 
       <div
+        className="rsv-filter-bar"
         data-testid="filter-bar-promocoes"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
           padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30,
+          position: "sticky", top: 64, zIndex: 30,
         }}
       >
         {filters.map((f) => {

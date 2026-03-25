@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
-import { ArrowLeft, Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
-import { Link, useLocation } from "wouter";
+import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
+import { useLocation } from "wouter";
+import { HomeHeader } from "@/components/home/HomeHeader"
 import {
   SocialProofBanner,
   calculateMatchScore,
@@ -695,28 +696,17 @@ export default function IngressosPage() {
 
   return (
     <div className="rsv-subpage">
+      <HomeHeader />
       <div
         style={{
           background: "linear-gradient(135deg, #0891B2 0%, #2563EB 100%)",
           color: "#fff",
-          padding: "40px 20px 0",
+          padding: "104px 20px 0",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <Link href="/" style={{ color: "#fff", display: "flex", alignItems: "center" }} data-testid="link-back-home">
-            <ArrowLeft style={{ width: 22, height: 22 }} />
-          </Link>
-          <div style={{
-            width: 40, height: 40, borderRadius: "50%",
-            border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-          }}>
-            <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-          </div>
-          <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
-        </div>
-        <h1 style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
-        <p style={{ fontSize: "clamp(13px, 2vw, 15px)", opacity: 0.9, margin: "0 0 8px" }}>Até 29% OFF + Entrada prioritária</p>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+        <h1 style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
+        <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", opacity: 0.9, margin: "0 0 8px" }}>Até 29% OFF + Entrada prioritária</p>
 
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
           <Timer style={{ width: 14, height: 14, color: "#FCA5A5" }} />
@@ -724,15 +714,17 @@ export default function IngressosPage() {
             Preço especial por mais {String(timer.minutes).padStart(2, "0")}:{String(timer.seconds).padStart(2, "0")}
           </span>
         </div>
+        </div>
 
       </div>
 
       <div
+        className="rsv-filter-bar"
         data-testid="filter-bar-ingressos"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
           padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30, alignItems: "center",
+          position: "sticky", top: 64, zIndex: 30, alignItems: "center",
         }}
       >
         {FILTERS.map((f) => {

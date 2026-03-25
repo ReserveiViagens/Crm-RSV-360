@@ -95,6 +95,12 @@ export default function Excursoes() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F8F9FA" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .rsv-hero-ctas { flex-direction: column; align-items: stretch; }
+          .rsv-hero-ctas a, .rsv-hero-ctas button { width: 100%; box-sizing: border-box; }
+        }
+      `}</style>
       <HomeHeader />
 
       {/* ── HERO ─────────────────────────────────────── */}
@@ -156,7 +162,7 @@ export default function Excursoes() {
 
 
           {/* CTAs */}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+          <div className="rsv-hero-ctas" style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
             <Link href={getCatalogoLink()}>
               <button
                 data-testid="btn-hero-ver-excursoes"
