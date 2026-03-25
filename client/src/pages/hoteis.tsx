@@ -1319,7 +1319,7 @@ export default function HoteisPage() {
   }
 
   return (
-    <div className="rsv-subpage">
+    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -1384,7 +1384,7 @@ export default function HoteisPage() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)",

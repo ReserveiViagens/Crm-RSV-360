@@ -963,9 +963,9 @@ export default function CatalogoExcursoes() {
           backgroundImage: "url('https://images.unsplash.com/photo-1510525009512-ad7fc13d8422?w=1600&q=40')",
           backgroundSize: "cover", backgroundPosition: "center", opacity: 0.12,
         }} />
-        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto" }}>
+        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
           <div style={{ marginBottom: 6 }}>
-            <nav style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 10 }} data-testid="breadcrumb-catalogo">
+            <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 10 }} data-testid="breadcrumb-catalogo">
               <Link href="/" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>Início</Link>
               <span>/</span>
               <Link href="/excursoes" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none" }}>Excursões</Link>

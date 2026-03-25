@@ -338,8 +338,8 @@ export default function LeiloesPage() {
           position: "absolute", top: -50, right: -50, width: 200, height: 200,
           borderRadius: "50%", background: "rgba(245,124,0,0.1)", filter: "blur(40px)",
         }} />
-        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+        <div style={{ maxWidth: 780, margin: "0 auto", position: "relative", zIndex: 1, textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(220,38,38,0.2)", border: "1px solid rgba(220,38,38,0.4)", borderRadius: 20, padding: "5px 14px" }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", animation: "pulse 1.5s infinite" }} />
               <span style={{ fontSize: 12, fontWeight: 700, color: "#FCA5A5", letterSpacing: 0.5 }}>🔨 Leilão Ao Vivo — últimas vagas</span>
@@ -353,7 +353,7 @@ export default function LeiloesPage() {
             {leiloes.filter(l => l.timeLeftSeconds > 0).length} leilões ativos agora — dê lances e conquiste os melhores preços em Caldas Novas!
           </p>
 
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", justifyContent: "center" }}>
             <div style={{
               flex: 1, minWidth: 160, display: "flex", alignItems: "center", gap: 8,
               background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px",
@@ -379,7 +379,7 @@ export default function LeiloesPage() {
             )}
           </div>
 
-          <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
             {["🏆 Lances ao vivo", "⚡ Preços abaixo do mercado", "💬 Confirme no WhatsApp"].map(item => (
               <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
             ))}

@@ -695,16 +695,16 @@ export default function IngressosPage() {
   const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
 
   return (
-    <div className="rsv-subpage">
+    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <HomeHeader />
       <div
         style={{
-          background: "linear-gradient(135deg, #0891B2 0%, #2563EB 100%)",
+          background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
           color: "#fff",
-          padding: "104px 20px 0",
+          padding: "104px 20px 48px",
         }}
       >
-        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
         <h1 style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 800, margin: "0 0 8px" }} data-testid="text-page-title">Ingressos para Parques</h1>
         <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", opacity: 0.9, margin: "0 0 8px" }}>Até 29% OFF + Entrada prioritária</p>
 

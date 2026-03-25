@@ -626,7 +626,7 @@ export default function PromocoesPage() {
   }
 
   return (
-    <div className="rsv-subpage">
+    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }
@@ -652,7 +652,7 @@ export default function PromocoesPage() {
         background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
         color: "#fff", padding: "104px 20px 0",
       }}>
-        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F57C00", animation: "blink 1.5s infinite" }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: "#F57C00", letterSpacing: 0.5 }}>🔥 Ofertas por tempo limitado — até 75% OFF</span>

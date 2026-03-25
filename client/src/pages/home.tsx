@@ -5,6 +5,7 @@ import LGPDPopup from "@/components/lgpd-popup"
 import ReviewsSection from "@/components/reviews-section"
 import ChatAgent from "@/components/chat-agent"
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
+import { HomeHeader } from "@/components/home/HomeHeader"
 
 const TABS = [
   { id: "tudo",     label: "Tudo",     icon: LayoutGrid },
@@ -527,48 +528,98 @@ export default function RSV360Landing() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="rsv-header-bar">
-        <div className="rsv-header-inner">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: "50%",
-                border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,0.1)", fontSize: 9, fontWeight: 900, letterSpacing: -0.5,
-              }}>
-                <span>RSV<span style={{ color: "#F57C00" }}>360</span></span>
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>Reservei Viagens</span>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Link href="/entrar" style={{ textDecoration: "none" }}>
-                <button
-                  data-testid="button-entrar-home"
-                  style={{
-                    padding: "6px 14px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.5)",
-                    background: "transparent", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                  }}
-                >Entrar</button>
-              </Link>
-              <Link href="/cadastrar" style={{ textDecoration: "none" }}>
-                <button
-                  data-testid="button-cadastrar-home"
-                  style={{
-                    padding: "6px 14px", borderRadius: 20, border: "none",
-                    background: "#fff", color: "#2563EB", fontSize: 13, fontWeight: 700, cursor: "pointer",
-                  }}
-                >Cadastrar</button>
-              </Link>
-            </div>
+      <HomeHeader />
+
+      {/* Hero Section - Full Width Dark Standard */}
+      <div style={{
+        position: "relative",
+        backgroundImage: "url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=60')",
+        backgroundSize: "cover", backgroundPosition: "center",
+        color: "#fff",
+        padding: "104px 20px 56px",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, rgba(15,31,56,0.92) 0%, rgba(26,58,110,0.85) 100%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "relative", maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)",
+            borderRadius: 999, padding: "6px 16px", marginBottom: 20,
+          }}>
+            <span style={{
+              width: 7, height: 7, borderRadius: "50%", background: "#22C55E", display: "inline-block",
+              animation: "pulse 2s infinite", boxShadow: "0 0 0 2px rgba(34,197,94,0.3)",
+            }} />
+            <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+              🏖️ Caldas Novas &amp; Rio Quente — Maior polo termal do Brasil
+            </span>
           </div>
 
-        </div>
-      </header>
+          <h1 style={{ fontSize: "clamp(26px, 5vw, 42px)", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: 16, letterSpacing: -1 }}>
+            Ingressos, Hotéis e Excursões<br />
+            <span style={{ color: "#F57C00" }}>com até 70% OFF</span>
+          </h1>
 
-      {/* Hero Section - Full Width */}
-      <div className="rsv-hero-full">
-        <div className="rsv-hero-inner">
+          <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "rgba(255,255,255,0.8)", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
+            Reserve parques aquáticos, hotéis termais e excursões em grupo com os melhores preços. Suporte via WhatsApp e parcele em até 12x!
+          </p>
+
+          <div className="rsv-hero-ctas" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
+            <Link href="/ingressos" style={{ textDecoration: "none" }}>
+              <button
+                data-testid="button-ver-ingressos-home"
+                style={{
+                  padding: "14px 28px", borderRadius: 12, border: "none",
+                  background: "#F57C00", color: "#fff", fontSize: 16, fontWeight: 700,
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                  boxShadow: "0 4px 16px rgba(245,124,0,0.4)", whiteSpace: "nowrap",
+                }}
+              >
+                <Ticket style={{ width: 18, height: 18 }} />
+                Ver Ingressos com Desconto
+              </button>
+            </Link>
+            <a
+              href="https://wa.me/5564993197555"
+              target="_blank" rel="noopener noreferrer"
+              data-testid="button-whatsapp-home-hero"
+              style={{
+                padding: "14px 28px", borderRadius: 12, border: "2px solid rgba(255,255,255,0.3)",
+                background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 16, fontWeight: 700,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+                textDecoration: "none", whiteSpace: "nowrap", backdropFilter: "blur(4px)",
+              }}
+            >
+              <Phone style={{ width: 18, height: 18 }} />
+              Falar no WhatsApp
+            </a>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            {[
+              { icon: TrendingUp, label: "+5.000 reservas", color: "#22C55E" },
+              { icon: Star, label: "4.9 avaliação", color: "#FBBF24" },
+              { icon: Shield, label: "Pagamento seguro", color: "#60A5FA" },
+            ].map((stat, i) => (
+              <div key={i} style={{
+                background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "10px 16px",
+                display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.15)",
+              }}>
+                <stat.icon style={{ width: 16, height: 16, color: stat.color }} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* REMOVED old hero content */}
+      <div style={{ display: "none" }}><div>
           <div style={{ flex: 1, marginBottom: 24 }}>
             <h1 style={{ fontSize: "clamp(24px, 4vw, 42px)", fontWeight: 900, color: "#fff", marginBottom: 8, lineHeight: 1.2 }}>
               Caldas Novas te espera com até <span style={{ color: "#F57C00" }}>70% OFF</span>
@@ -758,7 +809,7 @@ export default function RSV360Landing() {
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
           padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30,
+          position: "sticky", top: 64, zIndex: 30,
         }}
       >
         {TABS.map((tab) => {
