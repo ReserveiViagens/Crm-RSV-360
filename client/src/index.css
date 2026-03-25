@@ -640,7 +640,7 @@
   gap: 16px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .rsv-subpage-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
@@ -650,12 +650,7 @@
 @media (min-width: 1024px) {
   .rsv-subpage-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1280px) {
-  .rsv-subpage-grid {
-    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
   }
 }
 
@@ -665,7 +660,7 @@
   gap: 20px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .rsv-leiloes-grid {
     grid-template-columns: repeat(2, 1fr);
   }

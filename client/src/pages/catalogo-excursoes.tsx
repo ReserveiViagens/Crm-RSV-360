@@ -974,10 +974,10 @@ export default function CatalogoExcursoes() {
             </nav>
           </div>
           <div style={{ marginBottom: 16 }}>
-            <h1 style={{ fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
+            <h1 style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
               Catálogo de Excursões
             </h1>
-            <p style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.65)" }}>
+            <p style={{ fontSize: "clamp(14px, 2.5vw, 16px)", color: "rgba(255,255,255,0.65)" }}>
               {EXCURSOES.length} excursões disponíveis · {totalVagas} vagas abertas · A partir de R$ {precoMin}
             </p>
           </div>
