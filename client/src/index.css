@@ -699,8 +699,18 @@
   }
 }
 
+@media (min-width: 640px) and (max-width: 1023px) {
+  .rsv-hero-section { padding-left: 24px !important; padding-right: 24px !important; }
+}
+
 @media (max-width: 640px) {
-  .rsv-filter-bar { padding: 10px 12px !important; gap: 6px !important; }
+  .rsv-filter-bar {
+    padding: 10px 12px !important;
+    gap: 6px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
   .rsv-filter-bar button, .rsv-filter-bar a {
     font-size: 12px !important;
     padding: 5px 10px !important;
