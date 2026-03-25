@@ -146,7 +146,7 @@ export default function Excursoes() {
           </div>
 
           <h1 style={{
-            fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 900,
+            fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 900,
             color: "#fff", lineHeight: 1.15, marginBottom: 14, letterSpacing: -1,
           }}>
             Excursões em grupo com<br />
@@ -154,7 +154,7 @@ export default function Excursoes() {
           </h1>
 
           <p style={{
-            fontSize: 16, color: "rgba(255,255,255,0.75)",
+            fontSize: "clamp(14px, 2.5vw, 16px)", color: "rgba(255,255,255,0.75)",
             maxWidth: 560, lineHeight: 1.7, marginBottom: 32,
           }}>
             Viaje com conforto e segurança para Caldas Novas e Rio Quente. Ônibus, hotel, passeios e guia — tudo organizado para você.
@@ -316,7 +316,7 @@ export default function Excursoes() {
           </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+        <div className="rsv-subpage-grid" style={{ gap: 24 }}>
           {TOP_EXCURSOES.map(exc => {
             const desconto = Math.round(((exc.precoOriginal - exc.preco) / exc.precoOriginal) * 100)
             return (

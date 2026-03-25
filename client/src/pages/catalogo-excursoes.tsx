@@ -955,7 +955,7 @@ export default function CatalogoExcursoes() {
       {/* ── COMPACT HERO ─────────────────────────────── */}
       <div style={{
         background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
-        padding: "100px 20px 48px",
+        padding: "104px 20px 48px",
         position: "relative", overflow: "hidden",
       }}>
         <div style={{
@@ -977,7 +977,7 @@ export default function CatalogoExcursoes() {
             <h1 style={{ fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 900, color: "#fff", marginBottom: 6, letterSpacing: -0.5 }}>
               Catálogo de Excursões
             </h1>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)" }}>
+            <p style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.65)" }}>
               {EXCURSOES.length} excursões disponíveis · {totalVagas} vagas abertas · A partir de R$ {precoMin}
             </p>
           </div>

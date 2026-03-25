@@ -659,6 +659,18 @@
   }
 }
 
+.rsv-leiloes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .rsv-leiloes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
   .rsv-filter-bar { padding: 10px 12px !important; gap: 6px !important; }
   .rsv-filter-bar button, .rsv-filter-bar a {

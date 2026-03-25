@@ -293,13 +293,6 @@ export default function LeiloesPage() {
         @keyframes heatPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); } 50% { box-shadow: 0 0 12px 4px rgba(220,38,38,0.15); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes bidFlash { 0% { background: rgba(34,197,94,0.3); } 100% { background: transparent; } }
-        @media (min-width: 768px) {
-          .rsv-leiloes-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 640px) {
-          .rsv-hero-ctas { flex-direction: column; }
-          .rsv-hero-ctas button, .rsv-hero-ctas a { width: 100%; justify-content: center; }
-        }
       `}</style>
 
       <div style={{ position: "fixed", top: 80, right: 16, zIndex: 10000, display: "flex", flexDirection: "column", gap: 8 }}>
