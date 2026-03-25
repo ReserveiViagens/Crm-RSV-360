@@ -1691,7 +1691,7 @@ export default function HoteisPage() {
             {filteredHotels.length} resultado{filteredHotels.length !== 1 ? "s" : ""}
           </span>
         </div>
-        <div className="rsv-subpage-grid">
+        <div className="rsv-hotel-grid">
           {filteredHotels.map((hotel, idx) => renderHotelCard(hotel, false, idx))}
         </div>
         {filteredHotels.length === 0 && (

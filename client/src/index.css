@@ -654,6 +654,39 @@
   }
 }
 
+.rsv-hotel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .rsv-hotel-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-hotel-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+.rsv-promo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .rsv-promo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
 .rsv-leiloes-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -678,6 +711,8 @@
     justify-content: center !important;
     box-sizing: border-box !important;
   }
+  .rsv-card { padding: 12px !important; }
+  .rsv-trust-chip { font-size: 11px !important; padding: 4px 8px !important; }
 }
 
 @keyframes notifSlideIn {

@@ -812,7 +812,7 @@ export default function PromocoesPage() {
         </div>
       )}
 
-      <div className="rsv-subpage-grid" style={{ padding: "20px 20px 24px", maxWidth: 1200, margin: "0 auto" }}>
+      <div className="rsv-promo-grid" style={{ padding: "20px 20px 24px", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{
           display: "flex", alignItems: "center", gap: 8, marginBottom: 4,
           gridColumn: "1 / -1", flexWrap: "wrap",
