@@ -120,7 +120,7 @@ export default function MapaCaldas() {
   const [routeSlidePaused, setRouteSlidePaused] = useState(false)
 
   useEffect(() => {
-    if (routeSlidePaused) return
+    if (routeSlidePaused || AI_ROUTES.length <= 1) return
     const interval = setInterval(() => setRouteSlideIdx(p => p + 1), 3500)
     return () => clearInterval(interval)
   }, [routeSlidePaused])

@@ -832,10 +832,10 @@ export default function HoteisPage() {
   }, [matchScores])
 
   useEffect(() => {
-    if (recSlidePaused) return
+    if (recSlidePaused || recommendedHotels.length <= 1) return
     const interval = setInterval(() => setRecSlideIdx(p => p + 1), 3500)
     return () => clearInterval(interval)
-  }, [recSlidePaused])
+  }, [recSlidePaused, recommendedHotels.length])
 
   useEffect(() => {
     if (recSlideIdx > 0 && recSlideIdx >= recommendedHotels.length) {

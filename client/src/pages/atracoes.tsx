@@ -258,10 +258,10 @@ export default function AtracoesPage() {
   }, [matchScores])
 
   useEffect(() => {
-    if (aiSlidePaused) return
+    if (aiSlidePaused || aiRecommended.length <= 1) return
     const interval = setInterval(() => setAiSlideIdx(p => p + 1), 3500)
     return () => clearInterval(interval)
-  }, [aiSlidePaused])
+  }, [aiSlidePaused, aiRecommended.length])
 
   useEffect(() => {
     if (aiSlideIdx > 0 && aiSlideIdx >= aiRecommended.length) {
