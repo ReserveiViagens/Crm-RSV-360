@@ -746,6 +746,9 @@ export default function HoteisPage() {
   const [expandedSaibaMais, setExpandedSaibaMais] = useState<Set<string>>(new Set())
   const [expandedDetalhes, setExpandedDetalhes] = useState<Set<string>>(new Set())
   const [tickerIndex, setTickerIndex] = useState(0)
+  const [recSlideIdx, setRecSlideIdx] = useState(0)
+  const [recSlideTransition, setRecSlideTransition] = useState(true)
+  const [recSlidePaused, setRecSlidePaused] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(search)
@@ -827,6 +830,26 @@ export default function HoteisPage() {
   const recommendedHotels = useMemo(() => {
     return [...hotels].sort((a, b) => (matchScores[b.id] || 0) - (matchScores[a.id] || 0)).slice(0, 3)
   }, [matchScores])
+
+  useEffect(() => {
+    if (recSlidePaused) return
+    const interval = setInterval(() => setRecSlideIdx(p => p + 1), 3500)
+    return () => clearInterval(interval)
+  }, [recSlidePaused])
+
+  useEffect(() => {
+    if (recSlideIdx > 0 && recSlideIdx >= recommendedHotels.length) {
+      const t = setTimeout(() => { setRecSlideTransition(false); setRecSlideIdx(0) }, 420)
+      return () => clearTimeout(t)
+    }
+  }, [recSlideIdx, recommendedHotels.length])
+
+  useEffect(() => {
+    if (!recSlideTransition) {
+      const t = setTimeout(() => setRecSlideTransition(true), 50)
+      return () => clearTimeout(t)
+    }
+  }, [recSlideTransition])
 
   const filteredHotels = hotels.filter((hotel) => {
     if (activeFilter === "Todos") return true
@@ -1581,12 +1604,23 @@ export default function HoteisPage() {
               Crie seu perfil de viajante para recomendacoes ainda mais precisas
             </p>
           )}
-          <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
-            {recommendedHotels.map((hotel, idx) => (
-              <div key={hotel.id} style={{ minWidth: 300, maxWidth: 340, flexShrink: 0 }}>
-                {renderHotelCard(hotel, true, idx)}
-              </div>
-            ))}
+          <div
+            style={{ overflow: "hidden" }}
+            onMouseEnter={() => setRecSlidePaused(true)}
+            onMouseLeave={() => setRecSlidePaused(false)}
+          >
+            <div style={{
+              display: "flex",
+              gap: 14,
+              transform: `translateX(-${recSlideIdx * 314}px)`,
+              transition: recSlideTransition ? "transform 0.45s ease" : "none",
+            }}>
+              {[...recommendedHotels, recommendedHotels[0]].filter(Boolean).map((hotel, idx) => (
+                <div key={`${hotel.id}-${idx}`} style={{ minWidth: 300, maxWidth: 340, flexShrink: 0 }}>
+                  {renderHotelCard(hotel, true, idx % recommendedHotels.length)}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

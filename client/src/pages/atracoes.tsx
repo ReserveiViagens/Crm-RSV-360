@@ -207,6 +207,9 @@ export default function AtracoesPage() {
   const [visitorsMap, setVisitorsMap] = useState<Record<string, number>>({})
   const [weeklyVisitorsMap, setWeeklyVisitorsMap] = useState<Record<string, number>>({})
   const [experienceOfDay, setExperienceOfDay] = useState<string>("")
+  const [aiSlideIdx, setAiSlideIdx] = useState(0)
+  const [aiSlideTransition, setAiSlideTransition] = useState(true)
+  const [aiSlidePaused, setAiSlidePaused] = useState(false)
 
   useEffect(() => {
     const saved = getTravelerProfile()
@@ -253,6 +256,26 @@ export default function AtracoesPage() {
     const sorted = [...attractions].sort((a, b) => (matchScores[b.id] || 0) - (matchScores[a.id] || 0))
     return sorted.slice(0, 3)
   }, [matchScores])
+
+  useEffect(() => {
+    if (aiSlidePaused) return
+    const interval = setInterval(() => setAiSlideIdx(p => p + 1), 3500)
+    return () => clearInterval(interval)
+  }, [aiSlidePaused])
+
+  useEffect(() => {
+    if (aiSlideIdx > 0 && aiSlideIdx >= aiRecommended.length) {
+      const t = setTimeout(() => { setAiSlideTransition(false); setAiSlideIdx(0) }, 420)
+      return () => clearTimeout(t)
+    }
+  }, [aiSlideIdx, aiRecommended.length])
+
+  useEffect(() => {
+    if (!aiSlideTransition) {
+      const t = setTimeout(() => setAiSlideTransition(true), 50)
+      return () => clearTimeout(t)
+    }
+  }, [aiSlideTransition])
 
   const profileReasonMap: Record<string, string> = useMemo(() => {
     if (!profile) return {}
@@ -870,10 +893,20 @@ export default function AtracoesPage() {
             ? `Selecionado com base no seu perfil de ${profile.tripType === "familia" ? "família" : profile.tripType === "romantico" ? "viagem romântica" : profile.tripType === "aventura" ? "aventura" : "viajante"}`
             : "Top atrações recomendadas para você"}
         </p>
-        <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
-          {aiRecommended.map((attraction, idx) => (
+        <div
+          style={{ overflow: "hidden" }}
+          onMouseEnter={() => setAiSlidePaused(true)}
+          onMouseLeave={() => setAiSlidePaused(false)}
+        >
+          <div style={{
+            display: "flex",
+            gap: 12,
+            transform: `translateX(-${aiSlideIdx * 232}px)`,
+            transition: aiSlideTransition ? "transform 0.45s ease" : "none",
+          }}>
+          {[...aiRecommended, aiRecommended[0]].filter(Boolean).map((attraction, idx) => (
             <div
-              key={attraction.id}
+              key={idx}
               data-testid={`card-ai-pick-${attraction.id}`}
               onClick={() => openDetail(attraction)}
               style={{
@@ -936,6 +969,7 @@ export default function AtracoesPage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
       </div>
 

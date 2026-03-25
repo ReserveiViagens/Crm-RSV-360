@@ -115,6 +115,29 @@ export default function MapaCaldas() {
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showRoutePanel, setShowRoutePanel] = useState(false)
   const [viewerCounts, setViewerCounts] = useState<Record<number, number>>({})
+  const [routeSlideIdx, setRouteSlideIdx] = useState(0)
+  const [routeSlideTransition, setRouteSlideTransition] = useState(true)
+  const [routeSlidePaused, setRouteSlidePaused] = useState(false)
+
+  useEffect(() => {
+    if (routeSlidePaused) return
+    const interval = setInterval(() => setRouteSlideIdx(p => p + 1), 3500)
+    return () => clearInterval(interval)
+  }, [routeSlidePaused])
+
+  useEffect(() => {
+    if (routeSlideIdx > 0 && routeSlideIdx >= AI_ROUTES.length) {
+      const t = setTimeout(() => { setRouteSlideTransition(false); setRouteSlideIdx(0) }, 420)
+      return () => clearTimeout(t)
+    }
+  }, [routeSlideIdx])
+
+  useEffect(() => {
+    if (!routeSlideTransition) {
+      const t = setTimeout(() => setRouteSlideTransition(true), 50)
+      return () => clearTimeout(t)
+    }
+  }, [routeSlideTransition])
 
   useEffect(() => {
     const p = getTravelerProfile()
@@ -571,14 +594,23 @@ export default function MapaCaldas() {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
-          {AI_ROUTES.map((route) => {
+        <div
+          style={{ overflow: "hidden" }}
+          onMouseEnter={() => setRouteSlidePaused(true)}
+          onMouseLeave={() => setRouteSlidePaused(false)}
+        >
+          <div style={{
+            display: "flex", gap: 10,
+            transform: `translateX(-${routeSlideIdx * 190}px)`,
+            transition: routeSlideTransition ? "transform 0.45s ease" : "none",
+          }}>
+          {[...AI_ROUTES, AI_ROUTES[0]].map((route, slidePos) => {
             const isActive = activeRoute?.id === route.id
             const Icon = route.icon
             const isMatch = profile?.tripType === route.matchType
             return (
               <button
-                key={route.id}
+                key={slidePos}
                 data-testid={`button-route-${route.id}`}
                 onClick={() => {
                   setActiveRoute(isActive ? null : route)
@@ -619,6 +651,7 @@ export default function MapaCaldas() {
               </button>
             )
           })}
+          </div>
         </div>
       </div>
 

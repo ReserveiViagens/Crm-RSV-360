@@ -299,6 +299,30 @@ export function CrossSellSection({ title, items }: {
   title: string;
   items: { name: string; price: number; image?: string; link: string; badge?: string }[]
 }) {
+  const [slideIdx, setSlideIdx] = useState(0)
+  const [slideTransition, setSlideTransition] = useState(true)
+  const [slidePaused, setSlidePaused] = useState(false)
+
+  useEffect(() => {
+    if (slidePaused || items.length <= 1) return
+    const interval = setInterval(() => setSlideIdx(p => p + 1), 3500)
+    return () => clearInterval(interval)
+  }, [slidePaused, items.length])
+
+  useEffect(() => {
+    if (slideIdx > 0 && slideIdx >= items.length) {
+      const t = setTimeout(() => { setSlideTransition(false); setSlideIdx(0) }, 420)
+      return () => clearTimeout(t)
+    }
+  }, [slideIdx, items.length])
+
+  useEffect(() => {
+    if (!slideTransition) {
+      const t = setTimeout(() => setSlideTransition(true), 50)
+      return () => clearTimeout(t)
+    }
+  }, [slideTransition])
+
   return (
     <div style={{
       margin: "0 16px 24px", padding: 20, borderRadius: 16,
@@ -309,8 +333,17 @@ export function CrossSellSection({ title, items }: {
         <TrendingUp style={{ width: 18, height: 18, color: "#2563EB" }} />
         <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1F2937", margin: 0 }}>{title}</h3>
       </div>
-      <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
-        {items.map((item, i) => (
+      <div
+        style={{ overflow: "hidden" }}
+        onMouseEnter={() => setSlidePaused(true)}
+        onMouseLeave={() => setSlidePaused(false)}
+      >
+        <div style={{
+          display: "flex", gap: 12,
+          transform: `translateX(-${slideIdx * 152}px)`,
+          transition: slideTransition ? "transform 0.45s ease" : "none",
+        }}>
+        {[...items, items[0]].filter(Boolean).map((item, i) => (
           <a key={i} href={item.link} style={{
             minWidth: 140, background: "#fff", borderRadius: 12,
             overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
@@ -338,6 +371,7 @@ export function CrossSellSection({ title, items }: {
             </div>
           </a>
         ))}
+        </div>
       </div>
     </div>
   )
