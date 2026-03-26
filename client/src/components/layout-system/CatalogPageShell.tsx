@@ -1,29 +1,49 @@
 /**
- * CatalogPageShell — Família B
+ * =============================================================================
+ * CatalogPageShell - FAMILIA B
+ * =============================================================================
+ * Para paginas de catalogo, busca e ecommerce.
  * 
- * Para páginas de catálogo, busca e ecommerce
- * Uso: Ingressos, hotéis, atrações, excursões
+ * PAGINAS: Ingressos, hoteis, atracoes, excursoes, listagens
  * 
- * Características:
- * - Max width: 1280px
- * - Sidebar retrátil: 280px desktop, drawer mobile
- * - Busca/filtros sempre visível e bem posicionado
- * - Grid limpo e consistente
- * - Sensação de catálogo premium
+ * CARACTERISTICAS:
+ * - Max width: 1280px para conteudo
+ * - Sidebar retrátil: 280px desktop, drawer no mobile
+ * - Busca/filtros sempre bem posicionados
+ * - Grid consistente para cards de produto
+ * - Sensacao de catalogo premium
+ * 
+ * USO:
+ * <CatalogPageShell
+ *   header={<SearchHeader />}
+ *   sidebar={<FiltersSidebar />}
+ * >
+ *   <ProductGrid products={products} />
+ * </CatalogPageShell>
+ * =============================================================================
  */
 
-import React, { ReactNode, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import React, { ReactNode, useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import { Menu, X, SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 export interface CatalogPageShellProps {
   children: ReactNode;
-  /** Conteúdo da sidebar (filtros, etc) */
+  /** Header da pagina (breadcrumbs, titulo, busca) */
+  header?: ReactNode;
+  /** Conteudo da sidebar (filtros) */
   sidebar?: ReactNode;
-  /** Título da página */
+  /** Titulo da pagina */
   title?: string;
-  /** Mostrar sidebar por padrão */
-  showSidebarByDefault?: boolean;
-  /** Classe customizada */
+  /** Subtitulo ou contagem de resultados */
+  subtitle?: string;
+  /** Sidebar aberta por padrao no desktop */
+  sidebarOpenDefault?: boolean;
+  /** Esconder sidebar completamente */
+  hideSidebar?: boolean;
+  /** Classe CSS adicional */
   className?: string;
 }
 
@@ -32,73 +52,133 @@ export const CatalogPageShell = React.forwardRef<
   CatalogPageShellProps
 >(({ 
   children,
+  header,
   sidebar,
   title,
-  showSidebarByDefault = true,
-  className = '' 
+  subtitle,
+  sidebarOpenDefault = true,
+  hideSidebar = false,
+  className,
 }, ref) => {
-  const [sidebarOpen, setSidebarOpen] = useState(showSidebarByDefault);
+  const [sidebarOpen, setSidebarOpen] = useState(sidebarOpenDefault);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  const hasSidebar = sidebar && !hideSidebar;
 
   return (
     <div 
       ref={ref}
-      className={`w-full min-h-screen bg-white ${className}`}
+      className={cn(
+        'min-h-screen w-full bg-slate-50',
+        className
+      )}
     >
-      {/* Topbar com título e toggle sidebar */}
-      {title && (
-        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-[1280px] flex items-center justify-between py-4">
-            <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-            {/* Toggle sidebar button — visible on mobile only */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              aria-label={sidebarOpen ? 'Fechar filtros' : 'Abrir filtros'}
-            >
-              {sidebarOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
+      {/* Header Section */}
+      {(header || title) && (
+        <div className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+            {/* Custom Header */}
+            {header && (
+              <div className="py-3">
+                {header}
+              </div>
+            )}
+
+            {/* Title Row */}
+            {title && (
+              <div className="flex items-center justify-between gap-4 py-4">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">
+                    {title}
+                  </h1>
+                  {subtitle && (
+                    <p className="text-sm text-slate-500 mt-0.5">
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+
+                {/* Mobile Filter Button */}
+                {hasSidebar && (
+                  <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="lg:hidden flex items-center gap-2"
+                      >
+                        <SlidersHorizontal className="h-4 w-4" />
+                        Filtros
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-[300px] p-0">
+                      <SheetTitle className="sr-only">Filtros</SheetTitle>
+                      <div className="p-4 border-b border-slate-200">
+                        <h2 className="font-semibold text-slate-900">Filtros</h2>
+                      </div>
+                      <div className="p-4 overflow-y-auto max-h-[calc(100vh-80px)]">
+                        {sidebar}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                )}
+
+                {/* Desktop Sidebar Toggle */}
+                {hasSidebar && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="hidden lg:flex items-center gap-2 text-slate-600"
+                  >
+                    {sidebarOpen ? (
+                      <>
+                        <X className="h-4 w-4" />
+                        Esconder filtros
+                      </>
+                    ) : (
+                      <>
+                        <Menu className="h-4 w-4" />
+                        Mostrar filtros
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Main layout: sidebar + content */}
+      {/* Main Layout */}
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
-          {/* Sidebar — hidden on mobile unless open */}
-          {sidebar && (
-            <>
-              {/* Mobile drawer backdrop */}
-              {sidebarOpen && (
-                <div 
-                  className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                  onClick={() => setSidebarOpen(false)}
-                />
+          {/* Desktop Sidebar */}
+          {hasSidebar && (
+            <aside 
+              className={cn(
+                'hidden lg:block flex-shrink-0 transition-all duration-300',
+                sidebarOpen ? 'w-[280px]' : 'w-0 overflow-hidden'
               )}
-              
-              {/* Sidebar container */}
-              <aside 
-                className={`
-                  fixed bottom-0 left-0 top-0 z-40 w-72 bg-white border-r border-slate-200 
-                  overflow-y-auto transition-all duration-300
-                  lg:relative lg:w-72 lg:flex-shrink-0 lg:sticky lg:top-0 lg:max-h-[calc(100vh-80px)]
-                  ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                `}
-              >
-                <div className="p-4 sm:p-6">
-                  {sidebar}
-                </div>
-              </aside>
-            </>
+            >
+              <div className={cn(
+                'sticky top-[140px] w-[280px] max-h-[calc(100vh-160px)] overflow-y-auto',
+                'bg-white rounded-xl border border-slate-200 p-4',
+                !sidebarOpen && 'invisible'
+              )}>
+                {sidebar}
+              </div>
+            </aside>
           )}
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
             {children}
-          </div>
+          </main>
         </div>
       </div>
     </div>
@@ -106,3 +186,51 @@ export const CatalogPageShell = React.forwardRef<
 });
 
 CatalogPageShell.displayName = 'CatalogPageShell';
+
+/**
+ * =============================================================================
+ * CatalogGrid - Helper para grids de produtos
+ * =============================================================================
+ */
+export interface CatalogGridProps {
+  children: ReactNode;
+  /** Colunas: 2, 3, 4 */
+  columns?: 2 | 3 | 4;
+  /** Gap entre items */
+  gap?: 'sm' | 'md' | 'lg';
+  /** Classe CSS adicional */
+  className?: string;
+}
+
+const columnsMap = {
+  2: 'grid-cols-1 sm:grid-cols-2',
+  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+} as const;
+
+const gapMap = {
+  sm: 'gap-3',
+  md: 'gap-4 sm:gap-5',
+  lg: 'gap-5 sm:gap-6',
+} as const;
+
+export const CatalogGrid = React.forwardRef<
+  HTMLDivElement,
+  CatalogGridProps
+>(({ children, columns = 3, gap = 'md', className }, ref) => {
+  return (
+    <div 
+      ref={ref}
+      className={cn(
+        'grid',
+        columnsMap[columns],
+        gapMap[gap],
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+});
+
+CatalogGrid.displayName = 'CatalogGrid';

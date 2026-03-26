@@ -1,22 +1,48 @@
 /**
- * Layout System - Index
+ * =============================================================================
+ * RSV360 LAYOUT SYSTEM - EXPORTS
+ * =============================================================================
+ * FASE 1: Design Tokens & Layout System
  * 
- * Exporta todos os shells e containers do sistema de padronização
- * FASE 1: Arquitetura base para as 5 famílias
+ * Este arquivo exporta todos os shells e containers do sistema de padronizacao.
+ * 
+ * FAMILIAS:
+ * - A: PublicPageShell (marketing, landing, home)
+ * - B: CatalogPageShell (ingressos, hoteis, busca)
+ * - C: AuthPageShell (login, cadastro)
+ * - D: AppMobileShell (perfil, reservas, app cliente)
+ * - E: AdminShell (dashboard, CRM, admin)
+ * 
+ * WRAPPERS:
+ * - PageContainer: padding horizontal responsivo
+ * - SectionContainer: spacing vertical entre secoes
+ * =============================================================================
  */
 
+// Wrappers Base
 export { PageContainer } from './PageContainer';
 export { SectionContainer } from './SectionContainer';
-export { PublicPageShell } from './PublicPageShell';
-export { CatalogPageShell } from './CatalogPageShell';
-export { AuthPageShell } from './AuthPageShell';
-export { AppMobileShell } from './AppMobileShell';
-export { AdminShell } from './AdminShell';
 
+// Familia A: Public/Marketing
+export { PublicPageShell, PublicSection } from './PublicPageShell';
+
+// Familia B: Catalog/Commerce
+export { CatalogPageShell, CatalogGrid } from './CatalogPageShell';
+
+// Familia C: Auth
+export { AuthPageShell } from './AuthPageShell';
+
+// Familia D: App Mobile
+export { AppMobileShell, AppMobileCard } from './AppMobileShell';
+
+// Familia E: Admin/Dashboard
+export { AdminShell, AdminPageHeader, AdminCard, useAdminShell } from './AdminShell';
+
+// Types
 export type { PageContainerProps } from './PageContainer';
 export type { SectionContainerProps } from './SectionContainer';
-export type { PublicPageShellProps } from './PublicPageShell';
-export type { CatalogPageShellProps } from './CatalogPageShell';
+export type { PublicPageShellProps, PublicSectionProps } from './PublicPageShell';
+export type { CatalogPageShellProps, CatalogGridProps } from './CatalogPageShell';
 export type { AuthPageShellProps } from './AuthPageShell';
-export type { AppMobileShellProps } from './AppMobileShell';
-export type { AdminShellProps } from './AdminShell';
+export type { AppMobileShellProps, AppMobileCardProps } from './AppMobileShell';
+export type { AdminShellProps, AdminPageHeaderProps, AdminCardProps } from './AdminShell';
