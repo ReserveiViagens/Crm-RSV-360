@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 export interface SecondaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "sm" | "md" | "lg"
   loading?: boolean
-  "data-testid"?: string
+  "data-testid": string
 }
 
 const sizeClasses = {
