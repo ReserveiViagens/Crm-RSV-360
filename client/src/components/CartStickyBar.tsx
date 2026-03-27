@@ -31,7 +31,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 200,
+        zIndex: 220,
         background: "linear-gradient(135deg, #0891B2, #2563EB)",
         boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
         padding: "12px 16px",
