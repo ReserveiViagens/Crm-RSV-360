@@ -32,7 +32,10 @@ type AnalyticsEvent =
   | "enterprise_expand"
   | "ticket_whatsapp_share_click"
   | "combo_dates_confirmed"
-  | "pix_cancelled";
+  | "pix_cancelled"
+  | "voucher_pdf_download_click"
+  | "voucher_pdf_download_success"
+  | "voucher_pdf_download_error";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   try {
