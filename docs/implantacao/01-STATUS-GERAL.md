@@ -10,7 +10,7 @@
 
 ## Resumo por fase (plano de sprints)
 
-> **Convenção de status:** `[ ]` = sprint não executado (gate não passou) · `[~]` = código existe parcialmente mas gate nunca foi executado · `[x]` = sprint concluído com gate formal.
+> **Convenção de status:** `[ ]` = sprint não executado (gate não passou) · `[~]` = código existe parcialmente mas gate nunca foi executado · `[x]` = sprint concluído com gate formal · `[!]` = bloqueado por dependência externa · `[-]` = cancelado/descartado.
 
 | Fase | Nome | Status |
 |------|------|--------|
@@ -74,5 +74,5 @@
 ## Próximo passo exato
 
 1. Aguardar aprovação do usuário para Task #10 (Sprint 1 — Design System + Layout System)
-2. Ao aprovar: executar Sprint 1 seguindo `fases/FASE-01-design-system.md`
+2. Ao aprovar: executar Sprint 1 seguindo `docs/implantacao/fases/FASE-01-foundation.md`
 3. Ao concluir Sprint 1: atualizar este arquivo + handoff + fazer push
