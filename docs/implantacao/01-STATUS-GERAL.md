@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Iniciar Sprint 2 — Componentes Compartilhados (Task #11)
+**Próxima ação recomendada:** Iniciar Sprint 4 — Combo IA Motor + Pricing + API (Task #12)
 
 ---
 
@@ -15,8 +15,8 @@
 |------|------|--------|
 | 00 | Auditoria + Estrutura-Base | `[x]` concluído (Sprint 0 — Task #9) |
 | 01 | Design System + Layout System | `[x]` concluído (Sprint 1 — Task #10) |
-| 02 | Componentes Compartilhados | `[~]` parcial (muitos componentes existem; padronização e gate pendentes) |
-| 03 | Catálogo /ingressos com Carrinho | `[~]` parcial (página funcional; gaps em analytics e gate pendentes) |
+| 02 | Componentes Compartilhados | `[x]` concluído (Sprint 2+3 — Task #11) |
+| 03 | Catálogo /ingressos com Carrinho | `[x]` concluído (Sprint 2+3 — Task #11) |
 | 04 | Combo IA — Motor + Pricing + API | `[ ]` não iniciado (frontend hardcoded, sem backend) |
 | 05 | Checkout Pix Completo | `[~]` parcial (fluxo existe em demo mode; gate formal pendente) |
 | 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso com TXT existe; PDF/QR de alta qualidade e gate pendentes) |
@@ -39,6 +39,8 @@
 | #8 | Mapa Leaflet real (SearchMapPanel + OSM tiles) | `e88e7b23` |
 | #18 | Fundação documental — 14 arquivos de documentação operacional | `2ac0bce` |
 | #9 | Sprint 0 — Auditoria + Estrutura-Base | ver chain `8e3e43c`→`2354ff3` |
+| #10 | Sprint 1 — Design System + Layout System | `5639124` |
+| #11 | Sprint 2+3 — Componentes + Catálogo /ingressos | ver push atual |
 
 ---
 
@@ -47,19 +49,21 @@
 ### O que existe e funciona hoje
 
 - Fluxo `/ingressos → /ingressos/checkout → /ingressos/sucesso` (demo mode)
-- Carrinho persistente em localStorage (`cart-store.ts`)
-- 5 parques com stepper, badges, Combo IA (hardcoded 15%)
+- Carrinho persistente em localStorage (`cart-store.ts`) + reidratação no mount + multi-aba (StorageEvent)
+- `PrimaryButton`, `SecondaryButton` em `client/src/components/ui/` (size sm/md/lg, loading, disabled, data-testid)
+- `StatusBadge` estendido com PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED
+- `LoadingSkeleton variant="card"` integrado em `/ingressos`
+- `CartStickyBar` com safe-area-inset + `tickets_checkout_start` analytics
+- Grid de ingressos com stepper, badges, Combo IA (hardcoded 15%)
 - Mapa Leaflet real com 14 pontos em `/mapa-caldas-novas`
 - Admin dashboard com métricas (ainda hardcoded)
 - Shells de layout: `PublicPageShell`, `CatalogPageShell`, `AdminShell`, `AppMobileShell`, `AuthPageShell`
-- CSS tokens RSV360 em `client/src/index.css`
+- CSS tokens RSV360 em `client/src/index.css` + design tokens TypeScript em `client/src/tokens/`
 - WhatsApp WaaS (demo mode), Gamificação (PostgreSQL), KYC biométrico
 - Tipos Zod: `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` em `shared/schema.ts`
-- Documentação viva: `docs/ROUTES_INVENTORY.md`, `docs/GAPS.md`, `docs/AUDIT.md`
 
 ### O que está parcial ou faltando (backlog)
 
-- Token files TypeScript (`client/src/tokens/`) — **criados (Sprint 1 ✅)**
 - Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado — Sprint 4
 - Voucher PDF (apenas TXT hoje) — Sprint 6
 - Métricas do admin hardcoded (não lê do banco) — Sprint 7
@@ -72,5 +76,5 @@
 
 ## Próximo passo exato
 
-1. Iniciar Sprint 2 — Componentes Compartilhados (Task #11)
-2. Ao aprovar: executar Sprint 2 seguindo `docs/implantacao/fases/FASE-02-shared-components.md`
+1. Iniciar Sprint 4 — Combo IA Motor + Pricing + API (Task #12)
+2. Ao aprovar: executar Sprint 4 seguindo `docs/implantacao/fases/FASE-04-combo-ia.md`
