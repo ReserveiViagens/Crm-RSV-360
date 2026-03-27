@@ -1,18 +1,26 @@
-import type { SearchFilters } from "@/types/search";
+import type { SearchFilters, MapMarker } from "@/types/search";
 import { MapPin } from "lucide-react";
 
+interface MapBounds {
+  northLat: number;
+  southLat: number;
+  eastLng: number;
+  westLng: number;
+}
+
 interface RouteStop {
-  id: string | number;
-  name: string;
   lat: number;
   lng: number;
+  name: string;
+  index: number;
+  color: string;
 }
 
 interface SearchMapPanelProps {
   filters?: SearchFilters;
-  initialBounds?: { north: number; south: number; east: number; west: number };
-  onMarkerClick?: (id: string) => void;
-  onBoundsChange?: (bounds: { north: number; south: number; east: number; west: number }) => void;
+  initialBounds?: MapBounds;
+  onMarkerClick?: (marker: MapMarker) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
   height?: string;
   className?: string;
   routeStops?: RouteStop[];
