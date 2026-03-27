@@ -1,7 +1,18 @@
 export { AdminShell } from "./AdminShell";
+export type { AdminShellProps } from "./AdminShell";
 export { AppMobileShell } from "./AppMobileShell";
+export type { AppMobileShellProps } from "./AppMobileShell";
 export { AuthPageShell } from "./AuthPageShell";
+export type { AuthPageShellProps } from "./AuthPageShell";
 export { CatalogPageShell } from "./CatalogPageShell";
+export type { CatalogPageShellProps } from "./CatalogPageShell";
 export { PageContainer } from "./PageContainer";
+export type { PageContainerProps, LayoutFamily } from "./PageContainer";
+export { PageHeader } from "./PageHeader";
+export type { PageHeaderProps } from "./PageHeader";
 export { PublicPageShell } from "./PublicPageShell";
+export type { PublicPageShellProps } from "./PublicPageShell";
 export { SectionContainer } from "./SectionContainer";
+export type { SectionContainerProps, SectionSize } from "./SectionContainer";
+export { SectionHeader } from "./SectionHeader";
+export type { SectionHeaderProps } from "./SectionHeader";
