@@ -7,7 +7,11 @@ export function useSearch(initialFilters: SearchFilters = {}) {
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
 
   const setFilter = useCallback(<K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+      ...(key !== "page" ? { page: 1 } : {}),
+    }));
   }, []);
 
   const clearFilters = useCallback(() => {
