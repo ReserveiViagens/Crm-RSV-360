@@ -1,7 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import type { AtividadeWizard } from "@shared/schema";
+import ComboConversionCard from "@/components/admin/ComboConversionCard";
+import TopSuggestedHotelsTable from "@/components/admin/TopSuggestedHotelsTable";
+import TriggerAcceptanceChart from "@/components/admin/TriggerAcceptanceChart";
+import VoucherDeliveryStatusTable from "@/components/admin/VoucherDeliveryStatusTable";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell, Legend,
@@ -122,6 +127,8 @@ export default function DashboardRSV() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  const { data: currentUser } = useQuery<{ nome: string; email: string; role: string }>({ queryKey: ["/api/auth/me"] });
 
   const [atividades, setAtividades] = useState<AtividadeWizard[]>([]);
   const [atividadeEditId, setAtividadeEditId] = useState<string | null>(null);
@@ -299,7 +306,7 @@ export default function DashboardRSV() {
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ color: '#fff', fontSize: 14, fontWeight: 500, margin: 0 }} data-testid="text-admin-name">Usuário Admin</p>
+                <p style={{ color: '#fff', fontSize: 14, fontWeight: 500, margin: 0 }} data-testid="text-admin-name">{currentUser?.nome ?? "Admin"}</p>
                 <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, margin: 0 }}>Administrador</p>
               </div>
               <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer' }} title="Sair" data-testid="button-logout">
@@ -405,6 +412,16 @@ export default function DashboardRSV() {
           <div style={{ marginBottom: 32 }}>
             <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: 0 }} data-testid="text-page-title">Dashboard</h1>
             <p style={{ color: '#6B7280', marginTop: 4 }}>Visão geral do seu negócio de viagens</p>
+          </div>
+
+          {/* ─── MÉTRICAS REAIS — COMBO IA + PÓS-PAGAMENTO ─────────────────── */}
+          <div style={{ marginBottom: 32, display: "flex", flexDirection: "column", gap: 16 }} data-testid="section-real-metrics">
+            <ComboConversionCard />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <TriggerAcceptanceChart />
+              <TopSuggestedHotelsTable />
+            </div>
+            <VoucherDeliveryStatusTable />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 32 }}>
