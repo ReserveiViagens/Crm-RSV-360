@@ -73,7 +73,7 @@ Sprint 0 foi concluída com todos os entregáveis:
 
 ## Último commit de produto
 
-`ecdc503` — Sprint 0: Auditoria + Estrutura-Base (Task #9)
+`b1c2ad4` — Sprint 0: Auditoria + Estrutura-Base (Task #9)
 
 ---
 
