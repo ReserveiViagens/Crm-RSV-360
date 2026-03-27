@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Search, MapPin, Star, Zap, Gavel, X, Filter, Navigation, Route, Sparkles, ChevronRight, Hotel, Waves, Utensils, Landmark, SlidersHorizontal, Users, Heart, Mountain, Clock, Phone } from "lucide-react"
 import { getTravelerProfile, TravelerProfile, calculateMatchScore, AIRecommendedBadge, SocialProofBanner } from "@/components/ai-conversion-elements"
 import { HomeHeader } from "@/components/home/HomeHeader"
@@ -9,7 +9,6 @@ import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
 import type { SearchFilters } from "@/types/search"
 import { fetchPlacesAutocomplete, fetchSuggest } from "@/services/search-api"
-import type { MapMarker } from "@/types/search"
 
 type PinType = "hotel" | "parque" | "restaurante" | "atracao" | "flash" | "leilao"
 
@@ -141,18 +140,6 @@ export default function MapaCaldas() {
 
   const hasAnyFilter = !!(searchQuery.trim() || activeCategory !== "all" || maxDistance > 0)
 
-  const panelFilters = useMemo(() => ({
-    q: searchQuery || undefined,
-    category: activeCategory !== "all" ? PIN_TYPE_TO_CATEGORY[activeCategory as PinType] : undefined,
-    radiusKm: maxDistance > 0 ? maxDistance : undefined,
-    lat: maxDistance > 0 ? -17.7340 : undefined,
-    lng: maxDistance > 0 ? -48.6280 : undefined,
-    northLat: mapBounds.northLat,
-    southLat: mapBounds.southLat,
-    eastLng: mapBounds.eastLng,
-    westLng: mapBounds.westLng,
-  }), [searchQuery, activeCategory, maxDistance, mapBounds])
-
   useEffect(() => {
     if (typeof window === "undefined") return
     const sp = new URLSearchParams()
@@ -252,44 +239,6 @@ export default function MapaCaldas() {
     setSearchQuery(suggestion.mainText || suggestion.description)
     setShowPlaceSuggestions(false)
   }
-
-  const handleBoundsChange = useCallback((bounds: { northLat: number; southLat: number; eastLng: number; westLng: number }) => {
-    setMapBounds(bounds)
-  }, [])
-
-  const handleMarkerClick = useCallback((marker: MapMarker) => {
-    const byId = PINS.find(p => String(p.id) === String(marker.id))
-    const byName = PINS.find(p => p.name.toLowerCase() === marker.name.toLowerCase())
-    const pin = byId ?? byName
-    if (pin) {
-      setSelectedPin(pin)
-    } else {
-      setSelectedPin({
-        id: typeof marker.id === "number" ? marker.id : 0,
-        name: marker.name,
-        lat: marker.lat,
-        lng: marker.lng,
-        price: marker.priceFrom,
-        type: (marker.type === "park" ? "parque" : marker.type === "hotel" ? "hotel" : marker.type === "attraction" ? "atracao" : "hotel") as PinType,
-        rating: marker.rating,
-        description: "",
-        amenities: [],
-        distance: 0,
-        reviewCount: 0,
-      })
-    }
-  }, [])
-
-  const routeStops = useMemo(() => {
-    if (!activeRoute) return undefined
-    return activeRoute.stops
-      .map((stopId, i) => {
-        const pin = PINS.find(p => p.id === stopId)
-        if (!pin) return null
-        return { lat: pin.lat, lng: pin.lng, name: pin.name, index: i, color: activeRoute.color }
-      })
-      .filter(Boolean) as Array<{ lat: number; lng: number; name: string; index: number; color: string }>
-  }, [activeRoute])
 
   const handleClearFilters = () => {
     setSearchQuery("")
