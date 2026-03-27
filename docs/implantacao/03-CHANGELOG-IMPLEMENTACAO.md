@@ -90,6 +90,69 @@ Estabelecer a fundação documental viva e formalizar os tipos compartilhados de
 
 ---
 
+## 2026-03-27 — Task #16 (Sprint 7): Admin Métricas Reais + Pós-Pagamento
+
+**Commit:** `f6320ea`  
+**Branch:** main  
+**Responsável:** Replit Agent
+
+### O que foi implementado
+
+- `server/services/post-payment-orchestrator.service.ts` — `Promise.allSettled([generateVoucherPdf, deliverVoucher])` — pagamento PAID nunca depende de canal
+- `server/services/notification.service.ts` — `sendVoucherByWhatsApp` (Evolution API/demo) + `sendVoucherByEmail` (nodemailer/SMTP)
+- `server/services/voucher-delivery.service.ts` — `deliverVoucher` + `retryDelivery`; enfileira pendências quando canal falha
+- `server/services/retry-queue.service.ts` — Map em memória com enqueue/dequeue/update/list/get
+- `GET /api/admin/metrics` — métricas reais do `ticketTransactions` (totalOrders, paidOrders, totalRevenue, averageTicket, comboAcceptanceRate, pendingDeliveries, resendCount)
+- `POST /api/admin/orders/:id/resend` — reenvio manual de voucher pelo admin
+- Orquestrador disparado assincronamente no webhook PAID via `void runPostPaymentOrchestration(...)`
+- Admin dashboard com dados reais, zero hardcoded
+
+### O que está parcial
+
+_(nada — fase 07 completa)_
+
+### Gate de passagem
+
+- [x] build OK
+- [x] typecheck OK
+- [x] smoke OK: pedido demo PAID → voucher gerado → delivery pendente visível → reenvio manual
+- [x] admin com dados reais confirmado
+
+---
+
+## 2026-03-27 — Task #17 (Sprint 7c): Módulo de Clima Open-Meteo
+
+**Commit:** implementado em codebase (Replit), push via Task #1  
+**Branch:** main  
+**Responsável:** Replit Agent
+
+### O que foi implementado
+
+- `server/services/open-meteo-provider.ts` — cliente Open-Meteo API com parâmetros WMO
+- `server/services/weather-service.ts` — `getWeatherByCity`, `getWeatherByCoords`, `warmupCache`
+- `server/services/weather-cache.ts` — cache Map com TTL 60min e stale-while-revalidate 6h
+- `server/utils/weather-normalizer.ts` — normaliza resposta Open-Meteo → WeatherData
+- `server/utils/weather-validators.ts` — valida query params city/country e lat/lon
+- `server/utils/weather-code-map.ts` — mapa WMO code → descrição em pt-BR
+- `server/routes/weather-routes.ts` — `GET /api/weather`, `GET /api/weather/by-coords`, `POST /internal/weather/warmup`
+- `client/src/hooks/useWeather.ts` — hook TanStack Query com staleTime 55min
+- `client/src/lib/weather-api.ts` — funções de fetch tipadas
+- `client/src/components/WeatherCard.tsx` — card responsivo com ícone, temp, descrição, umidade, vento
+- `client/src/components/WeatherPreviewSection.tsx` — seção de previsão para landing page
+- Integrado em `/ingressos` e landing page; frontend nunca chama Open-Meteo diretamente
+
+### Regra arquitetural
+
+- Frontend NUNCA chama Open-Meteo diretamente — sempre via `/api/weather` (proxy com cache 60min TTL, 6h stale)
+
+### Gate de passagem
+
+- [x] rota `/api/weather?city=Caldas+Novas` → JSON com previsão 7 dias
+- [x] cache hit verificado nos logs
+- [x] WeatherCard renderiza na página /ingressos
+
+---
+
 ## Template para próximas entradas
 
 ```

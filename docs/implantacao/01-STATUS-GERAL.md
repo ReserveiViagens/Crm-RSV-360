@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento
+**Próxima ação recomendada:** Sprint 8 — Hardening, Observabilidade e Segurança
 
 ---
 
@@ -21,7 +21,8 @@
 | 05 | Checkout Pix Completo | `[x]` concluído (Sprint 5 — Task #13) |
 | 06 | Sucesso + Voucher PDF Único | `[x]` concluído (Sprint 6 — Task #14) |
 | 06b | Sincronização de Catálogo + OpenAPI | `[x]` concluído (Sprint 6b — Task #15) |
-| 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
+| 07 | Admin Métricas Reais + Pós-Pagamento | `[x]` concluído (commit `f6320ea`) |
+| 07c | Módulo de Clima Open-Meteo | `[x]` concluído (implementado em paralelo) |
 | 08 | Hardening, Observabilidade e Segurança | `[ ]` não iniciado |
 
 ---
@@ -46,6 +47,8 @@
 | #13 | Sprint 5 — Checkout Pix Completo | ver push atual |
 | #14 | Sprint 6 — Sucesso + Voucher PDF Único | ver push atual |
 | #15 | Sprint 6b — Sincronização de Catálogo + OpenAPI | ver push atual |
+| #16 | Sprint 7 — Admin Métricas Reais + Pós-Pagamento | `f6320ea` |
+| #17 | Módulo de Clima Open-Meteo (paralelo) | ver codebase |
 
 ---
 
@@ -63,9 +66,9 @@
 - `StatusBadge` estendido com PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED
 - `LoadingSkeleton variant="card"` integrado em `/ingressos`
 - `CartStickyBar` com safe-area-inset + `tickets_checkout_start` analytics
-- Grid de ingressos com stepper, badges, Combo IA (hardcoded 15%)
+- Grid de ingressos com stepper, badges, Combo IA (15% via PricingEngine)
 - Mapa Leaflet real com 14 pontos em `/mapa-caldas-novas`
-- Admin dashboard com métricas (ainda hardcoded)
+- Admin dashboard com métricas reais via `GET /api/admin/metrics`
 - Shells de layout: `PublicPageShell`, `CatalogPageShell`, `AdminShell`, `AppMobileShell`, `AuthPageShell`
 - CSS tokens RSV360 em `client/src/index.css` + design tokens TypeScript em `client/src/tokens/`
 - WhatsApp WaaS (demo mode), Gamificação (PostgreSQL), KYC biométrico
@@ -73,19 +76,29 @@
 - Backend pricing server-side: `ticket-catalog.ts` (24 IDs), `PricingEngine`, `UnknownTicketError`
 - Checkout: react-hook-form + zodResolver, 5 componentes standalone em `client/src/components/checkout/`
 - Polling de status Pix para em terminais via `isTerminal()`
+- **[Fase 07]** `post-payment-orchestrator.service.ts` — `Promise.allSettled` para geração de voucher + entrega
+- **[Fase 07]** `notification.service.ts` — envio por WhatsApp e e-mail (demo/SMTP)
+- **[Fase 07]** `voucher-delivery.service.ts` — entrega + enqueue de pendências
+- **[Fase 07]** `retry-queue.service.ts` — fila em memória de entregas pendentes
+- **[Fase 07]** `GET /api/admin/metrics` — métricas reais do orderStore
+- **[Fase 07]** `POST /api/admin/orders/:id/resend` — reenvio manual pelo admin
+- **[Fase 07c]** Módulo de clima Open-Meteo: `open-meteo-provider.ts`, `weather-service.ts`, `weather-cache.ts`, `weather-normalizer.ts`, `weather-validators.ts`, `weather-code-map.ts`
+- **[Fase 07c]** `GET /api/weather` + `GET /api/weather/by-coords` + `POST /internal/weather/warmup`
+- **[Fase 07c]** Frontend: `WeatherCard.tsx`, `useWeather.ts`, `weather-api.ts`, `WeatherPreviewSection.tsx`
 
-### O que está parcial ou faltando (backlog)
+### O que está pendente (Fase 08)
 
-- Métricas do admin hardcoded (não lê do banco) — Sprint 7
-- Post-payment orchestrator ausente — Sprint 7
-- Envio de voucher por e-mail/WhatsApp — Sprint 7
-- Logging estruturado ausente — Sprint 8
-- Rate limiting ausente — Sprint 8
-- Proteção de voucher por HMAC ausente — Sprint 8
-- QR com validação online em tempo real — Sprint 8
+- Logging estruturado JSON ausente
+- Rate limiting ausente
+- Proteção de voucher por HMAC ausente (link usa ID sequencial)
+- `.env.example` ausente
+- Healthcheck `GET /api/status` ausente
+- Separação de filas por tipo ausente
+- Alertas críticos no admin ausentes
+- `docs/runbook.md` ausente
 
 ---
 
 ## Próximo passo exato
 
-1. Iniciar Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
+1. Iniciar Sprint 8 — Hardening, Observabilidade e Segurança (Task #3 — Replit Agent)

@@ -281,3 +281,39 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 
 ### Documentação Técnica
 - `docs/Estrutura-completa-pagina-ingressos.md` — documento técnico completo da página `/ingressos` (fluxo, arquivos, catálogo de 5 parques, filtros, estado React, paleta de cores, animações, funções auxiliares, cart-store, 19 eventos analytics, 4 rotas backend, serviço createTicketPix, todos os data-testids, regras de preservação)
+
+### Fase 07 — Admin Métricas Reais + Automação Pós-Pagamento (Task #16, commit `f6320ea`)
+
+**Backend:**
+- `server/services/post-payment-orchestrator.service.ts` — `Promise.allSettled([generateVoucherPdf, deliverVoucher])`; falha em canal nunca cancela status PAID
+- `server/services/notification.service.ts` — `sendVoucherByWhatsApp` (Evolution API/demo) + `sendVoucherByEmail` (nodemailer/SMTP); retorna `{ success, channel, error? }`
+- `server/services/voucher-delivery.service.ts` — `deliverVoucher` + `retryDelivery`; enfileira na retryQueue quando canal falha
+- `server/services/retry-queue.service.ts` — Map em memória: `enqueuePendingDelivery`, `dequeueDelivery`, `updateDelivery`, `getPendingDeliveries`, `getPendingDelivery`
+- `GET /api/admin/metrics` — métricas reais do `ticketTransactions`: totalOrders, paidOrders, totalRevenue, averageTicket, comboOrders, comboAcceptanceRate, pendingDeliveries, resendCount
+- `POST /api/admin/orders/:id/resend` — reenvio manual de voucher via admin; usa `retryDelivery`
+- Orquestrador disparado assincronamente via `void runPostPaymentOrchestration(...)` no webhook PAID
+
+**Key rules:**
+- Regra de ouro: pagamento PAID nunca depende do sucesso da notificação
+- `ticketTransactions` Map é a fonte de verdade para pedidos de ingressos (in-memory)
+
+### Módulo de Clima Open-Meteo (Task #17)
+
+**Backend:**
+- `server/services/open-meteo-provider.ts` — cliente Open-Meteo API (parâmetros WMO, geocoding incluso)
+- `server/services/weather-service.ts` — `getWeatherByCity`, `getWeatherByCoords`, `warmupCache`
+- `server/services/weather-cache.ts` — cache Map com TTL 60min e stale-while-revalidate 6h
+- `server/utils/weather-normalizer.ts` — normaliza Open-Meteo → `WeatherData` tipado
+- `server/utils/weather-validators.ts` — valida query params city/country e lat/lon
+- `server/utils/weather-code-map.ts` — mapa WMO code → descrição pt-BR
+- `server/routes/weather-routes.ts` — `GET /api/weather`, `GET /api/weather/by-coords`, `POST /internal/weather/warmup` (registrado via `registerWeatherRoutes` em `server/index.ts`)
+
+**Frontend:**
+- `client/src/hooks/useWeather.ts` — TanStack Query com staleTime 55min
+- `client/src/lib/weather-api.ts` — funções de fetch tipadas
+- `client/src/components/WeatherCard.tsx` — card responsivo: temp, descrição, umidade, vento, ícone WMO
+- `client/src/components/WeatherPreviewSection.tsx` — seção de previsão para landing page
+- Integrado em `/ingressos` e landing page
+
+**Key rules:**
+- Frontend NUNCA chama Open-Meteo diretamente — sempre via `/api/weather` (proxy com cache 60min TTL, 6h stale)
