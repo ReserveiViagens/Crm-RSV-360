@@ -1,0 +1,311 @@
+/**
+ * =============================================================================
+ * RSV360 DESIGN SYSTEM - TOKENS
+ * =============================================================================
+ * FASE 1: Design Tokens & Layout System
+ * 
+ * Este arquivo e a fonte unica de verdade (single source of truth) para:
+ * - Cores (primarias, neutras, semanticas)
+ * - Spacing (escala 8px base)
+ * - Tamanhos de pagina por familia
+ * - Sombras, radius, tipografia
+ * - Transicoes e animacoes
+ * 
+ * IMPORTANTE: Importar este arquivo ANTES do index.css
+ * =============================================================================
+ */
+
+:root {
+  /* ==========================================================================
+     1. IDENTIDADE VISUAL - PALETA DE CORES
+     ========================================================================== */
+
+  /* Cores Principais - Inspiradas em Linear, Stripe, Notion */
+  --rsv-deep-blue: #1e3a8a;
+  --rsv-action-blue: #2563eb;
+  --rsv-graphite: #111827;
+  --rsv-slate-50: #f8fafc;
+  --rsv-white: #ffffff;
+
+  /* Escala Slate Completa (Neutros) */
+  --rsv-slate-100: #f1f5f9;
+  --rsv-slate-200: #e2e8f0;
+  --rsv-slate-300: #cbd5e1;
+  --rsv-slate-400: #94a3b8;
+  --rsv-slate-500: #64748b;
+  --rsv-slate-600: #475569;
+  --rsv-slate-700: #334155;
+  --rsv-slate-800: #1e293b;
+  --rsv-slate-900: #0f172a;
+
+  /* Cores Semanticas */
+  --rsv-success: #10b981;
+  --rsv-success-light: #d1fae5;
+  --rsv-success-dark: #059669;
+  --rsv-warning: #f59e0b;
+  --rsv-warning-light: #fef3c7;
+  --rsv-warning-dark: #d97706;
+  --rsv-error: #ef4444;
+  --rsv-error-light: #fee2e2;
+  --rsv-error-dark: #dc2626;
+  --rsv-info: #3b82f6;
+  --rsv-info-light: #dbeafe;
+  --rsv-info-dark: #2563eb;
+
+  /* ==========================================================================
+     2. SISTEMA DE ESPACAMENTO (8px base)
+     ========================================================================== */
+
+  --rsv-space-0: 0;
+  --rsv-space-1: 4px;
+  --rsv-space-2: 8px;
+  --rsv-space-3: 12px;
+  --rsv-space-4: 16px;
+  --rsv-space-5: 20px;
+  --rsv-space-6: 24px;
+  --rsv-space-8: 32px;
+  --rsv-space-10: 40px;
+  --rsv-space-12: 48px;
+  --rsv-space-16: 64px;
+  --rsv-space-20: 80px;
+  --rsv-space-24: 96px;
+
+  /* ==========================================================================
+     3. LARGURAS DE PAGINA POR FAMILIA
+     ========================================================================== */
+
+  /* Familia A: Public/Marketing */
+  --rsv-page-public: 1280px;
+  --rsv-padding-public-mobile: var(--rsv-space-4);
+  --rsv-padding-public-sm: var(--rsv-space-6);
+  --rsv-padding-public-lg: var(--rsv-space-8);
+
+  /* Familia B: Catalog/Commerce */
+  --rsv-page-catalog: 1280px;
+  --rsv-sidebar-catalog: 280px;
+  --rsv-padding-catalog-mobile: var(--rsv-space-4);
+  --rsv-padding-catalog-sm: var(--rsv-space-6);
+  --rsv-padding-catalog-lg: var(--rsv-space-8);
+
+  /* Familia C: Auth */
+  --rsv-page-auth: 440px;
+  --rsv-padding-auth: var(--rsv-space-6);
+
+  /* Familia D: App Mobile */
+  --rsv-page-app: 480px;
+  --rsv-padding-app-mobile: var(--rsv-space-4);
+  --rsv-padding-app-desktop: var(--rsv-space-6);
+  --rsv-topbar-app: 56px;
+  --rsv-bottomnav-app: 64px;
+
+  /* Familia E: Admin/Dashboard */
+  --rsv-page-admin: 1440px;
+  --rsv-sidebar-admin: 256px;
+  --rsv-sidebar-admin-collapsed: 64px;
+  --rsv-topbar-admin: 64px;
+  --rsv-padding-admin: var(--rsv-space-6);
+
+  /* ==========================================================================
+     4. BORDER RADIUS
+     ========================================================================== */
+
+  --rsv-radius-none: 0;
+  --rsv-radius-sm: 4px;
+  --rsv-radius-md: 8px;
+  --rsv-radius-lg: 12px;
+  --rsv-radius-xl: 16px;
+  --rsv-radius-2xl: 20px;
+  --rsv-radius-3xl: 24px;
+  --rsv-radius-full: 9999px;
+
+  /* ==========================================================================
+     5. SOMBRAS (discretas, premium)
+     ========================================================================== */
+
+  --rsv-shadow-none: none;
+  --rsv-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --rsv-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 
+                   0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --rsv-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07),
+                   0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --rsv-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08),
+                   0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --rsv-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08),
+                   0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --rsv-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+  /* Sombras especificas */
+  --rsv-shadow-card: var(--rsv-shadow-sm);
+  --rsv-shadow-card-hover: var(--rsv-shadow-md);
+  --rsv-shadow-elevated: var(--rsv-shadow-lg);
+  --rsv-shadow-modal: var(--rsv-shadow-xl);
+
+  /* ==========================================================================
+     6. BORDAS
+     ========================================================================== */
+
+  --rsv-border-color: var(--rsv-slate-200);
+  --rsv-border-color-light: var(--rsv-slate-100);
+  --rsv-border-color-dark: var(--rsv-slate-300);
+  --rsv-border-width: 1px;
+
+  /* ==========================================================================
+     7. SUPERFICIES E BACKGROUNDS
+     ========================================================================== */
+
+  /* Light Mode */
+  --rsv-surface-base: var(--rsv-white);
+  --rsv-surface-alt: var(--rsv-slate-50);
+  --rsv-surface-elevated: var(--rsv-white);
+  --rsv-surface-dim: var(--rsv-slate-100);
+  --rsv-surface-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text Colors */
+  --rsv-text-primary: var(--rsv-graphite);
+  --rsv-text-secondary: var(--rsv-slate-600);
+  --rsv-text-tertiary: var(--rsv-slate-500);
+  --rsv-text-muted: var(--rsv-slate-400);
+  --rsv-text-inverse: var(--rsv-white);
+
+  /* ==========================================================================
+     8. TIPOGRAFIA
+     ========================================================================== */
+
+  /* Font Families */
+  --rsv-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --rsv-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+
+  /* Font Sizes */
+  --rsv-text-xs: 0.75rem;    /* 12px */
+  --rsv-text-sm: 0.875rem;   /* 14px */
+  --rsv-text-base: 1rem;     /* 16px */
+  --rsv-text-lg: 1.125rem;   /* 18px */
+  --rsv-text-xl: 1.25rem;    /* 20px */
+  --rsv-text-2xl: 1.5rem;    /* 24px */
+  --rsv-text-3xl: 1.875rem;  /* 30px */
+  --rsv-text-4xl: 2.25rem;   /* 36px */
+  --rsv-text-5xl: 3rem;      /* 48px */
+
+  /* Font Weights */
+  --rsv-font-normal: 400;
+  --rsv-font-medium: 500;
+  --rsv-font-semibold: 600;
+  --rsv-font-bold: 700;
+
+  /* Line Heights */
+  --rsv-leading-none: 1;
+  --rsv-leading-tight: 1.25;
+  --rsv-leading-snug: 1.375;
+  --rsv-leading-normal: 1.5;
+  --rsv-leading-relaxed: 1.625;
+  --rsv-leading-loose: 2;
+
+  /* Letter Spacing */
+  --rsv-tracking-tighter: -0.05em;
+  --rsv-tracking-tight: -0.025em;
+  --rsv-tracking-normal: 0;
+  --rsv-tracking-wide: 0.025em;
+
+  /* ==========================================================================
+     9. COMPONENTES
+     ========================================================================== */
+
+  /* Input Heights */
+  --rsv-input-sm: 32px;
+  --rsv-input-md: 40px;
+  --rsv-input-lg: 48px;
+
+  /* Button Padding */
+  --rsv-btn-padding-sm: var(--rsv-space-2) var(--rsv-space-3);
+  --rsv-btn-padding-md: var(--rsv-space-3) var(--rsv-space-4);
+  --rsv-btn-padding-lg: var(--rsv-space-4) var(--rsv-space-6);
+
+  /* ==========================================================================
+     10. TRANSICOES E ANIMACOES
+     ========================================================================== */
+
+  --rsv-duration-fast: 150ms;
+  --rsv-duration-base: 200ms;
+  --rsv-duration-slow: 300ms;
+  --rsv-duration-slower: 500ms;
+
+  --rsv-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --rsv-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --rsv-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --rsv-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==========================================================================
+     11. Z-INDEX SCALE
+     ========================================================================== */
+
+  --rsv-z-base: 0;
+  --rsv-z-dropdown: 10;
+  --rsv-z-sticky: 20;
+  --rsv-z-fixed: 30;
+  --rsv-z-modal-backdrop: 40;
+  --rsv-z-modal: 50;
+  --rsv-z-popover: 60;
+  --rsv-z-tooltip: 70;
+  --rsv-z-toast: 80;
+}
+
+/* =============================================================================
+   DARK MODE
+   ============================================================================= */
+.dark,
+[data-theme="dark"] {
+  --rsv-surface-base: #0f172a;
+  --rsv-surface-alt: #1e293b;
+  --rsv-surface-elevated: #1a1f35;
+  --rsv-surface-dim: #334155;
+  --rsv-surface-overlay: rgba(0, 0, 0, 0.7);
+
+  --rsv-text-primary: #f1f5f9;
+  --rsv-text-secondary: #cbd5e1;
+  --rsv-text-tertiary: #94a3b8;
+  --rsv-text-muted: #64748b;
+  --rsv-text-inverse: var(--rsv-graphite);
+
+  --rsv-border-color: var(--rsv-slate-700);
+  --rsv-border-color-light: var(--rsv-slate-800);
+  --rsv-border-color-dark: var(--rsv-slate-600);
+}
+
+/* =============================================================================
+   UTILITY CLASSES PARA SPACING
+   ============================================================================= */
+.rsv-gap-section {
+  gap: var(--rsv-space-16);
+}
+
+.rsv-gap-block {
+  gap: var(--rsv-space-8);
+}
+
+.rsv-gap-element {
+  gap: var(--rsv-space-4);
+}
+
+.rsv-gap-tight {
+  gap: var(--rsv-space-2);
+}
+
+/* Padding utilities */
+.rsv-p-page {
+  padding-left: var(--rsv-space-4);
+  padding-right: var(--rsv-space-4);
+}
+
+@media (min-width: 640px) {
+  .rsv-p-page {
+    padding-left: var(--rsv-space-6);
+    padding-right: var(--rsv-space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-p-page {
+    padding-left: var(--rsv-space-8);
+    padding-right: var(--rsv-space-8);
+  }
+}

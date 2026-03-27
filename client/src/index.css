@@ -1,3 +1,6 @@
+/* RSV360 Design System Tokens */
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -59,6 +59,9 @@ import AdminCRM from "@/pages/admin/crm";
 import AdminRelatorioMensal from "@/pages/admin/relatorio-mensal";
 import AdminConfiguracoesSistema from "@/pages/admin/configuracoes-sistema";
 
+// Paginas Publicas Padronizadas (Familia A)
+import { HomePage as HomePageNew, PromocoesPage as PromocoesNew, ContatoPage as ContatoNew, SobrePage as SobreNew } from "@/pages/public";
+
 function Router() {
   return (
     <Switch>
@@ -128,6 +131,13 @@ function Router() {
       <Route path="/admin/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
       <Route path="/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
       <Route path="/excursoes/:slug" component={ExcursaoLanding} />
+      
+      {/* Paginas Publicas Padronizadas (Familia A) */}
+      <Route path="/v2" component={HomePageNew} />
+      <Route path="/v2/promocoes" component={PromocoesNew} />
+      <Route path="/v2/contato" component={ContatoNew} />
+      <Route path="/v2/sobre" component={SobreNew} />
+      
       <Route component={NotFound} />
     </Switch>
   );
