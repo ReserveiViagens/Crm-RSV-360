@@ -11,29 +11,77 @@ export type PendingDelivery = {
   lastError: string;
 };
 
-const retryQueue = new Map<string, PendingDelivery>();
+export type PendingConfirmation = {
+  orderId: string;
+  transactionId: string;
+  enqueuedAt: string;
+  retryCount: number;
+  lastError: string;
+};
+
+// ─── Voucher Delivery Queue ───────────────────────────────────────────────────
+const voucherDeliveryQueue = new Map<string, PendingDelivery>();
 
 export function enqueuePendingDelivery(entry: PendingDelivery): void {
-  retryQueue.set(entry.orderId, entry);
+  voucherDeliveryQueue.set(entry.orderId, entry);
 }
 
 export function dequeueDelivery(orderId: string): void {
-  retryQueue.delete(orderId);
+  voucherDeliveryQueue.delete(orderId);
 }
 
 export function updateDelivery(orderId: string, patch: Partial<PendingDelivery>): void {
-  const existing = retryQueue.get(orderId);
+  const existing = voucherDeliveryQueue.get(orderId);
   if (existing) {
-    retryQueue.set(orderId, { ...existing, ...patch });
+    voucherDeliveryQueue.set(orderId, { ...existing, ...patch });
   }
 }
 
 export function getPendingDeliveries(): PendingDelivery[] {
-  return Array.from(retryQueue.values()).sort(
+  return Array.from(voucherDeliveryQueue.values()).sort(
     (a, b) => new Date(b.attemptedAt).getTime() - new Date(a.attemptedAt).getTime()
   );
 }
 
 export function getPendingDelivery(orderId: string): PendingDelivery | null {
-  return retryQueue.get(orderId) ?? null;
+  return voucherDeliveryQueue.get(orderId) ?? null;
+}
+
+export function getDeliveryQueueSize(): number {
+  return voucherDeliveryQueue.size;
+}
+
+// ─── Payment Confirmation Queue ───────────────────────────────────────────────
+const paymentConfirmationQueue = new Map<string, PendingConfirmation>();
+
+export function enqueuePaymentConfirmation(entry: PendingConfirmation): void {
+  paymentConfirmationQueue.set(entry.orderId, entry);
+}
+
+export function dequeuePaymentConfirmation(orderId: string): void {
+  paymentConfirmationQueue.delete(orderId);
+}
+
+export function updatePaymentConfirmation(orderId: string, patch: Partial<PendingConfirmation>): void {
+  const existing = paymentConfirmationQueue.get(orderId);
+  if (existing) {
+    paymentConfirmationQueue.set(orderId, { ...existing, ...patch });
+  }
+}
+
+export function getPendingConfirmations(): PendingConfirmation[] {
+  return Array.from(paymentConfirmationQueue.values()).sort(
+    (a, b) => new Date(b.enqueuedAt).getTime() - new Date(a.enqueuedAt).getTime()
+  );
+}
+
+export function getConfirmationQueueSize(): number {
+  return paymentConfirmationQueue.size;
+}
+
+export function getQueueStats(): { deliveryQueue: number; confirmationQueue: number } {
+  return {
+    deliveryQueue: voucherDeliveryQueue.size,
+    confirmationQueue: paymentConfirmationQueue.size,
+  };
 }

@@ -1,8 +1,12 @@
 
 import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { scrypt, randomBytes, timingSafeEqual, createHmac, randomUUID } from "crypto";
 import { promisify } from "util";
+import rateLimit from "express-rate-limit";
+import { logger } from "./lib/logger.js";
+import { raiseAlert, getActiveAlerts, getAlertCount, acknowledgeAlert } from "./lib/alerts.js";
+import { getQueueStats } from "./services/retry-queue.service.js";
 import { storage } from "./storage";
 import { registerSchema, loginSchema, insertAtividadeWizardSchema } from "@shared/schema";
 import { getOpcionais } from "./opcionais";
@@ -64,14 +68,65 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerWeatherRoutes(app);
 
+  // ─── RATE LIMITERS ────────────────────────────────────────────────────────
+  const voucherRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Muitas requisições de voucher. Aguarde 1 minuto e tente novamente." },
+  });
+
+  const pixWebhookRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Limite de requisições de webhook atingido." },
+  });
+
+  const recommendationsRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Limite de requisições de recomendações atingido." },
+  });
+
+  // ─── VOUCHER HMAC SECRET ──────────────────────────────────────────────────
+  const VOUCHER_SECRET = process.env.VOUCHER_SECRET || "rsv360-voucher-dev-secret";
+
+  function signVoucherId(voucherId: string): string {
+    return createHmac("sha256", VOUCHER_SECRET).update(voucherId).digest("hex");
+  }
+
+  function verifyVoucherToken(voucherId: string, token: string): boolean {
+    const expected = signVoucherId(voucherId);
+    try {
+      return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(token, "hex"));
+    } catch {
+      return false;
+    }
+  }
+
   // ─── HEALTHCHECK ──────────────────────────────────────────────────────────
   app.get("/api/status", (_req: Request, res: Response) => {
+    const queueStats = getQueueStats();
+    const alertCount = getAlertCount();
     res.json({
       ok: true,
       service: "RSV360 — Reservei Viagens",
       version: "1.0.0",
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
+      queues: {
+        deliveryQueue: queueStats.deliveryQueue,
+        confirmationQueue: queueStats.confirmationQueue,
+      },
+      alerts: {
+        active: alertCount.active,
+        total: alertCount.total,
+      },
     });
   });
 
@@ -2118,6 +2173,8 @@ export async function registerRoutes(
     expirationDate: string;
     createdAt: string;
     demo: boolean;
+    voucherId: string;
+    voucherToken: string;
   }>();
 
   app.post("/api/payments/tickets/create", async (req: Request, res: Response) => {
@@ -2140,9 +2197,13 @@ export async function registerRoutes(
     try {
       const lineItems = items.map((i) => ({ ticketId: i.ticketId, quantity: Math.floor(i.quantity) }));
       const result = await createTicketPix(lineItems, customer);
+      const voucherId = randomUUID();
+      const voucherToken = signVoucherId(voucherId);
       ticketTransactions.set(result.transactionId, {
         ...result,
         createdAt: new Date().toISOString(),
+        voucherId,
+        voucherToken,
       });
       if (result.demo) {
         demoAutoConfirmCallbacks.set(result.transactionId, () => {
@@ -2163,6 +2224,8 @@ export async function registerRoutes(
         items: result.items,
         customer: result.customer,
         demo: result.demo,
+        voucherId,
+        voucherToken,
       });
     } catch (err) {
       if (err instanceof UnknownTicketError) {
@@ -2255,7 +2318,7 @@ export async function registerRoutes(
     return res.json({ status: "APPROVED", paid: true });
   });
 
-  app.post("/api/webhooks/tickets", async (req: Request, res: Response) => {
+  app.post("/api/webhooks/tickets", pixWebhookRateLimit, async (req: Request, res: Response) => {
     const apiKey = req.headers["x-api-key"] as string | undefined;
     if (process.env.WEBHOOK_SECRET && apiKey !== process.env.WEBHOOK_SECRET) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -2336,10 +2399,18 @@ export async function registerRoutes(
     });
   });
 
-  app.get("/api/orders/:id/voucher", async (req: Request, res: Response) => {
+  app.get("/api/orders/:id/voucher", voucherRateLimit, async (req: Request, res: Response) => {
     const id = String(req.params.id);
     const txn = ticketTransactions.get(id);
     if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
+
+    const token = req.query.token as string | undefined;
+    if (token && txn.voucherToken) {
+      if (!verifyVoucherToken(txn.voucherId, token)) {
+        return res.status(403).json({ message: "Token de voucher inválido." });
+      }
+    }
+
     try {
       const { generateVoucherPdf } = await import("./services/voucher-pdf.service");
       const pdfBuffer = await generateVoucherPdf({
@@ -2370,6 +2441,11 @@ export async function registerRoutes(
       return res.end(pdfBuffer);
     } catch (err) {
       console.error("[orders/voucher]", err);
+      raiseAlert("VOUCHER_PDF_FAILURE", `Falha ao gerar voucher para orderId=${id}`, {
+        severity: "critical",
+        orderId: id,
+        meta: { error: err instanceof Error ? err.message : String(err) },
+      });
       return res.status(500).json({ message: "Erro ao gerar voucher PDF" });
     }
   });
@@ -2414,7 +2490,7 @@ export async function registerRoutes(
     maxSuggestions: comboZ.number().int().min(1).max(5).optional(),
   });
 
-  app.post("/api/recommendations/combo", (req: Request, res: Response) => {
+  app.post("/api/recommendations/combo", recommendationsRateLimit, (req: Request, res: Response) => {
     const parsed = comboRequestSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ message: "Payload inválido", errors: parsed.error.issues });
@@ -2540,9 +2616,28 @@ export async function registerRoutes(
     }
   });
 
+  // ─── ADMIN ALERTS ────────────────────────────────────────────────────────
+
+  app.get("/api/admin/alerts", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ message: "Acesso restrito a administradores" });
+    return res.json({ alerts: getActiveAlerts() });
+  });
+
+  app.post("/api/admin/alerts/:alertId/acknowledge", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ message: "Acesso restrito a administradores" });
+    const alertId = String(req.params.alertId);
+    const ok = acknowledgeAlert(alertId);
+    if (!ok) return res.status(404).json({ message: "Alerta não encontrado" });
+    return res.json({ ok: true, alertId });
+  });
+
   // ─── V1 RECOMMENDATIONS ──────────────────────────────────────────────────
 
-  app.get("/api/v1/recommendations", (req: Request, res: Response) => {
+  app.get("/api/v1/recommendations", recommendationsRateLimit, (req: Request, res: Response) => {
     const { ticketIds, profile, limit: limitStr } = req.query as Record<string, string>;
     const ids = ticketIds ? ticketIds.split(",").map((s) => s.trim()).filter(Boolean) : [];
 

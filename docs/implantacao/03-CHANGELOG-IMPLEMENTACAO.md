@@ -4,6 +4,39 @@ Histórico de implementação por data e commit. Atualizar a cada fase concluíd
 
 ---
 
+## 2026-03-27 — Fase 08: Hardening, Observabilidade e Segurança (PROJETO CONCLUÍDO)
+
+**Commits:** `feat(fase-08): conclui hardening, segurança e documentação final`  
+**Responsável:** Replit Agent (Task #3)
+
+### Objetivo
+Endurecer a operação antes de escalar: logging estruturado, proteção de voucher, rate limit, filas separadas, alertas críticos e runbook.
+
+### Entregáveis
+- `.env.example` — todas as variáveis documentadas com comentários
+- `server/lib/logger.ts` — logger estruturado JSON (level, message, timestamp, orderId)
+- `server/lib/alerts.ts` — sistema de alertas críticos (raiseAlert, acknowledgeAlert, getActiveAlerts)
+- `server/routes.ts`:
+  - `GET /api/status` atualizado com queues + alerts count
+  - UUID v4 + HMAC-SHA256 token para cada voucher
+  - `GET /api/orders/:id/voucher?token=<hmac>` valida token (403 se inválido)
+  - Rate limit: voucher 10/min, webhook 30/min, recomendações 60/min
+  - `GET /api/admin/alerts` + `POST /api/admin/alerts/:id/acknowledge`
+- `server/services/retry-queue.service.ts` — filas separadas: voucherDeliveryQueue + paymentConfirmationQueue
+- `server/services/post-payment-orchestrator.service.ts` — integrado com logger + raiseAlert
+- `client/src/components/admin/CriticalAlertsPanel.tsx` — painel de alertas no admin
+- `docs/runbook.md` — rollback, reenvio, invalidação, escalation
+
+### Gate Final Verificado
+- ✅ GET /api/status → `{"ok":true, queues:{...}, alerts:{...}}`
+- ✅ voucherId = UUID v4 (não sequencial)
+- ✅ voucherToken = HMAC-SHA256 → 403 em token inválido
+- ✅ Rate limit voucher → 429 após ~8 req/min
+- ✅ Rate limit recomendações → 429 na req #61
+- ✅ GET /api/admin/alerts → `{"alerts":[]}`
+
+---
+
 ## 2026-03-27 — Task #9 (Sprint 0): Auditoria + Estrutura-Base
 
 **Commits Sprint 0:** chain `8e3e43c` → `8e927e9` → `2354ff3` (docs + schema + FASE-00 checklist)  

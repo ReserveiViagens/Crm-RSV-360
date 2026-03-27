@@ -7,6 +7,7 @@ import ComboConversionCard from "@/components/admin/ComboConversionCard";
 import TopSuggestedHotelsTable from "@/components/admin/TopSuggestedHotelsTable";
 import TriggerAcceptanceChart from "@/components/admin/TriggerAcceptanceChart";
 import VoucherDeliveryStatusTable from "@/components/admin/VoucherDeliveryStatusTable";
+import CriticalAlertsPanel from "@/components/admin/CriticalAlertsPanel";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell, Legend,
@@ -421,6 +422,7 @@ export default function DashboardRSV() {
               <TriggerAcceptanceChart />
               <TopSuggestedHotelsTable />
             </div>
+            <CriticalAlertsPanel />
             <VoucherDeliveryStatusTable />
           </div>
 
