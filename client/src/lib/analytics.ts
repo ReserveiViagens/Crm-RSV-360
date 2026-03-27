@@ -31,7 +31,8 @@ type AnalyticsEvent =
   | "cupom_apply_attempt"
   | "enterprise_expand"
   | "ticket_whatsapp_share_click"
-  | "combo_dates_confirmed";
+  | "combo_dates_confirmed"
+  | "pix_cancelled";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   try {
