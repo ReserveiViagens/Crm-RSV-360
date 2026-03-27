@@ -1400,7 +1400,14 @@ export default function IngressosPage() {
         open={comboWizardOpen}
         onDismiss={dismissComboWizard}
         cartItems={cart}
-        onCartChange={() => {}}
+        onAddSuggestion={(suggestion) => {
+          addTicket({
+            ticketId: suggestion.id,
+            name: suggestion.name,
+            unitPrice: suggestion.comboPrice,
+            originalPrice: suggestion.originalPrice,
+          })
+        }}
       />
     </CatalogPageShell>
   )
