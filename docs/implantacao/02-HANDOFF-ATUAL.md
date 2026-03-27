@@ -18,21 +18,26 @@ Sprint 2+3 (Task #11) foi concluída com todos os entregáveis críticos:
 | SecondaryButton (data-testid obrigatório) | `[x]` | `client/src/components/ui/secondary-button.tsx` |
 | StatusBadge em `/ui/` (canônico) | `[x]` PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED | `client/src/components/ui/status-badge.tsx` |
 | LoadingSkeleton variant="card" | `[x]` criado e integrado | `client/src/components/shells/index.tsx` |
-| CartStickyBar safe-area + analytics | `[x]` | `client/src/components/CartStickyBar.tsx` |
-| CartStickyBar wired na página | `[x]` via IngressosSidebar (mobile) | ver nota abaixo |
+| CartStickyBar safe-area + analytics | `[x]` componente compartilhado criado | `client/src/components/CartStickyBar.tsx` |
+| CTA de checkout mobile em /ingressos | `[x]` via IngressosSidebar (mobile) | `client/src/components/IngressosSidebar.tsx` |
 | TicketsGrid loading prop + EmptyState | `[x]` | `client/src/components/TicketsGrid.tsx` |
 | cart-store hardened (shared/schema.ts) | `[x]` dedup + validateCartItem | `client/src/lib/cart-store.ts` |
 | EnterpriseAccordion EmptyState formal | `[x]` | `client/src/components/EnterpriseAccordion.tsx` |
 | ingressos.tsx filter analytics | `[x]` city/category/quickpick | `client/src/pages/ingressos.tsx` |
 
-### Nota: CartStickyBar no mobile de /ingressos
+### Nota: CartStickyBar vs IngressosSidebar (mobile)
 
-`CartStickyBar` é o componente compartilhado de CTA de checkout para **páginas sem sidebar dedicada**.  
-Em `/ingressos`, o `IngressosSidebar` (mobile) já desempenha esse papel — ele fixa no rodapé, mostra total e botão "Ir para pagamento", com navegação para `/ingressos/checkout` — e retorna `null` quando o carrinho está vazio.
+`CartStickyBar` é o componente compartilhado de CTA de checkout para **páginas sem sidebar dedicada**.
 
-Adicionar `CartStickyBar` em cima do `IngressosSidebar` causaria conflito de z-index (210 vs 200) e sobreposição visual. Por isso, em `/ingressos` o `CartStickyBar` **não é renderizado** — o `IngressosSidebar` já cobre o requisito de "CTA visível com itens no carrinho → navega para /ingressos/checkout".
+Em `/ingressos`, o `IngressosSidebar` (mobile) já cobre o requisito de "CTA visível com itens no carrinho → navega para /ingressos/checkout":
+- Fixa no rodapé (z-index 210), mostra total e itens
+- Botão "Ir para pagamento" → navega para `/ingressos/checkout`
+- Retorna `null` quando carrinho está vazio
+- Dispara `trackEvent("tickets_checkout_start")` via `onCheckout` prop
 
-O `CartStickyBar` está pronto para ser wired em outras páginas (ex: `/excursoes`, páginas de combo) que não tenham sidebar.
+Renderizar `CartStickyBar` **e** `IngressosSidebar` simultaneamente criaria sobreposição visual. Em `/ingressos`, apenas `IngressosSidebar` é renderizado no mobile.
+
+`CartStickyBar` está pronto para ser wired em outras páginas (ex: `/excursoes`, páginas de combo) que não tenham sidebar dedicada.
 
 ---
 
