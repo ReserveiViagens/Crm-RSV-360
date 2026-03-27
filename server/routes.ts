@@ -608,24 +608,17 @@ export async function registerRoutes(
     if (destino) filtered = filtered.filter(i =>
       (i.destino || '').toLowerCase().includes(destino.toLowerCase())
     );
-    if (cidade_saida) filtered = filtered.filter(i =>
-      (i.localSaida || '').toLowerCase().includes(cidade_saida.toLowerCase())
-    );
+    if (cidade_saida) {
+      const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      filtered = filtered.filter(i => normalize(i.localSaida || '').includes(normalize(cidade_saida)));
+    }
     if (preco_min) {
       const min = Number(preco_min);
-      filtered = filtered.filter(i => {
-        const hoteis = (i.wizard?.roteiroOficial?.hoteis ?? []) as Array<{ precoPorPessoa?: number }>;
-        const price = hoteis.find(h => h.precoPorPessoa)?.precoPorPessoa;
-        return price !== undefined && price >= min;
-      });
+      filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto >= min);
     }
     if (preco_max) {
       const max = Number(preco_max);
-      filtered = filtered.filter(i => {
-        const hoteis = (i.wizard?.roteiroOficial?.hoteis ?? []) as Array<{ precoPorPessoa?: number }>;
-        const price = hoteis.find(h => h.precoPorPessoa)?.precoPorPessoa;
-        return price !== undefined && price <= max;
-      });
+      filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto <= max);
     }
     if (mes) filtered = filtered.filter(i =>
       i.dataIda && new Date(i.dataIda).getMonth() + 1 === Number(mes)
