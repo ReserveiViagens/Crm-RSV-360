@@ -15,6 +15,15 @@ import {
   TravelerProfileModal,
   TravelerProfile,
 } from "@/components/ai-conversion-elements"
+import { useUnifiedSearch } from "@/hooks/useUnifiedSearch"
+import SearchBar from "@/components/search/SearchBar"
+import SearchResultsSummary from "@/components/search/SearchResultsSummary"
+import SearchEmptyState from "@/components/search/SearchEmptyState"
+import { clearPriceRange } from "@/lib/search-query"
+import type { SearchFilters, SearchItem } from "@/types/search"
+import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
+import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
+import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
 
 interface Attraction {
   id: string
@@ -64,6 +73,16 @@ const categoryToMood: Record<string, string[]> = {
   "Histórico": ["Cultura", "Romântico"],
   Cultural: ["Cultura", "Família", "Romântico"],
   Ecoturismo: ["Aventura", "Natureza"],
+}
+
+const MOOD_TO_PROFILE: Record<string, string | undefined> = {
+  Todos: undefined,
+  Relaxamento: "relaxar",
+  Aventura: "aventura",
+  "Família": "familia",
+  "Romântico": "casal",
+  Cultura: undefined,
+  Natureza: undefined,
 }
 
 const attractions: Attraction[] = [
@@ -192,11 +211,28 @@ export default function AtracoesPage() {
   const initialMood = CATEGORIA_TO_MOOD[categoriaParam.toLowerCase()] || "Todos"
   const [activeMood, setActiveMood] = useState(initialMood)
 
+  const {
+    filters: searchFilters,
+    setFilter: setSearchFilter,
+    setFilters: setSearchFilters,
+    clearAll: clearAllSearch,
+    data: searchData,
+    isLoading: searchLoading,
+  } = useUnifiedSearch({
+    syncUrl: true,
+    basePath: "/atracoes",
+    initialFilters: { type: "park" },
+  })
+
   useEffect(() => {
     const newMood = CATEGORIA_TO_MOOD[categoriaParam.toLowerCase()] || "Todos"
     setActiveMood(newMood)
+    const profileVal = MOOD_TO_PROFILE[newMood]
+    setSearchFilters({ type: "park", profile: profileVal })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoriaParam])
 
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [selectedAttraction, setSelectedAttraction] = useState<HotelDetailData | null>(null)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -232,13 +268,61 @@ export default function AtracoesPage() {
     setExperienceOfDay(attractions[Math.floor(Math.random() * attractions.length)].id)
   }, [])
 
+  const searchItemToAttraction = (item: SearchItem): Attraction => {
+    const local = attractions.find(a => a.id === item.id)
+    return {
+      id: item.id,
+      name: item.name,
+      description: item.descriptionLong || item.descriptionShort,
+      image: item.images[0] || local?.image || "",
+      location: `${item.city} - ${item.state}`,
+      duration: local?.duration || "Dia inteiro",
+      category: local?.category || item.category,
+      highlights: item.amenities.length > 0 ? item.amenities : local?.highlights ?? [],
+      rating: item.rating,
+      price: item.priceFrom > 0 ? item.priceFrom : null,
+      free: item.priceFrom === 0,
+      distance: local?.distance,
+    }
+  }
+
+  const apiAttractions = useMemo(() => {
+    const results = searchData?.results ?? []
+    return results.filter(r => r.type === "park" || r.type === "attraction")
+  }, [searchData])
+
   const filteredAttractions = useMemo(() => {
-    if (activeMood === "Todos") return attractions
-    return attractions.filter((a) => {
-      const moods = categoryToMood[a.category] || []
+    const moodsWithoutProfile = new Set(["Cultura", "Natureza"])
+    const needsLocalGate = activeMood !== "Todos" && moodsWithoutProfile.has(activeMood)
+
+    if (!needsLocalGate) {
+      return apiAttractions
+    }
+    return apiAttractions.filter((item) => {
+      const local = attractions.find(a => a.id === item.id)
+      const atCategory = local?.category || item.category
+      const moods = categoryToMood[atCategory] || []
       return moods.includes(activeMood)
     })
-  }, [activeMood])
+  }, [apiAttractions, activeMood])
+
+  const hasAnyAtracaoFilter = !!(searchFilters.q || searchFilters.category || searchFilters.minPrice !== undefined || searchFilters.maxPrice !== undefined || searchFilters.profile || searchFilters.enterprise || searchFilters.city)
+
+  const handleRemoveAtracaoFilter = (key: keyof SearchFilters | "priceRange") => {
+    if (key === "priceRange") {
+      setSearchFilters(clearPriceRange(searchFilters))
+    } else {
+      const updated: Partial<SearchFilters> = { [key]: undefined }
+      setSearchFilters({ ...searchFilters, ...updated })
+      if (key === "profile") setActiveMood("Todos")
+    }
+  }
+
+  const handleClearAtracaoFilters = () => {
+    clearAllSearch()
+    setSearchFilters({ type: "park" })
+    setActiveMood("Todos")
+  }
 
   const matchScores = useMemo(() => {
     const scores: Record<string, number> = {}
@@ -694,12 +778,117 @@ export default function AtracoesPage() {
     )
   }
 
-  const compareAttractions = compareList.map((id) => attractions.find((a) => a.id === id)).filter(Boolean) as Attraction[]
+  const compareAttractions = useMemo(() => {
+    return compareList
+      .map(id => {
+        const fromApi = apiAttractions.find(item => item.id === id)
+        if (fromApi) return searchItemToAttraction(fromApi)
+        return attractions.find(a => a.id === id) ?? null
+      })
+      .filter((a): a is Attraction => a !== null)
+  }, [compareList, apiAttractions])
+
+  const searchBarSlot = (
+    <>
+      <div
+        style={{ padding: "12px 16px 0", background: "#fff", position: "sticky", top: 64, zIndex: 31 }}
+        data-testid="search-bar-atracoes-wrapper"
+      >
+        <SearchBar
+          value={searchFilters.q || ""}
+          activeType="park"
+          onSearch={(q) => setSearchFilters({ ...searchFilters, q })}
+          onTypeChange={() => {}}
+          onFiltersOpen={() => {}}
+          hasActiveFilters={hasAnyAtracaoFilter}
+        />
+      </div>
+      <div
+        data-testid="filter-mood-bar"
+        style={{
+          background: "#fff",
+          borderBottom: "1px solid #E5E7EB",
+          padding: "14px 20px",
+          display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 118, zIndex: 30,
+        }}
+      >
+        <button
+          className="rsv-catalog-mobile-only"
+          data-testid="button-open-filters"
+          onClick={() => setFilterDrawerOpen(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+            background: "#EFF6FF", border: "1.5px solid #BFDBFE",
+            borderRadius: 999, padding: "7px 12px", color: "#2563EB",
+            fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          ⚙ Filtros
+        </button>
+        {moodFilters.map((f) => {
+          const isActive = activeMood === f.value
+          const MoodIcon = moodIcons[f.value]
+          const colors = MOOD_COLORS[f.value] || MOOD_COLORS["Todos"]
+          return (
+            <button
+              key={f.value}
+              data-testid={`button-mood-${f.value}`}
+              onClick={() => {
+                setActiveMood(f.value)
+                const profileVal = MOOD_TO_PROFILE[f.value]
+                setSearchFilters({ ...searchFilters, type: "park", profile: profileVal })
+              }}
+              style={{
+                padding: "7px 14px",
+                border: isActive ? `1.5px solid ${colors.solid}` : "1.5px solid #E5E7EB",
+                borderRadius: 999,
+                background: isActive ? colors.solid : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13,
+                fontWeight: isActive ? 700 : 500,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 0.2s",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {MoodIcon && <MoodIcon size={13} />}
+              {f.label}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
 
   return (
-    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
-      <HomeHeader />
-
+    <CatalogPageShell
+      header={<HomeHeader />}
+      searchBar={searchBarSlot}
+      footer={<><HomeFooter /><MobileCTABar /></>}
+      sidebar={
+        <SearchFiltersSidebar
+          filters={searchFilters}
+          facets={searchData?.facets}
+          onFiltersChange={setSearchFilters}
+          onClearAll={clearAllSearch}
+        />
+      }
+      mobileDrawer={
+        <SearchFiltersDrawer
+          open={filterDrawerOpen}
+          filters={searchFilters}
+          facets={searchData?.facets}
+          onClose={() => setFilterDrawerOpen(false)}
+          onFiltersChange={setSearchFilters}
+          onClearAll={() => { clearAllSearch(); setFilterDrawerOpen(false) }}
+        />
+      }
+    >
       <div
         data-testid="hero-atracoes"
         style={{
@@ -758,7 +947,10 @@ export default function AtracoesPage() {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <button
               data-testid="button-hero-ver-parques"
-              onClick={() => setActiveMood("Aventura")}
+              onClick={() => {
+                setActiveMood("Aventura")
+                setSearchFilters({ type: "park", profile: MOOD_TO_PROFILE["Aventura"] })
+              }}
               style={{
                 padding: "14px 28px", borderRadius: 12, border: "none",
                 background: "#4ADE80", color: "#065F46",
@@ -806,49 +998,6 @@ export default function AtracoesPage() {
             ))}
           </div>
         </div>
-      </div>
-
-      <div
-        data-testid="filter-mood-bar"
-        style={{
-          background: "#fff",
-          borderBottom: "1px solid #E5E7EB",
-          padding: "14px 20px",
-          display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 64, zIndex: 30,
-        }}
-      >
-        {moodFilters.map((f) => {
-          const isActive = activeMood === f.value
-          const MoodIcon = moodIcons[f.value]
-          const colors = MOOD_COLORS[f.value] || MOOD_COLORS["Todos"]
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-mood-${f.value}`}
-              onClick={() => setActiveMood(f.value)}
-              style={{
-                padding: "7px 14px",
-                border: isActive ? `1.5px solid ${colors.solid}` : "1.5px solid #E5E7EB",
-                borderRadius: 999,
-                background: isActive ? colors.solid : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                transition: "all 0.2s",
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              {MoodIcon && <MoodIcon size={13} />}
-              {f.label}
-            </button>
-          )
-        })}
       </div>
 
       <SocialProofBanner pageName="atrações" />
@@ -1033,44 +1182,62 @@ export default function AtracoesPage() {
         </div>
       )}
 
-      <div data-testid="text-filter-result-count" style={{ padding: "16px 16px 0", fontSize: 13, color: "#6B7280" }}>
-        {activeMood !== "Todos" && (
-          <span>
-            Mostrando <strong style={{ color: "#1F2937" }}>{filteredAttractions.length}</strong> atrações para <strong style={{ color: "#059669" }}>{activeMood}</strong>
-          </span>
+      <div style={{ padding: "16px 16px 0" }}>
+        {(hasAnyAtracaoFilter || !!searchFilters.q) ? (
+          <SearchResultsSummary
+            total={filteredAttractions.length}
+            query={searchFilters.q || undefined}
+            filters={searchFilters}
+            onRemoveFilter={handleRemoveAtracaoFilter}
+            onClearAll={handleClearAtracaoFilters}
+          />
+        ) : (
+          activeMood !== "Todos" && (
+            <span data-testid="text-filter-result-count" style={{ fontSize: 13, color: "#6B7280" }}>
+              Mostrando <strong style={{ color: "#1F2937" }}>{filteredAttractions.length}</strong> atrações para <strong style={{ color: "#059669" }}>{activeMood}</strong>
+            </span>
+          )
         )}
       </div>
 
       <div className="rsv-subpage-grid" style={{ padding: "12px 16px 24px" }}>
-        {filteredAttractions.map((attraction) =>
-          renderAttractionCard(attraction, experienceOfDay === attraction.id)
-        )}
+        {filteredAttractions.map((item) => {
+          const attraction = searchItemToAttraction(item)
+          return renderAttractionCard(attraction, experienceOfDay === attraction.id)
+        })}
       </div>
 
-      {filteredAttractions.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 16px" }}>
-          <Sparkles size={32} style={{ color: "#D1D5DB", marginBottom: 12 }} />
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#6B7280" }}>
-            Nenhuma atração encontrada para "{activeMood}"
-          </p>
-          <button
-            data-testid="button-clear-filter"
-            onClick={() => setActiveMood("Todos")}
-            style={{
-              marginTop: 12,
-              padding: "8px 20px",
-              borderRadius: 8,
-              border: "none",
-              background: "#2563EB",
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            Ver todas as atrações
-          </button>
-        </div>
+      {filteredAttractions.length === 0 && !searchLoading && (
+        hasAnyAtracaoFilter || !!searchFilters.q ? (
+          <SearchEmptyState
+            query={searchFilters.q || undefined}
+            onClearFilters={handleClearAtracaoFilters}
+          />
+        ) : (
+          <div style={{ textAlign: "center", padding: "40px 16px" }}>
+            <Sparkles size={32} style={{ color: "#D1D5DB", marginBottom: 12 }} />
+            <p style={{ fontSize: 15, fontWeight: 600, color: "#6B7280" }}>
+              Nenhuma atração encontrada para &ldquo;{activeMood}&rdquo;
+            </p>
+            <button
+              data-testid="button-clear-filter"
+              onClick={() => setActiveMood("Todos")}
+              style={{
+                marginTop: 12,
+                padding: "8px 20px",
+                borderRadius: 8,
+                border: "none",
+                background: "#2563EB",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Ver todas as atrações
+            </button>
+          </div>
+        )
       )}
 
       <div
@@ -1270,9 +1437,6 @@ export default function AtracoesPage() {
         </div>
       </div>
 
-      <HomeFooter />
-      <MobileCTABar />
-
       {selectedAttraction && (
         <HotelDetailPanel hotel={selectedAttraction} onClose={() => setSelectedAttraction(null)} />
       )}
@@ -1426,6 +1590,6 @@ export default function AtracoesPage() {
           </div>
         </div>
       )}
-    </div>
+    </CatalogPageShell>
   )
 }

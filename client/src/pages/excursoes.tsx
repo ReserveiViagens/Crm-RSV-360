@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link, useSearch } from "wouter"
+import { useState, useMemo, useEffect } from "react"
+import { Link, useSearch, useLocation } from "wouter"
 import {
   Bus, Users, Star, ArrowRight, Shield, Headphones,
   Zap, Thermometer, Waves, Share2, CheckCircle2,
@@ -12,6 +12,12 @@ import { LiderApplicationDialog } from "@/components/lider-application-dialog"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
+import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
+import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import type { SearchFilters } from "@/types/search"
+import SearchResultsSummary from "@/components/search/SearchResultsSummary"
+import SearchEmptyState from "@/components/search/SearchEmptyState"
 
 const WA_URL = "https://wa.me/5564993197555?text=Olá! Quero informações sobre excursões para Caldas Novas."
 
@@ -80,7 +86,11 @@ const TOP_EXCURSOES = [
 export default function Excursoes() {
   const [liderDialogOpen, setLiderDialogOpen] = useState(false)
   const [perfilAtivo, setPerfilAtivo] = useState<string | null>(null)
+  const [heroSearch, setHeroSearch] = useState("")
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [sidebarFilters, setSidebarFilters] = useState<SearchFilters>({ type: "excursion" })
   const { user } = useAuth()
+  const [, navigate] = useLocation()
   const search = useSearch()
   const params = new URLSearchParams(search)
   const perfilParam = params.get("perfil")
@@ -88,20 +98,146 @@ export default function Excursoes() {
 
   const isLider = user?.role === "LIDER" || user?.role === "admin"
 
-  function getCatalogoLink() {
-    if (perfil) return `/catalogo-excursoes?perfil=${encodeURIComponent(perfil)}`
-    return "/catalogo-excursoes"
+  const excursoesDestaquesFiltradas = useMemo(() => {
+    const q = heroSearch.trim().toLowerCase()
+    if (!q) return TOP_EXCURSOES
+    return TOP_EXCURSOES.filter(
+      (e) =>
+        e.titulo.toLowerCase().includes(q) ||
+        e.destino.toLowerCase().includes(q) ||
+        e.saida.toLowerCase().includes(q),
+    )
+  }, [heroSearch])
+
+  const searchFiltersForSummary = useMemo(() => ({
+    q: heroSearch.trim() || "",
+  }), [heroSearch])
+
+  function getCatalogoLink(q?: string) {
+    const p = new URLSearchParams()
+    const cat = perfil && PERFIS.find(x => x.id === perfil && x.id !== "todos")?.id
+    if (cat) p.set("category", cat)
+    if (q) p.set("q", q)
+    const qs = p.toString()
+    return qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes"
   }
 
+  function handleHeroSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const q = heroSearch.trim()
+    const p = new URLSearchParams()
+    const cat = perfil && PERFIS.find(x => x.id === perfil && x.id !== "todos")?.id
+    if (cat) p.set("category", cat)
+    if (q) p.set("q", q)
+    const qs = p.toString()
+    navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
+  }
+
+  function handlePerfilClick(id: string) {
+    if (id === "todos") {
+      setPerfilAtivo(null)
+      const p = new URLSearchParams()
+      if (heroSearch.trim()) p.set("q", heroSearch.trim())
+      const qs = p.toString()
+      navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
+    } else {
+      const next = perfilAtivo === id ? null : id
+      setPerfilAtivo(next)
+      const p = new URLSearchParams()
+      if (next) p.set("category", next)
+      if (heroSearch.trim()) p.set("q", heroSearch.trim())
+      const qs = p.toString()
+      navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
+    }
+  }
+
+  useEffect(() => {
+    if (sidebarFilters.q !== undefined) setHeroSearch(sidebarFilters.q)
+  }, [sidebarFilters.q])
+
+  useEffect(() => {
+    if (sidebarFilters.profile !== undefined) {
+      const profileId = sidebarFilters.profile || null
+      setPerfilAtivo(profileId)
+    }
+  }, [sidebarFilters.profile])
+
+  const searchBarSlot = (
+    <div
+      data-testid="filter-bar-excursoes"
+      style={{
+        background: "#fff", borderBottom: "1px solid #E5E7EB",
+        padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+        position: "sticky", top: 64, zIndex: 30,
+      }}
+    >
+      <button
+        className="rsv-catalog-mobile-only"
+        data-testid="button-open-filters"
+        onClick={() => setFilterDrawerOpen(true)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+          background: "#EFF6FF", border: "1.5px solid #BFDBFE",
+          borderRadius: 999, padding: "7px 12px", color: "#2563EB",
+          fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >
+        ⚙ Filtros
+      </button>
+      {PERFIS.map((p) => {
+        const Icon = p.icon
+        const isActive = (perfil ?? "todos") === p.id
+        return (
+          <button
+            key={p.id}
+            data-testid={`btn-perfil-excursoes-${p.id}`}
+            onClick={() => handlePerfilClick(p.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+              border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+              background: isActive ? "#2563EB" : "#F3F4F6",
+              color: isActive ? "#fff" : "#6B7280",
+              fontSize: 13, fontWeight: isActive ? 700 : 500,
+              whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+            }}
+          >
+            <Icon size={13} />
+            {p.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
-    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F8F9FA" }}>
+    <CatalogPageShell
+      header={<HomeHeader />}
+      searchBar={searchBarSlot}
+      footer={<><HomeFooter /><MobileCTABar /></>}
+      sidebar={
+        <SearchFiltersSidebar
+          filters={sidebarFilters}
+          onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
+          onClearAll={() => setSidebarFilters({ type: "excursion" })}
+        />
+      }
+      mobileDrawer={
+        <SearchFiltersDrawer
+          open={filterDrawerOpen}
+          filters={sidebarFilters}
+          onClose={() => setFilterDrawerOpen(false)}
+          onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
+          onClearAll={() => { setSidebarFilters({ type: "excursion" }); setFilterDrawerOpen(false) }}
+        />
+      }
+    >
       <style>{`
         @media (max-width: 640px) {
           .rsv-hero-ctas { flex-direction: column; align-items: stretch; }
           .rsv-hero-ctas a, .rsv-hero-ctas button { width: 100%; box-sizing: border-box; }
         }
       `}</style>
-      <HomeHeader />
 
       {/* ── HERO ─────────────────────────────────────── */}
       <section
@@ -160,6 +296,48 @@ export default function Excursoes() {
             Viaje com conforto e segurança para Caldas Novas e Rio Quente. Ônibus, hotel, passeios e guia — tudo organizado para você.
           </p>
 
+
+          {/* Hero search */}
+          <form
+            onSubmit={handleHeroSearch}
+            data-testid="form-hero-search"
+            style={{
+              position: "relative", width: "100%", maxWidth: 560,
+              marginBottom: 20,
+            }}
+          >
+            <Search style={{
+              position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
+              width: 18, height: 18, color: "rgba(255,255,255,0.5)", pointerEvents: "none",
+            }} />
+            <input
+              data-testid="input-hero-busca"
+              type="text"
+              placeholder="Buscar destino, cidade de saída ou pacote..."
+              value={heroSearch}
+              onChange={e => setHeroSearch(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "13px 120px 13px 48px",
+                borderRadius: 14, fontSize: 14,
+                background: "rgba(255,255,255,0.12)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                color: "#fff", outline: "none",
+              }}
+            />
+            <button
+              type="submit"
+              data-testid="btn-hero-buscar"
+              style={{
+                position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)",
+                padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg, #F57C00, #EA580C)",
+                color: "#fff", fontWeight: 700, fontSize: 13,
+              }}
+            >
+              Buscar
+            </button>
+          </form>
 
           {/* CTAs */}
           <div className="rsv-hero-ctas" style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -236,39 +414,6 @@ export default function Excursoes() {
         </div>
       </section>
 
-      <div
-        data-testid="filter-bar-excursoes"
-        style={{
-          background: "#fff", borderBottom: "1px solid #E5E7EB",
-          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 0, zIndex: 30,
-        }}
-      >
-        {PERFIS.map((p) => {
-          const Icon = p.icon
-          const isActive = (perfil ?? "todos") === p.id
-          return (
-            <button
-              key={p.id}
-              data-testid={`btn-perfil-excursoes-${p.id}`}
-              onClick={() => { if (p.id === "todos") setPerfilAtivo(null); else setPerfilAtivo(prev => prev === p.id ? null : p.id) }}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-                background: isActive ? "#2563EB" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon size={13} />
-              {p.label}
-            </button>
-          )
-        })}
-      </div>
-
       {/* ── TRUST BAR ─────────────────────────────────── */}
       <div style={{
         background: "#fff", borderBottom: "1px solid #E5E7EB",
@@ -294,12 +439,14 @@ export default function Excursoes() {
 
       {/* ── TOP EXCURSÕES ─────────────────────────────── */}
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "52px 20px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: heroSearch.trim() ? 16 : 28 }}>
           <div>
             <h2 style={{ fontSize: 26, fontWeight: 900, color: "#1E3A5F", marginBottom: 4 }}>
-              Excursões em destaque
+              {heroSearch.trim() ? "Resultados da busca" : "Excursões em destaque"}
             </h2>
-            <p style={{ fontSize: 14, color: "#6B7280" }}>Vagas limitadas — garanta a sua hoje</p>
+            <p style={{ fontSize: 14, color: "#6B7280" }}>
+              {heroSearch.trim() ? `Mostrando resultados para a sua busca` : "Vagas limitadas — garanta a sua hoje"}
+            </p>
           </div>
           <Link href="/catalogo-excursoes">
             <button
@@ -316,8 +463,26 @@ export default function Excursoes() {
           </Link>
         </div>
 
+        {heroSearch.trim() && (
+          <div style={{ marginBottom: 20 }}>
+            <SearchResultsSummary
+              total={excursoesDestaquesFiltradas.length}
+              query={heroSearch.trim()}
+              filters={searchFiltersForSummary}
+              onRemoveFilter={() => setHeroSearch("")}
+              onClearAll={() => setHeroSearch("")}
+            />
+          </div>
+        )}
+
+        {excursoesDestaquesFiltradas.length === 0 ? (
+          <SearchEmptyState
+            query={heroSearch.trim()}
+            onClearFilters={() => setHeroSearch("")}
+          />
+        ) : (
         <div className="rsv-subpage-grid" style={{ gap: 24 }}>
-          {TOP_EXCURSOES.map(exc => {
+          {excursoesDestaquesFiltradas.map(exc => {
             const desconto = Math.round(((exc.precoOriginal - exc.preco) / exc.precoOriginal) * 100)
             return (
               <div
@@ -429,6 +594,7 @@ export default function Excursoes() {
             )
           })}
         </div>
+        )}
 
         <div style={{ textAlign: "center", marginTop: 32 }}>
           <Link href="/catalogo-excursoes">
@@ -735,10 +901,7 @@ export default function Excursoes() {
         </div>
       </div>
 
-      <HomeFooter />
-      <MobileCTABar />
-
       <LiderApplicationDialog open={liderDialogOpen} onOpenChange={setLiderDialogOpen} user={user} />
-    </div>
+    </CatalogPageShell>
   )
 }

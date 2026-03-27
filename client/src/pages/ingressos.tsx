@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
 import { useLocation } from "wouter";
 import { HomeHeader } from "@/components/home/HomeHeader"
@@ -22,6 +22,14 @@ import { CartAddModal } from "@/components/CartAddModal"
 import { ComboDatesModal } from "@/components/ComboDatesModal"
 import { DESTINATION_CITIES, ENTERPRISE_CONFIG, type DestinationCity } from "@/lib/enterprises"
 import { WeatherCard } from "@/components/WeatherCard"
+import { useUnifiedSearch } from "@/hooks/useUnifiedSearch"
+import SearchResultsSummary from "@/components/search/SearchResultsSummary"
+import SearchEmptyState from "@/components/search/SearchEmptyState"
+import { clearPriceRange } from "@/lib/search-query"
+import type { SearchFilters } from "@/types/search"
+import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
+import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
+import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -467,11 +475,36 @@ export default function IngressosPage() {
   const [timer, setTimer] = useState({ minutes: 47, seconds: 23 })
   const [tickets, setTickets] = useState(ticketsBase)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [activeCity, setActiveCity] = useState<DestinationCity>("rio-quente")
   const [skeletonLoading, setSkeletonLoading] = useState(false)
   const [cartModalTicket, setCartModalTicket] = useState<TicketItem | null>(null)
   const [cartModalPrice, setCartModalPrice] = useState(0)
   const [comboDatesTicket, setComboDatesTicket] = useState<TicketItem | null>(null)
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+
+  const {
+    filters: searchFilters,
+    setFilter: setSearchFilter,
+    setFilters: setSearchFilters,
+    clearFilters: clearSearchFilters,
+    clearAll: clearAllSearchFilters,
+    hasActiveFilters: searchHasActiveFilters,
+  } = useUnifiedSearch({ syncUrl: true, basePath: "/ingressos" })
+
+  const activeCity: DestinationCity = useMemo(() => {
+    const c = searchFilters.city
+    if (c === "caldas-novas" || c === "rio-quente" || c === "multi-destino") return c
+    return "rio-quente"
+  }, [searchFilters.city])
+
+  const handleRemoveSearchFilter = useCallback((key: keyof SearchFilters | "priceRange") => {
+    if (key === "priceRange") {
+      setSearchFilters(clearPriceRange(searchFilters))
+    } else if (key === "city") {
+      setSearchFilter("city", undefined)
+    } else {
+      setSearchFilter(key as keyof SearchFilters, undefined)
+    }
+  }, [searchFilters, setSearchFilter, setSearchFilters])
 
   const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
@@ -520,7 +553,7 @@ export default function IngressosPage() {
     }
 
     if (destino === "caldas-novas" || destino === "rio-quente") {
-      setActiveCity(destino)
+      setSearchFilter("city", destino)
     }
   }, [])
 
@@ -566,21 +599,58 @@ export default function IngressosPage() {
       }
     })()
 
-    switch (activePick) {
-      case "custo":
-        return [...base].sort((a, b) => (b.discount / b.price) - (a.discount / a.price))
-      case "familia":
-        return [...base].sort((a, b) => {
-          const aFam = a.tags.some(t => FAMILY_TAGS.some(f => t.toLowerCase().includes(f))) ? 1 : 0
-          const bFam = b.tags.some(t => FAMILY_TAGS.some(f => t.toLowerCase().includes(f))) ? 1 : 0
-          return bFam - aFam
-        })
-      case "popular":
-        return [...base].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
-      default:
-        return base
+    const searchQ = searchFilters.q?.trim().toLowerCase()
+    if (searchQ) {
+      base = base.filter(t =>
+        t.name.toLowerCase().includes(searchQ) ||
+        t.description.toLowerCase().includes(searchQ) ||
+        t.tags.some(tag => tag.toLowerCase().includes(searchQ)) ||
+        (t.enterprise && t.enterprise.toLowerCase().includes(searchQ))
+      )
     }
-  }, [tickets, activeFilter, activePick])
+
+    if (searchFilters.type && searchFilters.type !== "all") {
+      const typeMap: Record<string, string[]> = {
+        park: ["parques", "natureza"],
+        combo: ["combos"],
+        hotel: [],
+        attraction: [],
+        destination: [],
+        excursion: [],
+      }
+      const allowedCategories = typeMap[searchFilters.type] ?? []
+      if (allowedCategories.length > 0) {
+        base = base.filter(t => allowedCategories.includes(t.category))
+      } else if (searchFilters.type !== "park") {
+        base = []
+      }
+    }
+
+    if (searchFilters.profile) {
+      const profileTagMap: Record<string, string[]> = {
+        familia: FAMILY_TAGS,
+        casal: ["casal", "noturno", "adulto", "romantico"],
+        aventura: ["aventura", "radical", "adrenalina", "vip", "premium"],
+        relaxar: ["relaxamento", "natureza", "spa"],
+        premium: ["vip", "premium", "luxury", "exclusivo"],
+        economia: ["morador", "meia-entrada", "desconto", "acessivel"],
+      }
+      const profileTags = profileTagMap[searchFilters.profile] ?? []
+      if (profileTags.length > 0) {
+        base = [...base].sort((a, b) => {
+          const aMatch = a.tags.some(tag => profileTags.some(f => tag.toLowerCase().includes(f))) ? 1 : 0
+          const bMatch = b.tags.some(tag => profileTags.some(f => tag.toLowerCase().includes(f))) ? 1 : 0
+          return bMatch - aMatch
+        })
+      }
+    }
+
+    const sort = searchFilters.sort
+    if (sort === "price_asc" || activePick === "custo") return [...base].sort((a, b) => a.price - b.price)
+    if (sort === "popular" || activePick === "popular") return [...base].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
+
+    return base
+  }, [tickets, activeFilter, activePick, searchFilters.q, searchFilters.sort, searchFilters.type, searchFilters.profile])
 
   const cityFilteredTickets = useMemo(() => {
     const cityEnterprises = ENTERPRISE_CONFIG
@@ -596,7 +666,7 @@ export default function IngressosPage() {
   function handleCityChange(city: DestinationCity) {
     if (city === activeCity) return
     setSkeletonLoading(true)
-    setActiveCity(city)
+    setSearchFilter("city", city)
     setTimeout(() => setSkeletonLoading(false), 450)
   }
 
@@ -610,11 +680,20 @@ export default function IngressosPage() {
   function handleQuickPick(pick: QuickPick) {
     if (pick === "combo") {
       setActivePick("combo")
+      setSearchFilters({ type: "combo" })
       setShowWizard(true)
     } else if (activePick === pick) {
       setActivePick(null)
+      setSearchFilters({ sort: "relevance", profile: undefined, type: undefined })
     } else {
       setActivePick(pick)
+      const presetMap: Record<QuickPick, Partial<SearchFilters>> = {
+        custo: { sort: "price_asc" },
+        familia: { profile: "familia" },
+        popular: { sort: "popular" },
+        combo: { type: "combo" },
+      }
+      setSearchFilters(presetMap[pick])
     }
   }
 
@@ -694,9 +773,89 @@ export default function IngressosPage() {
 
   const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
 
+  const searchBarSlot = (
+    <div
+      className="rsv-filter-bar"
+      data-testid="filter-bar-ingressos"
+      style={{
+        background: "#fff", borderBottom: "1px solid #E5E7EB",
+        padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+        position: "sticky", top: 64, zIndex: 30, alignItems: "center",
+      }}
+    >
+      <button
+        className="rsv-catalog-mobile-only"
+        data-testid="button-open-filters"
+        onClick={() => setFilterDrawerOpen(true)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+          background: "#EFF6FF", border: "1.5px solid #BFDBFE",
+          borderRadius: 999, padding: "7px 12px", color: "#2563EB",
+          fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >
+        ⚙ Filtros
+      </button>
+      {FILTERS.map((f) => {
+        const Icon = f.icon
+        const isActive = activeFilter === f.value
+        return (
+          <button
+            key={f.value}
+            onClick={() => setActiveFilter(f.value)}
+            data-testid={`button-filter-${f.value.toLowerCase().replace(/ /g, "-")}`}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+              border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
+              background: isActive ? "#F57C00" : "#F3F4F6",
+              color: isActive ? "#fff" : "#6B7280",
+              fontSize: 13, fontWeight: isActive ? 700 : 500,
+              whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+            }}
+          >
+            <Icon size={13} />
+            {f.label}
+          </button>
+        )
+      })}
+      <button
+        data-testid="button-help-choose"
+        onClick={() => setShowWizard(true)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5, flexShrink: 0, marginLeft: "auto",
+          background: "#FFF7ED", border: "1.5px solid #FDE68A",
+          borderRadius: 999, padding: "7px 12px", color: "#D97706",
+          fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >
+        <Wand2 style={{ width: 12, height: 12 }} />
+        Me ajude a escolher
+      </button>
+    </div>
+  )
+
   return (
-    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
-      <HomeHeader />
+    <CatalogPageShell
+      header={<HomeHeader />}
+      searchBar={searchBarSlot}
+      sidebar={
+        <SearchFiltersSidebar
+          filters={searchFilters}
+          onFiltersChange={setSearchFilters}
+          onClearAll={clearAllSearchFilters}
+        />
+      }
+      mobileDrawer={
+        <SearchFiltersDrawer
+          open={filterDrawerOpen}
+          filters={searchFilters}
+          onClose={() => setFilterDrawerOpen(false)}
+          onFiltersChange={setSearchFilters}
+          onClearAll={() => { clearAllSearchFilters(); setFilterDrawerOpen(false) }}
+        />
+      }
+    >
       <div
         style={{
           background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
@@ -716,53 +875,6 @@ export default function IngressosPage() {
         </div>
         </div>
 
-      </div>
-
-      <div
-        className="rsv-filter-bar"
-        data-testid="filter-bar-ingressos"
-        style={{
-          background: "#fff", borderBottom: "1px solid #E5E7EB",
-          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 64, zIndex: 30, alignItems: "center",
-        }}
-      >
-        {FILTERS.map((f) => {
-          const Icon = f.icon
-          const isActive = activeFilter === f.value
-          return (
-            <button
-              key={f.value}
-              onClick={() => setActiveFilter(f.value)}
-              data-testid={`button-filter-${f.value.toLowerCase().replace(/ /g, "-")}`}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
-                background: isActive ? "#F57C00" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon size={13} />
-              {f.label}
-            </button>
-          )
-        })}
-        <button
-          data-testid="button-help-choose"
-          onClick={() => setShowWizard(true)}
-          style={{
-            display: "flex", alignItems: "center", gap: 5, flexShrink: 0, marginLeft: "auto",
-            background: "#FFF7ED", border: "1.5px solid #FDE68A",
-            borderRadius: 999, padding: "7px 12px", color: "#D97706",
-            fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-          }}
-        >
-          <Wand2 style={{ width: 12, height: 12 }} />
-          Me ajude a escolher
-        </button>
       </div>
 
       <div style={{ display: "flex", alignItems: "flex-start" }}>
@@ -1132,6 +1244,18 @@ export default function IngressosPage() {
           </div>
         )}
 
+        {(searchHasActiveFilters || !!searchFilters.q) && (
+          <div style={{ padding: "0 16px", marginBottom: 8 }} data-testid="ingressos-search-summary">
+            <SearchResultsSummary
+              total={cityFilteredTickets.length}
+              query={searchFilters.q}
+              filters={searchFilters}
+              onRemoveFilter={handleRemoveSearchFilter}
+              onClearAll={clearAllSearchFilters}
+            />
+          </div>
+        )}
+
         {skeletonLoading ? (
           <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
             {[1, 2, 3].map((i) => (
@@ -1155,6 +1279,11 @@ export default function IngressosPage() {
               }
             `}</style>
           </div>
+        ) : cityFilteredTickets.length === 0 ? (
+          <SearchEmptyState
+            query={searchFilters.q}
+            onClearFilters={() => { clearAllSearchFilters(); setActivePick(null); setActiveFilter("Todos") }}
+          />
         ) : (
           <EnterpriseAccordion
             key={activeCity}
@@ -1274,6 +1403,6 @@ export default function IngressosPage() {
           onClose={() => setComboDatesTicket(null)}
         />
       )}
-    </div>
+    </CatalogPageShell>
   )
 }

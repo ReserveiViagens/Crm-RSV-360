@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet, Info, ChevronDown, ChevronUp } from "lucide-react"
 import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
@@ -16,6 +16,15 @@ import {
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
+import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
+import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import { useUnifiedSearch } from "@/hooks/useUnifiedSearch"
+import SearchBar from "@/components/search/SearchBar"
+import SearchResultsSummary from "@/components/search/SearchResultsSummary"
+import SearchEmptyState from "@/components/search/SearchEmptyState"
+import { clearPriceRange } from "@/lib/search-query"
+import type { SearchFilters, SearchItem } from "@/types/search"
 
 interface HotelReview {
   name: string
@@ -736,10 +745,17 @@ export default function HoteisPage() {
   const search = useSearch()
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [activeFilter, setActiveFilter] = useState("Todos")
+
+  const { filters: searchFilters, setFilter: setSearchFilter, setFilters: setSearchFilters, clearAll: clearAllSearch, data: searchData, isLoading: searchLoading } = useUnifiedSearch({
+    syncUrl: true,
+    basePath: "/hoteis",
+    initialFilters: { type: "hotel" },
+  })
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [compareList, setCompareList] = useState<string[]>([])
   const [showCompare, setShowCompare] = useState(false)
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [viewerCounts, setViewerCounts] = useState<Record<string, number>>({})
   const [animatedCards, setAnimatedCards] = useState<Set<string>>(new Set())
@@ -749,19 +765,43 @@ export default function HoteisPage() {
   const [recSlideIdx, setRecSlideIdx] = useState(0)
   const [recSlideTransition, setRecSlideTransition] = useState(true)
   const [recSlidePaused, setRecSlidePaused] = useState(false)
+  const [recSlideStep, setRecSlideStep] = useState(314)
+  const recFirstCardRef = useRef<HTMLDivElement>(null)
+
+  const measureSlideStep = useCallback(() => {
+    if (!recFirstCardRef.current) return
+    const cardWidth = recFirstCardRef.current.getBoundingClientRect().width
+    const gap = 14
+    setRecSlideStep(cardWidth + gap)
+  }, [])
+
+  useEffect(() => {
+    measureSlideStep()
+    const observer = new ResizeObserver(measureSlideStep)
+    if (recFirstCardRef.current) observer.observe(recFirstCardRef.current)
+    return () => observer.disconnect()
+  }, [measureSlideStep])
 
   useEffect(() => {
     const params = new URLSearchParams(search)
     const perfil = params.get("perfil")
-    const perfilMap: Record<string, string> = {
+    const perfilToProfile: Record<string, string> = {
+      familia: "familia",
+      casal: "casal",
+      negocios: "negocios",
+      economico: "economia",
+    }
+    const perfilToChip: Record<string, string> = {
       familia: "Família",
       casal: "Casal",
       negocios: "Negócios",
       economico: "Econômico",
     }
-    if (perfil && perfilMap[perfil]) {
-      setActiveFilter(perfilMap[perfil])
+    if (perfil && perfilToProfile[perfil]) {
+      setSearchFilters({ ...searchFilters, type: "hotel", profile: perfilToProfile[perfil] })
+      setActiveFilter(perfilToChip[perfil] ?? "Todos")
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
 
   useEffect(() => {
@@ -851,17 +891,94 @@ export default function HoteisPage() {
     }
   }, [recSlideTransition])
 
-  const filteredHotels = hotels.filter((hotel) => {
-    if (activeFilter === "Todos") return true
-    if (activeFilter === "5 Estrelas") return hotel.stars === 5
-    if (activeFilter === "4 Estrelas") return hotel.stars === 4
-    if (activeFilter === "Resort") return hotel.tags?.includes("Resort")
-    if (activeFilter === "Econômico") return hotel.tags?.includes("Econômico")
-    if (activeFilter === "Família") return hotel.tags?.includes("Família")
-    if (activeFilter === "Casal") return hotel.tags?.includes("Casal")
-    if (activeFilter === "Negócios") return hotel.stars >= 4
-    return true
-  })
+  const apiHotels: SearchItem[] = useMemo(() => {
+    const results = searchData?.results ?? []
+    return results.filter(r => r.type === "hotel")
+  }, [searchData])
+
+  const filteredHotels = useMemo(() => {
+    return apiHotels
+  }, [apiHotels])
+
+  const dynamicFilters = useMemo(() => {
+    type DynFilter = { label: string; value: string; icon: typeof LayoutGrid; filterUpdate: Partial<SearchFilters> }
+    const base: DynFilter[] = [
+      { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: { profile: undefined, rating: undefined, maxPrice: undefined, enterprise: undefined, category: undefined } },
+    ]
+    const categories = searchData?.facets?.categories ?? {}
+    const enterprises = searchData?.facets?.enterprises ?? {}
+    const profiles = searchData?.facets?.profiles ?? {}
+    const CLEAR = { profile: undefined, rating: undefined, maxPrice: undefined, enterprise: undefined, category: undefined }
+    if (Object.keys(categories).some(c => c.includes("5"))) {
+      base.push({ label: "5 Estrelas", value: "5 Estrelas", icon: Star, filterUpdate: { ...CLEAR, rating: 5 } })
+    }
+    if (Object.keys(categories).some(c => c.includes("4"))) {
+      base.push({ label: "4 Estrelas", value: "4 Estrelas", icon: Star, filterUpdate: { ...CLEAR, rating: 4 } })
+    }
+    if (Object.keys(categories).some(c => c.toLowerCase().includes("resort"))) {
+      base.push({ label: "Resort", value: "Resort", icon: Waves, filterUpdate: { ...CLEAR, category: "resort" } })
+    }
+    if (profiles["familia"]) {
+      base.push({ label: "Família", value: "Família", icon: Users, filterUpdate: { ...CLEAR, profile: "familia" } })
+    }
+    if (profiles["casal"]) {
+      base.push({ label: "Casal", value: "Casal", icon: Heart, filterUpdate: { ...CLEAR, profile: "casal" } })
+    }
+    if (profiles["premium"]) {
+      base.push({ label: "Premium", value: "Premium", icon: Star, filterUpdate: { ...CLEAR, profile: "premium" } })
+    }
+    Object.keys(enterprises).slice(0, 4).forEach(ent => {
+      base.push({ label: ent, value: `ent:${ent}`, icon: Building, filterUpdate: { ...CLEAR, enterprise: ent } })
+    })
+    base.push({ label: "Econômico", value: "Econômico", icon: Wallet, filterUpdate: { ...CLEAR, profile: "economia" } })
+    return base
+  }, [searchData])
+
+  const hasAnySearchFilter = !!(searchFilters.q || searchFilters.minPrice !== undefined || searchFilters.maxPrice !== undefined || searchFilters.rating !== undefined || searchFilters.profile || searchFilters.enterprise || searchFilters.city)
+
+  const handleRemoveSearchFilter = (key: keyof SearchFilters | "priceRange") => {
+    if (key === "priceRange") {
+      setSearchFilters(clearPriceRange(searchFilters))
+    } else if (key === "profile") {
+      const updated: Partial<SearchFilters> = { profile: undefined }
+      setSearchFilters({ ...searchFilters, ...updated })
+      setActiveFilter("Todos")
+    } else {
+      const updated: Partial<SearchFilters> = { [key]: undefined }
+      setSearchFilters({ ...searchFilters, ...updated })
+    }
+  }
+
+  const handleClearAll = () => {
+    clearAllSearch()
+    setSearchFilter("type", "hotel")
+    setActiveFilter("Todos")
+  }
+
+  const getLocalHotel = (id: string): Hotel | undefined => hotels.find(h => h.id === id)
+
+  const searchItemToHotel = (item: SearchItem): Hotel => {
+    const local = getLocalHotel(item.id)
+    const stars = item.category.includes("5") ? 5 : item.category.includes("4") ? 4 : 3
+    return {
+      id: item.id,
+      title: item.name,
+      description: item.descriptionLong || item.descriptionShort,
+      images: item.images.length > 0 ? item.images : local?.images ?? [],
+      stars,
+      location: `${item.city} - ${item.state}`,
+      price: item.priceFrom,
+      original_price: local?.original_price,
+      features: item.amenities.length > 0 ? item.amenities : local?.features ?? [],
+      capacity: local?.capacity ?? 4,
+      tags: item.profiles.length > 0 ? item.profiles.map(p => p.charAt(0).toUpperCase() + p.slice(1)) : local?.tags,
+      rating: item.rating,
+      reviewCount: item.reviewCount,
+      roomsLeft: local?.roomsLeft,
+      reviews: local?.reviews,
+      proximity: local?.proximity,
+    }
+  }
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
@@ -1341,8 +1458,97 @@ export default function HoteisPage() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
+  const searchBarSlot = (
+    <>
+      <div
+        style={{ padding: "12px 16px 0", background: "#fff", position: "sticky", top: 64, zIndex: 31 }}
+        data-testid="search-bar-hoteis-wrapper"
+      >
+        <SearchBar
+          value={searchFilters.q || ""}
+          activeType="hotel"
+          onSearch={(q) => setSearchFilters({ ...searchFilters, q })}
+          onTypeChange={() => {}}
+          onFiltersOpen={() => {}}
+          hasActiveFilters={hasAnySearchFilter}
+        />
+      </div>
+      <div
+        className="rsv-filter-bar"
+        data-testid="filter-bar-hoteis"
+        style={{
+          background: "#fff", borderBottom: "1px solid #E5E7EB",
+          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
+          position: "sticky", top: 118, zIndex: 30,
+        }}
+      >
+        <button
+          className="rsv-catalog-mobile-only"
+          data-testid="button-open-filters"
+          onClick={() => setFilterDrawerOpen(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+            background: "#EFF6FF", border: "1.5px solid #BFDBFE",
+            borderRadius: 999, padding: "7px 12px", color: "#2563EB",
+            fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          ⚙ Filtros
+        </button>
+        {dynamicFilters.map((f) => {
+          const Icon = f.icon
+          const isActive = activeFilter === f.value
+          return (
+            <button
+              key={f.value}
+              data-testid={`button-filter-${f.value}`}
+              onClick={() => {
+                setActiveFilter(f.value)
+                setSearchFilters({ ...searchFilters, type: "hotel", ...f.filterUpdate })
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: isActive ? "#2563EB" : "#F3F4F6",
+                color: isActive ? "#fff" : "#6B7280",
+                fontSize: 13, fontWeight: isActive ? 700 : 500,
+                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              <Icon size={13} />
+              {f.label}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+
   return (
-    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+    <CatalogPageShell
+      header={<HomeHeader />}
+      searchBar={searchBarSlot}
+      footer={<><HomeFooter /><MobileCTABar /></>}
+      sidebar={
+        <SearchFiltersSidebar
+          filters={searchFilters}
+          facets={searchData?.facets}
+          onFiltersChange={setSearchFilters}
+          onClearAll={clearAllSearch}
+        />
+      }
+      mobileDrawer={
+        <SearchFiltersDrawer
+          open={filterDrawerOpen}
+          filters={searchFilters}
+          facets={searchData?.facets}
+          onClose={() => setFilterDrawerOpen(false)}
+          onFiltersChange={setSearchFilters}
+          onClearAll={() => { clearAllSearch(); setFilterDrawerOpen(false) }}
+        />
+      }
+    >
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -1386,8 +1592,6 @@ export default function HoteisPage() {
           .rsv-filter-chip { font-size: 12px !important; padding: 5px 10px !important; }
         }
       `}</style>
-
-      <HomeHeader />
 
       <div
         style={{
@@ -1517,40 +1721,6 @@ export default function HoteisPage() {
         </div>
       </div>
 
-      <div
-        className="rsv-filter-bar"
-        data-testid="filter-bar-hoteis"
-        style={{
-          background: "#fff", borderBottom: "1px solid #E5E7EB",
-          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 64, zIndex: 30,
-        }}
-      >
-        {FILTERS.map((f) => {
-          const Icon = f.icon
-          const isActive = activeFilter === f.value
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-filter-${f.value}`}
-              onClick={() => setActiveFilter(f.value)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-                background: isActive ? "#2563EB" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon size={13} />
-              {f.label}
-            </button>
-          )
-        })}
-      </div>
-
       <div style={{
         display: "flex", gap: 0, overflowX: "auto", padding: "14px 16px",
         background: "linear-gradient(135deg, #F0FDF4, #ECFDF5)",
@@ -1579,8 +1749,8 @@ export default function HoteisPage() {
       <PersonalizedBanner profile={profile} />
 
       {recommendedHotels.length > 0 && (
-        <div style={{ padding: "20px 16px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <div style={{ paddingTop: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, padding: "0 16px" }}>
             <Sparkles style={{ width: 22, height: 22, color: "#F57C00" }} />
             <h2 data-testid="text-ai-recommendations-title" style={{ fontSize: 18, fontWeight: 800, color: "#1F2937", margin: 0 }}>
               {profile
@@ -1591,7 +1761,7 @@ export default function HoteisPage() {
             </h2>
           </div>
           {profile && (
-            <p data-testid="text-ai-recommendations-subtitle" style={{ fontSize: 13, color: "#6B7280", margin: "0 0 14px", paddingLeft: 30 }}>
+            <p data-testid="text-ai-recommendations-subtitle" style={{ fontSize: 13, color: "#6B7280", margin: "0 0 14px", paddingLeft: 46 }}>
               Selecionamos os melhores hoteis com base no seu orcamento{" "}
               <span style={{ fontWeight: 700, color: "#2563EB" }}>
                 {({ economico: "Economico", moderado: "Moderado", confortavel: "Confortavel", premium: "Premium" } as Record<string, string>)[profile.budget] || profile.budget}
@@ -1600,23 +1770,27 @@ export default function HoteisPage() {
             </p>
           )}
           {!profile && (
-            <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 14px", paddingLeft: 30 }}>
+            <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 14px", paddingLeft: 46 }}>
               Crie seu perfil de viajante para recomendacoes ainda mais precisas
             </p>
           )}
           <div
-            style={{ overflow: "hidden" }}
+            style={{ overflow: "hidden", padding: "0 16px" }}
             onMouseEnter={() => setRecSlidePaused(true)}
             onMouseLeave={() => setRecSlidePaused(false)}
           >
             <div style={{
               display: "flex",
               gap: 14,
-              transform: `translateX(-${recSlideIdx * 314}px)`,
+              transform: `translateX(-${recSlideIdx * recSlideStep}px)`,
               transition: recSlideTransition ? "transform 0.45s ease" : "none",
             }}>
               {[...recommendedHotels, recommendedHotels[0]].filter(Boolean).map((hotel, idx) => (
-                <div key={`${hotel.id}-${idx}`} style={{ minWidth: 300, maxWidth: 340, flexShrink: 0 }}>
+                <div
+                  key={`${hotel.id}-${idx}`}
+                  ref={idx === 0 ? recFirstCardRef : undefined}
+                  style={{ minWidth: 300, maxWidth: 300, flexShrink: 0 }}
+                >
                   {renderHotelCard(hotel, true, idx % recommendedHotels.length)}
                 </div>
               ))}
@@ -1725,25 +1899,45 @@ export default function HoteisPage() {
             {filteredHotels.length} resultado{filteredHotels.length !== 1 ? "s" : ""}
           </span>
         </div>
-        <div className="rsv-hotel-grid">
-          {filteredHotels.map((hotel, idx) => renderHotelCard(hotel, false, idx))}
-        </div>
-        {filteredHotels.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <Building style={{ width: 48, height: 48, color: "#D1D5DB", margin: "0 auto 12px" }} />
-            <p style={{ fontSize: 15, color: "#6B7280", fontWeight: 600 }}>Nenhum hotel encontrado para este filtro</p>
-            <button
-              data-testid="button-clear-filter"
-              onClick={() => setActiveFilter("Todos")}
-              style={{
-                marginTop: 8, padding: "8px 20px", border: "1px solid #E5E7EB",
-                borderRadius: 8, background: "#fff", cursor: "pointer",
-                fontSize: 13, fontWeight: 600, color: "#2563EB",
-              }}
-            >
-              Ver todos os hoteis
-            </button>
+
+        {(hasAnySearchFilter || !!searchFilters.q) && (
+          <div style={{ marginBottom: 14 }}>
+            <SearchResultsSummary
+              total={filteredHotels.length}
+              query={searchFilters.q || undefined}
+              filters={searchFilters}
+              onRemoveFilter={handleRemoveSearchFilter}
+              onClearAll={handleClearAll}
+            />
           </div>
+        )}
+
+        <div className="rsv-hotel-grid">
+          {filteredHotels.map((item, idx) => renderHotelCard(searchItemToHotel(item), false, idx))}
+        </div>
+        {filteredHotels.length === 0 && !searchLoading && (
+          hasAnySearchFilter || !!searchFilters.q ? (
+            <SearchEmptyState
+              query={searchFilters.q || undefined}
+              onClearFilters={handleClearAll}
+            />
+          ) : (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <Building style={{ width: 48, height: 48, color: "#D1D5DB", margin: "0 auto 12px" }} />
+              <p style={{ fontSize: 15, color: "#6B7280", fontWeight: 600 }}>Nenhum hotel encontrado para este filtro</p>
+              <button
+                data-testid="button-clear-filter"
+                onClick={() => setActiveFilter("Todos")}
+                style={{
+                  marginTop: 8, padding: "8px 20px", border: "1px solid #E5E7EB",
+                  borderRadius: 8, background: "#fff", cursor: "pointer",
+                  fontSize: 13, fontWeight: 600, color: "#2563EB",
+                }}
+              >
+                Ver todos os hoteis
+              </button>
+            </div>
+          )
         )}
       </div>
 
@@ -1786,9 +1980,6 @@ export default function HoteisPage() {
         </button>
       </div>
 
-      <HomeFooter />
-      <MobileCTABar />
-
       {selectedHotel && (
         <HotelDetailPanel hotel={selectedHotel} onClose={() => setSelectedHotel(null)} />
       )}
@@ -1802,12 +1993,19 @@ export default function HoteisPage() {
 
       {showCompare && compareList.length === 2 && (
         <CompareModal
-          hotels={hotels.filter((h) => compareList.includes(h.id))}
+          hotels={compareList
+            .map(id => {
+              const fromApi = apiHotels.find(h => h.id === id)
+              if (fromApi) return searchItemToHotel(fromApi)
+              const fromLocal = hotels.find(h => h.id === id)
+              return fromLocal ?? null
+            })
+            .filter((h): h is Hotel => h !== null)}
           onClose={() => setShowCompare(false)}
           formatPrice={formatPrice}
           matchScores={matchScores}
         />
       )}
-    </div>
+    </CatalogPageShell>
   )
 }

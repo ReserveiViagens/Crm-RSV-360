@@ -4,6 +4,7 @@ import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, H
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { PublicPageShell } from "@/components/layouts"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -625,33 +626,11 @@ export default function PromocoesPage() {
     )
   }
 
-  return (
-    <div className="rsv-public-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
-      <style>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        @keyframes countdownPulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
-        }
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 640px) {
-          .rsv-hero-ctas { flex-direction: column; }
-          .rsv-hero-ctas button, .rsv-hero-ctas a { width: 100%; justify-content: center; }
-          .rsv-filter-chip { font-size: 12px !important; padding: 5px 10px !important; }
-        }
-      `}</style>
-
-      <HomeHeader />
-      <div style={{
-        background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
-        color: "#fff", padding: "104px 20px 0",
-      }}>
+  const promoHero = (
+    <div style={{
+      background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
+      color: "#fff", padding: "104px 20px 0",
+    }}>
         <div style={{ maxWidth: 780, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(245,124,0,0.2)", border: "1px solid rgba(245,124,0,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: 16 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#F57C00", animation: "blink 1.5s infinite" }} />
@@ -702,7 +681,35 @@ export default function PromocoesPage() {
           </div>
         </div>
       </div>
+  )
 
+  return (
+    <>
+      <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @keyframes countdownPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.02); }
+        }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+          .rsv-hero-ctas { flex-direction: column; }
+          .rsv-hero-ctas button, .rsv-hero-ctas a { width: 100%; justify-content: center; }
+          .rsv-filter-chip { font-size: 12px !important; padding: 5px 10px !important; }
+        }
+      `}</style>
+      <PublicPageShell
+        header={<HomeHeader />}
+        heroSlot={promoHero}
+        footer={<HomeFooter />}
+        background="#F9FAFB"
+      >
       <div
         className="rsv-filter-bar"
         data-testid="filter-bar-promocoes"
@@ -905,7 +912,6 @@ export default function PromocoesPage() {
         </div>
       </div>
 
-      <HomeFooter />
       <MobileCTABar />
 
       {showProfileModal && (
@@ -917,6 +923,7 @@ export default function PromocoesPage() {
           }}
         />
       )}
-    </div>
+      </PublicPageShell>
+    </>
   )
 }

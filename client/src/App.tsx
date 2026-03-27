@@ -58,14 +58,20 @@ import AdminClientes from "@/pages/admin/clientes";
 import AdminCRM from "@/pages/admin/crm";
 import AdminRelatorioMensal from "@/pages/admin/relatorio-mensal";
 import AdminConfiguracoesSistema from "@/pages/admin/configuracoes-sistema";
-
-// Paginas Publicas Padronizadas (Familia A)
-import { HomePage as HomePageNew, PromocoesPage as PromocoesNew, ContatoPage as ContatoNew, SobrePage as SobreNew } from "@/pages/public";
+import AdminBranding from "@/pages/admin/branding";
+import AdminMapa from "@/pages/admin/mapa";
+import AdminPermissoes from "@/pages/admin/permissoes";
+import Pagamentos from "@/pages/pagamentos";
+import Suporte from "@/pages/suporte";
+import SearchPage from "@/pages/SearchPage";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/busca" component={SearchPage} />
+      <Route path="/pagamentos" component={Pagamentos} />
+      <Route path="/suporte" component={Suporte} />
       <Route path="/home" component={Home} />
       <Route path="/hoteis" component={Hoteis} />
       <Route path="/hoteis/:id" component={Hoteis} />
@@ -113,6 +119,9 @@ function Router() {
       <Route path="/admin/crm">{() => <ProtectedRoute roles={["admin"]}><AdminCRM /></ProtectedRoute>}</Route>
       <Route path="/admin/relatorio-mensal">{() => <ProtectedRoute roles={["admin"]}><AdminRelatorioMensal /></ProtectedRoute>}</Route>
       <Route path="/admin/configuracoes-sistema">{() => <ProtectedRoute roles={["admin"]}><AdminConfiguracoesSistema /></ProtectedRoute>}</Route>
+      <Route path="/admin/branding">{() => <ProtectedRoute roles={["admin"]}><AdminBranding /></ProtectedRoute>}</Route>
+      <Route path="/admin/mapa">{() => <ProtectedRoute roles={["admin"]}><AdminMapa /></ProtectedRoute>}</Route>
+      <Route path="/admin/permissoes">{() => <ProtectedRoute roles={["admin"]}><AdminPermissoes /></ProtectedRoute>}</Route>
       <Route path="/admin/excursoes">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/admin/passageiros">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>
@@ -131,13 +140,6 @@ function Router() {
       <Route path="/admin/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
       <Route path="/live-chat">{() => <ProtectedRoute roles={["admin"]}><LiveChat /></ProtectedRoute>}</Route>
       <Route path="/excursoes/:slug" component={ExcursaoLanding} />
-      
-      {/* Paginas Publicas Padronizadas (Familia A) */}
-      <Route path="/v2" component={HomePageNew} />
-      <Route path="/v2/promocoes" component={PromocoesNew} />
-      <Route path="/v2/contato" component={ContatoNew} />
-      <Route path="/v2/sobre" component={SobreNew} />
-      
       <Route component={NotFound} />
     </Switch>
   );
