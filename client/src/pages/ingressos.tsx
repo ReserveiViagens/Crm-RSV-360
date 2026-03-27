@@ -20,6 +20,7 @@ import { EnterpriseAccordion } from "@/components/EnterpriseAccordion"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { CartAddModal } from "@/components/CartAddModal"
 import { ComboDatesModal } from "@/components/ComboDatesModal"
+import { CartStickyBar } from "@/components/CartStickyBar"
 import { DESTINATION_CITIES, ENTERPRISE_CONFIG, type DestinationCity } from "@/lib/enterprises"
 import { WeatherCard } from "@/components/WeatherCard"
 import { useUnifiedSearch } from "@/hooks/useUnifiedSearch"
@@ -668,6 +669,7 @@ export default function IngressosPage() {
     if (city === activeCity) return
     setSkeletonLoading(true)
     setSearchFilter("city", city)
+    trackEvent("ticket_filter_change", { filter: "city", value: city })
     setTimeout(() => setSkeletonLoading(false), 450)
   }
 
@@ -683,9 +685,11 @@ export default function IngressosPage() {
       setActivePick("combo")
       setSearchFilters({ type: "combo" })
       setShowWizard(true)
+      trackEvent("ticket_filter_change", { filter: "quick_pick", value: pick })
     } else if (activePick === pick) {
       setActivePick(null)
       setSearchFilters({ sort: "relevance", profile: undefined, type: undefined })
+      trackEvent("ticket_filter_change", { filter: "quick_pick", value: "cleared" })
     } else {
       setActivePick(pick)
       const presetMap: Record<QuickPick, Partial<SearchFilters>> = {
@@ -695,6 +699,7 @@ export default function IngressosPage() {
         combo: { type: "combo" },
       }
       setSearchFilters(presetMap[pick])
+      trackEvent("ticket_filter_change", { filter: "quick_pick", value: pick })
     }
   }
 
@@ -803,7 +808,10 @@ export default function IngressosPage() {
         return (
           <button
             key={f.value}
-            onClick={() => setActiveFilter(f.value)}
+            onClick={() => {
+              setActiveFilter(f.value)
+              trackEvent("ticket_filter_change", { filter: "category_tab", value: f.value })
+            }}
             data-testid={`button-filter-${f.value.toLowerCase().replace(/ /g, "-")}`}
             style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -1360,6 +1368,14 @@ export default function IngressosPage() {
             trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
             navigate("/ingressos/checkout")
           }}
+        />
+      )}
+
+      {!isDesktop && (
+        <CartStickyBar
+          cart={cart}
+          total={cartTotal}
+          onCheckout={() => navigate("/ingressos/checkout")}
         />
       )}
 
