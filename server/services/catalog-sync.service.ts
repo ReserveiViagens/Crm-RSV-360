@@ -77,7 +77,8 @@ export async function runCatalogSync(options?: SyncOptions): Promise<SyncResult>
       }
     }
   } else {
-    updated = TICKET_CATALOG.length;
+    created = 0;
+    updated = 0;
   }
 
   await pool.end();
