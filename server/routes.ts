@@ -595,30 +595,43 @@ export async function registerRoutes(
 
   app.get("/api/excursoes", async (req: Request, res: Response) => {
     const items = await listExcursoes();
-    const { destino, preco_min, preco_max, mes, q } = req.query as Record<string, string>;
-    if (!destino && !preco_min && !preco_max && !mes && !q) {
+    const { destino, preco_min, preco_max, mes, q, cidade_saida, sort } = req.query as Record<string, string>;
+    const hasFilter = destino || preco_min || preco_max || mes || q || cidade_saida;
+    if (!hasFilter && !sort) {
       return res.json({ items });
     }
     let filtered = [...items];
-    if (destino) filtered = filtered.filter(i => (i.destino || '').toLowerCase().includes(destino.toLowerCase()));
-    if (q) filtered = filtered.filter(i => (i.nome || '').toLowerCase().includes(q.toLowerCase()) || (i.destino || '').toLowerCase().includes(q.toLowerCase()));
+    if (q) filtered = filtered.filter(i =>
+      (i.nome || '').toLowerCase().includes(q.toLowerCase()) ||
+      (i.destino || '').toLowerCase().includes(q.toLowerCase())
+    );
+    if (destino) filtered = filtered.filter(i =>
+      (i.destino || '').toLowerCase().includes(destino.toLowerCase())
+    );
+    if (cidade_saida) filtered = filtered.filter(i =>
+      (i.localSaida || '').toLowerCase().includes(cidade_saida.toLowerCase())
+    );
     if (preco_min) {
       const min = Number(preco_min);
       filtered = filtered.filter(i => {
         const hoteis = (i.wizard?.roteiroOficial?.hoteis ?? []) as Array<{ precoPorPessoa?: number }>;
-        const price = hoteis[0]?.precoPorPessoa ?? 0;
-        return price === 0 || price >= min;
+        const price = hoteis.find(h => h.precoPorPessoa)?.precoPorPessoa;
+        return price !== undefined && price >= min;
       });
     }
     if (preco_max) {
       const max = Number(preco_max);
       filtered = filtered.filter(i => {
         const hoteis = (i.wizard?.roteiroOficial?.hoteis ?? []) as Array<{ precoPorPessoa?: number }>;
-        const price = hoteis[0]?.precoPorPessoa ?? 0;
-        return price === 0 || price <= max;
+        const price = hoteis.find(h => h.precoPorPessoa)?.precoPorPessoa;
+        return price !== undefined && price <= max;
       });
     }
-    if (mes) filtered = filtered.filter(i => i.dataIda && new Date(i.dataIda).getMonth() + 1 === Number(mes));
+    if (mes) filtered = filtered.filter(i =>
+      i.dataIda && new Date(i.dataIda).getMonth() + 1 === Number(mes)
+    );
+    if (sort === 'data_asc' || !sort) filtered.sort((a, b) => a.dataIda.localeCompare(b.dataIda));
+    else if (sort === 'data_desc') filtered.sort((a, b) => b.dataIda.localeCompare(a.dataIda));
     return res.json({ items: filtered });
   });
 
