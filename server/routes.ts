@@ -614,15 +614,16 @@ export async function registerRoutes(
     }
     if (preco_min) {
       const min = Number(preco_min);
-      filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto >= min);
+      if (!isNaN(min)) filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto >= min);
     }
     if (preco_max) {
       const max = Number(preco_max);
-      filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto <= max);
+      if (!isNaN(max)) filtered = filtered.filter(i => i.precoAdulto !== undefined && i.precoAdulto <= max);
     }
-    if (mes) filtered = filtered.filter(i =>
-      i.dataIda && new Date(i.dataIda).getMonth() + 1 === Number(mes)
-    );
+    if (mes) {
+      const mesNum = Number(mes);
+      if (!isNaN(mesNum)) filtered = filtered.filter(i => i.dataIda && new Date(i.dataIda).getMonth() + 1 === mesNum);
+    }
     if (sort === 'data_asc' || !sort) filtered.sort((a, b) => a.dataIda.localeCompare(b.dataIda));
     else if (sort === 'data_desc') filtered.sort((a, b) => b.dataIda.localeCompare(a.dataIda));
     return res.json({ items: filtered });
