@@ -1358,16 +1358,10 @@ export default function IngressosPage() {
       )}
 
       {!isDesktop && (
-        <IngressosSidebar
+        <CartStickyBar
           cart={cart}
           total={cartTotal}
-          selectedDate={selectedDate}
-          onRemove={handleRemove}
-          onNavigate={handleSidebarNavigate}
-          onCheckout={() => {
-            trackEvent("tickets_checkout_start", { total: cartTotal, items: cart.length })
-            navigate("/ingressos/checkout")
-          }}
+          onCheckout={() => navigate("/ingressos/checkout")}
         />
       )}
 
