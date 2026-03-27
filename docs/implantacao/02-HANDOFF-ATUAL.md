@@ -30,7 +30,7 @@ Sprint 0 foi concluída com todos os entregáveis:
 - **T1–T7**: Estrutura base — home, landing, shells, admin, NTX modules (KYC, WaaS, Gamificação, Perfil, Convites, Split Pix, Catálogo, Busca, Ranking). Commit: `fb0fb425`
 - **T8**: Mapa Leaflet real em `/mapa-caldas-novas`. Commit: `e88e7b23`
 - **T18**: Fundação documental — 14 arquivos criados e pushados via GitHub Contents API.
-- **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Commit: `ecdc503`
+- **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Commit final: `ac57202`
 
 ---
 
