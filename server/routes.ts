@@ -2383,5 +2383,109 @@ export async function registerRoutes(
     return res.json(result);
   });
 
+  // ─── V1 RECOMMENDATIONS ──────────────────────────────────────────────────
+
+  app.get("/api/v1/recommendations", (req: Request, res: Response) => {
+    const { ticketIds, profile, limit: limitStr } = req.query as Record<string, string>;
+    const ids = ticketIds ? ticketIds.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    const maxSuggestions = Math.min(parseInt(limitStr ?? "5", 10) || 5, 10);
+    const cartItems = ids.map((id) => {
+      const found = CATALOG_TICKETS_SNAPSHOT.find((t) => t.id === id);
+      return {
+        ticketId: id,
+        name: found?.name ?? id,
+        unitPrice: found?.unitPrice ?? 0,
+        originalPrice: found?.originalPrice,
+        discount: found?.discount,
+        quantity: 1,
+        category: found?.category,
+        tags: found?.tags,
+      };
+    });
+    const result = getRecommendations({
+      cartItems,
+      catalog: CATALOG_TICKETS_SNAPSHOT,
+      sessionId: profile,
+      maxSuggestions,
+      comboDiscountRate: 0.15,
+    });
+    return res.json(result);
+  });
+
+  app.post("/api/v1/recommendations/sync", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ message: "Acesso restrito a administradores" });
+
+    const dryRun = req.body?.dryRun === true;
+    const now = new Date().toISOString();
+
+    try {
+      const { db: drizzleDb } = await import("./db.js");
+      const { ticketCatalog: ticketCatalogTable } = await import("@shared/schema");
+      const { eq: drizzleEq } = await import("drizzle-orm");
+      const { TICKET_CATALOG: catalog } = await import("./services/ticket-catalog.js");
+      const { TICKET_GROUP_MAP: groupMap, CATALOG_GROUP_LABELS: groupLabels } = await import("@shared/catalog-groups");
+      const { generateSlug: makeSlug } = await import("./utils/slug.js");
+
+      let created = 0;
+      let updated = 0;
+
+      if (!dryRun) {
+        for (const ticket of catalog) {
+          const group = groupMap[ticket.id] ?? "INDEPENDENTE";
+          const groupLabel = groupLabels[group as keyof typeof groupLabels] ?? group;
+          const slug = makeSlug(ticket.name);
+
+          const existing = await drizzleDb
+            .select({ id: ticketCatalogTable.id, basePrice: ticketCatalogTable.basePrice })
+            .from(ticketCatalogTable)
+            .where(drizzleEq(ticketCatalogTable.id, ticket.id))
+            .limit(1);
+
+          const preservedBasePrice = existing.length > 0 ? existing[0].basePrice : "0";
+
+          await drizzleDb
+            .insert(ticketCatalogTable)
+            .values({
+              id: ticket.id,
+              name: ticket.name,
+              slug,
+              group,
+              groupLabel,
+              basePrice: preservedBasePrice,
+              originalPrice: String(ticket.originalPrice),
+              syncedAt: new Date(now),
+            })
+            .onConflictDoUpdate({
+              target: ticketCatalogTable.id,
+              set: {
+                name: ticket.name,
+                slug,
+                group,
+                groupLabel,
+                originalPrice: String(ticket.originalPrice),
+                syncedAt: new Date(now),
+              },
+            });
+
+          if (existing.length === 0) {
+            created++;
+          } else {
+            updated++;
+          }
+        }
+      } else {
+        created = 0;
+        updated = catalog.length;
+      }
+
+      return res.json({ created, updated, total: catalog.length, dryRun, syncedAt: now });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      return res.status(500).json({ message: `Falha na sincronização: ${msg}` });
+    }
+  });
+
   return httpServer;
 }
