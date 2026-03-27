@@ -2,7 +2,7 @@
 
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
-**Último commit de produto:** `ecdc503` (Sprint 0 — Auditoria + Estrutura-Base concluída)  
+**Último commit de produto:** `b1c2ad4` (Sprint 0 — Auditoria + Estrutura-Base concluída)  
 **Responsável atual:** Replit Agent  
 **Próxima ação recomendada:** Iniciar Sprint 1 — Design System + Layout System (Task #10)
 
