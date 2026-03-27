@@ -1,11 +1,17 @@
-import { type CartItem } from "@/lib/cart-store"
-
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 }
 
+interface SummaryLineItem {
+  ticketId: string
+  name?: string
+  title?: string
+  quantity: number
+  unitPrice: number
+}
+
 interface CheckoutSummaryCardProps {
-  items: CartItem[]
+  items: SummaryLineItem[]
   totalAmount: number
   originalTotal: number
   totalSavings: number
@@ -28,7 +34,7 @@ export function CheckoutSummaryCard({
     }} data-testid="card-checkout-summary">
       {items.map((item) => (
         <div key={item.ticketId} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <span style={{ fontSize: 12, color: "#6B7280" }}>{item.name} × {item.quantity}</span>
+          <span style={{ fontSize: 12, color: "#6B7280" }}>{item.name ?? item.title} × {item.quantity}</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
             {formatPrice(item.unitPrice * item.quantity)}
           </span>
