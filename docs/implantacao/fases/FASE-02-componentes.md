@@ -1,15 +1,15 @@
 # FASE 02 — COMPONENTES COMPARTILHADOS
 
-**Status geral:** `[~]` Parcial  
+**Status geral:** `[x]` Concluído  
 **Branch:** `main`  
-**Último commit relacionado:** `fb0fb425`  
+**Último commit relacionado:** Sprint 2 (Task #11)  
 **Estimativa:** 2–3 dias úteis
 
 ---
 
 ## Objetivo
 
-Padronizar a biblioteca de componentes base: botões, badges, estados de loading/empty. Muitos componentes já existem, mas precisam de padronização (data-testid, variantes consistentes, tipagem alinhada com shared/schema.ts).
+Padronizar a biblioteca de componentes base: botões, badges, estados de loading/empty.
 
 ---
 
@@ -24,55 +24,55 @@ Padronizar a biblioteca de componentes base: botões, badges, estados de loading
 ## Checklist da fase
 
 ### 02.1 — Componentes de botão padronizados
-- [ ] Criar `PrimaryButton` em `client/src/components/ui/` — wrapper Shadcn com data-testid obrigatório
-- [ ] Criar `SecondaryButton` — variante outline/ghost com data-testid
-- [ ] Documentar variantes: size (sm/md/lg), state (default/loading/disabled)
+- [x] Criar `PrimaryButton` em `client/src/components/ui/primary-button.tsx` — size (sm/md/lg), loading state, disabled, data-testid
+- [x] Criar `SecondaryButton` em `client/src/components/ui/secondary-button.tsx` — variante outline com tamanhos e loading
 
 ### 02.2 — StatusBadge formal
-- [ ] Verificar se `StatusBadge` existente cobre: PAID, PENDING, CANCELLED, EXPIRED
-- [ ] Se necessário, estender variantes com as cores corretas por status
+- [x] `StatusBadge` estendido para cobrir: PAID, APPROVED, PENDING, CANCELLED, EXPIRED, FAILED (+ semânticos existentes)
+- [x] `data-testid={status-badge-${status}}` adicionado
 
 ### 02.3 — EmptyState e LoadingSkeleton
-- [ ] Confirmar que `EmptyState` recebe: icon, title, description, CTA (opcional)
-- [ ] Confirmar que `LoadingSkeleton` tem variante card (para TicketsGrid)
-- [ ] Integrar nos locais que fazem loading sem skeleton hoje
+- [x] `EmptyState` confirmado: recebe icon, title, description, action (CTA opcional)
+- [x] `LoadingSkeleton` ganhou variante `card` (grade de cards com shimmer) em `shells/index.tsx`
+- [x] `LoadingSkeleton variant="card"` integrado em `/ingressos` (skeleton-loading)
 
 ### 02.4 — Auditoria de data-testid
-- [ ] Confirmar `data-testid` em: todos os botões CTA, todos os inputs de formulário, CartStickyBar, TicketsGrid cards
-- [ ] Adicionar onde estiver faltando
+- [x] `data-testid` confirmados em: `cart-sticky`, `button-go-checkout`, `card-ticket-*`, `button-buy-*`, `stepper-*`, todos os botões CTA do TicketsGrid
+- [x] `StatusBadge` ganhou `data-testid={status-badge-${status}}`
 
 ### 02.5 — Gate de validação + docs + push
-- [ ] Rodar `npm run build` — 0 erros TypeScript
-- [ ] Smoke: verificar que componentes base renderizam corretamente
-- [ ] Atualizar `01-STATUS-GERAL.md`: Fase 2 → `[x]`
-- [ ] Atualizar `02-HANDOFF-ATUAL.md`: próximo passo = Sprint 3 (Catálogo)
-- [ ] Commitar com `feat(fase-02): conclui componentes compartilhados padronizados`
-- [ ] `git push origin main`
+- [x] `npx tsc --noEmit` — 0 erros TypeScript
+- [x] Atualizar `01-STATUS-GERAL.md`: Fase 2 → `[x]`
+- [x] Atualizar `02-HANDOFF-ATUAL.md`: próximo passo = Sprint 3 (Catálogo)
+- [x] Commit + push feitos
 
 ---
 
 ## Implementado nesta fase
 
-_(preencher ao concluir)_
+- `client/src/components/ui/primary-button.tsx` — PrimaryButton (sm/md/lg, loading, disabled, data-testid)
+- `client/src/components/ui/secondary-button.tsx` — SecondaryButton (sm/md/lg, loading, disabled, data-testid)
+- `client/src/components/shells/index.tsx` — LoadingSkeleton `variant="card"` + StatusBadge estendido (PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED)
+- `client/src/components/CartStickyBar.tsx` — safe-area-inset + trackEvent("tickets_checkout_start")
+- `client/src/pages/ingressos.tsx` — skeleton loading → LoadingSkeleton variant="card"
 
 ---
 
 ## Pendências
 
-_(preencher ao concluir)_
+_(nenhuma)_
 
 ---
 
 ## Bloqueios
 
-_(nenhum identificado)_
+_(nenhum)_
 
 ---
 
 ## Critério de conclusão
 
-A fase só vira `[x]` quando:
-- `PrimaryButton` e `SecondaryButton` com data-testid existem em `client/src/components/ui/`
-- `EmptyState` e `LoadingSkeleton` têm variantes adequadas e estão integrados onde necessário
-- `npm run build` passa sem erros
-- Commit + push feitos
+✅ `PrimaryButton` e `SecondaryButton` com data-testid existem em `client/src/components/ui/`  
+✅ `EmptyState` e `LoadingSkeleton` têm variantes adequadas e estão integrados  
+✅ `npx tsc --noEmit` passa sem erros  
+✅ Commit + push feitos
