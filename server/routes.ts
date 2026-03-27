@@ -68,7 +68,8 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerWeatherRoutes(app);
 
-  // ─── RATE LIMITERS ────────────────────────────────────────────────────────
+  // ─── RATE LIMITERS (Fase 08 — hardening) ─────────────────────────────────
+  // voucher: 10 req/min por IP — protege geração de PDF e HMAC token
   const voucherRateLimit = rateLimit({
     windowMs: 60 * 1000,
     max: 10,
@@ -77,6 +78,7 @@ export async function registerRoutes(
     message: { message: "Muitas requisições de voucher. Aguarde 1 minuto e tente novamente." },
   });
 
+  // pix webhook: 30 req/min por IP — throttle de callbacks do gateway
   const pixWebhookRateLimit = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
@@ -85,6 +87,7 @@ export async function registerRoutes(
     message: { message: "Limite de requisições de webhook atingido." },
   });
 
+  // recomendações: 60 req/min por IP — throttle de chamadas à engine de IA
   const recommendationsRateLimit = rateLimit({
     windowMs: 60 * 1000,
     max: 60,
