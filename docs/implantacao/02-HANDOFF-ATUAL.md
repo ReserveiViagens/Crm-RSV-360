@@ -1,8 +1,8 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 2+3 — Componentes Compartilhados + Catálogo /ingressos (Task #11) — **CONCLUÍDA**  
-**Próxima fase:** Sprint 3 (Fase 04 no plano) — Combo IA Motor + Pricing + API (Task #12)
+**Fase atual:** Sprint 4 — Combo IA Motor + Pricing + API (Task #12) — **CONCLUÍDA**  
+**Próxima fase:** Sprint 5 (Fase 05 no plano) — Checkout Pix Completo (Task #13)
 
 > **Nota de numeração:** O plano documental denomina as fases como "Fase 00–08". Task #11 cobriu a Fase 02 (componentes) + Fase 03 (catálogo /ingressos) numa única sprint. A próxima entrega é a **Fase 04 — Combo IA**, referida também como Sprint 4 no roadmap interno.
 
