@@ -15,13 +15,13 @@ interface SubGroupConfig {
 }
 
 const SUB_GROUP_CONFIG: Record<string, SubGroupConfig> = {
-  individual: { label: "🎟️ Individual / Padrão", useGrid: false, cabana: false, order: 0 },
+  individual: { label: "🎟️ Individual / Padrão", useGrid: true, cabana: false, order: 0 },
   especiais: { label: "⭐ Especiais & VIP", useGrid: true, cabana: false, order: 1 },
-  combos: { label: "✨ Combos Multi-Parque", useGrid: false, cabana: false, order: 2 },
-  transporte: { label: "🚌 Transporte", useGrid: false, cabana: false, order: 3 },
+  combos: { label: "✨ Combos Multi-Parque", useGrid: true, cabana: false, order: 2 },
+  transporte: { label: "🚌 Transporte", useGrid: true, cabana: false, order: 3 },
   cabanas: { label: "🏕️ Cabanas Exclusivas", useGrid: true, cabana: true, order: 4 },
-  morador: { label: "🏠 Desconto Morador", useGrid: false, cabana: false, order: 5 },
-  meia: { label: "🆔 Meia-Entrada Legal", useGrid: false, cabana: false, order: 6 },
+  morador: { label: "🏠 Desconto Morador", useGrid: true, cabana: false, order: 5 },
+  meia: { label: "🆔 Meia-Entrada Legal", useGrid: true, cabana: false, order: 6 },
 }
 
 function getSubGroupKey(t: TicketItem): string {
@@ -216,7 +216,7 @@ export function EnterpriseAccordion({
               <div style={{ padding: "0 12px 16px" }}>
                 {sortedSubGroups.map(([subGroupKey, subTickets]) => {
                   const config = SUB_GROUP_CONFIG[subGroupKey] ?? {
-                    label: subGroupKey, useGrid: false, cabana: false, order: 99,
+                    label: subGroupKey, useGrid: true, cabana: false, order: 99,
                   }
                   return (
                     <div key={subGroupKey} style={{ marginBottom: hasMultipleSubGroups ? 14 : 0 }}>
