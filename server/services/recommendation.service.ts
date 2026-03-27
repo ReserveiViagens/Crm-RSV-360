@@ -1,4 +1,4 @@
-import { rankSuggestions, type CartInput, type CatalogTicket } from "../domain/combo-engine"
+import { rankCandidates, type CartInput, type CatalogTicket } from "../domain/combo-engine"
 import { calculateComboPrice } from "./pricing-engine"
 
 export type RecommendationRequest = {
@@ -39,22 +39,19 @@ export function getRecommendations(req: RecommendationRequest): RecommendationRe
     return cached.response
   }
 
-  const rawSuggestions = rankSuggestions(req.cartItems, req.catalog, {
-    maxSuggestions: req.maxSuggestions ?? 3,
-    comboDiscountRate: req.comboDiscountRate ?? 0.15,
-  })
+  const comboDiscountRate = req.comboDiscountRate ?? 0.15
+  const ranked = rankCandidates(req.cartItems, req.catalog, req.maxSuggestions ?? 3)
 
-  const suggestions: RecommendationSuggestion[] = rawSuggestions.map((s) => {
-    const catalogItem = req.catalog.find((c) => c.id === s.id)
+  const suggestions: RecommendationSuggestion[] = ranked.map(({ candidate, reason }) => {
     const pricing = calculateComboPrice({
-      unitPrice: catalogItem?.unitPrice ?? s.comboPrice / (1 - (req.comboDiscountRate ?? 0.15)),
-      originalPrice: catalogItem?.originalPrice,
-      comboDiscountRate: req.comboDiscountRate ?? 0.15,
+      unitPrice: candidate.unitPrice,
+      originalPrice: candidate.originalPrice,
+      comboDiscountRate,
     })
     return {
-      id: s.id,
-      name: s.name,
-      reason: s.reason,
+      id: candidate.id,
+      name: candidate.name,
+      reason,
       originalPrice: pricing.originalPrice,
       comboPrice: pricing.comboPrice,
       savings: pricing.savings,
