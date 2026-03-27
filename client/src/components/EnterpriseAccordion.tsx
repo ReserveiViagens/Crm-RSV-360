@@ -111,7 +111,7 @@ export function EnterpriseAccordion({
           if (!subGroupMap.has(key)) subGroupMap.set(key, [])
           subGroupMap.get(key)!.push(t)
         }
-        const sortedSubGroups = [...subGroupMap.entries()].sort(
+        const sortedSubGroups = Array.from(subGroupMap.entries()).sort(
           ([a], [b]) => (SUB_GROUP_CONFIG[a]?.order ?? 99) - (SUB_GROUP_CONFIG[b]?.order ?? 99)
         )
         const hasMultipleSubGroups = sortedSubGroups.length > 1
@@ -239,7 +239,7 @@ export function EnterpriseAccordion({
                           gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
                           gap: 10,
                         }}>
-                          {subTickets.map(ticket => (
+                          {subTickets.map((ticket: TicketItem) => (
                             <TicketGridCard
                               key={ticket.id}
                               ticket={ticket}
@@ -254,7 +254,7 @@ export function EnterpriseAccordion({
                         </div>
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                          {subTickets.map(ticket => (
+                          {subTickets.map((ticket: TicketItem) => (
                             <TicketRowCard
                               key={ticket.id}
                               ticket={ticket}

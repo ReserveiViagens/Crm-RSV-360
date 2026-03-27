@@ -28,7 +28,10 @@ type AnalyticsEvent =
   | "checkout_google_click"
   | "checkout_apple_click"
   | "apple_pay_click"
-  | "cupom_apply_attempt";
+  | "cupom_apply_attempt"
+  | "enterprise_expand"
+  | "ticket_whatsapp_share_click"
+  | "combo_dates_confirmed";
 
 export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   try {

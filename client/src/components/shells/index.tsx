@@ -187,7 +187,7 @@ export function AdminShell({
       )}
       <div
         className="flex flex-col flex-1 min-h-screen transition-all duration-200"
-        style={{ marginLeft: sidebar ? `clamp(0px, ${sidebarWidth}, ${sidebarWidth})` : "0", marginLeft: "0" }}
+        style={{ marginLeft: "0" }}
       >
         {topbar && (
           <header className="sticky top-0 z-20 bg-white border-b border-slate-200 h-14 flex items-center shadow-sm">
