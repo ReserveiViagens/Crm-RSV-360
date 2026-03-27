@@ -94,7 +94,21 @@ export async function registerRoutes(
   });
 
   // ─── VOUCHER HMAC SECRET ──────────────────────────────────────────────────
-  const VOUCHER_SECRET = process.env.VOUCHER_SECRET || "rsv360-voucher-dev-secret";
+  const VOUCHER_SECRET_ENV = process.env.VOUCHER_SECRET;
+  const VOUCHER_SECRET_DEV_FALLBACK = "rsv360-voucher-dev-secret";
+
+  if (!VOUCHER_SECRET_ENV) {
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[security] VOUCHER_SECRET env var não configurada em produção! " +
+        "Tokens de voucher estarão usando um segredo inseguro. Configure VOUCHER_SECRET imediatamente."
+      );
+    } else {
+      console.warn("[security] VOUCHER_SECRET não configurada — usando fallback de desenvolvimento (inseguro em produção).");
+    }
+  }
+
+  const VOUCHER_SECRET = VOUCHER_SECRET_ENV || VOUCHER_SECRET_DEV_FALLBACK;
 
   function signVoucherId(voucherId: string): string {
     return createHmac("sha256", VOUCHER_SECRET).update(voucherId).digest("hex");
@@ -2405,10 +2419,16 @@ export async function registerRoutes(
     if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
 
     const token = req.query.token as string | undefined;
-    if (token && txn.voucherToken) {
+    const isAdminSession = req.session.userId
+      ? await storage.getUser(req.session.userId).then((u) => u?.role === "admin").catch(() => false)
+      : false;
+
+    if (token) {
       if (!verifyVoucherToken(txn.voucherId, token)) {
         return res.status(403).json({ message: "Token de voucher inválido." });
       }
+    } else if (!isAdminSession) {
+      return res.status(401).json({ message: "Token de voucher obrigatório. Utilize o link enviado por e-mail ou WhatsApp." });
     }
 
     try {

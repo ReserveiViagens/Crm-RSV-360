@@ -71,6 +71,8 @@ interface PaymentData {
   isCombo: boolean
   items: CartItem[]
   demo: boolean
+  voucherId?: string
+  voucherToken?: string
 }
 
 const emailSchema = z.object({
@@ -302,7 +304,8 @@ export default function IngressosCheckoutPage() {
       if (data.paid || data.status === "APPROVED") {
         trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId, demo: true })
         clearCart()
-        navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}`)
+        const tok = paymentData?.voucherToken ? `&token=${encodeURIComponent(paymentData.voucherToken)}` : ""
+        navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}${tok}`)
       }
     },
   })
@@ -334,7 +337,8 @@ export default function IngressosCheckoutPage() {
     if (statusData.paid || statusData.status === "APPROVED") {
       trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId })
       clearCart()
-      navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}`)
+      const tok = paymentData?.voucherToken ? `&token=${encodeURIComponent(paymentData.voucherToken)}` : ""
+      navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}${tok}`)
     }
   }, [statusData])
 

@@ -7,9 +7,10 @@ type DownloadState = "idle" | "loading" | "success" | "error"
 interface VoucherDownloadCardProps {
   orderId: string
   demo?: boolean
+  voucherToken?: string
 }
 
-export function VoucherDownloadCard({ orderId, demo }: VoucherDownloadCardProps) {
+export function VoucherDownloadCard({ orderId, demo, voucherToken }: VoucherDownloadCardProps) {
   const [state, setState] = useState<DownloadState>("idle")
   const [errorMsg, setErrorMsg] = useState("")
 
@@ -18,7 +19,8 @@ export function VoucherDownloadCard({ orderId, demo }: VoucherDownloadCardProps)
     setErrorMsg("")
     trackEvent("voucher_pdf_download_click", { orderId })
     try {
-      const res = await fetch(`/api/orders/${orderId}/voucher`)
+      const tokenParam = voucherToken ? `?token=${encodeURIComponent(voucherToken)}` : ""
+      const res = await fetch(`/api/orders/${orderId}/voucher${tokenParam}`)
       if (!res.ok) {
         const body = await res.json().catch(() => ({ message: "Erro ao gerar voucher" })) as { message?: string }
         throw new Error(body.message ?? "Erro ao gerar voucher")

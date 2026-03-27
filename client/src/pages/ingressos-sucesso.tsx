@@ -24,6 +24,7 @@ export default function IngressosSucessoPage() {
   const search = useSearch()
   const params = new URLSearchParams(search)
   const orderId = params.get("orderId") ?? params.get("txn") ?? ""
+  const voucherToken = params.get("token") ?? ""
 
   const { data: orderData, isLoading } = useQuery<OrderSummaryData | null>({
     queryKey: ["/api/orders", orderId],
@@ -92,7 +93,7 @@ export default function IngressosSucessoPage() {
         )}
 
         {orderId && (
-          <VoucherDownloadCard orderId={orderId} demo={orderData?.demo} />
+          <VoucherDownloadCard orderId={orderId} demo={orderData?.demo} voucherToken={voucherToken} />
         )}
 
         <a
