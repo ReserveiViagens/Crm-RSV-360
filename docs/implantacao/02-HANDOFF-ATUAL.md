@@ -19,25 +19,18 @@ Sprint 2+3 (Task #11) foi concluída com todos os entregáveis críticos:
 | StatusBadge em `/ui/` (canônico) | `[x]` PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED | `client/src/components/ui/status-badge.tsx` |
 | LoadingSkeleton variant="card" | `[x]` criado e integrado | `client/src/components/shells/index.tsx` |
 | CartStickyBar safe-area + analytics | `[x]` componente compartilhado criado | `client/src/components/CartStickyBar.tsx` |
-| CTA de checkout mobile em /ingressos | `[x]` via IngressosSidebar (mobile) | `client/src/components/IngressosSidebar.tsx` |
+| CartStickyBar wired em /ingressos (mobile) | `[x]` aparece com itens, navega para /checkout | `client/src/pages/ingressos.tsx` |
 | TicketsGrid loading prop + EmptyState | `[x]` | `client/src/components/TicketsGrid.tsx` |
 | cart-store hardened (shared/schema.ts) | `[x]` dedup + validateCartItem | `client/src/lib/cart-store.ts` |
 | EnterpriseAccordion EmptyState formal | `[x]` | `client/src/components/EnterpriseAccordion.tsx` |
 | ingressos.tsx filter analytics | `[x]` city/category/quickpick | `client/src/pages/ingressos.tsx` |
 
-### Nota: CartStickyBar vs IngressosSidebar (mobile)
+### Arquitetura de CTA de carrinho
 
-`CartStickyBar` é o componente compartilhado de CTA de checkout para **páginas sem sidebar dedicada**.
+**Desktop:** `IngressosSidebar` ocupa o painel lateral de 340px — mostra itens, datas, remover e checkout.  
+**Mobile:** `CartStickyBar` fixa no rodapé (z-index 200) — aparece quando `cart.length > 0`, mostra total e botão "Ir para pagamento" → navega para `/ingressos/checkout`.
 
-Em `/ingressos`, o `IngressosSidebar` (mobile) já cobre o requisito de "CTA visível com itens no carrinho → navega para /ingressos/checkout":
-- Fixa no rodapé (z-index 210), mostra total e itens
-- Botão "Ir para pagamento" → navega para `/ingressos/checkout`
-- Retorna `null` quando carrinho está vazio
-- Dispara `trackEvent("tickets_checkout_start")` via `onCheckout` prop
-
-Renderizar `CartStickyBar` **e** `IngressosSidebar` simultaneamente criaria sobreposição visual. Em `/ingressos`, apenas `IngressosSidebar` é renderizado no mobile.
-
-`CartStickyBar` está pronto para ser wired em outras páginas (ex: `/excursoes`, páginas de combo) que não tenham sidebar dedicada.
+Esta separação evita sobreposição visual e usa o componente certo para cada viewport.
 
 ---
 
