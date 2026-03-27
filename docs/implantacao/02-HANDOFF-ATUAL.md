@@ -1,7 +1,7 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 5 — Checkout Pix Completo (Task #13) — **CONCLUÍDA**  
+**Fase atual:** Sprint 5 — Checkout Pix Completo (Task #13) — **CONCLUÍDA COM GATE FORMAL**  
 **Próxima fase:** Sprint 6 (Fase 06 no plano) — Sucesso + Voucher PDF Único (Task #14)
 
 > **Nota de numeração:** O plano documental denomina as fases como "Fase 00–08". Task #11 cobriu a Fase 02 (componentes) + Fase 03 (catálogo /ingressos) numa única sprint. A próxima entrega é a **Fase 04 — Combo IA**, referida também como Sprint 4 no roadmap interno.
