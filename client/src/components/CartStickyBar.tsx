@@ -1,5 +1,6 @@
 import { ShoppingCart, ArrowRight } from "lucide-react"
 import { type CartItem } from "@/lib/cart-store"
+import { trackEvent } from "@/lib/analytics"
 
 interface CartStickyBarProps {
   cart: CartItem[]
@@ -17,6 +18,11 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
   const itemsCount = cart.reduce((sum, it) => sum + it.quantity, 0)
   const summary = cart.map((it) => `${it.name} x${it.quantity}`).join(" • ")
 
+  function handleCheckout() {
+    trackEvent("tickets_checkout_start", { total, items: cart.length })
+    onCheckout()
+  }
+
   return (
     <div
       data-testid="cart-sticky"
@@ -29,6 +35,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
         background: "linear-gradient(135deg, #0891B2, #2563EB)",
         boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
         padding: "12px 16px",
+        paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
       }}
     >
       <div
@@ -82,7 +89,7 @@ export function CartStickyBar({ cart, total, onCheckout }: CartStickyBarProps) {
 
           <button
             data-testid="button-go-checkout"
-            onClick={onCheckout}
+            onClick={handleCheckout}
             style={{
               background: "#fff",
               color: "#0891B2",
