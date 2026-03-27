@@ -1371,8 +1371,13 @@ export default function IngressosPage() {
         />
       )}
 
-      {/* CartStickyBar: not used here — IngressosSidebar already provides the mobile cart CTA.
-          CartStickyBar is the shared component for pages/views that lack a dedicated cart sidebar. */}
+      {!isDesktop && (
+        <CartStickyBar
+          cart={cart}
+          total={cartTotal}
+          onCheckout={() => navigate("/ingressos/checkout")}
+        />
+      )}
 
       <CartAddModal
         ticket={cartModalTicket}
