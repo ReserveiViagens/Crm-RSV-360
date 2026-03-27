@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react"
-import { CheckCircle2, Download, Phone, ArrowLeft, Ticket, Hotel, Star, Share2, Loader2, AlertCircle, CheckCheck } from "lucide-react"
+import { useEffect } from "react"
+import { CheckCircle2, Loader2, Phone, ArrowLeft, Hotel, Star } from "lucide-react"
 import { Link, useSearch } from "wouter"
 import { useQuery } from "@tanstack/react-query"
 import { trackEvent } from "@/lib/analytics"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { SuccessHero } from "@/components/success/SuccessHero"
+import { OrderSummaryCard, type OrderSummaryData } from "@/components/success/OrderSummaryCard"
+import { VoucherDownloadCard } from "@/components/success/VoucherDownloadCard"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
@@ -17,254 +20,18 @@ const relatedHotels = [
   { name: "Pousada Recanto", price: 195, discount: "Econômico", image: "/images/water-park.jpeg", link: "/hoteis" },
 ]
 
-type OrderData = {
-  orderId: string
-  status: string
-  totalAmount: number
-  originalTotal: number
-  totalSavings: number
-  isCombo: boolean
-  items: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number }>
-  customer: { name: string; email: string }
-  createdAt: string
-  expirationDate?: string
-  demo?: boolean
-}
-
-function SuccessHero({ customerName, onWhatsAppShare }: { customerName?: string; onWhatsAppShare: () => void }) {
-  return (
-    <div style={{
-      background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-      color: "#fff", padding: "32px 20px 36px", textAlign: "center",
-    }}>
-      <div style={{
-        width: 72, height: 72, borderRadius: "50%",
-        background: "rgba(255,255,255,0.20)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        margin: "0 auto 14px",
-      }}>
-        <CheckCircle2 style={{ width: 44, height: 44 }} />
-      </div>
-      <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px" }} data-testid="text-success-title">
-        Pagamento Confirmado!
-      </h1>
-      {customerName && (
-        <p style={{ fontSize: 14, opacity: 0.85, margin: "0 0 6px" }}>
-          Olá, {customerName.split(" ")[0]}! Seus ingressos estão prontos.
-        </p>
-      )}
-      <p style={{ fontSize: 13, opacity: 0.9, margin: "0 0 20px" }}>
-        Baixe o voucher PDF e apresente na entrada do parque. 🎉
-      </p>
-      <button
-        data-testid="button-whatsapp-share"
-        onClick={onWhatsAppShare}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          padding: "10px 20px", borderRadius: 10,
-          background: "rgba(255,255,255,0.95)", color: "#16A34A",
-          fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-        }}
-      >
-        <Share2 style={{ width: 15, height: 15 }} />
-        Compartilhar no WhatsApp
-      </button>
-    </div>
-  )
-}
-
-function OrderSummaryCard({ data }: { data: OrderData }) {
-  return (
-    <div style={{
-      background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16,
-      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-    }} data-testid="card-success-summary">
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <Ticket style={{ width: 20, height: 20, color: "#2563EB" }} />
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: "#1F2937" }}>
-          Seus Ingressos
-        </h3>
-        {data.isCombo && (
-          <span style={{
-            background: "#DCFCE7", color: "#16A34A", fontSize: 10,
-            fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-          }}>
-            COMBO IA
-          </span>
-        )}
-      </div>
-
-      {data.items.map((item, idx) => (
-        <div key={idx} style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "8px 0", borderBottom: "1px solid #F3F4F6",
-        }} data-testid={`row-success-item-${item.ticketId}`}>
-          <div>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1F2937" }}>{item.title}</p>
-            <p style={{ margin: 0, fontSize: 12, color: "#6B7280" }}>{item.quantity}× ingresso</p>
-          </div>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#16A34A" }}>
-            {formatPrice(item.unitPrice * item.quantity)}
-          </span>
-        </div>
-      ))}
-
-      {data.isCombo && data.totalSavings > 0 && (
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "8px 0", borderBottom: "1px solid #F3F4F6",
-        }}>
-          <span style={{ fontSize: 13, color: "#16A34A", fontWeight: 600 }}>Desconto Combo IA (15%)</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#16A34A" }} data-testid="text-success-savings">
-            -{formatPrice(data.totalSavings)}
-          </span>
-        </div>
-      )}
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#374151" }}>Total pago</span>
-        <span style={{ fontSize: 20, fontWeight: 800, color: "#16A34A" }} data-testid="text-success-total">
-          {formatPrice(data.totalAmount)}
-        </span>
-      </div>
-
-      <div style={{
-        marginTop: 12, padding: "10px 12px", background: "#F9FAFB",
-        borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center",
-      }}>
-        <span style={{ fontSize: 11, color: "#6B7280" }}>Nº do Pedido</span>
-        <span style={{ fontSize: 10, fontWeight: 700, color: "#374151", fontFamily: "monospace" }} data-testid="text-order-id">
-          {data.orderId.slice(0, 28)}...
-        </span>
-      </div>
-    </div>
-  )
-}
-
-type DownloadState = "idle" | "loading" | "success" | "error"
-
-function VoucherDownloadCard({ orderId, demo }: { orderId: string; demo?: boolean }) {
-  const [state, setState] = useState<DownloadState>("idle")
-  const [errorMsg, setErrorMsg] = useState("")
-
-  async function handleDownload() {
-    setState("loading")
-    setErrorMsg("")
-    trackEvent("voucher_pdf_download_click", { orderId })
-    try {
-      const res = await fetch(`/api/orders/${orderId}/voucher`)
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Erro ao gerar voucher" }))
-        throw new Error(err.message ?? "Erro ao gerar voucher")
-      }
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `ingresso-rsv360-${orderId.slice(0, 20)}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 5000)
-      setState("success")
-      trackEvent("voucher_pdf_download_success", { orderId })
-    } catch (err: any) {
-      setErrorMsg(err.message ?? "Erro ao baixar voucher")
-      setState("error")
-      trackEvent("voucher_pdf_download_error", { orderId, error: err.message })
-    }
-  }
-
-  const stateMap: Record<DownloadState, { icon: React.ReactNode; label: string; bg: string; color: string }> = {
-    idle: {
-      icon: <Download style={{ width: 18, height: 18 }} />,
-      label: "Baixar Voucher PDF",
-      bg: "linear-gradient(135deg, #2563EB, #0891B2)",
-      color: "#fff",
-    },
-    loading: {
-      icon: <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} />,
-      label: "Gerando PDF...",
-      bg: "linear-gradient(135deg, #2563EB, #0891B2)",
-      color: "#fff",
-    },
-    success: {
-      icon: <CheckCheck style={{ width: 18, height: 18 }} />,
-      label: "Voucher Baixado!",
-      bg: "linear-gradient(135deg, #16A34A, #22C55E)",
-      color: "#fff",
-    },
-    error: {
-      icon: <Download style={{ width: 18, height: 18 }} />,
-      label: "Tentar novamente",
-      bg: "linear-gradient(135deg, #2563EB, #0891B2)",
-      color: "#fff",
-    },
-  }
-
-  const s = stateMap[state]
-
-  return (
-    <div style={{ marginBottom: 12 }}>
-      {demo && (
-        <div style={{
-          background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 8,
-          padding: "6px 10px", marginBottom: 8, fontSize: 11, color: "#1D4ED8",
-          textAlign: "center",
-        }} data-testid="badge-demo-voucher">
-          Modo demo — o PDF é real e pode ser baixado normalmente
-        </div>
-      )}
-      <button
-        data-testid="button-download-voucher"
-        onClick={handleDownload}
-        disabled={state === "loading"}
-        style={{
-          width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
-          background: s.bg, color: s.color,
-          fontSize: 15, fontWeight: 800, cursor: state === "loading" ? "not-allowed" : "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          boxShadow: "0 4px 14px rgba(37,99,235,0.3)",
-          opacity: state === "loading" ? 0.85 : 1,
-          transition: "all 0.2s",
-        }}
-      >
-        {s.icon}
-        {s.label}
-      </button>
-      {state === "error" && errorMsg && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 6,
-          marginTop: 8, padding: "8px 12px",
-          background: "#FEF2F2", borderRadius: 8,
-          fontSize: 12, color: "#DC2626",
-        }} data-testid="text-download-error">
-          <AlertCircle style={{ width: 14, height: 14, flexShrink: 0 }} />
-          {errorMsg}
-        </div>
-      )}
-      {state === "success" && (
-        <p style={{ fontSize: 12, color: "#16A34A", textAlign: "center", marginTop: 6 }} data-testid="text-download-success">
-          PDF salvo — apresente o QR Code na entrada do parque
-        </p>
-      )}
-    </div>
-  )
-}
-
 export default function IngressosSucessoPage() {
   const search = useSearch()
   const params = new URLSearchParams(search)
   const orderId = params.get("orderId") ?? params.get("txn") ?? ""
 
-  const { data: orderData, isLoading } = useQuery<OrderData | null>({
+  const { data: orderData, isLoading } = useQuery<OrderSummaryData | null>({
     queryKey: ["/api/orders", orderId],
     queryFn: async () => {
       if (!orderId) return null
       const res = await fetch(`/api/orders/${orderId}`)
       if (!res.ok) return null
-      return res.json()
+      return res.json() as Promise<OrderSummaryData>
     },
     enabled: !!orderId,
     staleTime: 30_000,
@@ -419,7 +186,6 @@ export default function IngressosSucessoPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
       `}</style>
     </div>
   )
