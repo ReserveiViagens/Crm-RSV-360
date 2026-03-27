@@ -512,8 +512,10 @@ export default function IngressosPage() {
 
   const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
 
+  const cartTotalQty = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart])
+
   const { isOpen: comboWizardOpen, dismiss: dismissComboWizard } = useComboTrigger({
-    cartSize: cart.length,
+    cartTotalQty,
     enabled: true,
   })
 
