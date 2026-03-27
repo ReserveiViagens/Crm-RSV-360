@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react"
-import { ShoppingCart, Minus, Plus, Trash2, MapPin, Clock, TrendingUp, Zap, Users, BarChart3, Check, Flame, AlertTriangle } from "lucide-react"
+import { ShoppingCart, Minus, Plus, Trash2, MapPin, Clock, TrendingUp, Zap, Users, BarChart3, Check, Flame, AlertTriangle, Ticket } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TravelerProfile, AIRecommendedBadge, calculateMatchScore } from "@/components/ai-conversion-elements"
+import { EmptyState, LoadingSkeleton } from "@/components/shells"
 
 export interface TicketItem {
   id: string
@@ -37,6 +38,7 @@ interface TicketsGridProps {
   profile?: TravelerProfile | null
   hoveredId?: string | null
   compareIds?: string[]
+  loading?: boolean
   onHover?: (id: string | null) => void
   onToggleCompare?: (id: string) => void
   onBuy: (ticket: TicketItem) => void
@@ -171,6 +173,7 @@ export function TicketsGrid({
   profile,
   hoveredId,
   compareIds = [],
+  loading = false,
   onHover,
   onToggleCompare,
   onBuy,
@@ -182,6 +185,25 @@ export function TicketsGrid({
     for (const it of cart) m.set(it.ticketId, it.quantity)
     return m
   }, [cart])
+
+  if (loading) {
+    return (
+      <div style={{ padding: "20px 16px 100px" }} data-testid="tickets-grid-loading">
+        <LoadingSkeleton variant="card" rows={4} />
+      </div>
+    )
+  }
+
+  if (tickets.length === 0) {
+    return (
+      <EmptyState
+        data-testid="tickets-grid-empty"
+        icon={<Ticket className="w-6 h-6" />}
+        title="Nenhum ingresso encontrado"
+        description="Tente ajustar os filtros ou selecionar outra cidade para ver os ingressos disponíveis."
+      />
+    )
+  }
 
   return (
     <div className="rsv-subpage-grid" style={{ padding: "20px 16px 100px" }}>
