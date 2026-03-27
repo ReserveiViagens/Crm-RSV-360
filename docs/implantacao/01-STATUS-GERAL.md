@@ -10,15 +10,18 @@
 
 ## Resumo por fase (novo plano de sprints)
 
+> **Convenção de status:** `[ ]` = sprint não executado (gate não passou) · `[~]` = código existe parcialmente mas gate nunca foi executado · `[x]` = sprint concluído com gate formal.  
+> Fases 1, 2, 3, 5 e 6 estão `[~]` porque código relacionado foi criado em Tasks #1–#8, mas ainda falta fechar os gaps específicos de cada sprint e executar o gate. Fases 0, 4, 7 e 8 estão `[ ]` porque não há código relevante ainda.
+
 | Fase | Nome | Status |
 |------|------|--------|
 | 00 | Auditoria + Estrutura-Base | `[ ]` não iniciado |
-| 01 | Design System + Layout System | `[~]` parcial (shells + CSS tokens existem, token files TS não) |
-| 02 | Componentes Compartilhados | `[~]` parcial (muitos componentes existem, padronização pendente) |
-| 03 | Catálogo /ingressos com Carrinho | `[~]` parcial (página funcional, gaps em analytics e robustez) |
+| 01 | Design System + Layout System | `[~]` parcial (shells + CSS tokens existem; token files TS e gate pendentes) |
+| 02 | Componentes Compartilhados | `[~]` parcial (muitos componentes existem; padronização e gate pendentes) |
+| 03 | Catálogo /ingressos com Carrinho | `[~]` parcial (página funcional; gaps em analytics e gate pendentes) |
 | 04 | Combo IA — Motor + Pricing + API | `[ ]` não iniciado (frontend hardcoded, sem backend) |
-| 05 | Checkout Pix Completo | `[~]` parcial (fluxo existe em demo mode, gaps no gate) |
-| 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso existe com TXT, sem PDF/QR de alta qualidade) |
+| 05 | Checkout Pix Completo | `[~]` parcial (fluxo existe em demo mode; gate formal pendente) |
+| 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso com TXT existe; PDF/QR de alta qualidade e gate pendentes) |
 | 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
 | 08 | Hardening, Observabilidade e Segurança | `[ ]` não iniciado |
 
