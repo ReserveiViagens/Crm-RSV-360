@@ -14,7 +14,7 @@ import {
 import { emitEstadoGrupo, emitPixExpirado, emitVigilancia } from "./socket";
 import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus, createInstance, getInstanceStatus, getQRCode, deleteInstance, fetchAllGroups, handleWebhookEvent } from "./services/whatsapp.service";
 import { createSplitPaymentPix, checkPaymentStatus } from "./services/payment.service";
-import { createTicketPix, checkTicketPaymentStatus, cancelTicketPix, demoAutoConfirmCallbacks } from "./services/ticket-payment.service";
+import { createTicketPix, checkTicketPaymentStatus, cancelTicketPix, demoAutoConfirmCallbacks, UnknownTicketError } from "./services/ticket-payment.service";
 import { pauseAI, resumeAI, isAIPaused, getHandoffInfo, listPausedGroups } from "./services/humanHandoff.service";
 import {
   gerarManifestoANTT,
@@ -2111,17 +2111,24 @@ export async function registerRoutes(
 
   app.post("/api/payments/tickets/create", async (req: Request, res: Response) => {
     const { items, customer } = req.body as {
-      items?: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number }>;
+      items?: Array<{ ticketId: string; quantity: number }>;
       customer?: { name: string; email: string; cpf: string; phone: string };
     };
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Items é obrigatório" });
     }
+    const invalidItems = items.filter(
+      (i) => typeof i.ticketId !== "string" || !i.ticketId || typeof i.quantity !== "number" || i.quantity < 1
+    );
+    if (invalidItems.length > 0) {
+      return res.status(400).json({ message: "Cada item deve ter ticketId e quantity válidos" });
+    }
     if (!customer?.name || !customer?.email) {
       return res.status(400).json({ message: "Dados do cliente são obrigatórios" });
     }
     try {
-      const result = await createTicketPix(items, customer);
+      const lineItems = items.map((i) => ({ ticketId: i.ticketId, quantity: Math.floor(i.quantity) }));
+      const result = await createTicketPix(lineItems, customer);
       ticketTransactions.set(result.transactionId, {
         ...result,
         createdAt: new Date().toISOString(),
@@ -2147,6 +2154,9 @@ export async function registerRoutes(
         demo: result.demo,
       });
     } catch (err) {
+      if (err instanceof UnknownTicketError) {
+        return res.status(422).json({ message: err.message });
+      }
       console.error("[tickets/create]", err);
       return res.status(500).json({ message: "Erro ao criar cobrança Pix" });
     }
