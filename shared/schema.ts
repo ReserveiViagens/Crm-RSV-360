@@ -121,7 +121,8 @@ export const cartItemSchema = z.object({
   comboDates: z.record(z.string()).optional(),
 });
 
-export type CartItemSchema = z.infer<typeof cartItemSchema>;
+export type CartItem = z.infer<typeof cartItemSchema>;
+export type CartItemSchema = CartItem;
 
 /* ─── Cliente do Pedido ──────────────────────────────── */
 
