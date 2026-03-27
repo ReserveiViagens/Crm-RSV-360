@@ -260,9 +260,8 @@ export default function IngressosCheckoutPage() {
       const dados = dadosForm.getValues()
       const payload = {
         items: cart.map((c) => ({
-          ticketId: c.ticketId, title: c.name,
-          quantity: c.quantity, unitPrice: c.unitPrice,
-          originalPrice: c.originalPrice,
+          ticketId: c.ticketId,
+          quantity: c.quantity,
         })),
         customer: {
           name: `${dados.firstName.trim()} ${dados.lastName.trim()}`,
