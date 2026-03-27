@@ -823,7 +823,7 @@ export default function AtracoesPage() {
         </div>
         <button
           className="rsv-catalog-mobile-only"
-          data-testid="button-open-filters-mobile"
+          data-testid="button-open-filters"
           onClick={() => setFilterDrawerOpen(true)}
           style={{
             display: "flex", alignItems: "center", gap: 5, flexShrink: 0,

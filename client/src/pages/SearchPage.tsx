@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react";
 import SearchBar from "@/components/search/SearchBar";
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer";
 import { FilterPopover } from "@/components/search/FilterPopover";
@@ -143,10 +143,30 @@ export default function SearchPage() {
                 onClearAll={handleClearAll}
               />
             </div>
+            <button
+              data-testid="button-mobile-open-filters"
+              className="rsv-search-mobile-only"
+              onClick={() => setMobileDrawerOpen(true)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 14px", borderRadius: 10,
+                border: hasActiveFilters ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                background: hasActiveFilters ? "#EFF6FF" : "#fff",
+                color: hasActiveFilters ? "#2563EB" : "#374151",
+                fontSize: 13, fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              <SlidersHorizontal style={{ width: 15, height: 15 }} />
+              Filtros {hasActiveFilters ? "●" : ""}
+            </button>
           </div>
           <style>{`
             .rsv-search-desktop-only { display: none; }
-            @media (min-width: 1024px) { .rsv-search-desktop-only { display: block; } }
+            .rsv-search-mobile-only { display: flex; }
+            @media (min-width: 1024px) {
+              .rsv-search-desktop-only { display: block; }
+              .rsv-search-mobile-only { display: none !important; }
+            }
           `}</style>
 
           {hasActiveFilters && (
