@@ -3,16 +3,16 @@ import type { SearchFilters, SearchItemType } from "@/types/search";
 
 interface CatalogSharedSearchBarProps {
   filters: SearchFilters;
-  activeType?: SearchItemType;
+  activeType?: SearchItemType | "all";
   hasActiveFilters?: boolean;
   onSearch: (q: string) => void;
-  onTypeChange?: (type: SearchItemType) => void;
+  onTypeChange?: (type: SearchItemType | "all") => void;
   onFiltersOpen?: () => void;
 }
 
 export default function CatalogSharedSearchBar({
   filters,
-  activeType = "park",
+  activeType = "all",
   hasActiveFilters = false,
   onSearch,
   onTypeChange = () => {},

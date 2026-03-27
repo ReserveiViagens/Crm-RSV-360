@@ -43,20 +43,31 @@ export async function fetchSuggest(q: string): Promise<SuggestResponse> {
   }
 }
 
-export interface PlaceAutocomplete {
-  id: string;
-  label: string;
+export interface PlaceSuggestion {
+  placeId: string;
   description: string;
-  type: "city" | "region" | "park" | "hotel";
+  mainText: string;
 }
 
-export async function fetchPlacesAutocomplete(q: string): Promise<PlaceAutocomplete[]> {
-  if (!q || q.length < 2) return [];
+export interface PlacesAutocompleteResponse {
+  suggestions: PlaceSuggestion[];
+}
+
+export async function fetchPlacesAutocomplete(
+  q: string,
+  lat?: number,
+  lng?: number
+): Promise<PlacesAutocompleteResponse> {
+  const empty: PlacesAutocompleteResponse = { suggestions: [] };
+  if (!q || q.length < 2) return empty;
   try {
-    const res = await fetch(`/api/search/places?q=${encodeURIComponent(q)}`);
-    if (!res.ok) return [];
+    const params = new URLSearchParams({ q });
+    if (lat !== undefined) params.set("lat", String(lat));
+    if (lng !== undefined) params.set("lng", String(lng));
+    const res = await fetch(`/api/search/places?${params}`);
+    if (!res.ok) return empty;
     return res.json();
   } catch {
-    return [];
+    return empty;
   }
 }

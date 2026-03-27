@@ -1,20 +1,31 @@
 import SearchResultsGrid from "@/components/search/SearchResultsGrid";
-import type { SearchItem } from "@/types/search";
+import type { SearchItem, SearchFilters } from "@/types/search";
 
 interface CatalogGridProps {
-  items: SearchItem[];
-  isLoading?: boolean;
-  onSelect?: (item: SearchItem) => void;
-  columns?: 1 | 2 | 3;
+  results: SearchItem[];
+  total: number;
+  isLoading: boolean;
+  sort?: SearchFilters["sort"];
+  onSortChange?: (sort: SearchFilters["sort"]) => void;
+  onItemSelect?: (item: SearchItem) => void;
 }
 
-export default function CatalogGrid({ items, isLoading, onSelect, columns }: CatalogGridProps) {
+export default function CatalogGrid({
+  results,
+  total,
+  isLoading,
+  sort = "relevance",
+  onSortChange = () => {},
+  onItemSelect,
+}: CatalogGridProps) {
   return (
     <SearchResultsGrid
-      items={items}
+      results={results}
+      total={total}
       isLoading={isLoading}
-      onSelect={onSelect}
-      columns={columns}
+      sort={sort}
+      onSortChange={onSortChange}
+      onItemSelect={onItemSelect}
     />
   );
 }

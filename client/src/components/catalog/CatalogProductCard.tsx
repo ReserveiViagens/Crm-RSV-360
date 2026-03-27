@@ -4,9 +4,8 @@ import type { SearchItem } from "@/types/search";
 interface CatalogProductCardProps {
   item: SearchItem;
   onSelect?: (item: SearchItem) => void;
-  compact?: boolean;
 }
 
-export default function CatalogProductCard({ item, onSelect, compact }: CatalogProductCardProps) {
-  return <SearchResultCard item={item} onSelect={onSelect} compact={compact} />;
+export default function CatalogProductCard({ item, onSelect }: CatalogProductCardProps) {
+  return <SearchResultCard item={item} onSelect={onSelect} />;
 }
