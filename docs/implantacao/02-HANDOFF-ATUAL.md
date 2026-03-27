@@ -1,54 +1,71 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 1 — Design System + Layout System (Task #10) — **CONCLUÍDA**  
-**Próxima fase:** Sprint 2 — Componentes Compartilhados (Task #11)
+**Fase atual:** Sprint 2+3 — Componentes Compartilhados + Catálogo /ingressos (Task #11) — **CONCLUÍDA**  
+**Próxima fase:** Sprint 4 — Combo IA Motor + Pricing + API (Task #12)
 
 ---
 
 ## Onde o projeto está agora
 
-Sprint 1 foi concluída com todos os entregáveis:
+Sprint 2+3 foi concluída com todos os entregáveis:
 
 | Entregável | Status | Arquivo |
 |-----------|--------|---------|
-| Token de cores | `[x]` criado | `client/src/tokens/colors.ts` |
-| Token de espaçamento | `[x]` criado | `client/src/tokens/spacing.ts` |
-| Token de layout | `[x]` criado | `client/src/tokens/layout.ts` |
-| Token de tipografia | `[x]` criado | `client/src/tokens/typography.ts` |
-| Barrel export | `[x]` criado | `client/src/tokens/index.ts` |
-| CSS custom props | `[x]` adicionados | `client/src/index.css` (`--page-width-*`, `--surface-*`, `--section-gap-*`) |
-| Shells auditados | `[x]` confirmados | `client/src/components/layouts/` (5 shells + PageContainer + SectionContainer) |
-| `01-STATUS-GERAL.md` | `[x]` atualizado | Fase 1 → `[x]` |
-| `FASE-01-foundation.md` | `[x]` atualizado | Checklist marcado como completo |
+| PrimaryButton | `[x]` criado | `client/src/components/ui/primary-button.tsx` |
+| SecondaryButton | `[x]` criado | `client/src/components/ui/secondary-button.tsx` |
+| StatusBadge estendido | `[x]` PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED | `client/src/components/shells/index.tsx` |
+| LoadingSkeleton variant="card" | `[x]` criado e integrado | `client/src/components/shells/index.tsx` |
+| CartStickyBar safe-area | `[x]` atualizado | `client/src/components/CartStickyBar.tsx` |
+| CartStickyBar analytics | `[x]` tickets_checkout_start | `client/src/components/CartStickyBar.tsx` |
+| ingressos.tsx skeleton | `[x]` atualizado | `client/src/pages/ingressos.tsx` |
+| FASE-02-componentes.md | `[x]` atualizado | `[x]` |
+| FASE-03-ingressos.md | `[x]` atualizado | `[x]` |
+| 01-STATUS-GERAL.md | `[x]` atualizado | Fases 2+3 → `[x]` |
 
 ---
 
-## O que foi realizado até aqui (Tasks #1–#10)
+## O que foi realizado até aqui (Tasks #1–#11)
 
 - **T1–T7**: Estrutura base — home, landing, shells, admin, NTX modules. Commit: `fb0fb425`
 - **T8**: Mapa Leaflet real em `/mapa-caldas-novas`. Commit: `e88e7b23`
 - **T18**: Fundação documental — 14 arquivos criados via GitHub Contents API.
 - **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Chain: `8e3e43c`→`2354ff3`
-- **T10 (Sprint 1)**: Token files TS (colors, spacing, layout, typography) + CSS vars (--page-width-*, --surface-*, --section-gap-*)
+- **T10 (Sprint 1)**: Token files TS (colors, spacing, layout, typography) + CSS vars. Commit: `5639124`
+- **T11 (Sprint 2+3)**: PrimaryButton, SecondaryButton, StatusBadge estendido, LoadingSkeleton card, CartStickyBar melhorado
 
 ---
 
-## Arquitetura de tokens após Sprint 1
+## Componentes criados/atualizados em Sprint 2+3
+
+### Novos (Sprint 2)
 
 ```
-client/src/tokens/
-  colors.ts      — brand, semantic, surface, border, text, neutral palette
-  spacing.ts     — scale rem 0–32 + sectionGap (sm/md/lg/xl)
-  layout.ts      — pageWidths, sidebarWidths, gutters, breakpoints
-  typography.ts  — fontSizes, fontWeights, lineHeights, letterSpacings, headings, body
-  index.ts       — barrel re-export
+client/src/components/ui/primary-button.tsx
+  - Props: size (sm|md|lg), loading, disabled, data-testid
+  - Variantes de tamanho: h-8/h-10/h-12
+
+client/src/components/ui/secondary-button.tsx
+  - Props: size (sm|md|lg), loading, disabled, data-testid
+  - Variante outline com border-slate-200
 ```
 
-CSS custom properties adicionadas em `index.css`:
-- `--page-width-{public|catalog|admin|app|auth}` — usadas pelos shells
-- `--section-gap-{sm|md|lg|xl}` — usadas pelo SectionContainer
-- `--surface-{page|card|sidebar|subtle|overlay}` — aliases dos --rsv-surface-*
+### Modificados (Sprint 2+3)
+
+```
+client/src/components/shells/index.tsx
+  - LoadingSkeleton: nova prop variant="card" | "default"
+  - StatusBadge: tipos PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED adicionados
+  - StatusBadge: data-testid={status-badge-${status}} adicionado
+
+client/src/components/CartStickyBar.tsx
+  - paddingBottom com env(safe-area-inset-bottom) para iOS
+  - trackEvent("tickets_checkout_start") no clique do CTA
+
+client/src/pages/ingressos.tsx
+  - import LoadingSkeleton from @/components/shells
+  - skeleton-loading substituído por <LoadingSkeleton variant="card" rows={4} />
+```
 
 ---
 
@@ -56,7 +73,6 @@ CSS custom properties adicionadas em `index.css`:
 
 | Item | Status | Sprint alvo |
 |------|--------|-------------|
-| Padronização de componentes base | `[~]` parcial | Sprint 2 |
 | Backend combo engine + PricingEngine | `[ ]` | Sprint 4 |
 | Voucher PDF com QR | `[~]` (TXT existe) | Sprint 6 |
 | Admin métricas reais | `[~]` (hardcoded) | Sprint 7 |
@@ -67,35 +83,11 @@ CSS custom properties adicionadas em `index.css`:
 
 ## O que falta (pela ordem do plano)
 
-1. **Sprint 2** — Padronização de componentes base (PrimaryButton, SecondaryButton, EmptyState)
-2. **Sprint 3** — Catálogo `/ingressos` com gate completo
-3. **Sprint 4** — Backend combo engine + PricingEngine + API de recomendações
-4. **Sprint 5** — Gate completo do checkout Pix (validações + fallback robusto)
-5. **Sprint 6** — Voucher PDF com QR + sincronização de catálogo + OpenAPI
-6. **Sprint 7** — Admin com dados reais + post-payment orchestrator
-7. **Sprint 8** — Hardening (logging, HMAC, rate limit, runbook)
-
----
-
-## Arquivos alterados em Sprint 1
-
-- `client/src/tokens/colors.ts` (criado)
-- `client/src/tokens/spacing.ts` (criado)
-- `client/src/tokens/layout.ts` (criado)
-- `client/src/tokens/typography.ts` (criado)
-- `client/src/tokens/index.ts` (criado)
-- `client/src/index.css` (atualizado — vars --page-width-*, --surface-*, --section-gap-*)
-- `docs/implantacao/01-STATUS-GERAL.md` (atualizado)
-- `docs/implantacao/02-HANDOFF-ATUAL.md` (este arquivo)
-- `docs/implantacao/fases/FASE-01-foundation.md` (atualizado)
-
----
-
-## Próximo commit recomendado (Sprint 2)
-
-```
-feat(fase-02): componentes compartilhados — PrimaryButton, SecondaryButton, EmptyState
-```
+1. **Sprint 4** — Backend combo engine + PricingEngine + API de recomendações
+2. **Sprint 5** — Gate completo do checkout Pix (validações + fallback robusto)
+3. **Sprint 6** — Voucher PDF com QR + sincronização de catálogo + OpenAPI
+4. **Sprint 7** — Admin com dados reais + post-payment orchestrator
+5. **Sprint 8** — Hardening (logging, HMAC, rate limit, runbook)
 
 ---
 
