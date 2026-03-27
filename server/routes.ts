@@ -49,6 +49,7 @@ import {
   consumeInvite,
 } from "./social-commerce";
 import { registerWeatherRoutes } from "./routes/weather-routes.js";
+import { searchItems, suggestItems, filterCatalogExcursoes } from "./search-data";
 import {
   adicionarPontos,
   getPontos,
@@ -595,6 +596,63 @@ export async function registerRoutes(
   app.get("/api/excursoes", async (_req: Request, res: Response) => {
     const items = await listExcursoes();
     res.json({ items });
+  });
+
+  app.get("/api/excursoes/catalogo", (req: Request, res: Response) => {
+    const { destino, preco_min, preco_max, mes, cidade_saida, categoria, q, sort, page, limit } = req.query as Record<string, string>;
+    const result = filterCatalogExcursoes({
+      destino: destino || undefined,
+      preco_min: preco_min ? Number(preco_min) : undefined,
+      preco_max: preco_max ? Number(preco_max) : undefined,
+      mes: mes || undefined,
+      cidade_saida: cidade_saida || undefined,
+      categoria: categoria || undefined,
+      q: q || undefined,
+      sort: sort || undefined,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+    });
+    res.json(result);
+  });
+
+  app.get("/api/search", (req: Request, res: Response) => {
+    const { q, type, city, profile, minPrice, maxPrice, rating, sort, page, limit, comboAvailable, isFeatured } = req.query as Record<string, string>;
+    const result = searchItems({
+      q: q || undefined,
+      type: type || undefined,
+      city: city || undefined,
+      profile: profile || undefined,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      rating: rating ? Number(rating) : undefined,
+      sort: sort || undefined,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+      comboAvailable: comboAvailable === "true" ? true : undefined,
+      isFeatured: isFeatured === "true" ? true : undefined,
+    });
+    res.json({
+      ...result,
+      page: page ? Number(page) : 1,
+      appliedFilters: { q, type, city, profile, minPrice: minPrice ? Number(minPrice) : undefined, maxPrice: maxPrice ? Number(maxPrice) : undefined },
+      queryInfo: { normalizedQuery: (q || "").toLowerCase().trim(), intent: {} },
+      suggestions: [],
+    });
+  });
+
+  app.get("/api/search/suggest", (req: Request, res: Response) => {
+    const { q } = req.query as Record<string, string>;
+    res.json(suggestItems(q || ""));
+  });
+
+  app.get("/api/search/suggestions", (req: Request, res: Response) => {
+    const { q } = req.query as Record<string, string>;
+    const { names } = suggestItems(q || "");
+    res.json(names);
+  });
+
+  app.get("/api/search/places", (_req: Request, res: Response) => {
+    res.json({ suggestions: [] });
   });
 
   app.get("/api/excursoes/:id", async (req: Request, res: Response) => {
