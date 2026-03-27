@@ -7,7 +7,7 @@ export type UseComboRecommendationsOptions = {
 }
 
 export function useComboRecommendations({ cartItems, enabled = true }: UseComboRecommendationsOptions) {
-  const cartKey = cartItems.map((i) => `${i.ticketId}:${i.quantity}`).join(",")
+  const cartKey = cartItems.map((i) => `${i.ticketId}:${i.quantity}:${i.unitPrice}`).join(",")
 
   const query = useQuery<RecommendationResponse, Error>({
     queryKey: ["/api/recommendations/combo", cartKey],
