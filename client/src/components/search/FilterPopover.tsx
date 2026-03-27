@@ -32,7 +32,7 @@ export function FilterPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          data-testid="button-open-filters"
+          data-testid="button-open-filters-desktop"
           style={{
             display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
             background: hasActive ? "#EFF6FF" : "#F3F4F6",
