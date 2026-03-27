@@ -1,40 +1,30 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 5 — Checkout Pix Completo (Task #13) — **CONCLUÍDA COM GATE FORMAL**  
-**Próxima fase:** Sprint 6 (Fase 06 no plano) — Sucesso + Voucher PDF Único (Task #14)
-
-> **Nota de numeração:** O plano documental denomina as fases como "Fase 00–08". Task #11 cobriu a Fase 02 (componentes) + Fase 03 (catálogo /ingressos) numa única sprint. A próxima entrega é a **Fase 04 — Combo IA**, referida também como Sprint 4 no roadmap interno.
+**Fase atual:** Sprint 6 — Sucesso + Voucher PDF Único (Task #14) — **CONCLUÍDA COM GATE FORMAL**  
+**Próxima fase:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
 
 ---
 
 ## Onde o projeto está agora
 
-Sprint 2+3 (Task #11) foi concluída com todos os entregáveis críticos:
+Sprint 6 (Task #14) foi concluída com todos os entregáveis críticos:
 
 | Entregável | Status | Arquivo |
 |-----------|--------|---------|
-| PrimaryButton (data-testid obrigatório) | `[x]` | `client/src/components/ui/primary-button.tsx` |
-| SecondaryButton (data-testid obrigatório) | `[x]` | `client/src/components/ui/secondary-button.tsx` |
-| StatusBadge em `/ui/` (canônico) | `[x]` PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED | `client/src/components/ui/status-badge.tsx` |
-| LoadingSkeleton variant="card" | `[x]` criado e integrado | `client/src/components/shells/index.tsx` |
-| CartStickyBar safe-area + analytics | `[x]` componente compartilhado criado | `client/src/components/CartStickyBar.tsx` |
-| CartStickyBar wired em /ingressos (mobile) | `[x]` aparece com itens, navega para /checkout | `client/src/pages/ingressos.tsx` |
-| TicketsGrid loading prop + EmptyState | `[x]` | `client/src/components/TicketsGrid.tsx` |
-| cart-store hardened (shared/schema.ts) | `[x]` dedup + validateCartItem | `client/src/lib/cart-store.ts` |
-| EnterpriseAccordion EmptyState formal | `[x]` | `client/src/components/EnterpriseAccordion.tsx` |
-| ingressos.tsx filter analytics | `[x]` city/category/quickpick | `client/src/pages/ingressos.tsx` |
-
-### Arquitetura de CTA de carrinho
-
-**Desktop:** `IngressosSidebar` ocupa o painel lateral de 340px — mostra itens, datas, remover e checkout.  
-**Mobile:** `CartStickyBar` fixa no rodapé (z-index 200) — aparece quando `cart.length > 0`, mostra total e botão "Ir para pagamento" → navega para `/ingressos/checkout`.
-
-Esta separação evita sobreposição visual e usa o componente certo para cada viewport.
+| `GET /api/orders/:id` | `[x]` dados do pedido | `server/routes.ts` |
+| `GET /api/orders/:id/voucher` | `[x]` PDF binary, Content-Disposition: attachment | `server/routes.ts` |
+| `VoucherPdfService` (pdfkit + qrcode) | `[x]` QR H, 240×240, ordenação hotel>parque>addon | `server/services/voucher-pdf.service.ts` |
+| SuccessHero | `[x]` gradiente verde, nome do cliente, WhatsApp | `client/src/pages/ingressos-sucesso.tsx` |
+| OrderSummaryCard | `[x]` itens, combo savings, total, nº pedido | `client/src/pages/ingressos-sucesso.tsx` |
+| VoucherDownloadCard | `[x]` estados idle/loading/success/error, PDF download | `client/src/pages/ingressos-sucesso.tsx` |
+| Analytics events | `[x]` 3 novos eventos: voucher_pdf_download_* | `client/src/lib/analytics.ts` |
+| Gate TypeScript | `[x]` npx tsc --noEmit → 0 erros | — |
+| Gate smoke test | `[x]` HTTP 200 application/pdf 9391 bytes, %PDF-1.3 | — |
 
 ---
 
-## O que foi realizado até aqui (Tasks #1–#11)
+## O que foi realizado até aqui (Tasks #1–#14)
 
 - **T1–T7**: Estrutura base — home, landing, shells, admin, NTX modules. Commit: `fb0fb425`
 - **T8**: Mapa Leaflet real em `/mapa-caldas-novas`. Commit: `e88e7b23`
@@ -42,77 +32,31 @@ Esta separação evita sobreposição visual e usa o componente certo para cada 
 - **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Chain: `8e3e43c`→`2354ff3`
 - **T10 (Sprint 1)**: Token files TS (colors, spacing, layout, typography) + CSS vars. Commit: `5639124`
 - **T11 (Sprint 2+3)**: PrimaryButton, SecondaryButton, StatusBadge (ui/), TicketsGrid loading/empty, cart-store hardened
+- **T12 (Sprint 4)**: Combo IA — PricingEngine, RecommendationService, AffinityMap, API de recomendações
+- **T13 (Sprint 5)**: Checkout Pix Completo — react-hook-form, zodResolver, 5 componentes checkout/, ticket-catalog.ts (24 IDs), backend pricing server-side, UnknownTicketError, orderId redirect
+- **T14 (Sprint 6)**: Sucesso + Voucher PDF — pdfkit + qrcode, GET /api/orders/:id e /voucher, SuccessHero + OrderSummaryCard + VoucherDownloadCard
 
 ---
 
-## Componentes criados/atualizados em Sprint 2+3
-
-### Novos (Sprint 2 — Fase 02)
+## Arquitetura do fluxo de compra completo
 
 ```
-client/src/components/ui/primary-button.tsx
-  - Props: size (sm|md|lg), loading, disabled, data-testid (obrigatório)
+/ingressos
+  → Catálogo em grid, stepper de quantidade, Combo IA
+  → CartStickyBar (mobile) / IngressosSidebar (desktop)
 
-client/src/components/ui/secondary-button.tsx
-  - Props: size (sm|md|lg), loading, disabled, data-testid (obrigatório), outline
+/ingressos/checkout?step=email|dados|pagamento
+  → react-hook-form + zodResolver
+  → POST /api/payments/tickets/create (server-side pricing, ticket-catalog.ts)
+  → Pix: QR Code, copia-e-cola, countdown, polling
+  → Redirect: /ingressos/sucesso?orderId=
 
-client/src/components/ui/status-badge.tsx  ← componente UI canônico
-  - Variantes semânticas: success/warning/error/info/neutral/premium
-  - Variantes de pedido (OrderStatus): PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED
-  - data-testid obrigatório, showDot, cn mergeável
-  - OrderStatus sourced from shared/schema.ts
+/ingressos/sucesso?orderId=
+  → GET /api/orders/:id (TanStack Query)
+  → SuccessHero (verde, nome, WhatsApp)
+  → OrderSummaryCard (itens, combo, total)
+  → VoucherDownloadCard → GET /api/orders/:id/voucher → PDF binary
 ```
-
-### Modificados (Sprint 2+3)
-
-```
-client/src/components/shells/index.tsx
-  - LoadingSkeleton: prop variant="card" | "default"
-  - EmptyState: data-testid opcional (default "empty-state")
-
-client/src/lib/cart-store.ts
-  - CartItem sourced from shared/schema.ts (fonte única)
-  - dedupeCart() em getCart() — dedup por Map na rehidratação
-  - validateCartItem() — valida shape antes de aceitar do localStorage
-
-client/src/components/CartStickyBar.tsx
-  - paddingBottom: env(safe-area-inset-bottom) para iOS notch
-  - trackEvent("tickets_checkout_start") no click do CTA
-
-client/src/components/TicketsGrid.tsx
-  - Prop loading?: boolean
-  - Se loading=true → renderiza <LoadingSkeleton variant="card" rows={4}>
-  - Se tickets=[] → renderiza <EmptyState> com ícone Ticket
-
-client/src/components/EnterpriseAccordion.tsx
-  - Caso vazio usa <EmptyState> formal (sem fallback inline)
-
-client/src/pages/ingressos.tsx
-  - Filter analytics: city tabs, category tabs, quick picks
-  - IngressosSidebar mobile cobre o requisito de CartStickyBar CTA
-```
-
----
-
-## O que está parcial (pendente nas próximas sprints)
-
-| Item | Status | Fase alvo |
-|------|--------|-----------|
-| Backend combo engine + PricingEngine | `[ ]` | Fase 04 |
-| Voucher PDF com QR | `[~]` (TXT existe) | Fase 06 |
-| Admin métricas reais | `[~]` (hardcoded) | Fase 07 |
-| Post-payment orchestrator | `[ ]` | Fase 07 |
-| Logging + HMAC + rate limiting | `[ ]` | Fase 08 |
-
----
-
-## O que falta (pela ordem do plano)
-
-1. **Fase 04** — Backend combo engine + PricingEngine + API de recomendações (Task #12)
-2. **Fase 05** — Gate completo do checkout Pix (validações + fallback robusto)
-3. **Fase 06** — Voucher PDF com QR + sincronização de catálogo + OpenAPI
-4. **Fase 07** — Admin com dados reais + post-payment orchestrator
-5. **Fase 08** — Hardening (logging, HMAC, rate limit, runbook)
 
 ---
 
@@ -123,3 +67,18 @@ client/src/pages/ingressos.tsx
 - Não mover regra comercial (pricing, desconto) para o frontend
 - Ingressos Pix = sem split; Excursões Pix = com split (serviços diferentes)
 - Demo credentials: demo@reservei.com.br / demo123 (admin)
+- `ticketTransactions` Map é a fonte de verdade para pedidos de ingressos em memória
+
+---
+
+## O que está parcial (pendente nas próximas sprints)
+
+| Item | Status | Fase alvo |
+|------|--------|-----------|
+| Admin métricas reais | `[~]` (hardcoded) | Sprint 7 |
+| Post-payment orchestrator | `[ ]` | Sprint 7 |
+| Envio de voucher por e-mail | `[ ]` | Sprint 7 |
+| Logging estruturado | `[ ]` | Sprint 8 |
+| HMAC de voucher | `[ ]` | Sprint 8 |
+| Rate limiting | `[ ]` | Sprint 8 |
+| QR validação online | `[ ]` | Sprint 8 |
