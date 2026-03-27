@@ -1,19 +1,22 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Fundação Documental (Task #18) — concluindo  
-**Próxima fase:** Sprint 0 — Auditoria + Estrutura-Base (Task #9)
+**Fase atual:** Sprint 0 — Auditoria + Estrutura-Base (Task #9) — CONCLUÍDA  
+**Próxima fase:** Sprint 1 — Design System + Layout System (Task #10)
 
 ---
 
 ## Onde o projeto parou
 
-Task #18 (Fundação Documental — Push Inicial para GitHub) está sendo concluída agora.  
-Esta tarefa cria toda a estrutura de documentação operacional e faz o primeiro push para o repositório.
+Sprint 0 — Auditoria + Estrutura-Base (Task #9) foi concluída.  
+O repositório agora tem a fundação documental completa e os tipos Zod canônicos.
 
-Após esta tarefa, o repositório terá:
+Entregáveis desta sprint:
 - `AGENTS.md` na raiz (instrução para agentes)
 - `docs/implantacao/` com plano mestre, status, handoff, changelog e 9 arquivos de fase
+- `docs/ROUTES_INVENTORY.md` — inventário completo de 60+ rotas frontend e 80+ endpoints backend
+- `docs/GAPS.md` — 15 gaps priorizados por impacto no fluxo comprável
+- `shared/schema.ts` — schemas Zod para `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus`
 
 ---
 
