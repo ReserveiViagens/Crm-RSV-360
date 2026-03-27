@@ -2388,7 +2388,12 @@ export async function registerRoutes(
   app.get("/api/v1/recommendations", (req: Request, res: Response) => {
     const { ticketIds, profile, limit: limitStr } = req.query as Record<string, string>;
     const ids = ticketIds ? ticketIds.split(",").map((s) => s.trim()).filter(Boolean) : [];
-    const maxSuggestions = Math.min(parseInt(limitStr ?? "5", 10) || 5, 10);
+
+    const parsedLimit = limitStr !== undefined ? parseInt(limitStr, 10) : 5;
+    if (limitStr !== undefined && (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 10)) {
+      return res.status(400).json({ message: "Parâmetro 'limit' deve ser um inteiro entre 1 e 10" });
+    }
+    const maxSuggestions = parsedLimit;
     const cartItems = ids.map((id) => {
       const found = CATALOG_TICKETS_SNAPSHOT.find((t) => t.id === id);
       return {
