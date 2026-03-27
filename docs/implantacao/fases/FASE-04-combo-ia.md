@@ -87,7 +87,7 @@ Transformar o Combo IA de hardcoded 15% no frontend em motor real com backend de
 - `GET /api/recommendations/cart/:sessionId` — retorna cache da sessão ou 404
 - `client/src/services/recommendationApi.ts` — funções `fetchComboRecommendations` e `fetchSessionRecommendations`
 - `client/src/hooks/useComboTrigger.ts` — delay 1.75s, sessionStorage dismiss guard, re-trigger apenas em cart growth
-- `client/src/hooks/useComboRecommendations.ts` — useMutation (TanStack Query v5), estados loading/error/empty
+- `client/src/hooks/useComboRecommendations.ts` — useQuery (TanStack Query v5), keyed cache ['/api/recommendations/combo', cartKey], estados loading/error/empty
 - `client/src/components/tickets/ComboIAWizard.tsx` — Dialog modal com header azul gradiente, skeleton 3-linhas, error state neutro, EmptyState, SuggestionCards, skip sempre visível
 - `client/src/components/tickets/SuggestionCard.tsx` — nome, razão, preço original riscado, preço combo, economia em BRL, badge -X%
 - `client/src/components/tickets/ComboIAEmptyState.tsx` — mensagem neutra sem ícone alarmante
