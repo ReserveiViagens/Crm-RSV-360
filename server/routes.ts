@@ -2279,7 +2279,7 @@ export async function registerRoutes(
       txn.status = status;
       return res.json({ status, paid });
     } catch (err) {
-      console.error("[tickets/status]", err);
+      logger.error("[tickets/status] Erro ao consultar status", { orderId: id, error: err instanceof Error ? err.message : String(err) });
       return res.status(500).json({ message: "Erro ao consultar status" });
     }
   });
@@ -2303,7 +2303,7 @@ export async function registerRoutes(
       if (cancelled) txn.status = "CANCELLED";
       return res.json({ cancelled, status: txn.status });
     } catch (err) {
-      console.error("[tickets/cancel]", err);
+      logger.error("[tickets/cancel] Erro ao cancelar cobrança", { orderId: id, error: err instanceof Error ? err.message : String(err) });
       return res.status(500).json({ message: "Erro ao cancelar cobrança" });
     }
   });
@@ -2475,11 +2475,12 @@ export async function registerRoutes(
       res.setHeader("Cache-Control", "no-store");
       return res.end(pdfBuffer);
     } catch (err) {
-      console.error("[orders/voucher]", err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      logger.error("[orders/voucher] Falha ao gerar voucher PDF", { orderId: id, error: errMsg });
       raiseAlert("VOUCHER_PDF_FAILURE", `Falha ao gerar voucher para orderId=${id}`, {
         severity: "critical",
         orderId: id,
-        meta: { error: err instanceof Error ? err.message : String(err) },
+        meta: { error: errMsg },
       });
       return res.status(500).json({ message: "Erro ao gerar voucher PDF" });
     }
