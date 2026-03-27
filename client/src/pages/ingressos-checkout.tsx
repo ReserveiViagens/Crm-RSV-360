@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import {
-  ArrowLeft, ArrowRight, Copy, Check, Clock, AlertCircle, CheckCircle2,
-  XCircle, Loader2, ShoppingCart, Phone, CreditCard, Smartphone, Search,
-  Mail, User, MapPin, Lock, Shield,
+  ArrowLeft, ArrowRight, Clock, AlertCircle, CheckCircle2,
+  Loader2, ShoppingCart, Phone, CreditCard, Smartphone, Search,
+  Mail, User, MapPin, Lock, Shield, Check,
 } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useQuery, useMutation } from "@tanstack/react-query"
@@ -13,6 +16,11 @@ import { IngressosSidebar } from "@/components/IngressosSidebar"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { PixQrCodePanel } from "@/components/checkout/PixQrCodePanel"
+import { PixCopyPasteField } from "@/components/checkout/PixCopyPasteField"
+import { PixCountdown } from "@/components/checkout/PixCountdown"
+import { PaymentStatusBanner } from "@/components/checkout/PaymentStatusBanner"
+import { CheckoutSummaryCard } from "@/components/checkout/CheckoutSummaryCard"
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
@@ -65,22 +73,37 @@ interface PaymentData {
   demo: boolean
 }
 
-interface FormState {
-  email: string
-  firstName: string
-  lastName: string
-  phone: string
-  cpf: string
-  country: string
-  cep: string
-  estado: string
-  cidade: string
-  endereco: string
-  numero: string
-  bairro: string
-  complemento: string
-  cupom: string
-}
+const emailSchema = z.object({
+  email: z.string().email("E-mail válido é obrigatório"),
+})
+
+const dadosSchema = z.object({
+  firstName: z.string().min(1, "Nome obrigatório"),
+  lastName: z.string().min(1, "Sobrenome obrigatório"),
+  phone: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().min(10, "Telefone deve ter ao menos 10 dígitos")),
+  cpf: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().length(11, "CPF deve ter 11 dígitos")),
+  country: z.string(),
+  cep: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().length(8, "CEP inválido (8 dígitos)")),
+  estado: z.string().optional(),
+  cidade: z.string().optional(),
+  endereco: z.string().optional(),
+  numero: z.string().min(1, "Número obrigatório"),
+  bairro: z.string().optional(),
+  complemento: z.string().optional(),
+  cupom: z.string().optional(),
+})
+
+type EmailFormValues = z.infer<typeof emailSchema>
+type DadosFormValues = z.infer<typeof dadosSchema>
 
 interface CardState {
   number: string
@@ -149,43 +172,34 @@ function ProgressBar({ step }: { step: CheckoutStep }) {
 }
 
 function InputField({
-  label, value, onChange, placeholder, type = "text", error, disabled, rightEl, testId,
+  label, value, onChange, placeholder, type = "text", error, disabled, testId,
 }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; type?: string; error?: string; disabled?: boolean;
-  rightEl?: React.ReactNode; testId?: string;
+  testId?: string;
 }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
         {label}
       </label>
-      <div style={{ position: "relative" }}>
-        <input
-          data-testid={testId}
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          style={{
-            width: "100%", padding: rightEl ? "12px 48px 12px 14px" : "12px 14px",
-            border: `1.5px solid ${error ? "#EF4444" : "#E5E7EB"}`,
-            borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box",
-            color: "#1F2937", background: disabled ? "#F9FAFB" : "#fff",
-            transition: "border-color 0.2s",
-          }}
-          onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = "#2563EB" }}
-          onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = "#E5E7EB" }}
-        />
-        {rightEl && (
-          <div style={{
-            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-          }}>
-            {rightEl}
-          </div>
-        )}
-      </div>
+      <input
+        data-testid={testId}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        style={{
+          width: "100%", padding: "12px 14px",
+          border: `1.5px solid ${error ? "#EF4444" : "#E5E7EB"}`,
+          borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box",
+          color: "#1F2937", background: disabled ? "#F9FAFB" : "#fff",
+          transition: "border-color 0.2s",
+        }}
+        onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = "#2563EB" }}
+        onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = error ? "#EF4444" : "#E5E7EB" }}
+      />
       {error && <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{error}</p>}
     </div>
   )
@@ -199,25 +213,29 @@ export default function IngressosCheckoutPage() {
   const [step, setStep] = useState<CheckoutStep>("email")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix")
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null)
-  const [copied, setCopied] = useState(false)
   const [secondsLeft, setSecondsLeft] = useState(30 * 60)
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState("")
+  const [cardConfirmed, setCardConfirmed] = useState(false)
+  const [card, setCard] = useState<CardState>({ number: "", holderName: "", expiry: "", cvv: "" })
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const [form, setForm] = useState<FormState>({
-    email: "", firstName: "", lastName: "", phone: "",
-    cpf: "", country: "Brasil", cep: "", estado: "",
-    cidade: "", endereco: "", numero: "", bairro: "",
-    complemento: "", cupom: "",
+  const emailForm = useForm<EmailFormValues>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: { email: "" },
   })
 
-  const [card, setCard] = useState<CardState>({
-    number: "", holderName: "", expiry: "", cvv: "",
+  const dadosForm = useForm<DadosFormValues>({
+    resolver: zodResolver(dadosSchema),
+    defaultValues: {
+      firstName: "", lastName: "", phone: "", cpf: "",
+      country: "Brasil", cep: "", estado: "", cidade: "",
+      endereco: "", numero: "", bairro: "", complemento: "", cupom: "",
+    },
   })
 
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof FormState | keyof CardState, string>>>({})
-  const [cardConfirmed, setCardConfirmed] = useState(false)
+  const emailValue = emailForm.watch("email")
+  const dadosValues = dadosForm.watch()
 
   const total = getCartTotal(cart)
 
@@ -239,16 +257,18 @@ export default function IngressosCheckoutPage() {
 
   const createPaymentMutation = useMutation({
     mutationFn: async () => {
+      const dados = dadosForm.getValues()
       const payload = {
         items: cart.map((c) => ({
           ticketId: c.ticketId, title: c.name,
           quantity: c.quantity, unitPrice: c.unitPrice,
+          originalPrice: c.originalPrice,
         })),
         customer: {
-          name: `${form.firstName.trim()} ${form.lastName.trim()}`,
-          email: form.email.trim(),
-          cpf: form.cpf.replace(/\D/g, ""),
-          phone: form.phone.replace(/\D/g, ""),
+          name: `${dados.firstName.trim()} ${dados.lastName.trim()}`,
+          email: emailForm.getValues("email").trim(),
+          cpf: dados.cpf.replace(/\D/g, ""),
+          phone: dados.phone.replace(/\D/g, ""),
         },
       }
       const res = await apiRequest("POST", "/api/payments/tickets/create", payload)
@@ -288,14 +308,26 @@ export default function IngressosCheckoutPage() {
     },
   })
 
+  const isTerminal = (s: PaymentStatus) =>
+    s === "APPROVED" || s === "EXPIRED" || s === "FAILED" || s === "CANCELLED"
+
   const { data: statusData } = useQuery({
     queryKey: ["/api/payments/tickets", paymentData?.transactionId, "status"],
     queryFn: async () => {
       const res = await fetch(`/api/payments/tickets/${paymentData!.transactionId}/status`)
       return res.json() as Promise<{ status: PaymentStatus; paid: boolean }>
     },
-    enabled: !!paymentData && step === "pagamento" && paymentMethod === "pix" && paymentData?.status !== "APPROVED",
-    refetchInterval: 3000,
+    enabled:
+      !!paymentData &&
+      step === "pagamento" &&
+      paymentMethod === "pix" &&
+      !isTerminal(paymentData?.status ?? "PENDING") &&
+      secondsLeft !== 0,
+    refetchInterval: (query) => {
+      const data = query.state.data as { status: PaymentStatus; paid: boolean } | undefined
+      if (!data) return 3000
+      return isTerminal(data.status) ? false : 3000
+    },
   })
 
   useEffect(() => {
@@ -308,7 +340,7 @@ export default function IngressosCheckoutPage() {
   }, [statusData])
 
   async function fetchViaCep() {
-    const clean = form.cep.replace(/\D/g, "")
+    const clean = dadosForm.getValues("cep").replace(/\D/g, "")
     if (clean.length !== 8) { setCepError("CEP inválido (8 dígitos)"); return }
     setCepLoading(true)
     setCepError("")
@@ -316,13 +348,10 @@ export default function IngressosCheckoutPage() {
       const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`)
       const data = await res.json()
       if (data.erro) { setCepError("CEP não encontrado"); return }
-      setForm((prev) => ({
-        ...prev,
-        estado: data.uf || prev.estado,
-        cidade: data.localidade || prev.cidade,
-        endereco: data.logradouro || prev.endereco,
-        bairro: data.bairro || prev.bairro,
-      }))
+      dadosForm.setValue("estado", data.uf || "")
+      dadosForm.setValue("cidade", data.localidade || "")
+      dadosForm.setValue("endereco", data.logradouro || "")
+      dadosForm.setValue("bairro", data.bairro || "")
     } catch {
       setCepError("Erro ao buscar CEP. Tente novamente.")
     } finally {
@@ -330,41 +359,12 @@ export default function IngressosCheckoutPage() {
     }
   }
 
-  function updateForm(field: keyof FormState, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }))
-    if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: undefined }))
-  }
-
-  function validateEmail(): boolean {
-    const errors: typeof formErrors = {}
-    if (!form.email.trim() || !form.email.includes("@")) errors.email = "E-mail válido é obrigatório"
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  function validateDados(): boolean {
-    const errors: typeof formErrors = {}
-    if (!form.firstName.trim()) errors.firstName = "Nome obrigatório"
-    if (!form.lastName.trim()) errors.lastName = "Sobrenome obrigatório"
-    const phoneDigits = form.phone.replace(/\D/g, "")
-    if (phoneDigits.length < 10) errors.phone = "Telefone inválido"
-    const cpfDigits = form.cpf.replace(/\D/g, "")
-    if (cpfDigits.length !== 11) errors.cpf = "CPF deve ter 11 dígitos"
-    const cepDigits = form.cep.replace(/\D/g, "")
-    if (cepDigits.length !== 8) errors.cep = "CEP inválido"
-    if (!form.numero.trim()) errors.numero = "Número obrigatório"
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  function handleNextEmail() {
-    if (!validateEmail()) return
+  function handleNextEmail(values: EmailFormValues) {
     trackEvent("checkout_step_email_done")
     setStep("dados")
   }
 
-  function handleNextDados() {
-    if (!validateDados()) return
+  function handleNextDados(values: DadosFormValues) {
     trackEvent("checkout_step_dados_done")
     setStep("pagamento")
   }
@@ -378,33 +378,25 @@ export default function IngressosCheckoutPage() {
     }
   }
 
-  function handleCopy() {
-    if (!paymentData) return
-    navigator.clipboard.writeText(paymentData.copyPasteCode)
-    setCopied(true)
-    trackEvent("pix_code_copy", { transactionId: paymentData.transactionId })
-    setTimeout(() => setCopied(false), 3000)
-  }
-
   const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0")
   const seconds = String(secondsLeft % 60).padStart(2, "0")
   const isExpired = secondsLeft === 0
-  const currentStatus = statusData?.status ?? paymentData?.status ?? "PENDING"
+  const currentStatus: PaymentStatus = statusData?.status ?? paymentData?.status ?? "PENDING"
 
   if (cart.length === 0) return null
+
+  const isApplePay = typeof window !== "undefined" && "ApplePaySession" in window
 
   const sidebarProps = {
     cart,
     total,
     selectedDate,
     onCheckout: () => {
-      if (step === "email") handleNextEmail()
-      else if (step === "dados") handleNextDados()
+      if (step === "email") emailForm.handleSubmit(handleNextEmail)()
+      else if (step === "dados") dadosForm.handleSubmit(handleNextDados)()
       else if (step === "pagamento" && !paymentData && !cardConfirmed) handleConfirmPayment()
     },
   }
-
-  const isApplePay = typeof window !== "undefined" && "ApplePaySession" in window
 
   return (
     <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }}>
@@ -467,10 +459,14 @@ export default function IngressosCheckoutPage() {
           <div style={{ padding: isDesktop ? 0 : 16, maxWidth: 560 }}>
 
             {step === "email" && (
-              <div style={{
-                background: "#fff", borderRadius: 16, padding: 24,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-              }} data-testid="card-email-step">
+              <form
+                onSubmit={emailForm.handleSubmit(handleNextEmail)}
+                data-testid="card-email-step"
+                style={{
+                  background: "#fff", borderRadius: 16, padding: 24,
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                }}
+              >
                 <div style={{ textAlign: "center", marginBottom: 24 }}>
                   <div style={{
                     width: 56, height: 56, borderRadius: "50%",
@@ -489,6 +485,7 @@ export default function IngressosCheckoutPage() {
                 </div>
 
                 <button
+                  type="button"
                   data-testid="button-continue-google"
                   style={{
                     width: "100%", padding: "13px 0", border: "1.5px solid #E5E7EB",
@@ -496,13 +493,10 @@ export default function IngressosCheckoutPage() {
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                     fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 12,
                     boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                    transition: "box-shadow 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.10)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)")}
                   onClick={() => {
                     trackEvent("checkout_google_click")
-                    if (!form.email) setForm(prev => ({ ...prev, email: "usuario@gmail.com" }))
+                    if (!emailForm.getValues("email")) emailForm.setValue("email", "usuario@gmail.com")
                     setTimeout(() => setStep("dados"), 300)
                   }}
                 >
@@ -516,6 +510,7 @@ export default function IngressosCheckoutPage() {
                 </button>
 
                 <button
+                  type="button"
                   data-testid="button-continue-apple"
                   style={{
                     width: "100%", padding: "13px 0", border: "none",
@@ -525,7 +520,7 @@ export default function IngressosCheckoutPage() {
                   }}
                   onClick={() => {
                     trackEvent("checkout_apple_click")
-                    if (!form.email) setForm(prev => ({ ...prev, email: "usuario@icloud.com" }))
+                    if (!emailForm.getValues("email")) emailForm.setValue("email", "usuario@icloud.com")
                     setTimeout(() => setStep("dados"), 300)
                   }}
                 >
@@ -541,19 +536,32 @@ export default function IngressosCheckoutPage() {
                   <div style={{ flex: 1, height: 1, background: "#E5E7EB" }} />
                 </div>
 
-                <InputField
-                  label="E-mail"
-                  type="email"
-                  value={form.email}
-                  onChange={(v) => updateForm("email", v)}
-                  placeholder="seu@email.com.br"
-                  error={formErrors.email}
-                  testId="input-email"
-                />
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                    E-mail
+                  </label>
+                  <input
+                    data-testid="input-email"
+                    type="email"
+                    {...emailForm.register("email")}
+                    placeholder="seu@email.com.br"
+                    style={{
+                      width: "100%", padding: "12px 14px",
+                      border: `1.5px solid ${emailForm.formState.errors.email ? "#EF4444" : "#E5E7EB"}`,
+                      borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box",
+                      color: "#1F2937",
+                    }}
+                  />
+                  {emailForm.formState.errors.email && (
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>
+                      {emailForm.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
 
                 <button
+                  type="submit"
                   data-testid="button-next-email"
-                  onClick={handleNextEmail}
                   style={{
                     width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
                     background: "linear-gradient(135deg, #0891B2, #2563EB)",
@@ -569,68 +577,120 @@ export default function IngressosCheckoutPage() {
                   <Lock style={{ width: 11, height: 11, display: "inline", marginRight: 4, verticalAlign: "middle" }} />
                   Seus dados são protegidos e não serão compartilhados
                 </p>
-              </div>
+              </form>
             )}
 
             {step === "dados" && (
-              <div style={{
-                background: "#fff", borderRadius: 16, padding: 24,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-              }} data-testid="card-dados-step">
+              <form
+                onSubmit={dadosForm.handleSubmit(handleNextDados)}
+                data-testid="card-dados-step"
+                style={{
+                  background: "#fff", borderRadius: 16, padding: 24,
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                }}
+              >
                 <h3 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 20px", color: "#1F2937" }}>
                   Dados Pessoais e Endereço
                 </h3>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
-                  <InputField
-                    label="Primeiro Nome *"
-                    value={form.firstName}
-                    onChange={(v) => updateForm("firstName", v)}
-                    placeholder="João"
-                    error={formErrors.firstName}
-                    testId="input-firstName"
-                  />
-                  <InputField
-                    label="Último Nome *"
-                    value={form.lastName}
-                    onChange={(v) => updateForm("lastName", v)}
-                    placeholder="Silva"
-                    error={formErrors.lastName}
-                    testId="input-lastName"
-                  />
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                      Primeiro Nome *
+                    </label>
+                    <input
+                      data-testid="input-firstName"
+                      {...dadosForm.register("firstName")}
+                      placeholder="João"
+                      style={{
+                        width: "100%", padding: "12px 14px",
+                        border: `1.5px solid ${dadosForm.formState.errors.firstName ? "#EF4444" : "#E5E7EB"}`,
+                        borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", color: "#1F2937",
+                      }}
+                    />
+                    {dadosForm.formState.errors.firstName && (
+                      <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{dadosForm.formState.errors.firstName.message}</p>
+                    )}
+                  </div>
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                      Último Nome *
+                    </label>
+                    <input
+                      data-testid="input-lastName"
+                      {...dadosForm.register("lastName")}
+                      placeholder="Silva"
+                      style={{
+                        width: "100%", padding: "12px 14px",
+                        border: `1.5px solid ${dadosForm.formState.errors.lastName ? "#EF4444" : "#E5E7EB"}`,
+                        borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", color: "#1F2937",
+                      }}
+                    />
+                    {dadosForm.formState.errors.lastName && (
+                      <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{dadosForm.formState.errors.lastName.message}</p>
+                    )}
+                  </div>
                 </div>
 
-                <InputField
-                  label="Telefone com DDD *"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(v) => updateForm("phone", formatPhone(v))}
-                  placeholder="(65) 99999-0000"
-                  error={formErrors.phone}
-                  testId="input-phone"
-                />
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                    Telefone com DDD *
+                  </label>
+                  <input
+                    data-testid="input-phone"
+                    type="tel"
+                    value={dadosValues.phone}
+                    onChange={(e) => dadosForm.setValue("phone", formatPhone(e.target.value), { shouldValidate: true })}
+                    placeholder="(65) 99999-0000"
+                    style={{
+                      width: "100%", padding: "12px 14px",
+                      border: `1.5px solid ${dadosForm.formState.errors.phone ? "#EF4444" : "#E5E7EB"}`,
+                      borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", color: "#1F2937",
+                    }}
+                  />
+                  {dadosForm.formState.errors.phone && (
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{dadosForm.formState.errors.phone.message}</p>
+                  )}
+                </div>
 
-                <InputField
-                  label="CPF *"
-                  value={form.cpf}
-                  onChange={(v) => updateForm("cpf", formatCpf(v))}
-                  placeholder="000.000.000-00"
-                  error={formErrors.cpf}
-                  testId="input-cpf"
-                />
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                    CPF *
+                  </label>
+                  <input
+                    data-testid="input-cpf"
+                    value={dadosValues.cpf}
+                    onChange={(e) => dadosForm.setValue("cpf", formatCpf(e.target.value), { shouldValidate: true })}
+                    placeholder="000.000.000-00"
+                    style={{
+                      width: "100%", padding: "12px 14px",
+                      border: `1.5px solid ${dadosForm.formState.errors.cpf ? "#EF4444" : "#E5E7EB"}`,
+                      borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", color: "#1F2937",
+                    }}
+                  />
+                  {dadosForm.formState.errors.cpf && (
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{dadosForm.formState.errors.cpf.message}</p>
+                  )}
+                </div>
 
                 <div style={{ borderTop: "1px solid #F3F4F6", margin: "4px 0 16px" }} />
                 <h4 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 14px", color: "#374151" }}>
                   Endereço
                 </h4>
 
-                <InputField
-                  label="País"
-                  value={form.country}
-                  onChange={(v) => updateForm("country", v)}
-                  disabled
-                  testId="input-country"
-                />
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>País</label>
+                  <input
+                    data-testid="input-country"
+                    value={dadosValues.country}
+                    disabled
+                    style={{
+                      width: "100%", padding: "12px 14px",
+                      border: "1.5px solid #E5E7EB", borderRadius: 10, fontSize: 14, outline: "none",
+                      boxSizing: "border-box", color: "#1F2937", background: "#F9FAFB",
+                    }}
+                  />
+                </div>
 
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
@@ -640,20 +700,21 @@ export default function IngressosCheckoutPage() {
                     <input
                       data-testid="input-cep"
                       type="text"
-                      value={form.cep}
+                      value={dadosValues.cep}
                       onChange={(e) => {
-                        updateForm("cep", formatCep(e.target.value))
+                        dadosForm.setValue("cep", formatCep(e.target.value), { shouldValidate: true })
                         setCepError("")
                       }}
-                      onKeyDown={(e) => { if (e.key === "Enter") fetchViaCep() }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); fetchViaCep() } }}
                       placeholder="00000-000"
                       style={{
                         flex: 1, padding: "12px 14px",
-                        border: `1.5px solid ${(formErrors.cep || cepError) ? "#EF4444" : "#E5E7EB"}`,
+                        border: `1.5px solid ${(dadosForm.formState.errors.cep || cepError) ? "#EF4444" : "#E5E7EB"}`,
                         borderRadius: 10, fontSize: 14, outline: "none", color: "#1F2937",
                       }}
                     />
                     <button
+                      type="button"
                       data-testid="button-search-cep"
                       onClick={fetchViaCep}
                       disabled={cepLoading}
@@ -672,23 +733,25 @@ export default function IngressosCheckoutPage() {
                       {cepLoading ? "Buscando..." : "Buscar"}
                     </button>
                   </div>
-                  {(formErrors.cep || cepError) && (
-                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{formErrors.cep || cepError}</p>
+                  {(dadosForm.formState.errors.cep || cepError) && (
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>
+                      {dadosForm.formState.errors.cep?.message || cepError}
+                    </p>
                   )}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
                   <InputField
                     label="Estado"
-                    value={form.estado}
-                    onChange={(v) => updateForm("estado", v)}
+                    value={dadosValues.estado ?? ""}
+                    onChange={(v) => dadosForm.setValue("estado", v)}
                     placeholder="GO"
                     testId="input-estado"
                   />
                   <InputField
                     label="Cidade"
-                    value={form.cidade}
-                    onChange={(v) => updateForm("cidade", v)}
+                    value={dadosValues.cidade ?? ""}
+                    onChange={(v) => dadosForm.setValue("cidade", v)}
                     placeholder="Caldas Novas"
                     testId="input-cidade"
                   />
@@ -696,25 +759,35 @@ export default function IngressosCheckoutPage() {
 
                 <InputField
                   label="Logradouro"
-                  value={form.endereco}
-                  onChange={(v) => updateForm("endereco", v)}
+                  value={dadosValues.endereco ?? ""}
+                  onChange={(v) => dadosForm.setValue("endereco", v)}
                   placeholder="Rua, Avenida..."
                   testId="input-endereco"
                 />
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 12px" }}>
-                  <InputField
-                    label="Número *"
-                    value={form.numero}
-                    onChange={(v) => updateForm("numero", v)}
-                    placeholder="123"
-                    error={formErrors.numero}
-                    testId="input-numero"
-                  />
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: 4 }}>
+                      Número *
+                    </label>
+                    <input
+                      data-testid="input-numero"
+                      {...dadosForm.register("numero")}
+                      placeholder="123"
+                      style={{
+                        width: "100%", padding: "12px 14px",
+                        border: `1.5px solid ${dadosForm.formState.errors.numero ? "#EF4444" : "#E5E7EB"}`,
+                        borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", color: "#1F2937",
+                      }}
+                    />
+                    {dadosForm.formState.errors.numero && (
+                      <p style={{ margin: "4px 0 0", fontSize: 11, color: "#EF4444" }}>{dadosForm.formState.errors.numero.message}</p>
+                    )}
+                  </div>
                   <InputField
                     label="Bairro"
-                    value={form.bairro}
-                    onChange={(v) => updateForm("bairro", v)}
+                    value={dadosValues.bairro ?? ""}
+                    onChange={(v) => dadosForm.setValue("bairro", v)}
                     placeholder="Centro"
                     testId="input-bairro"
                   />
@@ -722,8 +795,8 @@ export default function IngressosCheckoutPage() {
 
                 <InputField
                   label="Complemento"
-                  value={form.complemento}
-                  onChange={(v) => updateForm("complemento", v)}
+                  value={dadosValues.complemento ?? ""}
+                  onChange={(v) => dadosForm.setValue("complemento", v)}
                   placeholder="Apto, Sala... (opcional)"
                   testId="input-complemento"
                 />
@@ -738,8 +811,8 @@ export default function IngressosCheckoutPage() {
                     <input
                       data-testid="input-cupom"
                       type="text"
-                      value={form.cupom}
-                      onChange={(e) => updateForm("cupom", e.target.value.toUpperCase())}
+                      value={dadosValues.cupom ?? ""}
+                      onChange={(e) => dadosForm.setValue("cupom", e.target.value.toUpperCase())}
                       placeholder="Ex: RSV10"
                       style={{
                         flex: 1, padding: "12px 14px",
@@ -749,13 +822,14 @@ export default function IngressosCheckoutPage() {
                       }}
                     />
                     <button
+                      type="button"
                       data-testid="button-apply-cupom"
                       style={{
                         padding: "12px 16px", border: "none", borderRadius: 10,
                         background: "#F3F4F6", color: "#374151",
                         fontWeight: 700, fontSize: 13, cursor: "pointer",
                       }}
-                      onClick={() => trackEvent("cupom_apply_attempt", { cupom: form.cupom })}
+                      onClick={() => trackEvent("cupom_apply_attempt", { cupom: dadosValues.cupom })}
                     >
                       Aplicar
                     </button>
@@ -763,8 +837,8 @@ export default function IngressosCheckoutPage() {
                 </div>
 
                 <button
+                  type="submit"
                   data-testid="button-next-dados"
-                  onClick={handleNextDados}
                   style={{
                     width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
                     background: "linear-gradient(135deg, #0891B2, #2563EB)",
@@ -775,7 +849,7 @@ export default function IngressosCheckoutPage() {
                   Continuar para Pagamento
                   <ArrowRight style={{ width: 16, height: 16 }} />
                 </button>
-              </div>
+              </form>
             )}
 
             {step === "pagamento" && (
@@ -980,37 +1054,14 @@ export default function IngressosCheckoutPage() {
                       </div>
                     )}
 
-                    <div style={{
-                      background: "#F9FAFB", borderRadius: 12, padding: 14, marginBottom: 16,
-                      border: "1px solid #E5E7EB",
-                    }} data-testid="card-checkout-summary">
-                      {cart.map((item) => (
-                        <div key={item.ticketId} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: "#6B7280" }}>{item.name} × {item.quantity}</span>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{formatPrice(item.unitPrice * item.quantity)}</span>
-                        </div>
-                      ))}
-                      {cart.length >= 2 && (
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 600 }}>Desconto Combo IA (15%)</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>
-                            -{formatPrice(total * 0.15)}
-                          </span>
-                        </div>
-                      )}
-                      {form.cupom && (
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, color: "#16A34A" }}>Cupom {form.cupom}</span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "#16A34A" }}>—</span>
-                        </div>
-                      )}
-                      <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #E5E7EB", paddingTop: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#1F2937" }}>Total</span>
-                        <span style={{ fontSize: 20, fontWeight: 800, color: "#16A34A" }} data-testid="text-total-price">
-                          {cart.length >= 2 ? formatPrice(total * 0.85) : formatPrice(total)}
-                        </span>
-                      </div>
-                    </div>
+                    <CheckoutSummaryCard
+                      items={cart}
+                      totalAmount={total}
+                      originalTotal={total}
+                      totalSavings={0}
+                      isCombo={false}
+                      cupom={dadosValues.cupom || undefined}
+                    />
 
                     <button
                       data-testid="button-confirm-payment"
@@ -1047,46 +1098,8 @@ export default function IngressosCheckoutPage() {
                     background: "#fff", borderRadius: 16, padding: 24,
                     boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                   }} data-testid="card-pix-payment">
-                    {currentStatus === "APPROVED" && (
-                      <div style={{
-                        background: "#DCFCE7", border: "1px solid #86EFAC", borderRadius: 12,
-                        padding: "14px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10,
-                      }} data-testid="banner-payment-approved">
-                        <CheckCircle2 style={{ width: 22, height: 22, color: "#16A34A", flexShrink: 0 }} />
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#15803D" }}>Pagamento confirmado!</span>
-                      </div>
-                    )}
 
-                    {(currentStatus === "EXPIRED" || isExpired) && (
-                      <div style={{
-                        background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12,
-                        padding: "14px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10,
-                      }} data-testid="banner-payment-expired">
-                        <XCircle style={{ width: 22, height: 22, color: "#EF4444", flexShrink: 0 }} />
-                        <div>
-                          <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", display: "block" }}>Pix expirado</span>
-                          <Link href="/ingressos" style={{ fontSize: 12, color: "#2563EB" }}>Voltar e tentar novamente</Link>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStatus === "PENDING" && !isExpired && (
-                      <div style={{
-                        background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 12,
-                        padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10,
-                      }} data-testid="banner-payment-pending">
-                        <Clock style={{ width: 18, height: 18, color: "#D97706", flexShrink: 0 }} />
-                        <div style={{ flex: 1 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "#92400E" }}>
-                            Aguardando pagamento — expira em{" "}
-                            <span style={{ fontWeight: 800, color: "#D97706" }} data-testid="text-pix-countdown">
-                              {minutes}:{seconds}
-                            </span>
-                          </span>
-                        </div>
-                        <Loader2 style={{ width: 16, height: 16, color: "#D97706", animation: "spin 1s linear infinite", flexShrink: 0 }} />
-                      </div>
-                    )}
+                    <PaymentStatusBanner status={currentStatus} isExpired={isExpired} />
 
                     {paymentData.demo && (
                       <div style={{
@@ -1097,46 +1110,30 @@ export default function IngressosCheckoutPage() {
                       </div>
                     )}
 
-                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }} data-testid="div-qr-code">
-                      <img
-                        src={paymentData.qrCodeBase64}
-                        alt="QR Code Pix"
-                        style={{ width: 180, height: 180, borderRadius: 12, border: "3px solid #22C55E" }}
-                      />
-                    </div>
+                    {currentStatus === "PENDING" && !isExpired && (
+                      <PixCountdown minutes={minutes} seconds={seconds} isExpired={isExpired} />
+                    )}
+
+                    <PixQrCodePanel qrCodeBase64={paymentData.qrCodeBase64} />
 
                     <p style={{ textAlign: "center", fontSize: 13, color: "#6B7280", margin: "0 0 12px" }}>
                       Ou copie o código abaixo:
                     </p>
 
-                    <div style={{
-                      background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 10,
-                      padding: "12px 14px", marginBottom: 14,
-                      display: "flex", alignItems: "center", gap: 10,
-                    }} data-testid="field-pix-code">
-                      <code style={{
-                        flex: 1, fontSize: 11, color: "#374151", wordBreak: "break-all",
-                        fontFamily: "monospace", lineHeight: 1.5,
-                      }}>
-                        {paymentData.copyPasteCode}
-                      </code>
-                      <button
-                        data-testid="button-copy-pix"
-                        onClick={handleCopy}
-                        disabled={isExpired}
-                        style={{
-                          padding: "10px 14px", border: "none", borderRadius: 8,
-                          background: copied ? "#DCFCE7" : "#22C55E",
-                          color: copied ? "#16A34A" : "#fff",
-                          fontSize: 13, fontWeight: 700, cursor: isExpired ? "not-allowed" : "pointer",
-                          display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {copied ? <Check style={{ width: 15, height: 15 }} /> : <Copy style={{ width: 15, height: 15 }} />}
-                        {copied ? "Copiado!" : "Copiar"}
-                      </button>
-                    </div>
+                    <PixCopyPasteField
+                      copyPasteCode={paymentData.copyPasteCode}
+                      transactionId={paymentData.transactionId}
+                      disabled={isExpired}
+                    />
+
+                    <CheckoutSummaryCard
+                      items={cart}
+                      totalAmount={paymentData.totalAmount}
+                      originalTotal={paymentData.originalTotal}
+                      totalSavings={paymentData.totalSavings}
+                      isCombo={paymentData.isCombo}
+                      cupom={dadosValues.cupom || undefined}
+                    />
 
                     <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 14, marginTop: 6 }}>
                       <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 6px", color: "#374151" }}>Como pagar:</p>
@@ -1206,27 +1203,6 @@ export default function IngressosCheckoutPage() {
                       <Phone style={{ width: 16, height: 16 }} />
                       Precisa de ajuda? Fale no WhatsApp
                     </a>
-
-                    {paymentData && (
-                      <div style={{
-                        marginTop: 14, borderTop: "1px solid #F3F4F6", paddingTop: 12,
-                      }} data-testid="card-pix-confirmed-summary">
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: "#6B7280" }}>Total cobrado</span>
-                          <span style={{ fontSize: 14, fontWeight: 800, color: "#1F2937" }} data-testid="text-backend-total">
-                            {formatPrice(paymentData.totalAmount)}
-                          </span>
-                        </div>
-                        {paymentData.isCombo && paymentData.totalSavings > 0 && (
-                          <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span style={{ fontSize: 12, color: "#16A34A" }}>Economia Combo IA</span>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }} data-testid="text-combo-savings">
-                              -{formatPrice(paymentData.totalSavings)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
 
