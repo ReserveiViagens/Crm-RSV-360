@@ -3,6 +3,12 @@
 **Atualizado em:** 2026-03-27  
 **Fonte:** `client/src/App.tsx` (frontend) + `server/routes.ts` + `server/routes/weather-routes.ts`
 
+> **Nota sobre legenda:**  
+> Neste arquivo, o campo **Status** dos endpoints backend indica a **fonte de dados / modo de operação**:
+> `[R]` real (Postgres/serviço externo) · `[D]` demo mode (fallback sem env vars) · `[I]` in-memory persistence.ts · `[M]` mockado.  
+> Para o **status de implementação** (se o código existe e está funcional), consulte `docs/AUDIT.md`.  
+> Um endpoint marcado `[D]` está completamente implementado — apenas opera em modo demo quando as variáveis de ambiente do gateway não estão configuradas.
+
 ---
 
 ## 1. Rotas Frontend (wouter — `client/src/App.tsx`)
