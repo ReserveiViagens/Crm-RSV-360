@@ -1,11 +1,12 @@
 openapi: "3.0.3"
 
 info:
-  title: RSV360 — Recommendations & Catalog API
+  title: RSV360 — Recommendations API v1
   description: |
-    API de recomendações Combo IA e sincronização de catálogo da plataforma RSV360 (Reservei Viagens).
-    Documenta os endpoints de recomendação por afinidade de grupos hoteleiros e o endpoint de
-    sincronização do catálogo de ingressos.
+    Documentação mínima dos endpoints de recomendação Combo IA da plataforma RSV360
+    (Reservei Viagens). Cobre os dois endpoints do prefixo `/api/v1/recommendations`:
+    consulta de recomendações por afinidade de grupo hoteleiro e sincronização
+    idempotente do catálogo de ingressos na base de dados PostgreSQL via Drizzle.
   version: "1.0.0"
   contact:
     name: Reservei Viagens
@@ -13,49 +14,42 @@ info:
 
 servers:
   - url: /api/v1
-    description: API v1 (Express + Vite proxy)
-  - url: /api
-    description: Rotas legadas (sem prefixo v1)
+    description: API v1 (Express)
 
 tags:
   - name: recommendations
-    description: Motor de recomendações Combo IA — sugestões por afinidade de grupos
-  - name: sync
-    description: Sincronização e seed do catálogo de ingressos
-  - name: catalog
-    description: Consulta ao catálogo de ingressos e grupos hoteleiros
-  - name: search
-    description: Busca geral de itens (excursões, hotéis, parques, destinos)
+    description: Recomendações Combo IA e sincronização de catálogo
 
 paths:
 
   /recommendations:
     get:
-      summary: Lista recomendações de combo para o perfil e carrinho informado
+      summary: Lista recomendações de combo para os ingressos informados
       description: |
-        Retorna sugestões de combo IA baseadas em afinidade entre grupos hoteleiros
-        (DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE) e perfil do viajante.
-        Desconto de 15% aplicado automaticamente quando combo tem ≥ 2 itens compatíveis.
+        Retorna sugestões de combo IA baseadas na afinidade de grupos hoteleiros
+        (DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE). Desconto de 15%
+        é aplicado automaticamente quando o combo contém ≥ 2 itens compatíveis.
+        Este endpoint não requer autenticação.
       tags: [recommendations]
       parameters:
-        - name: profile
-          in: query
-          required: false
-          description: Perfil do viajante
-          schema:
-            type: string
-            enum: [familia, casal, jovem, melhor-idade, corporativo, escolar]
-            example: familia
         - name: ticketIds
           in: query
           required: false
-          description: IDs dos ingressos já no carrinho (separados por vírgula)
+          description: IDs dos ingressos separados por vírgula (itens já no carrinho)
           schema:
             type: string
             example: "hot-park,diroma-acqua-park"
+        - name: profile
+          in: query
+          required: false
+          description: Perfil do viajante — usado como sessionId no motor de recomendações
+          schema:
+            type: string
+            example: "familia"
         - name: limit
           in: query
           required: false
+          description: Número máximo de recomendações retornadas (1–10, padrão 5)
           schema:
             type: integer
             minimum: 1
@@ -67,18 +61,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RecommendationListResponse"
+                $ref: "#/components/schemas/RecommendationResponse"
               example:
-                recommendations:
+                suggestions:
                   - ticketId: "cabana-standard"
                     name: "Cabana Standard — até 4 pessoas"
                     unitPrice: 280
                     originalPrice: 350
-                    comboDiscount: 15
+                    discount: 20
+                    comboSavings: 42
                     reason: "Complementa Hot Park — mesmo complexo Rio Quente Resorts"
-                    affinityScore: 92
                 comboAvailable: true
-                comboDiscount: 15
+                comboTotal: 407.65
+                originalTotal: 479
+                savings: 71.35
         "400":
           description: Parâmetros inválidos
           content:
@@ -88,13 +84,13 @@ paths:
 
   /recommendations/sync:
     post:
-      summary: Sincroniza o catálogo de ingressos no banco de dados
+      summary: Sincroniza catálogo de ingressos na base de dados (admin)
       description: |
         Executa upsert idempotente de todos os ingressos definidos em `ticket-catalog.ts`
-        para o store persistente. Reruns não geram duplicatas. O campo `basePrice` é preservado
-        quando já existir (não sobrescreve tarifa oficial com 0). Retorna contagem de criados/atualizados.
-        Requer papel `admin`.
-      tags: [sync, recommendations]
+        para a tabela `ticket_catalog` no PostgreSQL via Drizzle. O campo `basePrice`
+        de entradas existentes é preservado (não sobrescrito). Reruns são seguros —
+        nenhuma duplicata é gerada. Requer sessão autenticada com role `admin`.
+      tags: [recommendations]
       security:
         - sessionCookie: []
       requestBody:
@@ -107,10 +103,10 @@ paths:
                 dryRun:
                   type: boolean
                   default: false
-                  description: Se true, apenas simula o sync sem persistir
+                  description: Se true, simula o sync sem persistir nada no banco
       responses:
         "200":
-          description: Sincronização concluída
+          description: Sincronização concluída (ou simulada se dryRun=true)
           content:
             application/json:
               schema:
@@ -122,172 +118,27 @@ paths:
                 dryRun: false
                 syncedAt: "2026-03-27T10:00:00.000Z"
         "401":
-          description: Não autenticado
+          description: Sessão não autenticada
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Não autenticado"
         "403":
-          description: Sem permissão (somente admin)
+          description: Usuário não tem role admin
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
-  /catalog/tickets:
-    get:
-      summary: Lista todos os ingressos do catálogo sincronizado
-      tags: [catalog]
-      parameters:
-        - name: group
-          in: query
-          required: false
-          description: Filtrar por grupo hoteleiro
-          schema:
-            type: string
-            enum: [DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE]
-        - name: slug
-          in: query
-          required: false
-          description: Busca por slug exato
-          schema:
-            type: string
-            example: "ingresso-hot-park-adulto"
-      responses:
-        "200":
-          description: Lista de ingressos do catálogo
+              example:
+                message: "Acesso restrito a administradores"
+        "500":
+          description: Erro interno durante o upsert no banco
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/CatalogTicket"
-                  total:
-                    type: integer
-                    example: 27
-
-  /search:
-    get:
-      summary: Busca geral de itens no catálogo RSV360
-      tags: [search]
-      parameters:
-        - name: q
-          in: query
-          required: false
-          description: Texto livre para busca por nome, descrição ou tags
-          schema:
-            type: string
-            example: "hot park família"
-        - name: type
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [excursion, hotel, park, attraction, destination]
-        - name: city
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "Caldas Novas"
-        - name: profile
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "família"
-        - name: minPrice
-          in: query
-          required: false
-          schema:
-            type: number
-        - name: maxPrice
-          in: query
-          required: false
-          schema:
-            type: number
-        - name: rating
-          in: query
-          required: false
-          description: Nota mínima (0–5)
-          schema:
-            type: number
-            minimum: 0
-            maximum: 5
-        - name: sortBy
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [relevance, price_asc, price_desc, rating, popularity]
-            default: relevance
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 12
-      responses:
-        "200":
-          description: Resultados da busca
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SearchResponse"
-
-  /search/suggest:
-    get:
-      summary: Autocompletar — sugestões rápidas para a barra de busca
-      tags: [search]
-      parameters:
-        - name: q
-          in: query
-          required: true
-          schema:
-            type: string
-            minLength: 2
-            example: "hot"
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 10
-            default: 5
-      responses:
-        "200":
-          description: Lista de sugestões
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  suggestions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                        type:
-                          type: string
-                        slug:
-                          type: string
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   securitySchemes:
@@ -295,80 +146,56 @@ components:
       type: apiKey
       in: cookie
       name: connect.sid
-      description: Sessão Express com userId na sessão (via /api/auth/login)
+      description: Sessão Express — autenticar via POST /api/auth/login antes de chamar este endpoint
 
   schemas:
 
-    CatalogTicket:
-      type: object
-      required: [id, name, slug, group, groupLabel, basePrice, originalPrice]
-      properties:
-        id:
-          type: string
-          example: "hot-park"
-        name:
-          type: string
-          example: "Ingresso Hot Park — Adulto"
-        slug:
-          type: string
-          example: "ingresso-hot-park-adulto"
-        group:
-          type: string
-          enum: [DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE]
-          example: "RIO_QUENTE"
-        groupLabel:
-          type: string
-          example: "Rio Quente Resorts"
-        basePrice:
-          type: number
-          description: Preço base atual (0 enquanto tarifa oficial não sincronizada)
-          example: 189
-        originalPrice:
-          type: number
-          description: Preço original antes de desconto
-          example: 220
-        syncedAt:
-          type: string
-          format: date-time
-          example: "2026-03-27T10:00:00.000Z"
-
-    RecommendationListResponse:
+    RecommendationResponse:
       type: object
       properties:
-        recommendations:
+        suggestions:
           type: array
           items:
             $ref: "#/components/schemas/RecommendedItem"
         comboAvailable:
           type: boolean
-          description: Verdadeiro se combo com desconto está disponível (≥ 2 itens compatíveis)
-        comboDiscount:
+          description: Verdadeiro quando combo com desconto está disponível (≥ 2 itens)
+        comboTotal:
           type: number
-          description: Percentual de desconto aplicado no combo
-          example: 15
+          description: Preço total com desconto de combo
+        originalTotal:
+          type: number
+          description: Preço total sem desconto
+        savings:
+          type: number
+          description: Economia total proporcionada pelo combo
 
     RecommendedItem:
       type: object
       properties:
         ticketId:
           type: string
+          example: "cabana-standard"
         name:
           type: string
+          example: "Cabana Standard — até 4 pessoas"
         unitPrice:
           type: number
+          example: 280
         originalPrice:
           type: number
-        comboDiscount:
+          example: 350
+        discount:
           type: number
-          example: 15
+          example: 20
+        comboSavings:
+          type: number
+          description: Economia adicional pelo combo (15%)
+          example: 42
         reason:
           type: string
-          description: Justificativa da recomendação gerada pela IA
-          example: "Combina com Hot Park — mesmo complexo Rio Quente Resorts"
-        affinityScore:
-          type: number
-          description: Score de afinidade 0–100
-          example: 87
+          description: Justificativa gerada pelo motor de afinidade
+          example: "Mesmo complexo Rio Quente Resorts"
 
     SyncResponse:
       type: object
@@ -376,72 +203,24 @@ components:
       properties:
         created:
           type: integer
-          description: Entradas novas inseridas
+          description: Novas entradas inseridas no ticket_catalog
           example: 3
         updated:
           type: integer
-          description: Entradas existentes atualizadas
+          description: Entradas existentes atualizadas (basePrice preservado)
           example: 24
         total:
           type: integer
-          description: Total de entradas no catálogo após sync
+          description: Total de ingressos no catálogo após o sync
           example: 27
         dryRun:
           type: boolean
+          description: Se true, nenhuma alteração foi persistida
           example: false
         syncedAt:
           type: string
           format: date-time
           example: "2026-03-27T10:00:00.000Z"
-
-    SearchResponse:
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/SearchItem"
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-        hasMore:
-          type: boolean
-
-    SearchItem:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-          enum: [excursion, hotel, park, attraction, destination]
-        name:
-          type: string
-        slug:
-          type: string
-        city:
-          type: string
-        state:
-          type: string
-        priceFrom:
-          type: number
-        rating:
-          type: number
-        reviewCount:
-          type: integer
-        isFeatured:
-          type: boolean
-        comboAvailable:
-          type: boolean
-        images:
-          type: array
-          items:
-            type: string
-        descriptionShort:
-          type: string
 
     ErrorResponse:
       type: object
@@ -449,7 +228,4 @@ components:
       properties:
         message:
           type: string
-          example: "Não autorizado"
-        code:
-          type: string
-          example: "UNAUTHORIZED"
+          example: "Não autenticado"
