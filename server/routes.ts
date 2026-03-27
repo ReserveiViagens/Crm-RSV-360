@@ -2222,6 +2222,13 @@ export async function registerRoutes(
         voucherId,
         voucherToken,
       });
+      logger.info("[tickets/create] Cobrança criada", {
+        orderId: result.transactionId,
+        isCombo: result.isCombo,
+        totalAmount: result.totalAmount,
+        demo: result.demo,
+        voucherId,
+      });
       if (result.demo) {
         demoAutoConfirmCallbacks.set(result.transactionId, () => {
           const txn = ticketTransactions.get(result.transactionId);
@@ -2248,7 +2255,7 @@ export async function registerRoutes(
       if (err instanceof UnknownTicketError) {
         return res.status(422).json({ message: err.message });
       }
-      console.error("[tickets/create]", err);
+      logger.error("[tickets/create] Erro ao criar cobrança", { error: err instanceof Error ? err.message : String(err) });
       return res.status(500).json({ message: "Erro ao criar cobrança Pix" });
     }
   });
@@ -2428,9 +2435,14 @@ export async function registerRoutes(
 
     if (token) {
       if (!verifyVoucherToken(txn.voucherId, token)) {
+        logger.warn("[voucher] Token inválido na tentativa de download", { orderId: id, ip: req.ip });
         return res.status(403).json({ message: "Token de voucher inválido." });
       }
-    } else if (!isAdminSession) {
+      logger.info("[voucher] Download autorizado via token HMAC", { orderId: id });
+    } else if (isAdminSession) {
+      logger.info("[voucher] Download autorizado via sessão admin", { orderId: id, adminId: req.session.userId });
+    } else {
+      logger.warn("[voucher] Tentativa de download sem token e sem sessão admin", { orderId: id, ip: req.ip });
       return res.status(401).json({ message: "Token de voucher obrigatório. Utilize o link enviado por e-mail ou WhatsApp." });
     }
 
