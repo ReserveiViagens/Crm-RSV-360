@@ -22,8 +22,8 @@ import SearchEmptyState from "@/components/search/SearchEmptyState"
 import { clearPriceRange } from "@/lib/search-query"
 import type { SearchFilters, SearchItem } from "@/types/search"
 import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
-import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import { FilterPopover } from "@/components/search/FilterPopover"
 
 interface Attraction {
   id: string
@@ -813,9 +813,15 @@ export default function AtracoesPage() {
           position: "sticky", top: 118, zIndex: 30,
         }}
       >
+        <FilterPopover
+          filters={searchFilters}
+          facets={searchData?.facets}
+          onFiltersChange={setSearchFilters}
+          onClearAll={clearAllSearch}
+        />
         <button
           className="rsv-catalog-mobile-only"
-          data-testid="button-open-filters"
+          data-testid="button-open-filters-mobile"
           onClick={() => setFilterDrawerOpen(true)}
           style={{
             display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
@@ -870,14 +876,6 @@ export default function AtracoesPage() {
       header={<HomeHeader />}
       searchBar={searchBarSlot}
       footer={<><HomeFooter /><MobileCTABar /></>}
-      sidebar={
-        <SearchFiltersSidebar
-          filters={searchFilters}
-          facets={searchData?.facets}
-          onFiltersChange={setSearchFilters}
-          onClearAll={clearAllSearch}
-        />
-      }
       mobileDrawer={
         <SearchFiltersDrawer
           open={filterDrawerOpen}

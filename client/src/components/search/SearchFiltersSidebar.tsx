@@ -49,14 +49,27 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   );
 }
 
-interface SearchFiltersSidebarProps {
+export interface FilterPanelContentProps {
   filters: SearchFilters;
   facets?: SearchFacets;
   onFiltersChange: (filters: Partial<SearchFilters>) => void;
   onClearAll: () => void;
 }
 
-export default function SearchFiltersSidebar({ filters, facets, onFiltersChange, onClearAll }: SearchFiltersSidebarProps) {
+export function countActiveFilters(filters: SearchFilters): number {
+  let count = 0;
+  if (filters.city) count++;
+  if (filters.enterprise) count++;
+  if (filters.category) count++;
+  if (filters.profile) count++;
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) count++;
+  if (filters.rating !== undefined) count++;
+  if (filters.comboAvailable) count++;
+  if (filters.isFeatured) count++;
+  return count;
+}
+
+export function FilterPanelContent({ filters, facets, onFiltersChange, onClearAll }: FilterPanelContentProps) {
   const toggle = <K extends keyof SearchFilters>(key: K, val: SearchFilters[K]) => {
     onFiltersChange({ [key]: filters[key] === val ? undefined : val });
   };
@@ -70,23 +83,10 @@ export default function SearchFiltersSidebar({ filters, facets, onFiltersChange,
     ? Object.entries(facets.categories).sort((a, b) => b[1] - a[1]).slice(0, 8)
     : [];
 
-  const hasActive = !!(
-    filters.type || filters.city || filters.enterprise || filters.category ||
-    filters.profile || filters.minPrice !== undefined || filters.maxPrice !== undefined ||
-    filters.rating !== undefined || filters.comboAvailable || filters.isFeatured
-  );
+  const hasActive = countActiveFilters(filters) > 0;
 
   return (
-    <aside style={{
-      width: 240, flexShrink: 0,
-      background: "#fff", borderRadius: 14,
-      border: "1.5px solid #E5E7EB",
-      padding: "16px 16px",
-      alignSelf: "flex-start",
-      position: "sticky", top: 84,
-      maxHeight: "calc(100vh - 104px)",
-      overflowY: "auto",
-    }}>
+    <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <SlidersHorizontal style={{ width: 15, height: 15, color: "#6B7280" }} />
@@ -271,6 +271,28 @@ export default function SearchFiltersSidebar({ filters, facets, onFiltersChange,
           ))}
         </div>
       </FilterSection>
+    </div>
+  );
+}
+
+export default function SearchFiltersSidebar({ filters, facets, onFiltersChange, onClearAll }: FilterPanelContentProps) {
+  return (
+    <aside style={{
+      width: 240, flexShrink: 0,
+      background: "#fff", borderRadius: 14,
+      border: "1.5px solid #E5E7EB",
+      padding: "16px 16px",
+      alignSelf: "flex-start",
+      position: "sticky", top: 84,
+      maxHeight: "calc(100vh - 104px)",
+      overflowY: "auto",
+    }}>
+      <FilterPanelContent
+        filters={filters}
+        facets={facets}
+        onFiltersChange={onFiltersChange}
+        onClearAll={onClearAll}
+      />
     </aside>
   );
 }

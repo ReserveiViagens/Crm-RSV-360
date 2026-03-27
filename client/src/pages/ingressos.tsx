@@ -29,8 +29,8 @@ import SearchEmptyState from "@/components/search/SearchEmptyState"
 import { clearPriceRange } from "@/lib/search-query"
 import type { SearchFilters } from "@/types/search"
 import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
-import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import { FilterPopover } from "@/components/search/FilterPopover"
 import { LoadingSkeleton } from "@/components/shells"
 import { ComboIAWizard } from "@/components/tickets/ComboIAWizard"
 import { useComboTrigger } from "@/hooks/useComboTrigger"
@@ -798,9 +798,14 @@ export default function IngressosPage() {
         position: "sticky", top: 64, zIndex: 30, alignItems: "center",
       }}
     >
+      <FilterPopover
+        filters={searchFilters}
+        onFiltersChange={setSearchFilters}
+        onClearAll={clearAllSearchFilters}
+      />
       <button
         className="rsv-catalog-mobile-only"
-        data-testid="button-open-filters"
+        data-testid="button-open-filters-mobile"
         onClick={() => setFilterDrawerOpen(true)}
         style={{
           display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
@@ -857,13 +862,6 @@ export default function IngressosPage() {
     <CatalogPageShell
       header={<HomeHeader />}
       searchBar={searchBarSlot}
-      sidebar={
-        <SearchFiltersSidebar
-          filters={searchFilters}
-          onFiltersChange={setSearchFilters}
-          onClearAll={clearAllSearchFilters}
-        />
-      }
       mobileDrawer={
         <SearchFiltersDrawer
           open={filterDrawerOpen}

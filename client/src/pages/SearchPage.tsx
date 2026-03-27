@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import SearchBar from "@/components/search/SearchBar";
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer";
-import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar";
+import { FilterPopover } from "@/components/search/FilterPopover";
 import SearchResultsGrid from "@/components/search/SearchResultsGrid";
 import SearchActiveFilters from "@/components/search/SearchActiveFilters";
 import { useSearch } from "@/hooks/useSearch";
@@ -94,18 +94,6 @@ export default function SearchPage() {
     <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <title>Busca — Reservei360</title>
 
-      <style>{`
-        @media (min-width: 900px) {
-          .search-layout { flex-direction: row !important; }
-          .search-sidebar { display: flex !important; }
-          .search-mobile-filter-btn { display: none !important; }
-        }
-        @media (max-width: 899px) {
-          .search-sidebar { display: none !important; }
-          .search-mobile-filter-btn { display: flex !important; }
-        }
-      `}</style>
-
       <div style={{
         background: "#fff",
         borderBottom: "1px solid #E5E7EB",
@@ -140,45 +128,20 @@ export default function SearchPage() {
       </div>
 
       <div
-        className="search-layout"
         style={{
           maxWidth: 1280, margin: "0 auto", padding: "20px 20px",
-          display: "flex", flexDirection: "column", gap: 20, alignItems: "flex-start",
+          display: "flex", flexDirection: "column", gap: 20,
         }}
       >
-        <div className="search-sidebar" style={{ display: "none" }}>
-          <SearchFiltersSidebar
-            filters={filters}
-            facets={data?.facets}
-            onFiltersChange={handleFiltersChange}
-            onClearAll={handleClearAll}
-          />
-        </div>
-
         <div style={{ flex: 1, minWidth: 0, width: "100%" }}>
-          <div
-            className="search-mobile-filter-btn"
-            style={{
-              display: "none",
-              justifyContent: "space-between", alignItems: "center",
-              marginBottom: 12,
-            }}
-          >
-            <button
-              data-testid="button-mobile-open-filters"
-              onClick={() => setMobileDrawerOpen(true)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "8px 14px", borderRadius: 10,
-                border: hasActiveFilters ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-                background: hasActiveFilters ? "#EFF6FF" : "#fff",
-                color: hasActiveFilters ? "#2563EB" : "#374151",
-                fontSize: 13, fontWeight: 600, cursor: "pointer",
-              }}
-            >
-              <SlidersHorizontal style={{ width: 15, height: 15 }} />
-              Filtros {hasActiveFilters ? "●" : ""}
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <FilterPopover
+              data-testid="button-open-filters"
+              filters={filters}
+              facets={data?.facets}
+              onFiltersChange={handleFiltersChange}
+              onClearAll={handleClearAll}
+            />
           </div>
 
           {hasActiveFilters && (

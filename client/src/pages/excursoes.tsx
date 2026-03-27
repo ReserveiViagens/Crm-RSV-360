@@ -13,8 +13,8 @@ import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
 import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
-import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import { FilterPopover } from "@/components/search/FilterPopover"
 import type { SearchFilters } from "@/types/search"
 import SearchResultsSummary from "@/components/search/SearchResultsSummary"
 import SearchEmptyState from "@/components/search/SearchEmptyState"
@@ -171,9 +171,14 @@ export default function Excursoes() {
         position: "sticky", top: 64, zIndex: 30,
       }}
     >
+      <FilterPopover
+        filters={sidebarFilters}
+        onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
+        onClearAll={() => setSidebarFilters({ type: "excursion" })}
+      />
       <button
         className="rsv-catalog-mobile-only"
-        data-testid="button-open-filters"
+        data-testid="button-open-filters-mobile"
         onClick={() => setFilterDrawerOpen(true)}
         style={{
           display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
@@ -215,13 +220,6 @@ export default function Excursoes() {
       header={<HomeHeader />}
       searchBar={searchBarSlot}
       footer={<><HomeFooter /><MobileCTABar /></>}
-      sidebar={
-        <SearchFiltersSidebar
-          filters={sidebarFilters}
-          onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
-          onClearAll={() => setSidebarFilters({ type: "excursion" })}
-        />
-      }
       mobileDrawer={
         <SearchFiltersDrawer
           open={filterDrawerOpen}
