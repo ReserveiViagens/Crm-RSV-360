@@ -1,26 +1,28 @@
-import { useMutation } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { fetchComboRecommendations, type ComboCartItem, type RecommendationResponse } from "@/services/recommendationApi"
 
 export type UseComboRecommendationsOptions = {
-  onSuccess?: (data: RecommendationResponse) => void
-  onError?: (error: Error) => void
+  cartItems: ComboCartItem[]
+  enabled?: boolean
 }
 
-export function useComboRecommendations(options: UseComboRecommendationsOptions = {}) {
-  const mutation = useMutation<RecommendationResponse, Error, { cartItems: ComboCartItem[]; sessionId?: string }>({
-    mutationFn: ({ cartItems, sessionId }) =>
-      fetchComboRecommendations(cartItems, sessionId, 3),
-    onSuccess: options.onSuccess,
-    onError: options.onError,
+export function useComboRecommendations({ cartItems, enabled = true }: UseComboRecommendationsOptions) {
+  const cartKey = cartItems.map((i) => `${i.ticketId}:${i.quantity}`).join(",")
+
+  const query = useQuery<RecommendationResponse, Error>({
+    queryKey: ["/api/recommendations/combo", cartKey],
+    queryFn: () => fetchComboRecommendations(cartItems, undefined, 3),
+    enabled: enabled && cartItems.length > 0,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    retry: 1,
   })
 
   return {
-    fetchRecommendations: mutation.mutate,
-    suggestions: mutation.data?.suggestions ?? [],
-    sessionId: mutation.data?.sessionId,
-    isLoading: mutation.isPending,
-    isError: mutation.isError,
-    error: mutation.error,
-    reset: mutation.reset,
+    suggestions: query.data?.suggestions ?? [],
+    sessionId: query.data?.sessionId,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
   }
 }
