@@ -64,6 +64,17 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerWeatherRoutes(app);
 
+  // ─── HEALTHCHECK ──────────────────────────────────────────────────────────
+  app.get("/api/status", (_req: Request, res: Response) => {
+    res.json({
+      ok: true,
+      service: "RSV360 — Reservei Viagens",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+    });
+  });
+
   const getActorFromHeaders = (req: Request) => {
     const userId = String(req.get("x-user-id") ?? "").trim();
     const nome = String(req.get("x-user-name") ?? "").trim() || "Usuário";
