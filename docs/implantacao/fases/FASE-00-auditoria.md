@@ -2,7 +2,7 @@
 
 **Status geral:** `[x]` Concluído — Task #9 (Sprint 0)  
 **Branch:** `main`  
-**Commit final:** `8e927e9`  
+**Commits Sprint 0:** `8e3e43c` → `8e927e9` → `2354ff3` (chain completo, ver `git log --oneline`)  
 **Concluído em:** 2026-03-27
 
 ---
@@ -86,4 +86,4 @@ Nenhum.
 ✅ `shared/schema.ts` contém `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` como Zod schemas  
 ✅ `npm run build` passa sem erros  
 ✅ `01-STATUS-GERAL.md` marcado `[x]` para esta fase  
-✅ Commit + push feitos (commit final `8e927e9`)
+✅ Commit + push feitos (chain Sprint 0: `8e3e43c` → `8e927e9` → `2354ff3`)
