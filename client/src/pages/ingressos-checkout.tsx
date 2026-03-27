@@ -58,6 +58,9 @@ interface PaymentData {
   copyPasteCode: string
   expirationDate: string
   totalAmount: number
+  originalTotal: number
+  totalSavings: number
+  isCombo: boolean
   items: CartItem[]
   demo: boolean
 }
@@ -257,6 +260,31 @@ export default function IngressosCheckoutPage() {
       const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000))
       setSecondsLeft(diffSec)
       trackEvent("pix_qr_visible", { transactionId: data.transactionId })
+    },
+  })
+
+  const cancelPaymentMutation = useMutation({
+    mutationFn: async (transactionId: string) => {
+      const res = await apiRequest("POST", `/api/payments/tickets/${transactionId}/cancel`, {})
+      return res.json() as Promise<{ cancelled: boolean; status: string }>
+    },
+    onSuccess: () => {
+      trackEvent("pix_cancelled", { transactionId: paymentData?.transactionId })
+      navigate("/ingressos")
+    },
+  })
+
+  const demoConfirmMutation = useMutation({
+    mutationFn: async (transactionId: string) => {
+      const res = await apiRequest("POST", `/api/payments/tickets/${transactionId}/demo-confirm`, {})
+      return res.json() as Promise<{ status: string; paid: boolean }>
+    },
+    onSuccess: (data) => {
+      if (data.paid || data.status === "APPROVED") {
+        trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId, demo: true })
+        clearCart()
+        navigate(`/ingressos/sucesso?txn=${paymentData?.transactionId}`)
+      }
     },
   })
 
@@ -955,11 +983,21 @@ export default function IngressosCheckoutPage() {
                     <div style={{
                       background: "#F9FAFB", borderRadius: 12, padding: 14, marginBottom: 16,
                       border: "1px solid #E5E7EB",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 13, color: "#6B7280" }}>Subtotal</span>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>{formatPrice(total)}</span>
-                      </div>
+                    }} data-testid="card-checkout-summary">
+                      {cart.map((item) => (
+                        <div key={item.ticketId} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: "#6B7280" }}>{item.name} × {item.quantity}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{formatPrice(item.unitPrice * item.quantity)}</span>
+                        </div>
+                      ))}
+                      {cart.length >= 2 && (
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 600 }}>Desconto Combo IA (15%)</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>
+                            -{formatPrice(total * 0.15)}
+                          </span>
+                        </div>
+                      )}
                       {form.cupom && (
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                           <span style={{ fontSize: 13, color: "#16A34A" }}>Cupom {form.cupom}</span>
@@ -969,7 +1007,7 @@ export default function IngressosCheckoutPage() {
                       <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #E5E7EB", paddingTop: 8, marginTop: 4 }}>
                         <span style={{ fontSize: 15, fontWeight: 700, color: "#1F2937" }}>Total</span>
                         <span style={{ fontSize: 20, fontWeight: 800, color: "#16A34A" }} data-testid="text-total-price">
-                          {formatPrice(total)}
+                          {cart.length >= 2 ? formatPrice(total * 0.85) : formatPrice(total)}
                         </span>
                       </div>
                     </div>
@@ -1114,6 +1152,44 @@ export default function IngressosCheckoutPage() {
                       ))}
                     </div>
 
+                    {paymentData.demo && currentStatus === "PENDING" && !isExpired && (
+                      <button
+                        data-testid="button-demo-confirm-pix"
+                        onClick={() => demoConfirmMutation.mutate(paymentData.transactionId)}
+                        disabled={demoConfirmMutation.isPending}
+                        style={{
+                          width: "100%", padding: "13px 0", border: "none", borderRadius: 10,
+                          background: demoConfirmMutation.isPending ? "#9CA3AF" : "linear-gradient(135deg, #22C55E, #16A34A)",
+                          color: "#fff", fontSize: 14, fontWeight: 700,
+                          cursor: demoConfirmMutation.isPending ? "not-allowed" : "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                          marginTop: 14,
+                        }}
+                      >
+                        {demoConfirmMutation.isPending
+                          ? <><Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} /> Confirmando...</>
+                          : <><CheckCircle2 style={{ width: 16, height: 16 }} /> Simular Pagamento (Demo)</>
+                        }
+                      </button>
+                    )}
+
+                    {currentStatus === "PENDING" && !isExpired && (
+                      <button
+                        data-testid="button-cancel-pix"
+                        onClick={() => cancelPaymentMutation.mutate(paymentData.transactionId)}
+                        disabled={cancelPaymentMutation.isPending}
+                        style={{
+                          width: "100%", padding: "11px 0", border: "1.5px solid #E5E7EB", borderRadius: 10,
+                          background: "#fff", color: "#6B7280",
+                          fontSize: 13, fontWeight: 600,
+                          cursor: cancelPaymentMutation.isPending ? "not-allowed" : "pointer",
+                          marginTop: 10,
+                        }}
+                      >
+                        {cancelPaymentMutation.isPending ? "Cancelando..." : "Cancelar e voltar"}
+                      </button>
+                    )}
+
                     <a
                       href="https://wa.me/5564993197555?text=Preciso de ajuda com meu pagamento Pix de ingressos"
                       target="_blank"
@@ -1130,6 +1206,27 @@ export default function IngressosCheckoutPage() {
                       <Phone style={{ width: 16, height: 16 }} />
                       Precisa de ajuda? Fale no WhatsApp
                     </a>
+
+                    {paymentData && (
+                      <div style={{
+                        marginTop: 14, borderTop: "1px solid #F3F4F6", paddingTop: 12,
+                      }} data-testid="card-pix-confirmed-summary">
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: "#6B7280" }}>Total cobrado</span>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: "#1F2937" }} data-testid="text-backend-total">
+                            {formatPrice(paymentData.totalAmount)}
+                          </span>
+                        </div>
+                        {paymentData.isCombo && paymentData.totalSavings > 0 && (
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <span style={{ fontSize: 12, color: "#16A34A" }}>Economia Combo IA</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }} data-testid="text-combo-savings">
+                              -{formatPrice(paymentData.totalSavings)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
