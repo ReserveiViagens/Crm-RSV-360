@@ -436,6 +436,8 @@ export function searchItems(params: {
   isFeatured?: boolean;
   page?: number;
   limit?: number;
+  category?: string;
+  enterprise?: string;
 }): { results: SearchItem[]; total: number; hasMore: boolean; facets: Record<string, Record<string, number>> } {
   const page = Math.max(1, params.page ?? 1);
   const limit = Math.min(40, params.limit ?? 20);
@@ -479,6 +481,16 @@ export function searchItems(params: {
     items = items.filter((i) => i.rating >= params.rating!);
   }
 
+  if (params.category) {
+    const cat = normalize(params.category);
+    items = items.filter((i) => normalize(i.category).includes(cat));
+  }
+
+  if (params.enterprise) {
+    const ent = normalize(params.enterprise);
+    items = items.filter((i) => normalize(i.enterpriseName).includes(ent));
+  }
+
   if (params.comboAvailable) {
     items = items.filter((i) => i.comboAvailable);
   }
@@ -510,7 +522,7 @@ export function searchItems(params: {
     profiles: {} as Record<string, number>,
   };
 
-  for (const item of SEARCH_ITEMS) {
+  for (const item of items) {
     facets.types[item.type] = (facets.types[item.type] ?? 0) + 1;
     facets.categories[item.category] = (facets.categories[item.category] ?? 0) + 1;
     facets.enterprises[item.enterpriseName] = (facets.enterprises[item.enterpriseName] ?? 0) + 1;
@@ -587,7 +599,15 @@ export function filterCatalogExcursoes(params: {
   }
 
   if (params.mes) {
-    items = items.filter((e) => e.dataPartida.startsWith(params.mes!));
+    const mesStr = params.mes;
+    if (/^\d{4}-\d{2}/.test(mesStr)) {
+      items = items.filter((e) => e.dataPartida.startsWith(mesStr));
+    } else {
+      const mesNum = Number(mesStr);
+      if (!isNaN(mesNum)) {
+        items = items.filter((e) => new Date(e.dataPartida).getMonth() + 1 === mesNum);
+      }
+    }
   }
 
   if (params.categoria && params.categoria !== "todas") {

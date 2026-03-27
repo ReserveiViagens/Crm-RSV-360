@@ -647,20 +647,25 @@ export async function registerRoutes(
   });
 
   app.get("/api/search", (req: Request, res: Response) => {
-    const { q, type, city, profile, minPrice, maxPrice, rating, sort, page, limit, comboAvailable, isFeatured } = req.query as Record<string, string>;
+    const { q, type, city, profile, minPrice, maxPrice, rating, sort, page, limit, comboAvailable, isFeatured, category, enterprise } = req.query as Record<string, string>;
+    const minPriceNum = minPrice ? Number(minPrice) : undefined;
+    const maxPriceNum = maxPrice ? Number(maxPrice) : undefined;
+    const ratingNum = rating ? Number(rating) : undefined;
     const result = searchItems({
       q: q || undefined,
       type: type || undefined,
       city: city || undefined,
       profile: profile || undefined,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
-      rating: rating ? Number(rating) : undefined,
+      minPrice: minPriceNum !== undefined && !isNaN(minPriceNum) ? minPriceNum : undefined,
+      maxPrice: maxPriceNum !== undefined && !isNaN(maxPriceNum) ? maxPriceNum : undefined,
+      rating: ratingNum !== undefined && !isNaN(ratingNum) ? ratingNum : undefined,
       sort: sort || undefined,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       comboAvailable: comboAvailable === "true" ? true : undefined,
       isFeatured: isFeatured === "true" ? true : undefined,
+      category: category || undefined,
+      enterprise: enterprise || undefined,
     });
     res.json({
       ...result,
