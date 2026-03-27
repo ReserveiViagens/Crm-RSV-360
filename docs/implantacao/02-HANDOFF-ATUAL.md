@@ -1,36 +1,54 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 0 — Auditoria + Estrutura-Base (Task #9) — **CONCLUÍDA**  
-**Próxima fase:** Sprint 1 — Design System + Layout System (Task #10)
+**Fase atual:** Sprint 1 — Design System + Layout System (Task #10) — **CONCLUÍDA**  
+**Próxima fase:** Sprint 2 — Componentes Compartilhados (Task #11)
 
 ---
 
 ## Onde o projeto está agora
 
-Sprint 0 foi concluída com todos os entregáveis:
+Sprint 1 foi concluída com todos os entregáveis:
 
 | Entregável | Status | Arquivo |
 |-----------|--------|---------|
-| AGENTS.md | `[x]` criado | `AGENTS.md` |
-| Plano mestre | `[x]` criado | `docs/implantacao/00-PLANO-MESTRE.md` |
-| Status geral | `[x]` atualizado | `docs/implantacao/01-STATUS-GERAL.md` |
-| Handoff (este) | `[x]` atualizado | `docs/implantacao/02-HANDOFF-ATUAL.md` |
-| Changelog | `[x]` criado | `docs/implantacao/03-CHANGELOG-IMPLEMENTACAO.md` |
-| Arquivos de fase | `[x]` 9 arquivos | `docs/implantacao/fases/FASE-00` a `FASE-08` |
-| Inventário de rotas | `[x]` criado | `docs/ROUTES_INVENTORY.md` |
-| Auditoria de rotas | `[x]` criado | `docs/AUDIT.md` |
-| Gaps priorizados | `[x]` criado | `docs/GAPS.md` |
-| Tipos Zod | `[x]` adicionados | `shared/schema.ts` (Product, CartItem, OrderCustomer, Order, PaymentMethod, OrderStatus) |
+| Token de cores | `[x]` criado | `client/src/tokens/colors.ts` |
+| Token de espaçamento | `[x]` criado | `client/src/tokens/spacing.ts` |
+| Token de layout | `[x]` criado | `client/src/tokens/layout.ts` |
+| Token de tipografia | `[x]` criado | `client/src/tokens/typography.ts` |
+| Barrel export | `[x]` criado | `client/src/tokens/index.ts` |
+| CSS custom props | `[x]` adicionados | `client/src/index.css` (`--page-width-*`, `--surface-*`, `--section-gap-*`) |
+| Shells auditados | `[x]` confirmados | `client/src/components/layouts/` (5 shells + PageContainer + SectionContainer) |
+| `01-STATUS-GERAL.md` | `[x]` atualizado | Fase 1 → `[x]` |
+| `FASE-01-foundation.md` | `[x]` atualizado | Checklist marcado como completo |
 
 ---
 
-## O que foi realizado até aqui (Tasks #1–#9)
+## O que foi realizado até aqui (Tasks #1–#10)
 
-- **T1–T7**: Estrutura base — home, landing, shells, admin, NTX modules (KYC, WaaS, Gamificação, Perfil, Convites, Split Pix, Catálogo, Busca, Ranking). Commit: `fb0fb425`
+- **T1–T7**: Estrutura base — home, landing, shells, admin, NTX modules. Commit: `fb0fb425`
 - **T8**: Mapa Leaflet real em `/mapa-caldas-novas`. Commit: `e88e7b23`
-- **T18**: Fundação documental — 14 arquivos criados e pushados via GitHub Contents API.
-- **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Commits: chain `8e3e43c`→`8e927e9`→`2354ff3` (Sprint 0 fechada 2026-03-27)
+- **T18**: Fundação documental — 14 arquivos criados via GitHub Contents API.
+- **T9 (Sprint 0)**: Inventário de rotas, auditoria, gaps, tipos Zod. Chain: `8e3e43c`→`2354ff3`
+- **T10 (Sprint 1)**: Token files TS (colors, spacing, layout, typography) + CSS vars (--page-width-*, --surface-*, --section-gap-*)
+
+---
+
+## Arquitetura de tokens após Sprint 1
+
+```
+client/src/tokens/
+  colors.ts      — brand, semantic, surface, border, text, neutral palette
+  spacing.ts     — scale rem 0–32 + sectionGap (sm/md/lg/xl)
+  layout.ts      — pageWidths, sidebarWidths, gutters, breakpoints
+  typography.ts  — fontSizes, fontWeights, lineHeights, letterSpacings, headings, body
+  index.ts       — barrel re-export
+```
+
+CSS custom properties adicionadas em `index.css`:
+- `--page-width-{public|catalog|admin|app|auth}` — usadas pelos shells
+- `--section-gap-{sm|md|lg|xl}` — usadas pelo SectionContainer
+- `--surface-{page|card|sidebar|subtle|overlay}` — aliases dos --rsv-surface-*
 
 ---
 
@@ -38,7 +56,7 @@ Sprint 0 foi concluída com todos os entregáveis:
 
 | Item | Status | Sprint alvo |
 |------|--------|-------------|
-| Token files TS (`client/src/tokens/`) | `[ ]` | Sprint 1 |
+| Padronização de componentes base | `[~]` parcial | Sprint 2 |
 | Backend combo engine + PricingEngine | `[ ]` | Sprint 4 |
 | Voucher PDF com QR | `[~]` (TXT existe) | Sprint 6 |
 | Admin métricas reais | `[~]` (hardcoded) | Sprint 7 |
@@ -49,39 +67,34 @@ Sprint 0 foi concluída com todos os entregáveis:
 
 ## O que falta (pela ordem do plano)
 
-1. **Sprint 1** — Token files TypeScript em `client/src/tokens/`
-2. **Sprint 2** — Padronização de componentes base (PrimaryButton, SecondaryButton, EmptyState)
-3. **Sprint 3** — Catálogo `/ingressos` com gate completo
-4. **Sprint 4** — Backend combo engine + PricingEngine + API de recomendações
-5. **Sprint 5** — Gate completo do checkout Pix (validações + fallback robusto)
-6. **Sprint 6** — Voucher PDF com QR + sincronização de catálogo + OpenAPI
-7. **Sprint 7** — Admin com dados reais + post-payment orchestrator
-8. **Sprint 8** — Hardening (logging, HMAC, rate limit, runbook)
+1. **Sprint 2** — Padronização de componentes base (PrimaryButton, SecondaryButton, EmptyState)
+2. **Sprint 3** — Catálogo `/ingressos` com gate completo
+3. **Sprint 4** — Backend combo engine + PricingEngine + API de recomendações
+4. **Sprint 5** — Gate completo do checkout Pix (validações + fallback robusto)
+5. **Sprint 6** — Voucher PDF com QR + sincronização de catálogo + OpenAPI
+6. **Sprint 7** — Admin com dados reais + post-payment orchestrator
+7. **Sprint 8** — Hardening (logging, HMAC, rate limit, runbook)
 
 ---
 
-## Arquivos alterados em Sprint 0
+## Arquivos alterados em Sprint 1
 
-- `docs/ROUTES_INVENTORY.md` (criado)
-- `docs/AUDIT.md` (criado)
-- `docs/GAPS.md` (criado)
-- `shared/schema.ts` (atualizado — Product, CartItem, Order, PaymentMethod, OrderStatus)
+- `client/src/tokens/colors.ts` (criado)
+- `client/src/tokens/spacing.ts` (criado)
+- `client/src/tokens/layout.ts` (criado)
+- `client/src/tokens/typography.ts` (criado)
+- `client/src/tokens/index.ts` (criado)
+- `client/src/index.css` (atualizado — vars --page-width-*, --surface-*, --section-gap-*)
 - `docs/implantacao/01-STATUS-GERAL.md` (atualizado)
 - `docs/implantacao/02-HANDOFF-ATUAL.md` (este arquivo)
+- `docs/implantacao/fases/FASE-01-foundation.md` (atualizado)
 
 ---
 
-## Último commit de produto
-
-Sprint 0 chain: `8e3e43c` → `8e927e9` → `2354ff3` (Task #9, fechada 2026-03-27)  
-Nota: commits via GitHub Contents API (git push bloqueado por LFS 170MB).
-
----
-
-## Próximo commit recomendado (Sprint 1)
+## Próximo commit recomendado (Sprint 2)
 
 ```
-feat(fase-01): design system — token files TS + layout system
+feat(fase-02): componentes compartilhados — PrimaryButton, SecondaryButton, EmptyState
 ```
 
 ---
