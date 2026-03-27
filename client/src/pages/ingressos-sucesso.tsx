@@ -20,7 +20,7 @@ const relatedHotels = [
 export default function IngressosSucessoPage() {
   const search = useSearch()
   const params = new URLSearchParams(search)
-  const txnId = params.get("txn") ?? ""
+  const txnId = params.get("orderId") ?? params.get("txn") ?? ""
 
   const { data: txnData } = useQuery({
     queryKey: ["/api/payments/tickets", txnId],
