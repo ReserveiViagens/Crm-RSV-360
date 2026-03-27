@@ -6,7 +6,8 @@ Histórico de implementação por data e commit. Atualizar a cada fase concluíd
 
 ## 2026-03-27 — Task #18: Fundação Documental
 
-**Commits:** `a537132c` (transição plan→build), `e88e7b23` (Task #8 base)  
+**Commits:** Arquivos criados via GitHub Contents API sobre baseline `fb0fb425` (Task #7) + `e88e7b23` (Task #8)  
+**Commits locais Replit:** `a537132c` (transição plan→build), `2ac0bce` (docs commit)  
 **Responsável:** Replit Agent
 
 ### O que foi criado
