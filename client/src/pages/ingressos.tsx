@@ -30,6 +30,7 @@ import type { SearchFilters } from "@/types/search"
 import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
 import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
+import { LoadingSkeleton } from "@/components/shells"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -1258,26 +1259,7 @@ export default function IngressosPage() {
 
         {skeletonLoading ? (
           <div style={{ padding: "0 16px" }} data-testid="skeleton-loading">
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{
-                borderRadius: 16, marginBottom: 10, overflow: "hidden",
-                border: "1px solid #F3F4F6",
-              }}>
-                <div style={{
-                  height: 78, background: "#F3F4F6",
-                  borderRadius: "16px 16px 0 0",
-                  animation: "rsv-skeleton-pulse 1.2s ease-in-out infinite",
-                  backgroundImage: "linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%)",
-                  backgroundSize: "400% 100%",
-                }} />
-              </div>
-            ))}
-            <style>{`
-              @keyframes rsv-skeleton-pulse {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-              }
-            `}</style>
+            <LoadingSkeleton variant="card" rows={4} />
           </div>
         ) : cityFilteredTickets.length === 0 ? (
           <SearchEmptyState
