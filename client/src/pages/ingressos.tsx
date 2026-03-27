@@ -798,11 +798,13 @@ export default function IngressosPage() {
         position: "sticky", top: 64, zIndex: 30, alignItems: "center",
       }}
     >
-      <FilterPopover
-        filters={searchFilters}
-        onFiltersChange={setSearchFilters}
-        onClearAll={clearAllSearchFilters}
-      />
+      <div className="rsv-catalog-desktop-only">
+        <FilterPopover
+          filters={searchFilters}
+          onFiltersChange={setSearchFilters}
+          onClearAll={clearAllSearchFilters}
+        />
+      </div>
       <button
         className="rsv-catalog-mobile-only"
         data-testid="button-open-filters-mobile"

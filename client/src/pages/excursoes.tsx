@@ -171,11 +171,13 @@ export default function Excursoes() {
         position: "sticky", top: 64, zIndex: 30,
       }}
     >
-      <FilterPopover
-        filters={sidebarFilters}
-        onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
-        onClearAll={() => setSidebarFilters({ type: "excursion" })}
-      />
+      <div className="rsv-catalog-desktop-only">
+        <FilterPopover
+          filters={sidebarFilters}
+          onFiltersChange={(f) => setSidebarFilters((prev) => ({ ...prev, ...f }))}
+          onClearAll={() => setSidebarFilters({ type: "excursion" })}
+        />
+      </div>
       <button
         className="rsv-catalog-mobile-only"
         data-testid="button-open-filters-mobile"

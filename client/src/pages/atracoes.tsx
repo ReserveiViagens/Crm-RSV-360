@@ -813,12 +813,14 @@ export default function AtracoesPage() {
           position: "sticky", top: 118, zIndex: 30,
         }}
       >
-        <FilterPopover
-          filters={searchFilters}
-          facets={searchData?.facets}
-          onFiltersChange={setSearchFilters}
-          onClearAll={clearAllSearch}
-        />
+        <div className="rsv-catalog-desktop-only">
+          <FilterPopover
+            filters={searchFilters}
+            facets={searchData?.facets}
+            onFiltersChange={setSearchFilters}
+            onClearAll={clearAllSearch}
+          />
+        </div>
         <button
           className="rsv-catalog-mobile-only"
           data-testid="button-open-filters-mobile"

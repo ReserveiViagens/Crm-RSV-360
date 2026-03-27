@@ -135,14 +135,19 @@ export default function SearchPage() {
       >
         <div style={{ flex: 1, minWidth: 0, width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <FilterPopover
-              data-testid="button-open-filters"
-              filters={filters}
-              facets={data?.facets}
-              onFiltersChange={handleFiltersChange}
-              onClearAll={handleClearAll}
-            />
+            <div className="rsv-search-desktop-only">
+              <FilterPopover
+                filters={filters}
+                facets={data?.facets}
+                onFiltersChange={handleFiltersChange}
+                onClearAll={handleClearAll}
+              />
+            </div>
           </div>
+          <style>{`
+            .rsv-search-desktop-only { display: none; }
+            @media (min-width: 1024px) { .rsv-search-desktop-only { display: block; } }
+          `}</style>
 
           {hasActiveFilters && (
             <div style={{ marginBottom: 14 }}>

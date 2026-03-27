@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FilterPanelContent, countActiveFilters } from "./SearchFiltersSidebar";
@@ -18,11 +19,17 @@ export function FilterPopover({
   onClearAll,
   align = "start",
 }: FilterPopoverProps) {
+  const [open, setOpen] = useState(false);
   const activeCount = countActiveFilters(filters);
   const hasActive = activeCount > 0;
 
+  function handleClearAll() {
+    onClearAll();
+    setOpen(false);
+  }
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           data-testid="button-open-filters"
@@ -75,7 +82,7 @@ export function FilterPopover({
           filters={filters}
           facets={facets}
           onFiltersChange={onFiltersChange}
-          onClearAll={onClearAll}
+          onClearAll={handleClearAll}
         />
 
         <div style={{
@@ -85,20 +92,19 @@ export function FilterPopover({
           borderTop: "1px solid #F3F4F6",
           marginTop: 4,
         }}>
-          <PopoverTrigger asChild>
-            <button
-              data-testid="button-apply-filters"
-              style={{
-                width: "100%", padding: "10px 0",
-                background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
-                color: "#fff", fontWeight: 700, fontSize: 14,
-                borderRadius: 10, border: "none", cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(37,99,235,0.3)",
-              }}
-            >
-              {hasActive ? `Ver resultados (${activeCount} filtro${activeCount > 1 ? "s" : ""})` : "Aplicar filtros"}
-            </button>
-          </PopoverTrigger>
+          <button
+            data-testid="button-apply-filters"
+            onClick={() => setOpen(false)}
+            style={{
+              width: "100%", padding: "10px 0",
+              background: "linear-gradient(135deg, #2563EB, #1D4ED8)",
+              color: "#fff", fontWeight: 700, fontSize: 14,
+              borderRadius: 10, border: "none", cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(37,99,235,0.3)",
+            }}
+          >
+            {hasActive ? `Ver resultados (${activeCount} filtro${activeCount > 1 ? "s" : ""})` : "Aplicar filtros"}
+          </button>
         </div>
       </PopoverContent>
     </Popover>

@@ -119,10 +119,12 @@ export function CatalogPageShell({
       {footer && <div style={{ flexShrink: 0 }}>{footer}</div>}
 
       <style>{`
+        .rsv-catalog-desktop-only { display: none !important; }
         @media (min-width: 1024px) {
           .rsv-catalog-sidebar { display: block !important; }
           .rsv-catalog-mobile-drawer { display: none !important; }
           .rsv-catalog-mobile-only { display: none !important; }
+          .rsv-catalog-desktop-only { display: block !important; }
         }
       `}</style>
     </div>
