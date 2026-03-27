@@ -97,7 +97,7 @@ export function AdminShell({
               overflow: "hidden",
               transition: "width 0.2s ease",
               background: "var(--surface-sidebar)",
-              borderRight: sidebarOpen ? "1px solid #E5E7EB" : "none",
+              borderRight: sidebarOpen ? "1px solid var(--rsv-border-subtle, #E2E8F0)" : "none",
               overflowY: sidebarOpen ? "auto" : "hidden",
             }}
           >
