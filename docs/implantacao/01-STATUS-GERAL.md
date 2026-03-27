@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Sprint 6 — Sucesso + Voucher PDF Único (Task #14)
+**Próxima ação recomendada:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
 
 ---
 
@@ -19,7 +19,7 @@
 | 03 | Catálogo /ingressos com Carrinho | `[x]` concluído (Sprint 2+3 — Task #11) |
 | 04 | Combo IA — Motor + Pricing + API | `[x]` concluído (Sprint 4 — Task #12) |
 | 05 | Checkout Pix Completo | `[x]` concluído (Sprint 5 — Task #13) |
-| 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso com TXT existe; PDF/QR de alta qualidade e gate pendentes) |
+| 06 | Sucesso + Voucher PDF Único | `[x]` concluído (Sprint 6 — Task #14) |
 | 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
 | 08 | Hardening, Observabilidade e Segurança | `[ ]` não iniciado |
 
@@ -41,6 +41,9 @@
 | #9 | Sprint 0 — Auditoria + Estrutura-Base | ver chain `8e3e43c`→`2354ff3` |
 | #10 | Sprint 1 — Design System + Layout System | `5639124` |
 | #11 | Sprint 2+3 — Componentes + Catálogo /ingressos | ver push atual |
+| #12 | Sprint 4 — Combo IA | ver push atual |
+| #13 | Sprint 5 — Checkout Pix Completo | ver push atual |
+| #14 | Sprint 6 — Sucesso + Voucher PDF Único | ver push atual |
 
 ---
 
@@ -48,7 +51,11 @@
 
 ### O que existe e funciona hoje
 
-- Fluxo `/ingressos → /ingressos/checkout → /ingressos/sucesso` (demo mode)
+- Fluxo `/ingressos → /ingressos/checkout → /ingressos/sucesso` (demo mode completo)
+- Voucher PDF gerado no backend (pdfkit + qrcode), QR errorCorrectionLevel H, 240×240px
+- `GET /api/orders/:id` — dados do pedido
+- `GET /api/orders/:id/voucher` — PDF binary com `Content-Disposition: attachment`
+- `SuccessHero` + `OrderSummaryCard` + `VoucherDownloadCard` (estados idle/loading/success/error)
 - Carrinho persistente em localStorage (`cart-store.ts`) + reidratação no mount + multi-aba (StorageEvent)
 - `PrimaryButton`, `SecondaryButton` em `client/src/components/ui/` (size sm/md/lg, loading, disabled, data-testid)
 - `StatusBadge` estendido com PAID/APPROVED/PENDING/CANCELLED/EXPIRED/FAILED
@@ -61,20 +68,22 @@
 - CSS tokens RSV360 em `client/src/index.css` + design tokens TypeScript em `client/src/tokens/`
 - WhatsApp WaaS (demo mode), Gamificação (PostgreSQL), KYC biométrico
 - Tipos Zod: `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` em `shared/schema.ts`
+- Backend pricing server-side: `ticket-catalog.ts` (24 IDs), `PricingEngine`, `UnknownTicketError`
+- Checkout: react-hook-form + zodResolver, 5 componentes standalone em `client/src/components/checkout/`
+- Polling de status Pix para em terminais via `isTerminal()`
 
 ### O que está parcial ou faltando (backlog)
 
-- ~~Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado~~ — concluído Sprint 4
-- Voucher PDF (apenas TXT hoje) — Sprint 6
 - Métricas do admin hardcoded (não lê do banco) — Sprint 7
 - Post-payment orchestrator ausente — Sprint 7
+- Envio de voucher por e-mail/WhatsApp — Sprint 7
 - Logging estruturado ausente — Sprint 8
 - Rate limiting ausente — Sprint 8
 - Proteção de voucher por HMAC ausente — Sprint 8
+- QR com validação online em tempo real — Sprint 8
 
 ---
 
 ## Próximo passo exato
 
-1. Iniciar Sprint 5 — Checkout Pix Completo (Task #13)
-2. Ao aprovar: executar Sprint 5 seguindo `docs/implantacao/fases/`
+1. Iniciar Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
