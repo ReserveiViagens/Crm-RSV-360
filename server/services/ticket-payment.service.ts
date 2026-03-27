@@ -1,15 +1,22 @@
+import { calculateCartComboTotal } from "./pricing-engine";
+
 const GATEWAY_API_URL = process.env.GATEWAY_API_URL;
 const GATEWAY_API_KEY = process.env.GATEWAY_API_KEY;
 const IS_DEMO = !GATEWAY_API_URL || !GATEWAY_API_KEY;
 
+const DEMO_CONFIRM_DELAY_MS = process.env.DEMO_CONFIRM_DELAY_MS
+  ? parseInt(process.env.DEMO_CONFIRM_DELAY_MS, 10)
+  : null;
+
 const DEMO_PIX_QR =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977";
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vee/73vfe9573vee9773vfe9573vfe9773vfe9573vfe9773vfe9573vfe+573vfe9773vfe9573vfe9773vfe977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977";
 
 export interface TicketItem {
   ticketId: string;
   title: string;
   quantity: number;
   unitPrice: number;
+  originalPrice?: number;
 }
 
 export interface TicketCustomer {
@@ -27,6 +34,9 @@ export interface TicketPaymentResult {
   copyPasteCode: string;
   status: "PENDING" | "APPROVED" | "EXPIRED" | "FAILED" | "CANCELLED";
   totalAmount: number;
+  originalTotal: number;
+  totalSavings: number;
+  isCombo: boolean;
   expirationDate: string;
   items: TicketItem[];
   customer: TicketCustomer;
@@ -36,19 +46,41 @@ export async function createTicketPix(
   items: TicketItem[],
   customer: TicketCustomer
 ): Promise<TicketPaymentResult> {
-  const totalAmount = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const isCombo = items.length >= 2;
+  const comboTotals = calculateCartComboTotal({
+    items: items.map((i) => ({
+      unitPrice: i.unitPrice,
+      originalPrice: i.originalPrice,
+      quantity: i.quantity,
+    })),
+    comboDiscountRate: isCombo ? 0.15 : 0,
+  });
+
+  const totalAmount = isCombo ? comboTotals.comboTotal : comboTotals.originalTotal;
   const expirationDate = new Date(Date.now() + 30 * 60 * 1000).toISOString();
   const orderId = `tkt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   if (IS_DEMO) {
+    const transactionId = `demo-${orderId}`;
+
+    if (DEMO_CONFIRM_DELAY_MS && DEMO_CONFIRM_DELAY_MS > 0) {
+      setTimeout(() => {
+        demoAutoConfirmCallbacks.get(transactionId)?.();
+        demoAutoConfirmCallbacks.delete(transactionId);
+      }, DEMO_CONFIRM_DELAY_MS);
+    }
+
     return {
       success: true,
       demo: true,
-      transactionId: `demo-${orderId}`,
+      transactionId,
       qrCodeBase64: DEMO_PIX_QR,
       copyPasteCode: `00020126580014br.gov.bcb.pix0136reservei-ingressos-${orderId}5204000053039865802BR5925${customer.name.slice(0, 25).toUpperCase()}6009CALDAS NOV62070503***6304ABCD`,
       status: "PENDING",
       totalAmount,
+      originalTotal: comboTotals.originalTotal,
+      totalSavings: comboTotals.totalSavings,
+      isCombo,
       expirationDate,
       items,
       customer,
@@ -96,6 +128,9 @@ export async function createTicketPix(
     copyPasteCode: data.pix_copy_paste,
     status: "PENDING",
     totalAmount,
+    originalTotal: comboTotals.originalTotal,
+    totalSavings: comboTotals.totalSavings,
+    isCombo,
     expirationDate,
     items,
     customer,
@@ -119,3 +154,23 @@ export async function checkTicketPaymentStatus(transactionId: string): Promise<{
     paid,
   };
 }
+
+export async function cancelTicketPix(transactionId: string): Promise<{ cancelled: boolean }> {
+  if (transactionId.startsWith("demo-")) {
+    return { cancelled: true };
+  }
+  if (!GATEWAY_API_URL || !GATEWAY_API_KEY) {
+    return { cancelled: true };
+  }
+  try {
+    const res = await fetch(`${GATEWAY_API_URL}/transactions/${transactionId}/cancel`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${GATEWAY_API_KEY}` },
+    });
+    return { cancelled: res.ok };
+  } catch {
+    return { cancelled: false };
+  }
+}
+
+export const demoAutoConfirmCallbacks = new Map<string, () => void>();
