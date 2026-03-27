@@ -1,0 +1,433 @@
+openapi: "3.0.3"
+
+info:
+  title: RSV360 — Recommendations & Catalog API
+  description: |
+    API de recomendações Combo IA e catálogo de ingressos da plataforma RSV360 (Reservei Viagens).
+    Cobre os endpoints públicos de busca, sugestão de combo e consulta de grupos hoteleiros.
+  version: "1.0.0"
+  contact:
+    name: Reservei Viagens
+    url: https://reservei.com.br
+
+servers:
+  - url: /api
+    description: Servidor local (Express + Vite proxy)
+
+tags:
+  - name: catalog
+    description: Catálogo de ingressos e grupos hoteleiros
+  - name: recommendations
+    description: Motor de recomendações Combo IA
+  - name: search
+    description: Busca geral de itens (excursões, hotéis, parques, destinos)
+
+paths:
+
+  /catalog/tickets:
+    get:
+      summary: Lista todos os ingressos do catálogo
+      tags: [catalog]
+      parameters:
+        - name: group
+          in: query
+          required: false
+          description: Filtrar por grupo hoteleiro (DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE)
+          schema:
+            type: string
+            enum: [DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE]
+      responses:
+        "200":
+          description: Lista de ingressos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CatalogTicket"
+                  total:
+                    type: integer
+                    example: 27
+
+  /recommendations:
+    post:
+      summary: Gera recomendações de combo para o carrinho atual
+      description: |
+        Recebe os itens do carrinho e retorna sugestões de combo IA baseadas em afinidade entre
+        grupos hoteleiros e perfis de viajante. Desconto de 15% aplicado quando combo ≥ 2 itens.
+      tags: [recommendations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationRequest"
+            example:
+              cartItems:
+                - ticketId: "hot-park"
+                  quantity: 2
+              profile: "família"
+      responses:
+        "200":
+          description: Recomendações geradas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationResponse"
+        "400":
+          description: Requisição inválida (carrinho vazio ou campo obrigatório ausente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommendations/combo-price:
+    post:
+      summary: Calcula o preço final com desconto de combo
+      tags: [recommendations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [ticketId, quantity]
+                    properties:
+                      ticketId:
+                        type: string
+                      quantity:
+                        type: integer
+                        minimum: 1
+      responses:
+        "200":
+          description: Cálculo de combo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComboPriceResponse"
+        "404":
+          description: Ingresso não encontrado no catálogo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /search:
+    get:
+      summary: Busca geral de itens no catálogo RSV360
+      tags: [search]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Texto livre para busca por nome, descrição ou tags
+          schema:
+            type: string
+            example: "hot park família"
+        - name: type
+          in: query
+          required: false
+          description: Tipo de item
+          schema:
+            type: string
+            enum: [excursion, hotel, park, attraction, destination]
+        - name: city
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Caldas Novas"
+        - name: profile
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "família"
+        - name: minPrice
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 0
+        - name: maxPrice
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 500
+        - name: rating
+          in: query
+          required: false
+          description: Nota mínima (0–5)
+          schema:
+            type: number
+            minimum: 0
+            maximum: 5
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [relevance, price_asc, price_desc, rating, popularity]
+            default: relevance
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        "200":
+          description: Resultados da busca
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /search/suggest:
+    get:
+      summary: Autocompletar — sugestões rápidas para a barra de busca
+      tags: [search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            example: "hot"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 5
+      responses:
+        "200":
+          description: Lista de sugestões
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  suggestions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        type:
+                          type: string
+                        slug:
+                          type: string
+
+components:
+  schemas:
+
+    CatalogTicket:
+      type: object
+      required: [id, name, slug, group, groupLabel, basePrice, originalPrice]
+      properties:
+        id:
+          type: string
+          example: "hot-park"
+        name:
+          type: string
+          example: "Ingresso Hot Park — Adulto"
+        slug:
+          type: string
+          example: "ingresso-hot-park-adulto"
+        group:
+          type: string
+          enum: [DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE]
+          example: "RIO_QUENTE"
+        groupLabel:
+          type: string
+          example: "Rio Quente Resorts"
+        basePrice:
+          type: number
+          description: Preço base atual (0 enquanto tarifa oficial não sincronizada)
+          example: 189
+        originalPrice:
+          type: number
+          description: Preço original antes de desconto
+          example: 220
+        syncedAt:
+          type: string
+          format: date-time
+          example: "2026-03-27T10:00:00.000Z"
+
+    RecommendationRequest:
+      type: object
+      required: [cartItems]
+      properties:
+        cartItems:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [ticketId, quantity]
+            properties:
+              ticketId:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+        profile:
+          type: string
+          description: Perfil do viajante (família, casal, jovem, melhor-idade, etc.)
+          example: "família"
+
+    RecommendationResponse:
+      type: object
+      properties:
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecommendedItem"
+        comboAvailable:
+          type: boolean
+          description: Verdadeiro se o combo com desconto está disponível (≥ 2 itens compatíveis)
+        comboDiscount:
+          type: number
+          description: Percentual de desconto aplicado no combo (ex. 15)
+          example: 15
+
+    RecommendedItem:
+      type: object
+      properties:
+        ticketId:
+          type: string
+        name:
+          type: string
+        unitPrice:
+          type: number
+        originalPrice:
+          type: number
+        comboDiscount:
+          type: number
+          example: 15
+        reason:
+          type: string
+          description: Justificativa da recomendação gerada pela IA
+          example: "Combina com Hot Park — mesmo complexo Rio Quente Resorts"
+        affinityScore:
+          type: number
+          description: Score de afinidade 0–100
+          example: 87
+
+    ComboPriceResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              ticketId:
+                type: string
+              name:
+                type: string
+              quantity:
+                type: integer
+              unitPrice:
+                type: number
+              discountedUnitPrice:
+                type: number
+              subtotal:
+                type: number
+        comboTotal:
+          type: number
+          description: Total com desconto de combo
+        originalTotal:
+          type: number
+          description: Total sem desconto
+        savings:
+          type: number
+          description: Economia total
+        comboApplied:
+          type: boolean
+
+    SearchResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchItem"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        hasMore:
+          type: boolean
+
+    SearchItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [excursion, hotel, park, attraction, destination]
+        name:
+          type: string
+        slug:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        priceFrom:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        isFeatured:
+          type: boolean
+        comboAvailable:
+          type: boolean
+        images:
+          type: array
+          items:
+            type: string
+        descriptionShort:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "Carrinho vazio"
+        code:
+          type: string
+          example: "EMPTY_CART"
