@@ -22,14 +22,10 @@ export type CatalogTicket = {
   popular?: boolean
 }
 
-export type ComboSuggestion = {
-  id: string
-  name: string
-  reason: string
-  originalPrice: number
-  comboPrice: number
-  savings: number
+export type RankedCandidate = {
+  candidate: CatalogTicket
   score: number
+  reason: string
 }
 
 function buildCartContext(cartItems: CartInput[]) {
@@ -95,14 +91,12 @@ function scoreCandidate(
   return { score, reason }
 }
 
-export function rankSuggestions(
+export function rankCandidates(
   cartItems: CartInput[],
   catalog: CatalogTicket[],
-  options: { maxSuggestions?: number; comboDiscountRate?: number } = {},
-): ComboSuggestion[] {
-  const { maxSuggestions = 3, comboDiscountRate = 0.15 } = options
+  maxSuggestions = 3,
+): RankedCandidate[] {
   const cartContext = buildCartContext(cartItems)
-
   const candidates = catalog.filter((t) => !cartContext.cartIds.has(t.id))
 
   const scored = candidates.map((c) => {
@@ -111,19 +105,5 @@ export function rankSuggestions(
   })
 
   scored.sort((a, b) => b.score - a.score)
-
-  return scored.slice(0, maxSuggestions).map(({ candidate, score, reason }) => {
-    const originalPrice = candidate.originalPrice ?? candidate.unitPrice
-    const comboPrice = Math.round(candidate.unitPrice * (1 - comboDiscountRate) * 100) / 100
-    const savings = Math.round((originalPrice - comboPrice) * 100) / 100
-    return {
-      id: candidate.id,
-      name: candidate.name,
-      reason,
-      originalPrice,
-      comboPrice,
-      savings,
-      score,
-    }
-  })
+  return scored.slice(0, maxSuggestions)
 }
