@@ -7,57 +7,24 @@ import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar";
 import SearchResultsGrid from "@/components/search/SearchResultsGrid";
 import SearchActiveFilters from "@/components/search/SearchActiveFilters";
 import { useSearch } from "@/hooks/useSearch";
-import { fetchSearch } from "@/services/search-api";
+import { filtersToParams, paramsToFilters } from "@/lib/search-query";
 import type { SearchFilters, SearchItem, SearchItemType } from "@/types/search";
 
-function filtersToParams(f: SearchFilters): URLSearchParams {
-  const params = new URLSearchParams();
-  if (f.q) params.set("q", f.q);
-  if (f.type) params.set("type", f.type);
-  if (f.city) params.set("city", f.city);
-  if (f.enterprise) params.set("enterprise", f.enterprise);
-  if (f.category) params.set("category", f.category);
-  if (f.profile) params.set("profile", f.profile);
-  if (f.minPrice !== undefined) params.set("minPrice", String(f.minPrice));
-  if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
-  if (f.rating !== undefined) params.set("rating", String(f.rating));
-  if (f.sort && f.sort !== "relevance") params.set("sort", f.sort);
-  if (f.comboAvailable) params.set("comboAvailable", "true");
-  if (f.isFeatured) params.set("isFeatured", "true");
-  return params;
-}
-
 function getInitialFilters(): SearchFilters {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    q: params.get("q") ?? "",
-    type: (params.get("type") as SearchItemType) || undefined,
-    city: params.get("city") || undefined,
-    enterprise: params.get("enterprise") || undefined,
-    category: params.get("category") || undefined,
-    profile: params.get("profile") || undefined,
-    minPrice: params.get("minPrice") ? Number(params.get("minPrice")) : undefined,
-    maxPrice: params.get("maxPrice") ? Number(params.get("maxPrice")) : undefined,
-    rating: params.get("rating") ? Number(params.get("rating")) : undefined,
-    sort: (params.get("sort") as SearchFilters["sort"]) || "relevance",
-    comboAvailable: params.get("comboAvailable") === "true" ? true : undefined,
-    isFeatured: params.get("isFeatured") === "true" ? true : undefined,
-    page: 1,
-    limit: 20,
-  };
+  const fromUrl = paramsToFilters(new URLSearchParams(window.location.search));
+  return { sort: "relevance", page: 1, limit: 20, ...fromUrl };
 }
 
 export default function SearchPage() {
   const [, navigate] = useLocation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [accumulatedResults, setAccumulatedResults] = useState<SearchItem[]>([]);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const prevFiltersRef = useRef<string>("");
 
   const { filters, setFilter, setFilters, clearFilters, hasActiveFilters, data, isLoading, isError } = useSearch(getInitialFilters());
 
   const syncUrl = useCallback((f: SearchFilters) => {
-    const params = filtersToParams(f);
+    const params = new URLSearchParams(filtersToParams(f));
     const newUrl = `/busca${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState(null, "", newUrl);
   }, []);
@@ -86,20 +53,9 @@ export default function SearchPage() {
     }
   }, [data, filters.page]);
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = () => {
     const nextPage = (filters.page ?? 1) + 1;
-    setIsLoadingMore(true);
-    try {
-      const moreData = await fetchSearch({ ...filters, page: nextPage });
-      setAccumulatedResults((prev) => {
-        const existingIds = new Set(prev.map((r) => r.id));
-        const newItems = moreData.results.filter((r) => !existingIds.has(r.id));
-        return [...prev, ...newItems];
-      });
-      setFilter("page", nextPage);
-    } finally {
-      setIsLoadingMore(false);
-    }
+    setFilter("page", nextPage);
   };
 
   const handleSearch = (q: string) => { setFilter("q", q); };
@@ -130,9 +86,9 @@ export default function SearchPage() {
   };
 
   const activeType: SearchItemType | "all" = (filters.type as SearchItemType) || "all";
-
   const displayResults = accumulatedResults.length > 0 ? accumulatedResults : (data?.results ?? []);
   const hasMore = data?.hasMore ?? false;
+  const isLoadingMore = isLoading && (filters.page ?? 1) > 1;
 
   return (
     <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
@@ -248,7 +204,7 @@ export default function SearchPage() {
             <SearchResultsGrid
               results={displayResults}
               total={data?.total ?? 0}
-              isLoading={isLoading}
+              isLoading={isLoading && (filters.page ?? 1) === 1}
               sort={filters.sort}
               onSortChange={(s) => setFilter("sort", s)}
               onItemSelect={handleItemSelect}
