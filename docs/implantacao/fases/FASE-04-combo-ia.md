@@ -1,8 +1,8 @@
 # FASE 04 — COMBO IA — MOTOR + PRICING + API
 
-**Status geral:** `[ ]` Não iniciado  
+**Status geral:** `[x]` Concluído  
 **Branch:** `main`  
-**Último commit relacionado:** —  
+**Último commit relacionado:** feat(fase-04): conclui combo IA com motor de recomendação e pricing  
 **Estimativa:** 4–5 dias úteis
 
 ---
@@ -25,73 +25,85 @@ Transformar o Combo IA de hardcoded 15% no frontend em motor real com backend de
 ## Checklist da fase
 
 ### 04.1 — Backend: Affinity map e combo engine
-- [ ] Criar `server/domain/affinity-map.ts` — mapa de afinidade entre categorias (hotel × parque × add-on)
-- [ ] Criar `server/domain/combo-engine.ts` — recebe itens do carrinho, retorna sugestões ranqueadas
+- [x] Criar `server/domain/affinity-map.ts` — mapa de afinidade entre categorias (hotel × parque × add-on)
+- [x] Criar `server/domain/combo-engine.ts` — recebe itens do carrinho, retorna sugestões ranqueadas
 
 ### 04.2 — Backend: PricingEngine
-- [ ] Criar `server/services/pricing-engine.ts`
-- [ ] Retornar `{ originalPrice, comboPrice, savings }` por combinação
-- [ ] Toda regra de desconto passa por aqui (nunca no frontend)
+- [x] Criar `server/services/pricing-engine.ts`
+- [x] Retornar `{ originalPrice, comboPrice, savings }` por combinação
+- [x] Toda regra de desconto passa por aqui (nunca no frontend)
 
 ### 04.3 — Backend: Recommendations service e rotas
-- [ ] Criar `server/services/recommendation.service.ts` — orquestra combo-engine + PricingEngine
-- [ ] Registrar `POST /api/recommendations/combo` em `server/routes.ts`
-- [ ] Registrar `GET /api/recommendations/cart/:sessionId` em `server/routes.ts`
-- [ ] Contrato de resposta: `{ suggestions: [{ id, name, reason, originalPrice, comboPrice, savings }] }`
+- [x] Criar `server/services/recommendation.service.ts` — orquestra combo-engine + PricingEngine
+- [x] Registrar `POST /api/recommendations/combo` em `server/routes.ts`
+- [x] Registrar `GET /api/recommendations/cart/:sessionId` em `server/routes.ts`
+- [x] Contrato de resposta: `{ suggestions: [{ id, name, reason, originalPrice, comboPrice, savings }] }`
 
 ### 04.4 — Frontend: Hook de trigger
-- [ ] Criar `client/src/hooks/useComboTrigger.ts`
-  - [ ] Observa mudanças no carrinho
-  - [ ] Dispara após delay de 1.5–2s
-  - [ ] Registra dismiss na sessão (sessionStorage) — não reabre na mesma sessão
-  - [ ] Permite pular sem travar o checkout
+- [x] Criar `client/src/hooks/useComboTrigger.ts`
+  - [x] Observa mudanças no carrinho
+  - [x] Dispara após delay de 1.5–2s
+  - [x] Registra dismiss na sessão (sessionStorage) — não reabre na mesma sessão
+  - [x] Permite pular sem travar o checkout
 
 ### 04.5 — Frontend: API client e hook de dados
-- [ ] Criar `client/src/services/recommendationApi.ts` — chama endpoints de recomendação
-- [ ] Criar `client/src/hooks/useComboRecommendations.ts` — TanStack Query, estados loading/error/empty
+- [x] Criar `client/src/services/recommendationApi.ts` — chama endpoints de recomendação
+- [x] Criar `client/src/hooks/useComboRecommendations.ts` — TanStack Query, estados loading/error/empty
 
 ### 04.6 — Frontend: ComboIAWizard, SuggestionCard, ComboIAEmptyState
-- [ ] Criar `client/src/components/tickets/ComboIAWizard.tsx`
-  - [ ] Skeleton de loading enquanto carrega sugestões
-  - [ ] Erro neutro sem quebrar o fluxo
-  - [ ] Botão "Pular" sempre visível
-  - [ ] Delay entre 1.5s e 2s antes de abrir
-- [ ] Criar `client/src/components/tickets/SuggestionCard.tsx`
-  - [ ] Nome + motivo + preço original riscado + preço combo + economia
-- [ ] Criar `client/src/components/tickets/ComboIAEmptyState.tsx` — mensagem neutra
+- [x] Criar `client/src/components/tickets/ComboIAWizard.tsx`
+  - [x] Skeleton de loading enquanto carrega sugestões
+  - [x] Erro neutro sem quebrar o fluxo
+  - [x] Botão "Pular" sempre visível
+  - [x] Delay entre 1.5s e 2s antes de abrir
+- [x] Criar `client/src/components/tickets/SuggestionCard.tsx`
+  - [x] Nome + motivo + preço original riscado + preço combo + economia
+- [x] Criar `client/src/components/tickets/ComboIAEmptyState.tsx` — mensagem neutra
 
 ### 04.7 — Integração na página /ingressos
-- [ ] Conectar `useComboTrigger` + `ComboIAWizard` em `client/src/pages/ingressos.tsx`
-- [ ] Posicionar combo antes da seção de checkout Pix
-- [ ] Confirmar que hero, grid e badges são preservados
+- [x] Conectar `useComboTrigger` + `ComboIAWizard` em `client/src/pages/ingressos.tsx`
+- [x] Posicionar combo antes da seção de checkout Pix
+- [x] Confirmar que hero, grid e badges são preservados
 
 ### 04.8 — Gate de validação + docs + push
-- [ ] Build + typecheck OK
-- [ ] Smoke: add ingresso → aguardar wizard → testar skip → confirmar que não reabre após dismiss
-- [ ] Smoke: aceitar sugestão → confirmar que item é adicionado ao carrinho com preço combo
-- [ ] Demonstrar payload com: sugestão, motivo, preço original, preço combo, economia
-- [ ] Atualizar `01-STATUS-GERAL.md`: Fase 4 → `[x]`
-- [ ] Atualizar `02-HANDOFF-ATUAL.md`
-- [ ] Commitar com `feat(fase-04): conclui combo IA com motor de recomendação e pricing`
-- [ ] `git push origin main`
+- [x] Build + typecheck OK
+- [x] Smoke: add ingresso → aguardar wizard → testar skip → confirmar que não reabre após dismiss
+- [x] Smoke: aceitar sugestão → confirmar que item é adicionado ao carrinho com preço combo
+- [x] Demonstrar payload com: sugestão, motivo, preço original, preço combo, economia
+- [x] Atualizar `01-STATUS-GERAL.md`: Fase 4 → `[x]`
+- [x] Atualizar `02-HANDOFF-ATUAL.md`
+- [x] Commitar com `feat(fase-04): conclui combo IA com motor de recomendação e pricing`
+- [x] `git push origin main`
 
 ---
 
 ## Implementado nesta fase
 
-_(preencher ao concluir)_
+- `server/domain/affinity-map.ts` — mapa de afinidade entre 5 categorias (parques, cabanas, transporte, natureza, combos), com pesos 0.60–0.90
+- `server/domain/combo-engine.ts` — motor de ranqueamento baseado em afinidade + popularidade + contexto familiar/transporte/cabana; retorna `ComboSuggestion[]` ordenado por score
+- `server/services/pricing-engine.ts` — `calculateComboPrice()` e `calculateCartComboTotal()` com taxa 15%; toda regra de desconto passa aqui
+- `server/services/recommendation.service.ts` — orquestra combo-engine + PricingEngine; sessões cacheadas 10 min em Map
+- `POST /api/recommendations/combo` — valida payload Zod, retorna `{ sessionId, suggestions, generatedAt }`
+- `GET /api/recommendations/cart/:sessionId` — retorna cache da sessão ou 404
+- `client/src/services/recommendationApi.ts` — funções `fetchComboRecommendations` e `fetchSessionRecommendations`
+- `client/src/hooks/useComboTrigger.ts` — delay 1.75s, sessionStorage dismiss guard, re-trigger apenas em cart growth
+- `client/src/hooks/useComboRecommendations.ts` — useMutation (TanStack Query v5), estados loading/error/empty
+- `client/src/components/tickets/ComboIAWizard.tsx` — Dialog modal com header azul gradiente, skeleton 3-linhas, error state neutro, EmptyState, SuggestionCards, skip sempre visível
+- `client/src/components/tickets/SuggestionCard.tsx` — nome, razão, preço original riscado, preço combo, economia em BRL, badge -X%
+- `client/src/components/tickets/ComboIAEmptyState.tsx` — mensagem neutra sem ícone alarmante
+- Integração em `client/src/pages/ingressos.tsx` — `useComboTrigger` + `<ComboIAWizard>`; hero/grid/badges preservados
 
 ---
 
 ## Pendências
 
-_(preencher ao concluir)_
+_(nenhuma — fase concluída)_
 
 ---
 
 ## Bloqueios
 
-_(nenhum identificado)_
+_(nenhum)_
 
 ---
 
