@@ -6,7 +6,8 @@ Histórico de implementação por data e commit. Atualizar a cada fase concluíd
 
 ## 2026-03-27 — Task #9 (Sprint 0): Auditoria + Estrutura-Base
 
-**Commit final:** `8e3e43c`  
+**Commits Sprint 0:** chain `8e3e43c` → `8e927e9` → `2354ff3` (docs + schema + FASE-00 checklist)  
+**Nota de processo:** push feito via GitHub Contents API (HTTP 200/201) — `git push` bloqueado por arquivo LFS de 170MB no repo remoto.  
 **Responsável:** Replit Agent
 
 ### Objetivo
