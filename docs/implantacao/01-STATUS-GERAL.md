@@ -15,7 +15,7 @@
 
 | Fase | Nome | Status |
 |------|------|--------|
-| 00 | Auditoria + Estrutura-Base | `[ ]` não iniciado |
+| 00 | Auditoria + Estrutura-Base | `[x]` concluído (Sprint 0 — Task #9) |
 | 01 | Design System + Layout System | `[~]` parcial (shells + CSS tokens existem; token files TS e gate pendentes) |
 | 02 | Componentes Compartilhados | `[~]` parcial (muitos componentes existem; padronização e gate pendentes) |
 | 03 | Catálogo /ingressos com Carrinho | `[~]` parcial (página funcional; gaps em analytics e gate pendentes) |
@@ -68,7 +68,7 @@ Estas tasks foram concluídas antes do plano de sprints. O código já está no 
 - Logging estruturado ausente
 - Rate limiting ausente
 - Proteção de voucher por HMAC ausente
-- Documentação formal: `docs/AUDIT.md`, `docs/ROUTES_INVENTORY.md`, `docs/GAPS.md` não existem
+- ~~Documentação formal não existia~~ → `docs/ROUTES_INVENTORY.md` e `docs/GAPS.md` criados em Sprint 0
 
 ---
 
