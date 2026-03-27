@@ -4,14 +4,14 @@ const DISMISS_KEY = "combo_ia_dismissed"
 const TRIGGER_DELAY_MS = 1750
 
 export type UseComboTriggerOptions = {
-  cartSize: number
+  cartTotalQty: number
   enabled?: boolean
 }
 
-export function useComboTrigger({ cartSize, enabled = true }: UseComboTriggerOptions) {
+export function useComboTrigger({ cartTotalQty, enabled = true }: UseComboTriggerOptions) {
   const [isOpen, setIsOpen] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const prevSizeRef = useRef<number>(cartSize)
+  const prevQtyRef = useRef<number>(cartTotalQty)
 
   const isDismissed = (): boolean => {
     try {
@@ -30,17 +30,17 @@ export function useComboTrigger({ cartSize, enabled = true }: UseComboTriggerOpt
   useEffect(() => {
     if (!enabled) return
 
-    if (cartSize === 0) {
-      prevSizeRef.current = 0
+    if (cartTotalQty === 0) {
+      prevQtyRef.current = 0
       return
     }
 
     if (isDismissed()) return
 
-    const prevSize = prevSizeRef.current
-    prevSizeRef.current = cartSize
+    const prevQty = prevQtyRef.current
+    prevQtyRef.current = cartTotalQty
 
-    if (cartSize <= prevSize) return
+    if (cartTotalQty <= prevQty) return
 
     if (timerRef.current) clearTimeout(timerRef.current)
 
@@ -53,7 +53,7 @@ export function useComboTrigger({ cartSize, enabled = true }: UseComboTriggerOpt
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [cartSize, enabled])
+  }, [cartTotalQty, enabled])
 
   const dismiss = () => {
     setIsOpen(false)
