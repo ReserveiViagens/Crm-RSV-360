@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, Ticket } from "lucide-react"
 import { type CartItem, getCartItemQty } from "@/lib/cart-store"
 import { type TicketItem } from "@/components/TicketsGrid"
 import { ENTERPRISE_CONFIG, type EnterpriseId } from "@/lib/enterprises"
 import { TicketRowCard, TicketGridCard } from "@/components/CategoryAccordion"
 import { trackEvent } from "@/lib/analytics"
+import { EmptyState } from "@/components/shells"
 
 interface SubGroupConfig {
   label: string
@@ -89,9 +90,13 @@ export function EnterpriseAccordion({
 
   if (activeEnterprises.length === 0) {
     return (
-      <div style={{ padding: "40px 16px", textAlign: "center", color: "#9CA3AF" }}>
-        <p style={{ margin: 0, fontSize: 14 }}>Nenhum ingresso disponível para esta seleção.</p>
-      </div>
+      <EmptyState
+        data-testid="empty-state-tickets"
+        icon={<Ticket className="w-6 h-6" />}
+        title="Nenhum ingresso encontrado"
+        description="Tente ajustar os filtros ou selecionar outra cidade para ver os ingressos disponíveis."
+        className="py-16 px-4"
+      />
     )
   }
 
