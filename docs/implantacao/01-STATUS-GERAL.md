@@ -13,7 +13,7 @@
   | 05 | Voucher PDF + entrega | ✅ CONCLUÍDA |
   | 06 | Admin painel + métricas | ✅ CONCLUÍDA |
   | 07 | Gamificação + qualidade | ✅ CONCLUÍDA |
-  | 08 | Hardening + segurança | 🔲 PENDENTE |
+  | 08 | Hardening + segurança | ✅ CONCLUÍDA |
 
   ## Tasks de Agente
 
@@ -21,7 +21,7 @@
   |---|--------|--------|-------|
   | 1 | Sincronizar com GitHub e atualizar docs | ✅ CONCLUÍDA | Docs atualizados, bugs path corrigidos |
   | 2 | Validar Fase-07 e fluxo completo de compra | ✅ CONCLUÍDA | Todos smoke tests passaram; GET /api/status adicionado |
-  | 3 | Fase 08 — Hardening, segurança e observabilidade | 🔲 PENDENTE | |
+  | 3 | Fase 08 — Hardening, segurança e observabilidade | ✅ CONCLUÍDA | Logger JSON, UUID+HMAC voucher, rate limit, alertas, runbook, voucherToken no fluxo frontend |
 
   ## Smoke Tests Validados (Task #2)
 
@@ -38,7 +38,29 @@
   | WhatsApp demo | ✅ Returns {success:true, demo:true} |
   | Email (SMTP) | ⚠️ SMTP não configurado (esperado em dev) |
 
+  ## Gate Final Fase 08 (Task #3)
+
+  | Teste | Resultado |
+  |-------|-----------|
+  | GET /api/status | ✅ ok:true, queues, alerts |
+  | voucherId UUID v4 | ✅ isUUID=true |
+  | voucherToken HMAC-SHA256 (64 hex) | ✅ isHex64=true |
+  | Voucher sem token → 401 | ✅ |
+  | Voucher com token inválido → 403 | ✅ |
+  | Voucher com token válido → 200 %PDF | ✅ ~9KB |
+  | Rate limit voucher 10/min → 429 na req #8 | ✅ |
+  | GET /api/admin/alerts | ✅ `{"alerts":[]}` |
+  | Admin bypass (sessão admin sem token) | ✅ 200 |
+  | VoucherDownloadCard passa ?token= no fetch | ✅ |
+  | voucherToken propagado na URL sucesso | ✅ |
+
   ## Próximos Passos
 
-  - Iniciar Fase 08: structured JSON logger, rate-limit, UUID+HMAC voucher, runbook.md
+  **PROJETO CONCLUÍDO** — Todas as 8 fases implementadas e validadas.
+
+  Para escalar em produção:
+  1. Configure variáveis de ambiente reais (SMTP, Evolution API, Gateway Pix, VOUCHER_SECRET)
+  2. Substitua in-memory stores por PostgreSQL persistente
+  3. Configure CI/CD com typecheck + build automatizado
+  4. Integre monitoramento (Sentry/Datadog) consumindo os alertas de `GET /api/admin/alerts`
   

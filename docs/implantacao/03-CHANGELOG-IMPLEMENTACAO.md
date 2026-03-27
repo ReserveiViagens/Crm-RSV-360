@@ -6,7 +6,7 @@ Histórico de implementação por data e commit. Atualizar a cada fase concluíd
 
 ## 2026-03-27 — Fase 08: Hardening, Observabilidade e Segurança (PROJETO CONCLUÍDO)
 
-**Commits:** `feat(fase-08): conclui hardening, segurança e documentação final`  
+**Commits:** `feat(fase-08): conclui hardening, segurança e documentação final` + `fix(security): endurece acesso ao voucher — requer token HMAC ou sessão admin`  
 **Responsável:** Replit Agent (Task #3)
 
 ### Objetivo
@@ -14,26 +14,34 @@ Endurecer a operação antes de escalar: logging estruturado, proteção de vouc
 
 ### Entregáveis
 - `.env.example` — todas as variáveis documentadas com comentários
-- `server/lib/logger.ts` — logger estruturado JSON (level, message, timestamp, orderId)
-- `server/lib/alerts.ts` — sistema de alertas críticos (raiseAlert, acknowledgeAlert, getActiveAlerts)
+- `server/lib/logger.ts` — logger estruturado JSON (level, message, timestamp, orderId, correlationId)
+- `server/lib/alerts.ts` — sistema de alertas críticos (raiseAlert, acknowledgeAlert, getActiveAlerts, getAlertCount)
 - `server/routes.ts`:
-  - `GET /api/status` atualizado com queues + alerts count
-  - UUID v4 + HMAC-SHA256 token para cada voucher
-  - `GET /api/orders/:id/voucher?token=<hmac>` valida token (403 se inválido)
+  - `GET /api/status` com queues + alerts count
+  - UUID v4 + HMAC-SHA256 token por voucher (voucherId + voucherToken)
+  - `GET /api/orders/:id/voucher` — 401 sem token (não admin), 403 token inválido, 200 com token válido OU sessão admin
   - Rate limit: voucher 10/min, webhook 30/min, recomendações 60/min
   - `GET /api/admin/alerts` + `POST /api/admin/alerts/:id/acknowledge`
-- `server/services/retry-queue.service.ts` — filas separadas: voucherDeliveryQueue + paymentConfirmationQueue
+- `server/services/retry-queue.service.ts` — filas separadas: voucherDeliveryQueue + paymentConfirmationQueue + getQueueStats()
 - `server/services/post-payment-orchestrator.service.ts` — integrado com logger + raiseAlert
 - `client/src/components/admin/CriticalAlertsPanel.tsx` — painel de alertas no admin
+- `client/src/pages/ingressos-checkout.tsx` — PaymentData inclui voucherId + voucherToken; navigate passa &token= na URL
+- `client/src/pages/ingressos-sucesso.tsx` — extrai token da URL, passa como prop ao VoucherDownloadCard
+- `client/src/components/success/VoucherDownloadCard.tsx` — inclui ?token= no fetch
 - `docs/runbook.md` — rollback, reenvio, invalidação, escalation
 
 ### Gate Final Verificado
-- ✅ GET /api/status → `{"ok":true, queues:{...}, alerts:{...}}`
-- ✅ voucherId = UUID v4 (não sequencial)
-- ✅ voucherToken = HMAC-SHA256 → 403 em token inválido
-- ✅ Rate limit voucher → 429 após ~8 req/min
-- ✅ Rate limit recomendações → 429 na req #61
+- ✅ GET /api/status → `{"ok":true, queues:{deliveryQueue:n}, alerts:{active:0}}`
+- ✅ voucherId = UUID v4 (isUUID=true)
+- ✅ voucherToken = HMAC-SHA256 (hex 64 chars, isHex64=true)
+- ✅ Voucher sem token + sem admin → 401
+- ✅ Voucher com token inválido → 403
+- ✅ Voucher com token válido → 200 %PDF ~9KB
+- ✅ Rate limit voucher → 429 na req #8 (de 10/min)
 - ✅ GET /api/admin/alerts → `{"alerts":[]}`
+- ✅ Admin bypass (sessão autenticada) → 200 sem token
+- ✅ Frontend passa voucherToken na URL de redirect para /ingressos/sucesso
+- ✅ VoucherDownloadCard inclui ?token= no fetch URL
 
 ---
 
