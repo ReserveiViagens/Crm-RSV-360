@@ -2219,6 +2219,28 @@ export async function registerRoutes(
     txn.status = "APPROVED";
     const cb = demoAutoConfirmCallbacks.get(id);
     if (cb) { cb(); demoAutoConfirmCallbacks.delete(id); }
+
+    import("./services/post-payment-orchestrator.service.js").then(({ runPostPaymentOrchestration }) => {
+      runPostPaymentOrchestration({
+        orderId: txn.transactionId,
+        customerName: txn.customer.name,
+        customerEmail: txn.customer.email,
+        customerPhone: txn.customer.phone,
+        totalAmount: txn.totalAmount,
+        originalTotal: txn.originalTotal,
+        totalSavings: txn.totalSavings,
+        isCombo: txn.isCombo,
+        status: txn.status,
+        createdAt: txn.createdAt,
+        expirationDate: txn.expirationDate,
+        demo: txn.demo,
+        copyPasteCode: txn.copyPasteCode,
+        items: txn.items,
+      }).catch((err: unknown) => {
+        console.warn("[demo-confirm] orchestrator error:", err instanceof Error ? err.message : err);
+      });
+    }).catch(() => {});
+
     return res.json({ status: "APPROVED", paid: true });
   });
 
@@ -2237,7 +2259,31 @@ export async function registerRoutes(
         paid: "APPROVED", approved: "APPROVED", expired: "EXPIRED",
         failed: "FAILED", cancelled: "CANCELLED",
       };
+      const prevStatus = txn.status;
       txn.status = map[status.toLowerCase()] ?? txn.status;
+
+      if (prevStatus !== "APPROVED" && txn.status === "APPROVED") {
+        import("./services/post-payment-orchestrator.service.js").then(({ runPostPaymentOrchestration }) => {
+          runPostPaymentOrchestration({
+            orderId: txn.transactionId,
+            customerName: txn.customer.name,
+            customerEmail: txn.customer.email,
+            customerPhone: txn.customer.phone,
+            totalAmount: txn.totalAmount,
+            originalTotal: txn.originalTotal,
+            totalSavings: txn.totalSavings,
+            isCombo: txn.isCombo,
+            status: txn.status,
+            createdAt: txn.createdAt,
+            expirationDate: txn.expirationDate,
+            demo: txn.demo,
+            copyPasteCode: txn.copyPasteCode,
+            items: txn.items,
+          }).catch((err: unknown) => {
+            console.warn("[webhook] orchestrator error:", err instanceof Error ? err.message : err);
+          });
+        }).catch(() => {});
+      }
     }
     return res.status(200).json({ received: true });
   });
@@ -2381,6 +2427,106 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Sessão não encontrada ou expirada", sessionId });
     }
     return res.json(result);
+  });
+
+  // ─── ADMIN METRICS ───────────────────────────────────────────────────────
+
+  app.get("/api/admin/metrics", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ message: "Acesso restrito a administradores" });
+
+    const allTxns = Array.from(ticketTransactions.values());
+    const total = allTxns.length;
+    const approved = allTxns.filter((t) => t.status === "APPROVED");
+    const combos = allTxns.filter((t) => t.isCombo);
+    const combosApproved = approved.filter((t) => t.isCombo);
+    const nonCombosApproved = approved.filter((t) => !t.isCombo);
+
+    const avgTicketCombo = combosApproved.length > 0
+      ? Math.round(combosApproved.reduce((s, t) => s + t.totalAmount, 0) / combosApproved.length)
+      : 0;
+    const avgTicketNoCombo = nonCombosApproved.length > 0
+      ? Math.round(nonCombosApproved.reduce((s, t) => s + t.totalAmount, 0) / nonCombosApproved.length)
+      : 0;
+
+    const monthlyRevenue = approved.reduce((s, t) => s + t.totalAmount, 0);
+    const totalSavings = approved.reduce((s, t) => s + t.totalSavings, 0);
+
+    const { getPendingDeliveries } = await import("./services/retry-queue.service.js");
+    const pendingDeliveries = getPendingDeliveries();
+
+    const hotelGroupCounts: Record<string, { suggested: number; accepted: number }> = {};
+    for (const txn of allTxns) {
+      const { TICKET_GROUP_MAP } = await import("@shared/catalog-groups");
+      for (const item of txn.items) {
+        const group = TICKET_GROUP_MAP[item.ticketId] ?? "INDEPENDENTE";
+        if (!hotelGroupCounts[group]) hotelGroupCounts[group] = { suggested: 0, accepted: 0 };
+        hotelGroupCounts[group].suggested++;
+        if (txn.status === "APPROVED") hotelGroupCounts[group].accepted++;
+      }
+    }
+
+    const topHotelGroups = Object.entries(hotelGroupCounts)
+      .map(([group, counts]) => ({
+        group,
+        suggested: counts.suggested,
+        accepted: counts.accepted,
+        acceptanceRate: counts.suggested > 0 ? Math.round((counts.accepted / counts.suggested) * 100) : 0,
+      }))
+      .sort((a, b) => b.accepted - a.accepted)
+      .slice(0, 5);
+
+    return res.json({
+      summary: {
+        totalOrders: total,
+        paidOrders: approved.length,
+        conversionRate: total > 0 ? Math.round((approved.length / total) * 100) : 0,
+        comboRate: total > 0 ? Math.round((combos.length / total) * 100) : 0,
+        monthlyRevenue: Math.round(monthlyRevenue * 100) / 100,
+        totalSavings: Math.round(totalSavings * 100) / 100,
+        avgTicketCombo,
+        avgTicketNoCombo,
+        vouchersGenerated: approved.length,
+        vouchersPending: pendingDeliveries.length,
+      },
+      topHotelGroups,
+      pendingDeliveries: pendingDeliveries.slice(0, 20),
+    });
+  });
+
+  app.post("/api/admin/orders/:id/resend", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Não autenticado" });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ message: "Acesso restrito a administradores" });
+
+    const orderId = String(req.params.id);
+    const txn = ticketTransactions.get(orderId);
+    if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
+    if (txn.status !== "APPROVED") {
+      return res.status(400).json({ message: "Reenvio só disponível para pedidos com status APPROVED" });
+    }
+
+    try {
+      const { retryDelivery } = await import("./services/voucher-delivery.service.js");
+      const result = await retryDelivery({
+        orderId: txn.transactionId,
+        customerName: txn.customer.name,
+        customerEmail: txn.customer.email,
+        customerPhone: txn.customer.phone,
+        totalAmount: txn.totalAmount,
+      });
+      return res.json({
+        orderId,
+        allDelivered: result.allDelivered,
+        pendingChannels: result.pendingChannels,
+        whatsapp: result.whatsapp,
+        email: result.email,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      return res.status(500).json({ message: `Falha no reenvio: ${msg}` });
+    }
   });
 
   // ─── V1 RECOMMENDATIONS ──────────────────────────────────────────────────
