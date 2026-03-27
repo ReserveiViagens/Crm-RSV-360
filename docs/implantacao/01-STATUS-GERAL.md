@@ -2,16 +2,15 @@
 
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
-**Último commit estável:** `e88e7b23` (Task #8 — Mapa Leaflet Real)  
+**Último commit de produto:** `ecdc503` (Sprint 0 — Auditoria + Estrutura-Base concluída)  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Iniciar Sprint 0 — Auditoria + Estrutura-Base (Task #9)
+**Próxima ação recomendada:** Iniciar Sprint 1 — Design System + Layout System (Task #10)
 
 ---
 
-## Resumo por fase (novo plano de sprints)
+## Resumo por fase (plano de sprints)
 
-> **Convenção de status:** `[ ]` = sprint não executado (gate não passou) · `[~]` = código existe parcialmente mas gate nunca foi executado · `[x]` = sprint concluído com gate formal.  
-> Fases 1, 2, 3, 5 e 6 estão `[~]` porque código relacionado foi criado em Tasks #1–#8, mas ainda falta fechar os gaps específicos de cada sprint e executar o gate. Fases 0, 4, 7 e 8 estão `[ ]` porque não há código relevante ainda.
+> **Convenção de status:** `[ ]` = sprint não executado (gate não passou) · `[~]` = código existe parcialmente mas gate nunca foi executado · `[x]` = sprint concluído com gate formal.
 
 | Fase | Nome | Status |
 |------|------|--------|
@@ -29,8 +28,6 @@
 
 ## Contexto — Tasks históricas já concluídas (antes do novo plano)
 
-Estas tasks foram concluídas antes do plano de sprints. O código já está no repositório.
-
 | Task | Descrição | Commit |
 |------|-----------|--------|
 | #1 | Estrutura inicial do projeto, home, landing, shells | — |
@@ -41,6 +38,8 @@ Estas tasks foram concluídas antes do plano de sprints. O código já está no 
 | #6 | Perfil por hierarquia de usuário, notificações, configurações | — |
 | #7 | Páginas admin adicionais, relógio de operação, CRM | `fb0fb425` |
 | #8 | Mapa Leaflet real (SearchMapPanel + OSM tiles) | `e88e7b23` |
+| #18 | Fundação documental — 14 arquivos de documentação operacional | `2ac0bce` |
+| #9 | Sprint 0 — Auditoria + Estrutura-Base | `ecdc503` |
 
 ---
 
@@ -56,24 +55,24 @@ Estas tasks foram concluídas antes do plano de sprints. O código já está no 
 - Shells de layout: `PublicPageShell`, `CatalogPageShell`, `AdminShell`, `AppMobileShell`, `AuthPageShell`
 - CSS tokens RSV360 em `client/src/index.css`
 - WhatsApp WaaS (demo mode), Gamificação (PostgreSQL), KYC biométrico
+- Tipos Zod: `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` em `shared/schema.ts`
+- Documentação viva: `docs/ROUTES_INVENTORY.md`, `docs/GAPS.md`, `docs/AUDIT.md`
 
-### O que está parcial ou faltando
+### O que está parcial ou faltando (backlog)
 
-- Tipos compartilhados (`Product`, `CartItem`, `Order`, etc.) não formalizados em Zod
-- Token files TypeScript (`client/src/tokens/`) não criados
-- Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado
-- Voucher PDF (apenas TXT hoje)
-- Métricas do admin hardcoded (não lê do banco)
-- Post-payment orchestrator ausente
-- Logging estruturado ausente
-- Rate limiting ausente
-- Proteção de voucher por HMAC ausente
-- ~~Documentação formal não existia~~ → `docs/ROUTES_INVENTORY.md` e `docs/GAPS.md` criados em Sprint 0
+- Token files TypeScript (`client/src/tokens/`) não criados — Sprint 1
+- Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado — Sprint 4
+- Voucher PDF (apenas TXT hoje) — Sprint 6
+- Métricas do admin hardcoded (não lê do banco) — Sprint 7
+- Post-payment orchestrator ausente — Sprint 7
+- Logging estruturado ausente — Sprint 8
+- Rate limiting ausente — Sprint 8
+- Proteção de voucher por HMAC ausente — Sprint 8
 
 ---
 
 ## Próximo passo exato
 
-1. Aguardar aprovação do usuário para Task #9 (Sprint 0 — Auditoria + Estrutura-Base)
-2. Ao aprovar: executar Sprint 0 seguindo `fases/FASE-00-auditoria.md`
-3. Ao concluir Sprint 0: atualizar este arquivo + handoff + fazer push
+1. Aguardar aprovação do usuário para Task #10 (Sprint 1 — Design System + Layout System)
+2. Ao aprovar: executar Sprint 1 seguindo `fases/FASE-01-design-system.md`
+3. Ao concluir Sprint 1: atualizar este arquivo + handoff + fazer push
