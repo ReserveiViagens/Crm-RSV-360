@@ -105,6 +105,8 @@
 | `/admin/branding` | `[x]` | — |
 | `/admin/mapa` | `[x]` | — |
 | `/admin/permissoes` | `[x]` | — |
+| `/admin/excursoes` | `[x]` | Alias para ViagensGrupo |
+| `/admin/passageiros` | `[x]` | Alias para ViagensGrupo |
 | `/admin/waas` | `[x]` | — |
 | `/waas` | `[x]` | Alias |
 | `/admin/super-financeiro` | `[x]` | — |
