@@ -21,7 +21,7 @@ export const users = pgTable("users", {
 
 export const gamificacaoPontos = pgTable("gamificacao_pontos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull(),
   pontos: integer("pontos").notNull().default(0),
   streak: integer("streak").notNull().default(0),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -29,7 +29,7 @@ export const gamificacaoPontos = pgTable("gamificacao_pontos", {
 
 export const gamificacaoHistorico = pgTable("gamificacao_historico", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull(),
   motivo: text("motivo").notNull(),
   valor: integer("valor").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -37,7 +37,7 @@ export const gamificacaoHistorico = pgTable("gamificacao_historico", {
 
 export const gamificacaoConquistas = pgTable("gamificacao_conquistas", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull(),
   conquistaId: text("conquista_id").notNull(),
   desbloqueadaEm: timestamp("desbloqueada_em").notNull().defaultNow(),
 });
@@ -75,6 +75,90 @@ export const atividadeWizardSchema = z.object({
 });
 
 export const insertAtividadeWizardSchema = atividadeWizardSchema.omit({ id: true });
+
+/* ─── Enums de Pedido ─────────────────────────────────── */
+
+export const PaymentMethodSchema = z.enum(["PIX", "CARTAO", "DINHEIRO"]);
+export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+
+export const OrderStatusSchema = z.enum([
+  "PENDING",
+  "PAID",
+  "CANCELLED",
+  "EXPIRED",
+  "FAILED",
+]);
+export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+
+/* ─── Produto / Ingresso ─────────────────────────────── */
+
+export const productSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  unitPrice: z.number().positive(),
+  originalPrice: z.number().positive().optional(),
+  discount: z.number().min(0).max(100).optional(),
+  image: z.string().url().optional(),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  comboDates: z.record(z.string()).optional(),
+});
+
+export const insertProductSchema = productSchema.omit({ id: true });
+export type Product = z.infer<typeof productSchema>;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+/* ─── CartItem ───────────────────────────────────────── */
+
+export const cartItemSchema = z.object({
+  ticketId: z.string().min(1),
+  name: z.string().min(1),
+  unitPrice: z.number().positive(),
+  originalPrice: z.number().positive().optional(),
+  discount: z.number().min(0).max(100).optional(),
+  quantity: z.number().int().positive(),
+  image: z.string().optional(),
+  comboDates: z.record(z.string()).optional(),
+});
+
+export type CartItemSchema = z.infer<typeof cartItemSchema>;
+
+/* ─── Cliente do Pedido ──────────────────────────────── */
+
+export const orderCustomerSchema = z.object({
+  name: z.string().min(3, "Nome deve ter ao menos 3 caracteres"),
+  email: z.string().email("E-mail inválido"),
+  cpf: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().length(11, "CPF inválido")),
+  phone: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().min(10, "Telefone inválido")),
+});
+
+export type OrderCustomer = z.infer<typeof orderCustomerSchema>;
+
+/* ─── Pedido de Ingressos ────────────────────────────── */
+
+export const orderSchema = z.object({
+  id: z.string(),
+  items: z.array(cartItemSchema).min(1, "Carrinho vazio"),
+  customer: orderCustomerSchema,
+  totalAmount: z.number().positive(),
+  paymentMethod: PaymentMethodSchema,
+  status: OrderStatusSchema,
+  transactionId: z.string().optional(),
+  qrCodeBase64: z.string().optional(),
+  copyPasteCode: z.string().optional(),
+  expirationDate: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export const insertOrderSchema = orderSchema.omit({ id: true, createdAt: true });
+export type Order = z.infer<typeof orderSchema>;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
 /* ─── Types ──────────────────────────────────────────────── */
 
