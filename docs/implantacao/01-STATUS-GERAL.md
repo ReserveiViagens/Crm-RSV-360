@@ -2,9 +2,8 @@
 
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
-**Último commit de produto:** Sprint 0 chain (`8e3e43c` → `8e927e9` → `2354ff3`; HEAD atual no GitHub)  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Iniciar Sprint 1 — Design System + Layout System (Task #10)
+**Próxima ação recomendada:** Iniciar Sprint 2 — Componentes Compartilhados (Task #11)
 
 ---
 
@@ -15,7 +14,7 @@
 | Fase | Nome | Status |
 |------|------|--------|
 | 00 | Auditoria + Estrutura-Base | `[x]` concluído (Sprint 0 — Task #9) |
-| 01 | Design System + Layout System | `[~]` parcial (shells + CSS tokens existem; token files TS e gate pendentes) |
+| 01 | Design System + Layout System | `[x]` concluído (Sprint 1 — Task #10) |
 | 02 | Componentes Compartilhados | `[~]` parcial (muitos componentes existem; padronização e gate pendentes) |
 | 03 | Catálogo /ingressos com Carrinho | `[~]` parcial (página funcional; gaps em analytics e gate pendentes) |
 | 04 | Combo IA — Motor + Pricing + API | `[ ]` não iniciado (frontend hardcoded, sem backend) |
@@ -60,7 +59,7 @@
 
 ### O que está parcial ou faltando (backlog)
 
-- Token files TypeScript (`client/src/tokens/`) não criados — Sprint 1
+- Token files TypeScript (`client/src/tokens/`) — **criados (Sprint 1 ✅)**
 - Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado — Sprint 4
 - Voucher PDF (apenas TXT hoje) — Sprint 6
 - Métricas do admin hardcoded (não lê do banco) — Sprint 7
@@ -73,6 +72,5 @@
 
 ## Próximo passo exato
 
-1. Aguardar aprovação do usuário para Task #10 (Sprint 1 — Design System + Layout System)
-2. Ao aprovar: executar Sprint 1 seguindo `docs/implantacao/fases/FASE-01-foundation.md`
-3. Ao concluir Sprint 1: atualizar este arquivo + handoff + fazer push
+1. Iniciar Sprint 2 — Componentes Compartilhados (Task #11)
+2. Ao aprovar: executar Sprint 2 seguindo `docs/implantacao/fases/FASE-02-shared-components.md`
