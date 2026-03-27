@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,6 +16,23 @@ export const users = pgTable("users", {
   fotoUrl: text("foto_url").default(""),
   provider: text("provider").notNull().default("local"),
 });
+
+/* ─── Catálogo de Ingressos ──────────────────────────────── */
+
+export const ticketCatalog = pgTable("ticket_catalog", {
+  id: varchar("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  group: text("group").notNull().default("INDEPENDENTE"),
+  groupLabel: text("group_label").notNull().default("Independente"),
+  basePrice: numeric("base_price", { precision: 10, scale: 2 }).notNull().default("0"),
+  originalPrice: numeric("original_price", { precision: 10, scale: 2 }).notNull().default("0"),
+  syncedAt: timestamp("synced_at").notNull().defaultNow(),
+});
+
+export const insertTicketCatalogSchema = createInsertSchema(ticketCatalog).omit({ syncedAt: true });
+export type TicketCatalogRow = typeof ticketCatalog.$inferSelect;
+export type InsertTicketCatalog = z.infer<typeof insertTicketCatalogSchema>;
 
 /* ─── Gamificação ────────────────────────────────────────── */
 
