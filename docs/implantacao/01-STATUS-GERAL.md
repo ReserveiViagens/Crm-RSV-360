@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
+**Próxima ação recomendada:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento
 
 ---
 
@@ -20,6 +20,7 @@
 | 04 | Combo IA — Motor + Pricing + API | `[x]` concluído (Sprint 4 — Task #12) |
 | 05 | Checkout Pix Completo | `[x]` concluído (Sprint 5 — Task #13) |
 | 06 | Sucesso + Voucher PDF Único | `[x]` concluído (Sprint 6 — Task #14) |
+| 06b | Sincronização de Catálogo + OpenAPI | `[x]` concluído (Sprint 6b — Task #15) |
 | 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
 | 08 | Hardening, Observabilidade e Segurança | `[ ]` não iniciado |
 
@@ -44,6 +45,7 @@
 | #12 | Sprint 4 — Combo IA | ver push atual |
 | #13 | Sprint 5 — Checkout Pix Completo | ver push atual |
 | #14 | Sprint 6 — Sucesso + Voucher PDF Único | ver push atual |
+| #15 | Sprint 6b — Sincronização de Catálogo + OpenAPI | ver push atual |
 
 ---
 
