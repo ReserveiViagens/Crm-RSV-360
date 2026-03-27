@@ -78,8 +78,8 @@ const emailSchema = z.object({
 })
 
 const dadosSchema = z.object({
-  firstName: z.string().min(1, "Nome obrigatório"),
-  lastName: z.string().min(1, "Sobrenome obrigatório"),
+  firstName: z.string().min(2, "Nome deve ter ao menos 2 letras"),
+  lastName: z.string().min(2, "Sobrenome deve ter ao menos 2 letras"),
   phone: z
     .string()
     .transform((v) => v.replace(/\D/g, ""))
@@ -303,7 +303,7 @@ export default function IngressosCheckoutPage() {
       if (data.paid || data.status === "APPROVED") {
         trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId, demo: true })
         clearCart()
-        navigate(`/ingressos/sucesso?txn=${paymentData?.transactionId}`)
+        navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}`)
       }
     },
   })
@@ -335,7 +335,7 @@ export default function IngressosCheckoutPage() {
     if (statusData.paid || statusData.status === "APPROVED") {
       trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId })
       clearCart()
-      navigate(`/ingressos/sucesso?txn=${paymentData?.transactionId}`)
+      navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}`)
     }
   }, [statusData])
 
