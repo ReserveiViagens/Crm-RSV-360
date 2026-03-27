@@ -318,7 +318,19 @@ export function DataCard({ children, title, action, className = "", noPadding = 
 }
 
 /* ─── Status Badge ───────────────────────────────────────── */
-type StatusType = "success" | "warning" | "error" | "info" | "neutral" | "premium"
+type StatusType =
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "neutral"
+  | "premium"
+  | "PAID"
+  | "APPROVED"
+  | "PENDING"
+  | "CANCELLED"
+  | "EXPIRED"
+  | "FAILED"
 
 const statusConfig: Record<StatusType, { bg: string; text: string; dot: string }> = {
   success: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -327,6 +339,12 @@ const statusConfig: Record<StatusType, { bg: string; text: string; dot: string }
   info: { bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
   neutral: { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
   premium: { bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" },
+  PAID: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  APPROVED: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
+  PENDING: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-400" },
+  CANCELLED: { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
+  EXPIRED: { bg: "bg-orange-50", text: "text-orange-700", dot: "bg-orange-400" },
+  FAILED: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
 }
 
 interface StatusBadgeProps {
@@ -337,9 +355,10 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, label, showDot = true, className = "" }: StatusBadgeProps) {
-  const cfg = statusConfig[status]
+  const cfg = statusConfig[status] ?? statusConfig.neutral
   return (
     <span
+      data-testid={`status-badge-${status}`}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.text} ${className}`}
     >
       {showDot && <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />}
@@ -375,10 +394,36 @@ export function EmptyState({ icon, title, description, action, className = "" }:
 /* ─── Loading Skeleton ───────────────────────────────────── */
 interface LoadingSkeletonProps {
   rows?: number
+  variant?: "default" | "card"
   className?: string
 }
 
-export function LoadingSkeleton({ rows = 3, className = "" }: LoadingSkeletonProps) {
+export function LoadingSkeleton({ rows = 3, variant = "default", className = "" }: LoadingSkeletonProps) {
+  if (variant === "card") {
+    return (
+      <div
+        className={`grid gap-4 ${className}`}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
+      >
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="animate-pulse bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+            <div className="h-48 bg-slate-200" />
+            <div className="p-4 space-y-3">
+              <div className="h-5 bg-slate-200 rounded-lg w-3/4" />
+              <div className="h-3 bg-slate-100 rounded-lg w-full" />
+              <div className="h-3 bg-slate-100 rounded-lg w-5/6" />
+              <div className="flex gap-2 mt-2">
+                <div className="h-6 bg-slate-100 rounded-md w-16" />
+                <div className="h-6 bg-slate-100 rounded-md w-16" />
+              </div>
+              <div className="h-10 bg-slate-200 rounded-xl mt-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className={`space-y-3 ${className}`}>
       {Array.from({ length: rows }).map((_, i) => (
