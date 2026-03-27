@@ -29,7 +29,12 @@ export function useComboTrigger({ cartSize, enabled = true }: UseComboTriggerOpt
 
   useEffect(() => {
     if (!enabled) return
-    if (cartSize === 0) return
+
+    if (cartSize === 0) {
+      prevSizeRef.current = 0
+      return
+    }
+
     if (isDismissed()) return
 
     const prevSize = prevSizeRef.current
