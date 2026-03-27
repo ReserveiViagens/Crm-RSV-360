@@ -33,6 +33,9 @@ export const TICKET_CATALOG: CatalogTicket[] = [
   { id: "parque-hotpark", name: "Hot Park", unitPrice: 189, originalPrice: 220 },
   { id: "parque-diroma", name: "Di Roma Acqua Park", unitPrice: 130, originalPrice: 155 },
   { id: "parque-lagoa", name: "Lagoa Quente Thermas", unitPrice: 75, originalPrice: 95 },
+  { id: "prive-day-use", name: "Privê Thermas — Day Use Adulto", unitPrice: 110, originalPrice: 140 },
+  { id: "prive-day-use-crianca", name: "Privê Thermas — Day Use Criança", unitPrice: 65, originalPrice: 85 },
+  { id: "prive-parque-termal", name: "Privê Parque Termal — Ingresso", unitPrice: 120, originalPrice: 155 },
 ]
 
 export function lookupTicketPrice(ticketId: string): CatalogTicket | null {
