@@ -1,4 +1,5 @@
 import { calculateCartComboTotal } from "./pricing-engine";
+import { lookupTicketPrice } from "./ticket-catalog";
 
 const GATEWAY_API_URL = process.env.GATEWAY_API_URL;
 const GATEWAY_API_KEY = process.env.GATEWAY_API_KEY;
@@ -9,14 +10,19 @@ const DEMO_CONFIRM_DELAY_MS = process.env.DEMO_CONFIRM_DELAY_MS
   : null;
 
 const DEMO_PIX_QR =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vee/73vfe9573vee9773vfe9573vfe9773vfe9573vfe9773vfe9573vfe+573vfe9773vfe9573vfe9773vfe977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977";
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vfe9573vfe9773vfe9573vee/73vfe9573vee977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977";
 
-export interface TicketItem {
-  ticketId: string;
-  title: string;
-  quantity: number;
-  unitPrice: number;
-  originalPrice?: number;
+export interface TicketLineItem {
+  ticketId: string
+  quantity: number
+}
+
+export interface TicketResolvedItem {
+  ticketId: string
+  title: string
+  quantity: number
+  unitPrice: number
+  originalPrice: number
 }
 
 export interface TicketCustomer {
@@ -38,17 +44,36 @@ export interface TicketPaymentResult {
   totalSavings: number;
   isCombo: boolean;
   expirationDate: string;
-  items: TicketItem[];
+  items: TicketResolvedItem[];
   customer: TicketCustomer;
 }
 
+export class UnknownTicketError extends Error {
+  constructor(public ticketId: string) {
+    super(`Ingresso não encontrado no catálogo: ${ticketId}`)
+    this.name = "UnknownTicketError"
+  }
+}
+
 export async function createTicketPix(
-  items: TicketItem[],
+  lineItems: TicketLineItem[],
   customer: TicketCustomer
 ): Promise<TicketPaymentResult> {
-  const isCombo = items.length >= 2;
+  const resolvedItems: TicketResolvedItem[] = lineItems.map((li) => {
+    const catalogEntry = lookupTicketPrice(li.ticketId)
+    if (!catalogEntry) throw new UnknownTicketError(li.ticketId)
+    return {
+      ticketId: li.ticketId,
+      title: catalogEntry.name,
+      quantity: li.quantity,
+      unitPrice: catalogEntry.unitPrice,
+      originalPrice: catalogEntry.originalPrice,
+    }
+  })
+
+  const isCombo = resolvedItems.length >= 2;
   const comboTotals = calculateCartComboTotal({
-    items: items.map((i) => ({
+    items: resolvedItems.map((i) => ({
       unitPrice: i.unitPrice,
       originalPrice: i.originalPrice,
       quantity: i.quantity,
@@ -82,13 +107,13 @@ export async function createTicketPix(
       totalSavings: comboTotals.totalSavings,
       isCombo,
       expirationDate,
-      items,
+      items: resolvedItems,
       customer,
     };
   }
 
   const payload = {
-    items: items.map((i) => ({
+    items: resolvedItems.map((i) => ({
       id: i.ticketId,
       title: i.title,
       quantity: i.quantity,
@@ -132,7 +157,7 @@ export async function createTicketPix(
     totalSavings: comboTotals.totalSavings,
     isCombo,
     expirationDate,
-    items,
+    items: resolvedItems,
     customer,
   };
 }
