@@ -1126,7 +1126,7 @@ export default function IngressosCheckoutPage() {
                     />
 
                     <CheckoutSummaryCard
-                      items={cart}
+                      items={paymentData.items}
                       totalAmount={paymentData.totalAmount}
                       originalTotal={paymentData.originalTotal}
                       totalSavings={paymentData.totalSavings}
