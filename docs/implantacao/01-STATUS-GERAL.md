@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Sprint 5 — Checkout Pix Completo (Task #13)
+**Próxima ação recomendada:** Sprint 6 — Sucesso + Voucher PDF Único (Task #14)
 
 ---
 
@@ -18,7 +18,7 @@
 | 02 | Componentes Compartilhados | `[x]` concluído (Sprint 2+3 — Task #11) |
 | 03 | Catálogo /ingressos com Carrinho | `[x]` concluído (Sprint 2+3 — Task #11) |
 | 04 | Combo IA — Motor + Pricing + API | `[x]` concluído (Sprint 4 — Task #12) |
-| 05 | Checkout Pix Completo | `[~]` parcial (fluxo existe em demo mode; gate formal pendente) |
+| 05 | Checkout Pix Completo | `[x]` concluído (Sprint 5 — Task #13) |
 | 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso com TXT existe; PDF/QR de alta qualidade e gate pendentes) |
 | 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
 | 08 | Hardening, Observabilidade e Segurança | `[ ]` não iniciado |
