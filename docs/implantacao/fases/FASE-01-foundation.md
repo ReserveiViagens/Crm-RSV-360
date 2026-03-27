@@ -75,10 +75,15 @@ Os 5 shells em `client/src/components/layouts/` já referenciavam `var(--page-wi
 ### 01.2 — Componentes de layout
 - [x] `PageContainer` existe em `client/src/components/layouts/`
 - [x] `SectionContainer` existe em `client/src/components/layouts/`
+- [x] `PageHeader` criado em `client/src/components/layouts/PageHeader.tsx`
+- [x] `SectionHeader` criado em `client/src/components/layouts/SectionHeader.tsx`
+- [x] `client/src/components/layouts/index.ts` exporta todos os shells + headers + types
 
 ### 01.3 — Auditoria dos shells existentes
 - [x] Shells referenciam `var(--page-width-*)` e `var(--surface-*)` corretamente
 - [x] CSS vars necessárias adicionadas ao `index.css`
+- [x] `AdminShell.tsx`: border `#E5E7EB` → `var(--rsv-border-subtle, #E2E8F0)` (tokenizado)
+- [x] Demais shells: sem valores hardcoded críticos de layout/surface (já usam vars ou defaultProps)
 
 ### 01.4 — Gate de validação + docs + push
 - [x] `npx tsc --noEmit` → 0 erros
@@ -94,6 +99,10 @@ Os 5 shells em `client/src/components/layouts/` já referenciavam `var(--page-wi
 
 - `client/src/tokens/` — 5 arquivos TypeScript (colors, spacing, layout, typography, index)
 - `client/src/index.css` — adicionados `--page-width-*`, `--section-gap-*`, `--surface-*` aliases
+- `client/src/components/layouts/PageHeader.tsx` — page-level heading com badge, subtitle, actions
+- `client/src/components/layouts/SectionHeader.tsx` — section heading com subtitle e action slot
+- `client/src/components/layouts/index.ts` — barrel com exports completos (shells + header components + types)
+- `client/src/components/layouts/AdminShell.tsx` — border hardcoded substituído por token CSS
 
 ---
 
