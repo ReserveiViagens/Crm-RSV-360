@@ -81,7 +81,9 @@ export async function createTicketPix(
     comboDiscountRate: isCombo ? 0.15 : 0,
   });
 
-  const totalAmount = isCombo ? comboTotals.comboTotal : comboTotals.originalTotal;
+  // comboTotal == sum(unitPrice * qty) when comboDiscountRate=0 (non-combo)
+  // comboTotal == sum(unitPrice * 0.85 * qty) when isCombo (combo with 15% off)
+  const totalAmount = comboTotals.comboTotal;
   const expirationDate = new Date(Date.now() + 30 * 60 * 1000).toISOString();
   const orderId = `tkt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
