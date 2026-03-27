@@ -84,6 +84,7 @@ export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
 export const OrderStatusSchema = z.enum([
   "PENDING",
   "PAID",
+  "APPROVED",
   "CANCELLED",
   "EXPIRED",
   "FAILED",
@@ -98,7 +99,7 @@ export const productSchema = z.object({
   unitPrice: z.number().positive(),
   originalPrice: z.number().positive().optional(),
   discount: z.number().min(0).max(100).optional(),
-  image: z.string().url().optional(),
+  image: z.string().optional(),
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
   comboDates: z.record(z.string()).optional(),
