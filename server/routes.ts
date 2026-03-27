@@ -2263,6 +2263,22 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/orders/:id/tickets", (req: Request, res: Response) => {
+    const id = String(req.params.id);
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
+    return res.json({
+      orderId: txn.transactionId,
+      items: txn.items.map((i) => ({
+        ticketId: i.ticketId,
+        title: i.title,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        lineTotal: i.unitPrice * i.quantity,
+      })),
+    });
+  });
+
   app.get("/api/orders/:id/voucher", async (req: Request, res: Response) => {
     const id = String(req.params.id);
     const txn = ticketTransactions.get(id);
