@@ -1719,8 +1719,9 @@ export async function registerRoutes(
       excursaoId?: string; amount?: number; passengerName?: string; organizerCommission?: number;
     };
     if (!excursaoId || !amount || !passengerName) return res.status(400).json({ error: "excursaoId, amount e passengerName são obrigatórios" });
+    const sessionUserId = req.session?.userId;
     try {
-      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0);
+      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0, sessionUserId);
       return res.json(result);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro interno";
@@ -1740,7 +1741,31 @@ export async function registerRoutes(
   });
 
   app.post("/api/webhook/payment", async (req: Request, res: Response) => {
-    const { event, data } = req.body as { event?: string; data?: { id: string; metadata?: { orderId: string }; customer?: { name: string }; amount?: number } };
+    const webhookSecret = process.env.WEBHOOK_PAYMENT_SECRET;
+    if (webhookSecret) {
+      const provided = req.headers["x-webhook-secret"] as string | undefined;
+      if (!provided || provided.length !== webhookSecret.length) {
+        return res.status(401).json({ error: "Unauthorized: invalid webhook secret" });
+      }
+      const a = Buffer.from(provided, "utf8");
+      const b = Buffer.from(webhookSecret, "utf8");
+      if (!timingSafeEqual(a, b)) {
+        return res.status(401).json({ error: "Unauthorized: invalid webhook secret" });
+      }
+    } else if (process.env.NODE_ENV === "production") {
+      console.error("[Webhook] WEBHOOK_PAYMENT_SECRET not configured in production — rejecting request");
+      return res.status(500).json({ error: "Webhook not configured" });
+    }
+
+    const { event, data } = req.body as {
+      event?: string;
+      data?: {
+        id: string;
+        metadata?: { orderId?: string; userId?: string };
+        customer?: { name: string };
+        amount?: number;
+      };
+    };
     if (event === "transaction.paid" && data) {
       const transactionId = data.id;
       const alreadyProcessed = await mutateDb((db) => {
@@ -1763,11 +1788,20 @@ export async function registerRoutes(
       });
       const pontos = Math.round(amount);
       if (pontos > 0) {
-        const userByNome = await storage.getUserByNome(passengerName).catch(() => undefined);
-        const userKey = userByNome?.id ?? `nome:${passengerName}`;
-        await adicionarPontos(userKey, pontos, `Pagamento PIX — Excursão`).catch((e) =>
-          console.error("[Gamification] Falha ao adicionar pontos:", e)
-        );
+        let userFound;
+        if (data.metadata?.userId) {
+          userFound = await storage.getUser(data.metadata.userId).catch(() => undefined);
+        }
+        if (!userFound) {
+          userFound = await storage.getUserByNome(passengerName).catch(() => undefined);
+        }
+        if (userFound) {
+          await adicionarPontos(userFound.id, pontos, `Pagamento PIX — Excursão`).catch((e) =>
+            console.error("[Gamification] Falha ao adicionar pontos:", e)
+          );
+        } else {
+          console.warn(`[Gamification] Usuário não encontrado para passageiro "${passengerName}" (txn: ${transactionId}). Pontos não foram atribuídos.`);
+        }
       }
     }
     return res.json({ received: true });
@@ -2155,6 +2189,82 @@ export async function registerRoutes(
       txn.status = map[status.toLowerCase()] ?? txn.status;
     }
     return res.status(200).json({ received: true });
+  });
+
+  // ─── RECOMMENDATIONS (Combo IA) ────────────────────────────────────────────
+
+  const { getRecommendations, getSessionRecommendations } = await import("./services/recommendation.service");
+
+  const CATALOG_TICKETS_SNAPSHOT = [
+    { id: "hot-park", name: "Ingresso Hot Park — Adulto", unitPrice: 189, originalPrice: 220, discount: 14, category: "parques", tags: ["família", "aventura", "águas termais"] },
+    { id: "hot-park-crianca", name: "Ingresso Hot Park — Criança", unitPrice: 99, originalPrice: 130, discount: 24, category: "parques", tags: ["criança", "família", "kids"] },
+    { id: "ingresso-vip", name: "Ingresso VIP — Acesso Prioritário", unitPrice: 320, originalPrice: 380, discount: 16, category: "parques", tags: ["vip", "premium", "exclusivo"] },
+    { id: "ingresso-noturno", name: "Ingresso Noturno — Sunset Edition", unitPrice: 150, originalPrice: 190, discount: 21, category: "parques", tags: ["noturno", "casal", "adulto"] },
+    { id: "diroma-acqua-park", name: "Ingresso diRoma Acqua Park", unitPrice: 90, originalPrice: 110, discount: 18, category: "parques", tags: ["família", "diversão", "ondas"] },
+    { id: "lagoa-termas", name: "Ingresso Lagoa Termas Parque", unitPrice: 75, originalPrice: 95, discount: 21, category: "natureza", tags: ["relaxamento", "natureza", "casal"] },
+    { id: "passaporte-kawana", name: "Passaporte Kawana (3 dias)", unitPrice: 210, originalPrice: 265, discount: 21, category: "parques", tags: ["família", "multidia", "águas termais"] },
+    { id: "water-park", name: "Combo Hot Park + diRoma Acqua", unitPrice: 245, originalPrice: 299, discount: 18, category: "combos", tags: ["combo", "família", "aventura"], popular: true },
+    { id: "kawana-park", name: "Combo Família (2 Adultos + 1 Criança)", unitPrice: 380, originalPrice: 450, discount: 16, category: "combos", tags: ["família", "combo", "crianças"] },
+    { id: "combo-3-parques", name: "Combo 3 Parques — Semana Completa", unitPrice: 320, originalPrice: 395, discount: 19, category: "combos", tags: ["combo", "família", "melhor valor"], popular: true },
+    { id: "transp-goiania", name: "Transporte Goiânia → Caldas Novas", unitPrice: 65, originalPrice: 90, discount: 28, category: "transporte", tags: ["transporte", "conforto", "família"] },
+    { id: "transp-brasilia", name: "Transporte Brasília → Caldas Novas", unitPrice: 85, originalPrice: 120, discount: 29, category: "transporte", tags: ["transporte", "conforto", "família"] },
+    { id: "cabana-standard", name: "Cabana Standard — até 4 pessoas", unitPrice: 280, originalPrice: 350, discount: 20, category: "cabanas", tags: ["cabana", "família", "conforto"] },
+    { id: "cabana-premium", name: "Cabana Premium — até 6 pessoas", unitPrice: 450, originalPrice: 560, discount: 20, category: "cabanas", tags: ["cabana", "grupo", "premium"], popular: true },
+    { id: "ingresso-open-hotel", name: "Open Parques + Hotel (1 Noite)", unitPrice: 540, originalPrice: 680, discount: 21, category: "combos", tags: ["hotel", "completo", "premium"] },
+  ];
+
+  const { z: comboZ } = await import("zod");
+  const comboRequestSchema = comboZ.object({
+    cartItems: comboZ.array(
+      comboZ.object({
+        ticketId: comboZ.string().min(1),
+        name: comboZ.string(),
+        unitPrice: comboZ.number().positive(),
+        originalPrice: comboZ.number().optional(),
+        discount: comboZ.number().optional(),
+        quantity: comboZ.number().int().positive(),
+        category: comboZ.string().optional(),
+        tags: comboZ.array(comboZ.string()).optional(),
+      })
+    ).min(1),
+    sessionId: comboZ.string().optional(),
+    maxSuggestions: comboZ.number().int().min(1).max(5).optional(),
+  });
+
+  app.post("/api/recommendations/combo", (req: Request, res: Response) => {
+    const parsed = comboRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Payload inválido", errors: parsed.error.issues });
+    }
+    const { cartItems, sessionId, maxSuggestions } = parsed.data;
+    const cartInputs = cartItems.map((item: any) => ({
+      ticketId: item.ticketId,
+      name: item.name,
+      unitPrice: item.unitPrice,
+      originalPrice: item.originalPrice,
+      discount: item.discount,
+      quantity: item.quantity,
+      category: item.category,
+      tags: item.tags,
+    }));
+    const result = getRecommendations({
+      cartItems: cartInputs,
+      catalog: CATALOG_TICKETS_SNAPSHOT,
+      sessionId,
+      maxSuggestions,
+      comboDiscountRate: 0.15,
+    });
+    return res.json(result);
+  });
+
+  app.get("/api/recommendations/cart/:sessionId", (req: Request, res: Response) => {
+    const sessionId = Array.isArray(req.params.sessionId) ? req.params.sessionId[0] : req.params.sessionId;
+    if (!sessionId) return res.status(400).json({ message: "sessionId obrigatório" });
+    const result = getSessionRecommendations(sessionId);
+    if (!result) {
+      return res.status(404).json({ message: "Sessão não encontrada ou expirada", sessionId });
+    }
+    return res.json(result);
   });
 
   return httpServer;
