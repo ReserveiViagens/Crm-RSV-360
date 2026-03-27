@@ -63,18 +63,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecommendationResponse"
               example:
+                sessionId: "sess_1711530000000_abc123"
+                generatedAt: "2026-03-27T10:00:00.000Z"
                 suggestions:
-                  - ticketId: "cabana-standard"
+                  - id: "cabana-standard"
                     name: "Cabana Standard — até 4 pessoas"
-                    unitPrice: 280
+                    reason: "Mesmo complexo Rio Quente Resorts"
                     originalPrice: 350
-                    discount: 20
-                    comboSavings: 42
-                    reason: "Complementa Hot Park — mesmo complexo Rio Quente Resorts"
-                comboAvailable: true
-                comboTotal: 407.65
-                originalTotal: 479
-                savings: 71.35
+                    comboPrice: 297.50
+                    savings: 52.50
         "400":
           description: Parâmetros inválidos
           content:
@@ -113,8 +110,8 @@ paths:
                 $ref: "#/components/schemas/SyncResponse"
               example:
                 created: 3
-                updated: 24
-                total: 27
+                updated: 27
+                total: 30
                 dryRun: false
                 syncedAt: "2026-03-27T10:00:00.000Z"
         "401":
@@ -152,54 +149,54 @@ components:
 
     RecommendationResponse:
       type: object
+      required: [sessionId, suggestions, generatedAt]
       properties:
+        sessionId:
+          type: string
+          description: Identificador da sessão de recomendação (gerado automaticamente ou vindo do parâmetro profile)
+          example: "sess_1711530000000_abc123"
+        generatedAt:
+          type: string
+          format: date-time
+          description: Timestamp ISO 8601 de quando as recomendações foram geradas
+          example: "2026-03-27T10:00:00.000Z"
         suggestions:
           type: array
           items:
-            $ref: "#/components/schemas/RecommendedItem"
-        comboAvailable:
-          type: boolean
-          description: Verdadeiro quando combo com desconto está disponível (≥ 2 itens)
-        comboTotal:
-          type: number
-          description: Preço total com desconto de combo
-        originalTotal:
-          type: number
-          description: Preço total sem desconto
-        savings:
-          type: number
-          description: Economia total proporcionada pelo combo
+            $ref: "#/components/schemas/RecommendationSuggestion"
 
-    RecommendedItem:
+    RecommendationSuggestion:
       type: object
+      required: [id, name, reason, originalPrice, comboPrice, savings]
       properties:
-        ticketId:
+        id:
           type: string
+          description: ID do ingresso recomendado (chave primária em ticket_catalog)
           example: "cabana-standard"
         name:
           type: string
+          description: Nome legível do ingresso
           example: "Cabana Standard — até 4 pessoas"
-        unitPrice:
-          type: number
-          example: 280
-        originalPrice:
-          type: number
-          example: 350
-        discount:
-          type: number
-          example: 20
-        comboSavings:
-          type: number
-          description: Economia adicional pelo combo (15%)
-          example: 42
         reason:
           type: string
           description: Justificativa gerada pelo motor de afinidade
           example: "Mesmo complexo Rio Quente Resorts"
+        originalPrice:
+          type: number
+          description: Preço original antes do desconto combo
+          example: 350
+        comboPrice:
+          type: number
+          description: Preço com desconto combo de 15%
+          example: 297.50
+        savings:
+          type: number
+          description: Economia proporcionada pelo combo
+          example: 52.50
 
     SyncResponse:
       type: object
-      required: [created, updated, total, syncedAt]
+      required: [created, updated, total, dryRun, syncedAt]
       properties:
         created:
           type: integer
@@ -208,11 +205,11 @@ components:
         updated:
           type: integer
           description: Entradas existentes atualizadas (basePrice preservado)
-          example: 24
+          example: 27
         total:
           type: integer
           description: Total de ingressos no catálogo após o sync
-          example: 27
+          example: 30
         dryRun:
           type: boolean
           description: Se true, nenhuma alteração foi persistida
