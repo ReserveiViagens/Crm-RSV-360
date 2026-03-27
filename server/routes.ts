@@ -14,7 +14,7 @@ import {
 import { emitEstadoGrupo, emitPixExpirado, emitVigilancia } from "./socket";
 import { createExcursionGroup, sendTextToGroup, sendPollToGroup, sendPaymentConfirmation, getWaasStatus, createInstance, getInstanceStatus, getQRCode, deleteInstance, fetchAllGroups, handleWebhookEvent } from "./services/whatsapp.service";
 import { createSplitPaymentPix, checkPaymentStatus } from "./services/payment.service";
-import { createTicketPix, checkTicketPaymentStatus } from "./services/ticket-payment.service";
+import { createTicketPix, checkTicketPaymentStatus, cancelTicketPix, demoAutoConfirmCallbacks } from "./services/ticket-payment.service";
 import { pauseAI, resumeAI, isAIPaused, getHandoffInfo, listPausedGroups } from "./services/humanHandoff.service";
 import {
   gerarManifestoANTT,
@@ -2097,6 +2097,9 @@ export async function registerRoutes(
     transactionId: string;
     status: "PENDING" | "APPROVED" | "EXPIRED" | "FAILED" | "CANCELLED";
     totalAmount: number;
+    originalTotal: number;
+    totalSavings: number;
+    isCombo: boolean;
     items: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number }>;
     customer: { name: string; email: string; cpf: string; phone: string };
     qrCodeBase64: string;
@@ -2123,6 +2126,12 @@ export async function registerRoutes(
         ...result,
         createdAt: new Date().toISOString(),
       });
+      if (result.demo) {
+        demoAutoConfirmCallbacks.set(result.transactionId, () => {
+          const txn = ticketTransactions.get(result.transactionId);
+          if (txn && txn.status === "PENDING") txn.status = "APPROVED";
+        });
+      }
       return res.status(201).json({
         transactionId: result.transactionId,
         status: result.status,
@@ -2130,6 +2139,9 @@ export async function registerRoutes(
         copyPasteCode: result.copyPasteCode,
         expirationDate: result.expirationDate,
         totalAmount: result.totalAmount,
+        originalTotal: result.originalTotal,
+        totalSavings: result.totalSavings,
+        isCombo: result.isCombo,
         items: result.items,
         customer: result.customer,
         demo: result.demo,
@@ -2169,6 +2181,35 @@ export async function registerRoutes(
     const txn = ticketTransactions.get(id);
     if (!txn) return res.status(404).json({ message: "Transação não encontrada" });
     return res.json(txn);
+  });
+
+  app.post("/api/payments/tickets/:id/cancel", async (req: Request, res: Response) => {
+    const id = String(req.params.id);
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Transação não encontrada" });
+    if (txn.status !== "PENDING") {
+      return res.status(400).json({ message: `Não é possível cancelar transação com status ${txn.status}` });
+    }
+    try {
+      const { cancelled } = await cancelTicketPix(id);
+      if (cancelled) txn.status = "CANCELLED";
+      return res.json({ cancelled, status: txn.status });
+    } catch (err) {
+      console.error("[tickets/cancel]", err);
+      return res.status(500).json({ message: "Erro ao cancelar cobrança" });
+    }
+  });
+
+  app.post("/api/payments/tickets/:id/demo-confirm", (req: Request, res: Response) => {
+    const id = String(req.params.id);
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Transação não encontrada" });
+    if (!txn.demo) return res.status(400).json({ message: "Apenas para modo demo" });
+    if (txn.status !== "PENDING") return res.status(400).json({ message: "Transação não está pendente" });
+    txn.status = "APPROVED";
+    const cb = demoAutoConfirmCallbacks.get(id);
+    if (cb) { cb(); demoAutoConfirmCallbacks.delete(id); }
+    return res.json({ status: "APPROVED", paid: true });
   });
 
   app.post("/api/webhooks/tickets", async (req: Request, res: Response) => {
