@@ -32,6 +32,8 @@ import { CatalogPageShell } from "@/components/layouts/CatalogPageShell"
 import SearchFiltersSidebar from "@/components/search/SearchFiltersSidebar"
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
 import { LoadingSkeleton } from "@/components/shells"
+import { ComboIAWizard } from "@/components/tickets/ComboIAWizard"
+import { useComboTrigger } from "@/hooks/useComboTrigger"
 
 type QuickPick = "custo" | "familia" | "popular" | "combo"
 
@@ -509,6 +511,11 @@ export default function IngressosPage() {
   }, [searchFilters, setSearchFilter, setSearchFilters])
 
   const { cart, total: cartTotal, addTicket, addManyToCart, updateTicketQty, removeTicket } = useTicketsCart()
+
+  const { isOpen: comboWizardOpen, dismiss: dismissComboWizard } = useComboTrigger({
+    cartSize: cart.length,
+    enabled: true,
+  })
 
   const priceMultiplier = useMemo(() => getPriceMultiplier(selectedDate), [selectedDate])
   const bestValueId = useMemo(() => getBestValueId(tickets), [tickets])
@@ -1388,6 +1395,13 @@ export default function IngressosPage() {
           onClose={() => setComboDatesTicket(null)}
         />
       )}
+
+      <ComboIAWizard
+        open={comboWizardOpen}
+        onDismiss={dismissComboWizard}
+        cartItems={cart}
+        onCartChange={() => {}}
+      />
     </CatalogPageShell>
   )
 }
