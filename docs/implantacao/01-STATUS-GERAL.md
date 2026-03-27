@@ -2,7 +2,7 @@
 
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
-**Último commit de produto:** `b1c2ad4` (Sprint 0 — Auditoria + Estrutura-Base concluída)  
+**Último commit de produto:** `8e3e43c` (Sprint 0 — Auditoria + Estrutura-Base concluída)  
 **Responsável atual:** Replit Agent  
 **Próxima ação recomendada:** Iniciar Sprint 1 — Design System + Layout System (Task #10)
 
@@ -39,7 +39,7 @@
 | #7 | Páginas admin adicionais, relógio de operação, CRM | `fb0fb425` |
 | #8 | Mapa Leaflet real (SearchMapPanel + OSM tiles) | `e88e7b23` |
 | #18 | Fundação documental — 14 arquivos de documentação operacional | `2ac0bce` |
-| #9 | Sprint 0 — Auditoria + Estrutura-Base | `ecdc503` |
+| #9 | Sprint 0 — Auditoria + Estrutura-Base | `8e3e43c` |
 
 ---
 
