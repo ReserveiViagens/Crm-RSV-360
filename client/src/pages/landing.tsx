@@ -16,7 +16,7 @@ import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 export default function LandingPage() {
   return (
-    <div data-testid="landing-page" style={{ minHeight: "100vh", background: "#fff" }}>
+    <div data-testid="landing-page" className="rsv-public-shell" style={{ minHeight: "100vh", background: "#fff" }}>
       <HomeHeader />
       <main>
         <HeroSection />

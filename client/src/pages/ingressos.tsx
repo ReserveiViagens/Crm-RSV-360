@@ -695,7 +695,7 @@ export default function IngressosPage() {
   const compareTickets = tickets.filter((t) => compareIds.includes(t.id))
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <HomeHeader />
       <div
         style={{

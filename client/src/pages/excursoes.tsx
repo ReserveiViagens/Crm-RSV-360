@@ -94,7 +94,7 @@ export default function Excursoes() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8F9FA" }}>
+    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F8F9FA" }}>
       <style>{`
         @media (max-width: 640px) {
           .rsv-hero-ctas { flex-direction: column; align-items: stretch; }

@@ -258,7 +258,7 @@ export default function DashboardRSV() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
+    <div className="rsv-admin-shell" style={{ minHeight: '100vh', background: '#F9FAFB' }}>
       <header style={{ background: 'linear-gradient(135deg, #1e3a5f, #2563EB)', padding: '0 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

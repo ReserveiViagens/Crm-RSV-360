@@ -167,7 +167,7 @@ export default function QuemSomosPage() {
   }, [])
 
   return (
-    <div className="rsv-subpage" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
+    <div className="rsv-subpage rsv-public-shell" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
       <HomeHeader />
       <div style={{ height: 64 }} />
 

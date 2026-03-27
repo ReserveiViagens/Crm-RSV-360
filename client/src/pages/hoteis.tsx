@@ -1342,7 +1342,7 @@ export default function HoteisPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }

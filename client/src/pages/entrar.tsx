@@ -97,7 +97,7 @@ export default function EntrarPage() {
   const Icon = config.icon;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9FAFB", display: "flex", flexDirection: "column" }}>
+    <div className="rsv-auth-shell" style={{ minHeight: "100vh", background: "#F9FAFB", display: "flex", flexDirection: "column" }}>
       <div style={{
         background: "linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)",
         padding: "20px 20px 60px",

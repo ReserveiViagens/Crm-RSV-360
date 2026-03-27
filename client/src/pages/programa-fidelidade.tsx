@@ -39,7 +39,7 @@ export default function ProgramaFidelidadePage() {
   }
 
   return (
-    <div className="rsv-subpage" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
+    <div className="rsv-subpage rsv-app-shell" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
       <div style={{
         background: "linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%)",
         padding: "16px 16px 40px", color: "#fff",

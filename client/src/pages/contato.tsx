@@ -6,7 +6,7 @@ import { MobileCTABar } from "@/components/home/MobileCTABar"
 
 export default function ContatoPage() {
   return (
-    <div style={{ background: "#F9FAFB", minHeight: "100vh" }}>
+    <div className="rsv-public-shell" style={{ background: "#F9FAFB", minHeight: "100vh" }}>
       <HomeHeader />
       <div style={{ height: 64 }} />
 

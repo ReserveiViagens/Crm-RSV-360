@@ -949,7 +949,7 @@ export default function CatalogoExcursoes() {
   }, [limparLocalidade])
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8F9FA" }} data-testid="catalogo-excursoes">
+    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F8F9FA" }} data-testid="catalogo-excursoes">
       <HomeHeader />
 
       {/* ── COMPACT HERO ─────────────────────────────── */}

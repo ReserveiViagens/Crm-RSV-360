@@ -697,7 +697,7 @@ export default function AtracoesPage() {
   const compareAttractions = compareList.map((id) => attractions.find((a) => a.id === id)).filter(Boolean) as Attraction[]
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+    <div className="rsv-catalog-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <HomeHeader />
 
       <div

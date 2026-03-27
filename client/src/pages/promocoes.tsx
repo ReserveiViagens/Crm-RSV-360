@@ -626,7 +626,7 @@ export default function PromocoesPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F9FAFB" }}>
+    <div className="rsv-public-shell" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }

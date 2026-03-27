@@ -17,6 +17,26 @@ The app is written in Portuguese (pt-BR) and targets the Brazilian travel market
 
 ---
 
+## Design System RSV360 v1.0 (implementado)
+
+### 5 Famílias de Layout
+- **Família A — Public/Marketing** (`rsv-public-shell`): landing, home, quem-somos, contato, promocoes
+- **Família B — Catalog/Commerce** (`rsv-catalog-shell`): ingressos, hoteis, atracoes, excursoes, catalogo-excursoes
+- **Família C — Auth** (`rsv-auth-shell`): entrar, cadastrar
+- **Família D — Client App/Mobile** (`rsv-app-shell`): perfil, minhas-reservas, notificacoes, programa-fidelidade
+- **Família E — Admin** (`rsv-admin-shell`): admin-dashboard
+
+### Arquivos do Design System
+- `client/src/components/shells/index.tsx` — 5 shells + PageHeader, SectionHeader, MetricCard, DataCard, StatusBadge, EmptyState, LoadingSkeleton, SearchBar, FilterChips
+- `client/src/index.css` — tokens RSV360 appended at end: paleta, tipografia, spacing, radius, shadows, page widths, surface tokens, utilidades
+
+### Tokens CSS (`--rsv-*`)
+- Cores: `--rsv-deep-blue`, `--rsv-action-blue`, `--rsv-graphite`, `--rsv-slate-50`
+- Radius: sm=8px, md=12px, lg=16px, xl=24px
+- Max-widths: public/catalog=1280px, admin=1440px, app=480px, auth=440px
+
+---
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
