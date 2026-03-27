@@ -123,7 +123,6 @@ export const cartItemSchema = z.object({
 });
 
 export type CartItem = z.infer<typeof cartItemSchema>;
-export type CartItemSchema = CartItem;
 
 /* ─── Cliente do Pedido ──────────────────────────────── */
 
