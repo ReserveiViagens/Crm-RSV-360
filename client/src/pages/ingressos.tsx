@@ -1371,13 +1371,6 @@ export default function IngressosPage() {
         />
       )}
 
-      {!isDesktop && (
-        <CartStickyBar
-          cart={cart}
-          total={cartTotal}
-          onCheckout={() => navigate("/ingressos/checkout")}
-        />
-      )}
 
       <CartAddModal
         ticket={cartModalTicket}
