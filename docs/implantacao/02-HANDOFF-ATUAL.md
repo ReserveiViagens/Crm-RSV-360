@@ -1,14 +1,26 @@
 # 02 — HANDOFF ATUAL
 
 **Atualizado em:** 2026-03-27  
-**Fase atual:** Sprint 6 — Sucesso + Voucher PDF Único (Task #14) — **CONCLUÍDA COM GATE FORMAL**  
-**Próxima fase:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento (Task #15)
+**Fase atual:** Sprint 6b — Sincronização de Catálogo + OpenAPI (Task #15) — **CONCLUÍDA**  
+**Próxima fase:** Sprint 7 — Admin Métricas Reais + Pós-Pagamento
 
 ---
 
 ## Onde o projeto está agora
 
-Sprint 6 (Task #14) foi concluída com todos os entregáveis críticos:
+Sprint 6b (Task #15) foi concluída com os entregáveis de sincronização de catálogo e OpenAPI:
+
+| Entregável | Status | Arquivo |
+|-----------|--------|---------|
+| `shared/catalog-groups.ts` | `[x]` 5 grupos normalizados + mapeamento de IDs | `shared/catalog-groups.ts` |
+| `server/utils/slug.ts` | `[x]` `generateSlug()` sem acentos/espaços | `server/utils/slug.ts` |
+| `scripts/sync-catalog.ts` | `[x]` upsert idempotente (sem duplicatas em rerun) | `scripts/sync-catalog.ts` |
+| `server/db/seed.ts` | `[x]` seed com `basePrice: 0` até tarifa oficial | `server/db/seed.ts` |
+| `docs/openapi/recommendations.yaml` | `[x]` OpenAPI 3.0 — catalog, recommendations, search | `docs/openapi/recommendations.yaml` |
+
+---
+
+Sprint 6 (Task #14) já havia sido concluída com todos os entregáveis críticos:
 
 | Entregável | Status | Arquivo |
 |-----------|--------|---------|
@@ -35,6 +47,7 @@ Sprint 6 (Task #14) foi concluída com todos os entregáveis críticos:
 - **T12 (Sprint 4)**: Combo IA — PricingEngine, RecommendationService, AffinityMap, API de recomendações
 - **T13 (Sprint 5)**: Checkout Pix Completo — react-hook-form, zodResolver, 5 componentes checkout/, ticket-catalog.ts (24 IDs), backend pricing server-side, UnknownTicketError, orderId redirect
 - **T14 (Sprint 6)**: Sucesso + Voucher PDF — pdfkit + qrcode, GET /api/orders/:id e /voucher, SuccessHero + OrderSummaryCard + VoucherDownloadCard
+- **T15 (Sprint 6b)**: Sincronização de Catálogo + OpenAPI — `shared/catalog-groups.ts` (5 grupos), `server/utils/slug.ts`, `scripts/sync-catalog.ts` (upsert idempotente), `server/db/seed.ts`, `docs/openapi/recommendations.yaml`
 
 ---
 
