@@ -82,7 +82,7 @@
 - **[Fase 07]** `retry-queue.service.ts` — fila em memória de entregas pendentes
 - **[Fase 07]** `GET /api/admin/metrics` — métricas reais do orderStore
 - **[Fase 07]** `POST /api/admin/orders/:id/resend` — reenvio manual pelo admin
-- **[Fase 07c]** Módulo de clima Open-Meteo: `open-meteo-provider.ts`, `weather-service.ts`, `weather-cache.ts`, `weather-normalizer.ts`, `weather-validators.ts`, `weather-code-map.ts`
+- **[Fase 07c]** Módulo de clima Open-Meteo: `server/providers/open-meteo-provider.ts`, `server/services/weather-service.ts`, `server/lib/weather-cache.ts`, `server/utils/weather-normalizer.ts`, `server/utils/weather-validators.ts`, `server/utils/weather-code-map.ts`
 - **[Fase 07c]** `GET /api/weather` + `GET /api/weather/by-coords` + `POST /internal/weather/warmup`
 - **[Fase 07c]** Frontend: `WeatherCard.tsx`, `useWeather.ts`, `weather-api.ts`, `WeatherPreviewSection.tsx`
 

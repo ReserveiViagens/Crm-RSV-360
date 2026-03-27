@@ -300,9 +300,9 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 ### Módulo de Clima Open-Meteo (Task #17)
 
 **Backend:**
-- `server/services/open-meteo-provider.ts` — cliente Open-Meteo API (parâmetros WMO, geocoding incluso)
+- `server/providers/open-meteo-provider.ts` — cliente Open-Meteo API (parâmetros WMO, geocoding incluso)
 - `server/services/weather-service.ts` — `getWeatherByCity`, `getWeatherByCoords`, `warmupCache`
-- `server/services/weather-cache.ts` — cache Map com TTL 60min e stale-while-revalidate 6h
+- `server/lib/weather-cache.ts` — cache Map com TTL 60min e stale-while-revalidate 6h
 - `server/utils/weather-normalizer.ts` — normaliza Open-Meteo → `WeatherData` tipado
 - `server/utils/weather-validators.ts` — valida query params city/country e lat/lon
 - `server/utils/weather-code-map.ts` — mapa WMO code → descrição pt-BR

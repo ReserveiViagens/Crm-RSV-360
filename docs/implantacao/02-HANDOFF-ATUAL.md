@@ -25,8 +25,8 @@ Também concluído em paralelo — Módulo de Clima Open-Meteo (Task #17):
 
 | Entregável | Status | Arquivo |
 |-----------|--------|---------|
-| `open-meteo-provider.ts` | `[x]` integração Open-Meteo API | `server/services/open-meteo-provider.ts` |
-| `weather-service.ts` + `weather-cache.ts` | `[x]` cache 60min TTL, 6h stale | `server/services/` |
+| `open-meteo-provider.ts` | `[x]` integração Open-Meteo API | `server/providers/open-meteo-provider.ts` |
+| `weather-service.ts` + `weather-cache.ts` | `[x]` cache 60min TTL, 6h stale | `server/services/weather-service.ts` + `server/lib/weather-cache.ts` |
 | `GET /api/weather` + `GET /api/weather/by-coords` | `[x]` proxy backend + warmup | `server/routes/weather-routes.ts` |
 | `WeatherCard.tsx` + `useWeather.ts` | `[x]` frontend com hook TanStack Query | `client/src/components/`, `client/src/hooks/` |
 | Integrado em `/ingressos` e landing page | `[x]` chamada via proxy, nunca direta | `client/src/pages/ingressos.tsx` |
