@@ -3,7 +3,7 @@
 **Última atualização:** 2026-03-27  
 **Branch atual:** `main`  
 **Responsável atual:** Replit Agent  
-**Próxima ação recomendada:** Iniciar Sprint 4 — Combo IA Motor + Pricing + API (Task #12)
+**Próxima ação recomendada:** Sprint 5 — Checkout Pix Completo (Task #13)
 
 ---
 
@@ -17,7 +17,7 @@
 | 01 | Design System + Layout System | `[x]` concluído (Sprint 1 — Task #10) |
 | 02 | Componentes Compartilhados | `[x]` concluído (Sprint 2+3 — Task #11) |
 | 03 | Catálogo /ingressos com Carrinho | `[x]` concluído (Sprint 2+3 — Task #11) |
-| 04 | Combo IA — Motor + Pricing + API | `[ ]` não iniciado (frontend hardcoded, sem backend) |
+| 04 | Combo IA — Motor + Pricing + API | `[x]` concluído (Sprint 4 — Task #12) |
 | 05 | Checkout Pix Completo | `[~]` parcial (fluxo existe em demo mode; gate formal pendente) |
 | 06 | Sucesso + Voucher PDF Único | `[~]` parcial (sucesso com TXT existe; PDF/QR de alta qualidade e gate pendentes) |
 | 07 | Admin Métricas Reais + Pós-Pagamento | `[ ]` não iniciado (métricas hardcoded, sem orchestrator) |
@@ -64,7 +64,7 @@
 
 ### O que está parcial ou faltando (backlog)
 
-- Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado — Sprint 4
+- ~~Backend de recomendação (`affinity-map`, `combo-engine`, `PricingEngine`) não implementado~~ — concluído Sprint 4
 - Voucher PDF (apenas TXT hoje) — Sprint 6
 - Métricas do admin hardcoded (não lê do banco) — Sprint 7
 - Post-payment orchestrator ausente — Sprint 7
@@ -76,5 +76,5 @@
 
 ## Próximo passo exato
 
-1. Iniciar Sprint 4 — Combo IA Motor + Pricing + API (Task #12)
-2. Ao aprovar: executar Sprint 4 seguindo `docs/implantacao/fases/FASE-04-combo-ia.md`
+1. Iniciar Sprint 5 — Checkout Pix Completo (Task #13)
+2. Ao aprovar: executar Sprint 5 seguindo `docs/implantacao/fases/`
