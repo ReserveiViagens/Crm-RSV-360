@@ -823,12 +823,32 @@
   --rsv-w-app: 480px;       /* Família D */
   --rsv-w-auth: 440px;      /* Família C */
 
+  /* ── Page-width tokens (used by layout shells + PageContainer) ── */
+  --page-width-public:  1280px;
+  --page-width-catalog: 1280px;
+  --page-width-admin:   1440px;
+  --page-width-app:     480px;
+  --page-width-auth:    440px;
+
+  /* ── Section-rhythm gap tokens (used by SectionContainer) ── */
+  --section-gap-sm:  32px;
+  --section-gap-md:  48px;
+  --section-gap-lg:  64px;
+  --section-gap-xl:  96px;
+
   /* ── Surface tokens ── */
   --rsv-surface-page: #F8FAFC;
   --rsv-surface-card: #FFFFFF;
   --rsv-surface-subtle: #F1F5F9;
   --rsv-border-subtle: #E2E8F0;
   --rsv-border-default: #CBD5E1;
+
+  /* ── Surface aliases (used by layout shells) ── */
+  --surface-page:    #F8FAFC;
+  --surface-card:    #FFFFFF;
+  --surface-sidebar: #FFFFFF;
+  --surface-subtle:  #F1F5F9;
+  --surface-overlay: rgba(0,0,0,0.5);
 }
 
 /* ─── Família A: Public Shell ──────────────────────────── */
