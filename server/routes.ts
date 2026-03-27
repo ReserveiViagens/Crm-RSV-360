@@ -2237,18 +2237,8 @@ export async function registerRoutes(
       return res.status(400).json({ message: "Payload inválido", errors: parsed.error.issues });
     }
     const { cartItems, sessionId, maxSuggestions } = parsed.data;
-    const cartInputs = cartItems.map((item: any) => ({
-      ticketId: item.ticketId,
-      name: item.name,
-      unitPrice: item.unitPrice,
-      originalPrice: item.originalPrice,
-      discount: item.discount,
-      quantity: item.quantity,
-      category: item.category,
-      tags: item.tags,
-    }));
     const result = getRecommendations({
-      cartItems: cartInputs,
+      cartItems,
       catalog: CATALOG_TICKETS_SNAPSHOT,
       sessionId,
       maxSuggestions,
