@@ -374,11 +374,15 @@ interface EmptyStateProps {
   description?: string
   action?: ReactNode
   className?: string
+  "data-testid"?: string
 }
 
-export function EmptyState({ icon, title, description, action, className = "" }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className = "", "data-testid": testId }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center py-16 px-4 text-center ${className}`}>
+    <div
+      data-testid={testId ?? "empty-state"}
+      className={`flex flex-col items-center justify-center py-16 px-4 text-center ${className}`}
+    >
       {icon && (
         <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4 text-slate-400">
           {icon}
