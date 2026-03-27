@@ -1,9 +1,9 @@
 # FASE 00 — AUDITORIA + ESTRUTURA-BASE
 
-**Status geral:** `[ ]` Não iniciado  
+**Status geral:** `[x]` Concluído — Task #9 (Sprint 0)  
 **Branch:** `main`  
-**Último commit relacionado:** —  
-**Estimativa:** 2–3 dias úteis
+**Commit final:** `8e927e9`  
+**Concluído em:** 2026-03-27
 
 ---
 
@@ -18,67 +18,72 @@ Levantar o estado real do projeto, congelar os riscos conhecidos e preparar a fu
 ## Checklist da fase
 
 ### 00.1 — Inventário de rotas frontend
-- [ ] Mapear todas as rotas em `client/src/App.tsx` (públicas, auth, admin, organizer, checkout)
-- [ ] Registrar em `docs/ROUTES_INVENTORY.md` com status (implementado / parcial / stub)
+- [x] Mapear todas as rotas em `client/src/App.tsx` (públicas, auth, admin, organizer, checkout)
+- [x] Registrar em `docs/ROUTES_INVENTORY.md` com status (implementado / parcial / stub)
 
 ### 00.2 — Inventário de endpoints backend
-- [ ] Mapear todos os endpoints em `server/routes.ts` e sub-arquivos
-- [ ] Classificar por status: dados reais / mockado / demo mode / stub
-- [ ] Registrar em `docs/ROUTES_INVENTORY.md` (seção backend)
+- [x] Mapear todos os endpoints em `server/routes.ts` e sub-arquivos
+- [x] Classificar por status: dados reais / mockado / demo mode / stub
+- [x] Registrar em `docs/ROUTES_INVENTORY.md` (seção backend)
 
 ### 00.3 — Inventário de estado compartilhado
-- [ ] Auditar `client/src/lib/cart-store.ts` — interfaces de dados usadas
-- [ ] Auditar `server/services/payment.service.ts` e `ticket-payment.service.ts`
-- [ ] Auditar `server/persistence.ts` — estrutura do in-memory store
-- [ ] Registrar interfaces identificadas em `docs/AUDIT.md`
+- [x] Auditar `client/src/lib/cart-store.ts` — interfaces de dados usadas
+- [x] Auditar `server/services/payment.service.ts` e `ticket-payment.service.ts`
+- [x] Auditar `server/persistence.ts` — estrutura do in-memory store
+- [x] Registrar interfaces identificadas em `docs/AUDIT.md`
 
 ### 00.4 — Documento de gaps
-- [ ] Gerar `docs/GAPS.md` com gaps priorizados por impacto no fluxo comprável
-- [ ] Incluir: funcionalidades faltando, mocks sem fallback, TODOs críticos, tipos não formalizados
+- [x] Gerar `docs/GAPS.md` com gaps priorizados por impacto no fluxo comprável
+- [x] Incluir: funcionalidades faltando, mocks sem fallback, TODOs críticos, tipos não formalizados
 
 ### 00.5 — Tipos compartilhados
-- [ ] Adicionar/formalizar em `shared/schema.ts`:
-  - [ ] `Product` (schema Zod + tipo infer)
-  - [ ] `CartItem` (alinhado com cart-store.ts)
-  - [ ] `OrderCustomer` (nome, email, CPF, telefone)
-  - [ ] `Order` (id, items, customer, total, status, createdAt)
-  - [ ] `PaymentMethod` (enum: PIX, CARTAO, DINHEIRO)
-  - [ ] `OrderStatus` (enum: PENDING, PAID, CANCELLED, EXPIRED, FAILED)
-- [ ] Confirmar que nenhum tipo existente foi removido
+- [x] Adicionar/formalizar em `shared/schema.ts`:
+  - [x] `Product` (schema Zod + tipo infer)
+  - [x] `CartItem` (alinhado com cart-store.ts)
+  - [x] `OrderCustomer` (nome, email, CPF, telefone)
+  - [x] `Order` (id, items, customer, total, status, createdAt)
+  - [x] `PaymentMethod` (enum: PIX, CARTAO, DINHEIRO)
+  - [x] `OrderStatus` (enum: PENDING, PAID, APPROVED, CANCELLED, EXPIRED, FAILED)
+- [x] Confirmar que nenhum tipo existente foi removido
 
 ### 00.6 — Gate de validação + docs + push
-- [ ] Rodar `npm run build` — 0 erros TypeScript
-- [ ] Criar `docs/AUDIT.md` com resultado do build + inventário
-- [ ] Atualizar `01-STATUS-GERAL.md`: Fase 0 → `[x]`
-- [ ] Atualizar `02-HANDOFF-ATUAL.md`: próximo passo = Sprint 1
-- [ ] Commitar com `docs(fase-00): conclui auditoria e estrutura de documentação viva`
-- [ ] `git push origin main`
+- [x] Rodar `npm run build` — 0 erros TypeScript
+- [x] Criar `docs/AUDIT.md` com resultado do build + inventário
+- [x] Atualizar `01-STATUS-GERAL.md`: Fase 0 → `[x]`
+- [x] Atualizar `02-HANDOFF-ATUAL.md`: próximo passo = Sprint 1
+- [x] Commitar com `feat(fase-00): conclui auditoria, tipos compartilhados e documentação viva`
+- [x] Push para GitHub via Contents API (HTTP 200/201 confirmados)
 
 ---
 
 ## Implementado nesta fase
 
-_(preencher ao concluir)_
+- `docs/ROUTES_INVENTORY.md` — inventário de 60+ rotas frontend e 80+ endpoints backend (legenda [R]/[D]/[I]/[M])
+- `docs/AUDIT.md` — auditoria de implementação por rota/endpoint (status [x]/[~]/[ ] + coluna Dados)
+- `docs/GAPS.md` — 15 gaps priorizados (prioridade 1–5, cada um com sprint alvo e arquivo afetado)
+- `shared/schema.ts` atualizado:
+  - `PaymentMethodSchema`, `OrderStatusSchema` (com APPROVED para compat. com ticket-payment.service.ts)
+  - `productSchema`, `cartItemSchema`, `orderCustomerSchema`, `orderSchema` + variantes insert + TypeScript types
+- `03-CHANGELOG-IMPLEMENTACAO.md` — entrada Sprint 0 com entregáveis e decisões de design
 
 ---
 
 ## Pendências
 
-_(preencher ao concluir)_
+Nenhuma. Todos os critérios de conclusão foram atendidos.
 
 ---
 
 ## Bloqueios
 
-_(nenhum identificado)_
+Nenhum.
 
 ---
 
 ## Critério de conclusão
 
-A fase só vira `[x]` quando:
-- `docs/AUDIT.md`, `docs/ROUTES_INVENTORY.md` e `docs/GAPS.md` existem e têm conteúdo real
-- `shared/schema.ts` contém `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` como Zod schemas
-- `npm run build` passa sem erros
-- `01-STATUS-GERAL.md` marcado `[x]` para esta fase
-- Commit + push feitos
+✅ `docs/AUDIT.md`, `docs/ROUTES_INVENTORY.md` e `docs/GAPS.md` existem e têm conteúdo real  
+✅ `shared/schema.ts` contém `Product`, `CartItem`, `OrderCustomer`, `Order`, `PaymentMethod`, `OrderStatus` como Zod schemas  
+✅ `npm run build` passa sem erros  
+✅ `01-STATUS-GERAL.md` marcado `[x]` para esta fase  
+✅ Commit + push feitos (commit final `8e927e9`)
