@@ -10,7 +10,6 @@ import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer"
 import type { SearchFilters } from "@/types/search"
 import { fetchPlacesAutocomplete, fetchSuggest } from "@/services/search-api"
 import type { MapMarker } from "@/types/search"
-import SearchMapPanel from "@/components/search/SearchMapPanel"
 
 type PinType = "hotel" | "parque" | "restaurante" | "atracao" | "flash" | "leilao"
 
@@ -308,6 +307,18 @@ export default function MapaCaldas() {
 
   const getColor = (type: PinType) => CATEGORIES.find(c => c.key === type)?.color || "#6B7280"
 
+  const getIcon = (type: PinType) => {
+    switch (type) {
+      case "hotel": return <Hotel style={{ width: 12, height: 12, color: "#fff" }} />
+      case "parque": return <Waves style={{ width: 12, height: 12, color: "#fff" }} />
+      case "flash": return <Zap style={{ width: 12, height: 12, color: "#fff" }} />
+      case "leilao": return <Gavel style={{ width: 12, height: 12, color: "#fff" }} />
+      case "restaurante": return <Utensils style={{ width: 12, height: 12, color: "#fff" }} />
+      case "atracao": return <Landmark style={{ width: 12, height: 12, color: "#fff" }} />
+      default: return <MapPin style={{ width: 12, height: 12, color: "#fff" }} />
+    }
+  }
+
   const profileHighlightIds = useMemo(() => {
     if (!profile) return new Set<number>()
     const ids = new Set<number>()
@@ -322,6 +333,18 @@ export default function MapaCaldas() {
     if (!profile) return null
     return AI_ROUTES.find(r => r.matchType === profile.tripType) || AI_ROUTES[0]
   }, [profile])
+
+  const filteredPins = useMemo(() => {
+    return PINS.filter(pin => {
+      if (activeCategory !== "all" && pin.type !== activeCategory) return false
+      if (maxDistance > 0 && pin.distance > maxDistance) return false
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        if (!pin.name.toLowerCase().includes(q) && !pin.description.toLowerCase().includes(q)) return false
+      }
+      return true
+    })
+  }, [activeCategory, maxDistance, searchQuery])
 
   const nearbyPins = useMemo(() => [...PINS].sort((a, b) => a.distance - b.distance).slice(0, 5), [])
 
@@ -617,16 +640,131 @@ export default function MapaCaldas() {
         </div>
       )}
 
-      <div style={{ margin: "12px 0 0" }}>
-        <SearchMapPanel
-          filters={panelFilters}
-          initialBounds={initial.bounds}
-          onMarkerClick={handleMarkerClick}
-          onBoundsChange={handleBoundsChange}
-          height="55vh"
-          routeStops={routeStops}
-          routeColor={activeRoute?.color}
-        />
+      <div style={{ position: "relative", height: "55vh", background: "#E8F0FE", overflow: "hidden" }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, #E8F0FE 0%, #D1E3FC 50%, #E8F0FE 100%)",
+        }}>
+          <div style={{
+            position: "absolute", top: "15%", left: "10%", width: "80%", height: "70%",
+            border: "1px solid rgba(37,99,235,0.15)", borderRadius: 8,
+            background: "rgba(37,99,235,0.03)",
+          }}>
+            <span style={{
+              position: "absolute", bottom: -20, right: 10,
+              fontSize: 11, color: "#9CA3AF", fontStyle: "italic",
+            }}>Caldas Novas, GO</span>
+          </div>
+
+          {activeRoute && (
+            <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}>
+              {activeRoute.stops.map((stopId, i) => {
+                if (i === 0) return null
+                const prevPin = PINS.find(p => p.id === activeRoute.stops[i - 1])
+                const currPin = PINS.find(p => p.id === stopId)
+                if (!prevPin || !currPin) return null
+                const getPos = (pin: LocalPin) => {
+                  const x = ((pin.lng + 48.75) / 0.2) * 100
+                  const y = ((pin.lat + 17.7) / 0.1) * 100
+                  return {
+                    x: Math.max(10, Math.min(90, 50 + (x - 50) * 0.8)),
+                    y: Math.max(10, Math.min(90, 50 + (y - 50) * 0.8)),
+                  }
+                }
+                const p1 = getPos(prevPin)
+                const p2 = getPos(currPin)
+                return (
+                  <line
+                    key={`route-${i}`}
+                    x1={`${p1.x}%`} y1={`${p1.y}%`}
+                    x2={`${p2.x}%`} y2={`${p2.y}%`}
+                    stroke={activeRoute.color}
+                    strokeWidth="3"
+                    strokeDasharray="8 4"
+                    opacity={0.6}
+                  />
+                )
+              })}
+            </svg>
+          )}
+        </div>
+
+        {filteredPins.map((pin) => {
+          const x = ((pin.lng + 48.75) / 0.2) * 100
+          const y = ((pin.lat + 17.7) / 0.1) * 100
+          const clampX = Math.max(10, Math.min(90, 50 + (x - 50) * 0.8))
+          const clampY = Math.max(10, Math.min(90, 50 + (y - 50) * 0.8))
+          const isHighlighted = profileHighlightIds.has(pin.id)
+          const isRouteStop = activeRoute?.stops.includes(pin.id)
+          const routeIndex = activeRoute ? activeRoute.stops.indexOf(pin.id) + 1 : 0
+
+          return (
+            <button
+              key={pin.id}
+              data-testid={`pin-${pin.id}`}
+              onClick={() => setSelectedPin(pin)}
+              style={{
+                position: "absolute", left: `${clampX}%`, top: `${clampY}%`,
+                transform: "translate(-50%, -100%)", border: "none", cursor: "pointer",
+                background: "transparent", zIndex: selectedPin?.id === pin.id ? 10 : isHighlighted ? 5 : 1,
+              }}
+            >
+              <div style={{
+                background: getColor(pin.type), color: "#fff",
+                padding: "4px 10px", borderRadius: 8,
+                fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
+                boxShadow: isHighlighted
+                  ? `0 0 0 3px ${getColor(pin.type)}40, 0 2px 8px rgba(0,0,0,0.2)`
+                  : "0 2px 8px rgba(0,0,0,0.2)",
+                display: "flex", alignItems: "center", gap: 4,
+                transform: selectedPin?.id === pin.id ? "scale(1.15)" : "scale(1)",
+                transition: "transform 0.2s",
+                position: "relative",
+              }}>
+                {isRouteStop && (
+                  <span style={{
+                    position: "absolute", top: -8, left: -8,
+                    width: 18, height: 18, borderRadius: "50%",
+                    background: activeRoute!.color, color: "#fff",
+                    fontSize: 10, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "2px solid #fff",
+                  }}>{routeIndex}</span>
+                )}
+                {getIcon(pin.type)}
+                {formatPrice(pin.price)}
+              </div>
+              <div style={{
+                width: 0, height: 0, margin: "0 auto",
+                borderLeft: "6px solid transparent", borderRight: "6px solid transparent",
+                borderTop: `6px solid ${getColor(pin.type)}`,
+              }} />
+              {isHighlighted && !activeRoute && (
+                <div style={{
+                  position: "absolute", top: -10, right: -10,
+                  width: 16, height: 16, borderRadius: "50%",
+                  background: "#F57C00", border: "2px solid #fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Sparkles style={{ width: 8, height: 8, color: "#fff" }} />
+                </div>
+              )}
+            </button>
+          )
+        })}
+
+        <div style={{
+          position: "absolute", bottom: 12, left: 12, right: 12,
+          display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+        }}>
+          <div style={{
+            background: "rgba(255,255,255,0.95)", borderRadius: 10, padding: "8px 12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <MapPin style={{ width: 12, height: 12, color: "#2563EB" }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{filteredPins.length} pontos</span>
+          </div>
+        </div>
       </div>
 
       {activeRoute && showRoutePanel && (
