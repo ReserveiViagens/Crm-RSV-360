@@ -2242,6 +2242,65 @@ export async function registerRoutes(
     return res.status(200).json({ received: true });
   });
 
+  // ─── ORDERS / VOUCHER ──────────────────────────────────────────────────────
+
+  app.get("/api/orders/:id", (req: Request, res: Response) => {
+    const id = String(req.params.id);
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
+    return res.json({
+      orderId: txn.transactionId,
+      status: txn.status,
+      totalAmount: txn.totalAmount,
+      originalTotal: txn.originalTotal,
+      totalSavings: txn.totalSavings,
+      isCombo: txn.isCombo,
+      items: txn.items,
+      customer: { name: txn.customer.name, email: txn.customer.email },
+      createdAt: txn.createdAt,
+      expirationDate: txn.expirationDate,
+      demo: txn.demo,
+    });
+  });
+
+  app.get("/api/orders/:id/voucher", async (req: Request, res: Response) => {
+    const id = String(req.params.id);
+    const txn = ticketTransactions.get(id);
+    if (!txn) return res.status(404).json({ message: "Pedido não encontrado" });
+    try {
+      const { generateVoucherPdf } = await import("./services/voucher-pdf.service");
+      const pdfBuffer = await generateVoucherPdf({
+        orderId: txn.transactionId,
+        customerName: txn.customer.name,
+        customerEmail: txn.customer.email,
+        items: txn.items.map((i) => ({
+          ticketId: i.ticketId,
+          title: i.title,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+        })),
+        totalAmount: txn.totalAmount,
+        originalTotal: txn.originalTotal,
+        totalSavings: txn.totalSavings,
+        isCombo: txn.isCombo,
+        status: txn.status,
+        createdAt: txn.createdAt,
+        expirationDate: txn.expirationDate,
+        demo: txn.demo,
+        copyPasteCode: txn.copyPasteCode,
+      });
+      const safeId = id.slice(0, 32).replace(/[^a-zA-Z0-9\-_]/g, "");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="ingresso-rsv360-${safeId}.pdf"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.setHeader("Cache-Control", "no-store");
+      return res.end(pdfBuffer);
+    } catch (err) {
+      console.error("[orders/voucher]", err);
+      return res.status(500).json({ message: "Erro ao gerar voucher PDF" });
+    }
+  });
+
   // ─── RECOMMENDATIONS (Combo IA) ────────────────────────────────────────────
 
   const { getRecommendations, getSessionRecommendations } = await import("./services/recommendation.service");
