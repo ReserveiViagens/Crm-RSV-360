@@ -8,6 +8,7 @@ export interface IStorage {
   getUserByPhone(telefone: string): Promise<User | undefined>;
   getUserByCpf(cpf: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  getUserByNome(nome: string): Promise<User | undefined>;
   getUserByIdentifier(identifier: string): Promise<User | undefined>;
   createUser(user: Omit<User, "id">): Promise<User>;
   updateUser(id: string, data: Partial<Omit<User, "id">>): Promise<User | undefined>;
@@ -69,6 +70,11 @@ export class MemStorage implements IStorage {
 
   async getUserByGoogleId(googleId: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find((u) => u.googleId === googleId);
+  }
+
+  async getUserByNome(nome: string): Promise<User | undefined> {
+    const lower = nome.trim().toLowerCase();
+    return Array.from(this.users.values()).find((u) => u.nome?.trim().toLowerCase() === lower);
   }
 
   async getUserByIdentifier(identifier: string): Promise<User | undefined> {

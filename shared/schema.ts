@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,6 +16,33 @@ export const users = pgTable("users", {
   fotoUrl: text("foto_url").default(""),
   provider: text("provider").notNull().default("local"),
 });
+
+/* ─── Gamificação ────────────────────────────────────────── */
+
+export const gamificacaoPontos = pgTable("gamificacao_pontos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  pontos: integer("pontos").notNull().default(0),
+  streak: integer("streak").notNull().default(0),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const gamificacaoHistorico = pgTable("gamificacao_historico", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  motivo: text("motivo").notNull(),
+  valor: integer("valor").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const gamificacaoConquistas = pgTable("gamificacao_conquistas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  conquistaId: text("conquista_id").notNull(),
+  desbloqueadaEm: timestamp("desbloqueada_em").notNull().defaultNow(),
+});
+
+/* ─── Zod Schemas ────────────────────────────────────────── */
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -49,6 +76,8 @@ export const atividadeWizardSchema = z.object({
 
 export const insertAtividadeWizardSchema = atividadeWizardSchema.omit({ id: true });
 
+/* ─── Types ──────────────────────────────────────────────── */
+
 export type AtividadeWizard = {
   id: string;
   label: string;
@@ -62,3 +91,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export type GamificacaoPontos = typeof gamificacaoPontos.$inferSelect;
+export type GamificacaoHistorico = typeof gamificacaoHistorico.$inferSelect;
+export type GamificacaoConquista = typeof gamificacaoConquistas.$inferSelect;

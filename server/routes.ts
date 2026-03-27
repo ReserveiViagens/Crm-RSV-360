@@ -49,6 +49,13 @@ import {
   consumeInvite,
 } from "./social-commerce";
 import { registerWeatherRoutes } from "./routes/weather-routes.js";
+import {
+  adicionarPontos,
+  getPontos,
+  getHistorico,
+  getConquistas,
+  CONQUISTAS_DEFS as CONQUISTAS_DEFS_SERVICE,
+} from "./services/gamification-service";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -1662,15 +1669,11 @@ export async function registerRoutes(
       });
       const pontos = Math.round(amount);
       if (pontos > 0) {
-        await mutateDb((db) => {
-          if (!db.pontosStore) db.pontosStore = {};
-          const store = db.pontosStore as Record<string, number>;
-          store[passengerName] = (store[passengerName] ?? 0) + pontos;
-          if (!db.pontosHistoricoStore) db.pontosHistoricoStore = {};
-          const hist = db.pontosHistoricoStore as Record<string, Array<{ data: string; motivo: string; valor: number }>>;
-          if (!hist[passengerName]) hist[passengerName] = [];
-          hist[passengerName].push({ data: new Date().toISOString(), motivo: `Pagamento PIX — Excursão`, valor: pontos });
-        });
+        const userByNome = await storage.getUserByNome(passengerName).catch(() => undefined);
+        const userKey = userByNome?.id ?? `nome:${passengerName}`;
+        await adicionarPontos(userKey, pontos, `Pagamento PIX — Excursão`).catch((e) =>
+          console.error("[Gamification] Falha ao adicionar pontos:", e)
+        );
       }
     }
     return res.json({ received: true });
@@ -1787,17 +1790,8 @@ export async function registerRoutes(
   });
 
   // ─────────────────────────────────────────────
-  // NTX — Passenger Gamification (Pontos / Conquistas / Ranking)
+  // NTX — Passenger Gamification (Pontos / Conquistas / Ranking) — PostgreSQL
   // ─────────────────────────────────────────────
-  interface PontosEvento { data: string; motivo: string; valor: number; }
-
-  const CONQUISTAS_DEFS = [
-    { id: "primeira-viagem", titulo: "Primeira Viagem", descricao: "Fez sua primeira reserva confirmada", icone: "🌟", threshold: 1 },
-    { id: "grupo-de-5", titulo: "Grupo de 5", descricao: "Participou de um grupo com 5+ pessoas", icone: "🤝", threshold: 5 },
-    { id: "fiel-caldas", titulo: "Fiel Caldas Novas", descricao: "3 viagens confirmadas para Caldas Novas", icone: "🏆", threshold: 3 },
-    { id: "mil-pontos", titulo: "Mil Pontos", descricao: "Acumulou 1.000 pontos no programa", icone: "💎", threshold: 1000 },
-    { id: "embaixador", titulo: "Embaixador RSV", descricao: "Acumulou 5.000 pontos no programa", icone: "👑", threshold: 5000 },
-  ];
 
   app.get("/api/gamification/pontos", async (req: Request, res: Response) => {
     const userId = req.session?.userId;
@@ -1805,88 +1799,72 @@ export async function registerRoutes(
     const user = await storage.getUser(userId);
     const nome = user?.nome ?? "Visitante";
 
-    const result = await mutateDb((db) => {
-      const store = (db.pontosStore as Record<string, number>) ?? {};
-      const pontos = store[nome] ?? 0;
-      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string; criadaEm: Date }>) ?? [];
-      const allUserReservas = reservas.filter(r => r.passageiroNome === nome);
-      const tripMap: Record<string, { confirmed: boolean; date: Date }> = {};
-      for (const r of allUserReservas) {
-        if (!tripMap[r.excursaoId] || r.status === "confirmada") {
-          tripMap[r.excursaoId] = {
-            confirmed: r.status === "confirmada",
-            date: new Date(r.criadaEm),
-          };
-        }
-      }
-      const sortedTrips = Object.values(tripMap).sort((a, b) => b.date.getTime() - a.date.getTime());
-      let streak = 0;
-      for (const trip of sortedTrips) {
-        if (trip.confirmed) streak++;
-        else break;
-      }
-      return { pontos, streak };
-    });
-
-    return res.json({ pontos: result.pontos, streak: result.streak, nome });
+    try {
+      const { pontos, streak } = await getPontos(userId);
+      return res.json({ pontos, streak, nome });
+    } catch (e) {
+      console.error("[Gamification] getPontos error:", e);
+      return res.json({ pontos: 0, streak: 0, nome });
+    }
   });
 
   app.get("/api/gamification/historico", async (req: Request, res: Response) => {
     const userId = req.session?.userId;
     if (!userId) return res.json({ historico: [] });
-    const user = await storage.getUser(userId);
-    const nome = user?.nome ?? "Visitante";
 
-    const historico = await mutateDb((db) => {
-      const hist = (db.pontosHistoricoStore as Record<string, PontosEvento[]>) ?? {};
-      return (hist[nome] ?? []).slice(-50).reverse();
-    });
-
-    return res.json({ historico });
+    try {
+      const historico = await getHistorico(userId);
+      return res.json({ historico });
+    } catch (e) {
+      console.error("[Gamification] getHistorico error:", e);
+      return res.json({ historico: [] });
+    }
   });
 
   app.get("/api/gamification/conquistas", async (req: Request, res: Response) => {
     const userId = req.session?.userId;
-    if (!userId) return res.json({ conquistas: CONQUISTAS_DEFS.map(c => ({ ...c, desbloqueada: false })) });
+    if (!userId) {
+      return res.json({ conquistas: CONQUISTAS_DEFS_SERVICE.map(c => ({ ...c, desbloqueada: false })) });
+    }
     const user = await storage.getUser(userId);
     const nome = user?.nome ?? "Visitante";
 
-    const excursoes = await listExcursoes();
-    const { pontos, confirmedCount, caldasCount, inGroupOf5 } = await mutateDb((db) => {
-      const store = (db.pontosStore as Record<string, number>) ?? {};
-      const reservas = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string }>) ?? [];
-      const memberships = (db.membershipStore as Array<{ groupId: string; userId: string; status: string }>) ?? [];
-      const userConfirmed = reservas.filter(r => r.passageiroNome === nome && r.status === "confirmada");
-      const distinctTrips = Array.from(new Set(userConfirmed.map(r => r.excursaoId)));
-      const caldasTrips = distinctTrips.filter(excId => {
+    try {
+      const excursoes = await listExcursoes();
+      const { pontos } = await getPontos(userId);
+
+      const reservas = await mutateDb((db) => {
+        const rs = (db.reservaStore as Array<{ passageiroNome: string; status: string; excursaoId: string }>) ?? [];
+        return rs.filter(r => r.passageiroNome === nome && r.status === "confirmada");
+      });
+      const memberships = await mutateDb((db) => {
+        return (db.membershipStore as Array<{ groupId: string; userId: string; status: string }>) ?? [];
+      });
+
+      const distinctTrips = Array.from(new Set(reservas.map(r => r.excursaoId)));
+      const caldasCount = distinctTrips.filter(excId => {
         const exc = excursoes.find(e => e.id === excId);
         return exc?.destino?.toLowerCase().includes("caldas") ?? false;
-      });
+      }).length;
       let inGroupOf5 = false;
       for (const excId of distinctTrips) {
         const groupId = `grp-${excId}`;
         const groupMembers = memberships.filter(m => m.groupId === groupId && (m.status === "MEMBER" || m.status === "ADMIN"));
         if (groupMembers.length >= 5) { inGroupOf5 = true; break; }
       }
-      return {
-        pontos: store[nome] ?? 0,
+
+      const conquistas = await getConquistas(userId, {
+        pontos,
         confirmedCount: distinctTrips.length,
-        caldasCount: caldasTrips.length,
+        caldasCount,
         inGroupOf5,
-      };
-    });
+      });
 
-    const conquistas = CONQUISTAS_DEFS.map(c => {
-      let desbloqueada = false;
-      if (c.id === "primeira-viagem") desbloqueada = confirmedCount >= c.threshold;
-      else if (c.id === "grupo-de-5") desbloqueada = inGroupOf5;
-      else if (c.id === "fiel-caldas") desbloqueada = caldasCount >= c.threshold;
-      else if (c.id === "mil-pontos") desbloqueada = pontos >= c.threshold;
-      else if (c.id === "embaixador") desbloqueada = pontos >= c.threshold;
-      return { ...c, desbloqueada };
-    });
-
-    return res.json({ conquistas });
+      return res.json({ conquistas });
+    } catch (e) {
+      console.error("[Gamification] getConquistas error:", e);
+      return res.json({ conquistas: CONQUISTAS_DEFS_SERVICE.map(c => ({ ...c, desbloqueada: false })) });
+    }
   });
 
   app.get("/api/gamification/ranking-organizadores", async (_req: Request, res: Response) => {
