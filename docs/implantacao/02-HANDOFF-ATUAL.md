@@ -15,7 +15,7 @@ Sprint 6b (Task #15) foi concluída com os entregáveis de sincronização de ca
 | `shared/catalog-groups.ts` | `[x]` 5 grupos normalizados + mapeamento de IDs | `shared/catalog-groups.ts` |
 | `server/utils/slug.ts` | `[x]` `generateSlug()` sem acentos/espaços | `server/utils/slug.ts` |
 | `scripts/sync-catalog.ts` | `[x]` upsert idempotente (sem duplicatas em rerun) | `scripts/sync-catalog.ts` |
-| `server/db/seed.ts` | `[x]` seed com `basePrice: 0` até tarifa oficial | `server/db/seed.ts` |
+| `server/db/seed.ts` | `[x]` 15 entradas demo (5 grupos, ≥2 hotel + 1 parque/grupo), basePrice real por item | `server/db/seed.ts` |
 | `docs/openapi/recommendations.yaml` | `[x]` OpenAPI 3.0 — catalog, recommendations, search | `docs/openapi/recommendations.yaml` |
 
 ---
