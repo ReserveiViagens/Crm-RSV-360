@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -6,7 +5,6 @@ import { Sparkles, X } from "lucide-react"
 import { SuggestionCard } from "./SuggestionCard"
 import { ComboIAEmptyState } from "./ComboIAEmptyState"
 import { useComboRecommendations } from "@/hooks/useComboRecommendations"
-import { addToCart } from "@/lib/cart-store"
 import type { CartItem } from "@shared/schema"
 import type { ComboCartItem, RecommendationSuggestion } from "@/services/recommendationApi"
 
@@ -14,7 +12,7 @@ type ComboIAWizardProps = {
   open: boolean
   onDismiss: () => void
   cartItems: CartItem[]
-  onCartChange?: () => void
+  onAddSuggestion: (suggestion: RecommendationSuggestion) => void
 }
 
 function cartItemsToInput(items: CartItem[]): ComboCartItem[] {
@@ -28,27 +26,16 @@ function cartItemsToInput(items: CartItem[]): ComboCartItem[] {
   }))
 }
 
-export function ComboIAWizard({ open, onDismiss, cartItems, onCartChange }: ComboIAWizardProps) {
-  const { fetchRecommendations, suggestions, isLoading, isError, reset } = useComboRecommendations()
+export function ComboIAWizard({ open, onDismiss, cartItems, onAddSuggestion }: ComboIAWizardProps) {
+  const comboCartItems = cartItemsToInput(cartItems)
 
-  useEffect(() => {
-    if (open && cartItems.length > 0) {
-      fetchRecommendations({ cartItems: cartItemsToInput(cartItems) })
-    }
-    if (!open) {
-      reset()
-    }
-  }, [open])
+  const { suggestions, isLoading, isError } = useComboRecommendations({
+    cartItems: comboCartItems,
+    enabled: open && cartItems.length > 0,
+  })
 
   const handleAdd = (suggestion: RecommendationSuggestion) => {
-    const item: Omit<CartItem, "quantity"> = {
-      ticketId: suggestion.id,
-      name: suggestion.name,
-      unitPrice: suggestion.comboPrice,
-      originalPrice: suggestion.originalPrice,
-    }
-    addToCart(item, 1)
-    onCartChange?.()
+    onAddSuggestion(suggestion)
     onDismiss()
   }
 
