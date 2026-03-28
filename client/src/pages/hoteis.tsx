@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet, Info, ChevronDown, ChevronUp } from "lucide-react"
 import { Link, useSearch } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -1503,32 +1504,14 @@ export default function HoteisPage() {
         >
           ⚙ Filtros
         </button>
-        {dynamicFilters.map((f) => {
-          const Icon = f.icon
-          const isActive = activeFilter === f.value
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-filter-${f.value}`}
-              onClick={() => {
-                setActiveFilter(f.value)
-                setSearchFilters({ ...searchFilters, type: "hotel", ...f.filterUpdate })
-              }}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-                background: isActive ? "#2563EB" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon size={13} />
-              {f.label}
-            </button>
-          )
-        })}
+        <HotelCategoryNav
+          categories={dynamicFilters}
+          activeFilter={activeFilter}
+          onSelect={(f) => {
+            setActiveFilter(f.value)
+            setSearchFilters({ ...searchFilters, type: "hotel", ...f.filterUpdate })
+          }}
+        />
       </div>
     </>
   )

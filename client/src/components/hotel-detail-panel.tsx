@@ -138,6 +138,12 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(2)
   const [nights, setNights] = useState(3)
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [babies, setBabies] = useState(0)
+  const [pets, setPets] = useState(0)
+  const [guestsExpanded, setGuestsExpanded] = useState(false)
+  const [priceOption, setPriceOption] = useState<"non-refundable" | "refundable">("non-refundable")
   const [quantity, setQuantity] = useState(2)
   const [tourPeople, setTourPeople] = useState(2)
   const [tourDate, setTourDate] = useState("")
@@ -167,11 +173,17 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)
 
   const dayCount = isDayUse ? Math.max(selectedDates.length, 1) : nights
+  const computedNights = checkIn && checkOut
+    ? Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)))
+    : nights
+  const refundablePrice = Math.round(hotel.price * 1.12)
+  const activeHotelPrice = priceOption === "refundable" ? refundablePrice : hotel.price
+  const totalGuests = adults + children
   const totalPrice = isPasseio
     ? hotel.price * tourPeople
     : isDayUse
       ? hotel.price * quantity * dayCount
-      : hotel.price * nights
+      : activeHotelPrice * computedNights
   const discount = hotel.originalPrice ? Math.round(((hotel.originalPrice - hotel.price) / hotel.originalPrice) * 100) : 0
 
   const nextImage = () => setCurrentImage((p) => (p + 1) % hotel.images.length)
@@ -486,77 +498,178 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                   </>
                 ) : (
                   <>
-                    <div style={{ marginBottom: 16 }}>
-                      <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
-                        Data
-                      </label>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{
-                          flex: 1, display: "flex", alignItems: "center", gap: 6,
-                          border: "1px solid #D1D5DB", borderRadius: 8, padding: "10px 12px",
-                        }}>
-                          <Calendar size={14} style={{ color: "#9CA3AF" }} />
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{
+                        display: "grid", gridTemplateColumns: "1fr 1fr",
+                        border: "1.5px solid #D1D5DB", borderRadius: 12, overflow: "hidden",
+                      }}>
+                        <div style={{ padding: "10px 14px", borderRight: "1px solid #D1D5DB", background: "#fff" }}>
+                          <div style={{ fontSize: 9, fontWeight: 800, color: "#374151", letterSpacing: "0.1em", marginBottom: 4, textTransform: "uppercase" }}>
+                            Check-in
+                          </div>
                           <input
+                            data-testid="input-checkin"
                             type="date"
                             value={checkIn}
                             onChange={(e) => setCheckIn(e.target.value)}
-                            style={{ border: "none", outline: "none", fontSize: 13, color: "#374151", width: "100%" }}
+                            style={{ border: "none", outline: "none", fontSize: 13, color: "#1F2937", fontWeight: 500, width: "100%", background: "transparent", cursor: "pointer" }}
                           />
                         </div>
-                        <span style={{ color: "#9CA3AF", fontSize: 13 }}>—</span>
-                        <div style={{
-                          flex: 1, display: "flex", alignItems: "center", gap: 6,
-                          border: "1px solid #D1D5DB", borderRadius: 8, padding: "10px 12px",
-                        }}>
-                          <Calendar size={14} style={{ color: "#9CA3AF" }} />
+                        <div style={{ padding: "10px 14px", background: "#fff" }}>
+                          <div style={{ fontSize: 9, fontWeight: 800, color: "#374151", letterSpacing: "0.1em", marginBottom: 4, textTransform: "uppercase" }}>
+                            Check-out
+                          </div>
                           <input
+                            data-testid="input-checkout"
                             type="date"
                             value={checkOut}
                             onChange={(e) => setCheckOut(e.target.value)}
-                            style={{ border: "none", outline: "none", fontSize: 13, color: "#374151", width: "100%" }}
+                            style={{ border: "none", outline: "none", fontSize: 13, color: "#1F2937", fontWeight: 500, width: "100%", background: "transparent", cursor: "pointer" }}
                           />
                         </div>
                       </div>
+                      {checkIn && checkOut && computedNights > 0 && (
+                        <div style={{ fontSize: 11, color: "#6B7280", marginTop: 5, textAlign: "center" }}>
+                          {computedNights} {computedNights === 1 ? "noite" : "noites"}
+                        </div>
+                      )}
                     </div>
 
-                    <div style={{ marginBottom: 16 }}>
-                      <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
-                        Hóspedes
-                      </label>
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        border: "1px solid #D1D5DB", borderRadius: 8, padding: "10px 12px",
-                      }}>
-                        <Users size={14} style={{ color: "#9CA3AF" }} />
-                        <select
-                          value={guests}
-                          onChange={(e) => setGuests(Number(e.target.value))}
-                          style={{ border: "none", outline: "none", fontSize: 13, color: "#374151", flex: 1, background: "transparent" }}
-                        >
-                          {[1, 2, 3, 4, 5, 6].map((n) => (
-                            <option key={n} value={n}>{n} {n === 1 ? "hóspede" : "hóspedes"}</option>
+                    <div style={{ marginBottom: 14 }}>
+                      <button
+                        data-testid="button-guests-picker"
+                        onClick={() => setGuestsExpanded(!guestsExpanded)}
+                        style={{
+                          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                          border: "1.5px solid #D1D5DB", borderRadius: guestsExpanded ? "12px 12px 0 0" : 12,
+                          padding: "10px 14px", background: "#fff", cursor: "pointer", transition: "border-radius 0.15s",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <Users size={15} style={{ color: "#6B7280" }} />
+                          <div>
+                            <div style={{ fontSize: 9, fontWeight: 800, color: "#374151", letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "left" }}>
+                              Hóspedes
+                            </div>
+                            <div style={{ fontSize: 13, color: "#1F2937", fontWeight: 500, textAlign: "left" }}>
+                              {adults} {adults === 1 ? "adulto" : "adultos"}
+                              {children > 0 && `, ${children} ${children === 1 ? "criança" : "crianças"}`}
+                              {babies > 0 && `, ${babies} ${babies === 1 ? "bebê" : "bebês"}`}
+                              {pets > 0 && `, ${pets} ${pets === 1 ? "animal" : "animais"}`}
+                            </div>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 18, color: "#6B7280", lineHeight: 1, transition: "transform 0.2s", display: "inline-block", transform: guestsExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>⌄</span>
+                      </button>
+
+                      {guestsExpanded && (
+                        <div style={{ border: "1.5px solid #D1D5DB", borderTop: "1px solid #E5E7EB", borderRadius: "0 0 12px 12px", padding: "4px 14px 12px", background: "#fff" }}>
+                          {([
+                            { label: "Adultos", subtitle: "13 anos ou mais", value: adults, setter: setAdults, min: 1, max: 8 },
+                            { label: "Crianças", subtitle: "2 – 12 anos", value: children, setter: setChildren, min: 0, max: 6 },
+                            { label: "Bebês", subtitle: "Menos de 2 anos", value: babies, setter: setBabies, min: 0, max: 4 },
+                            { label: "Animais", subtitle: "De estimação", value: pets, setter: setPets, min: 0, max: 2 },
+                          ] as { label: string; subtitle: string; value: number; setter: (n: number) => void; min: number; max: number }[]).map((row, i, arr) => (
+                            <div key={row.label} style={{
+                              display: "flex", alignItems: "center", justifyContent: "space-between",
+                              paddingTop: 12, paddingBottom: 12,
+                              borderBottom: i < arr.length - 1 ? "1px solid #F3F4F6" : "none",
+                            }}>
+                              <div>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: "#1F2937" }}>{row.label}</div>
+                                <div style={{ fontSize: 11, color: "#9CA3AF" }}>{row.subtitle}</div>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                                <button
+                                  data-testid={`button-dec-${row.label.toLowerCase()}`}
+                                  onClick={() => row.setter(Math.max(row.min, row.value - 1))}
+                                  disabled={row.value <= row.min}
+                                  style={{
+                                    width: 28, height: 28, borderRadius: "50%", border: "1.5px solid",
+                                    borderColor: row.value <= row.min ? "#E5E7EB" : "#9CA3AF",
+                                    background: "transparent", cursor: row.value <= row.min ? "default" : "pointer",
+                                    fontSize: 18, lineHeight: "26px", textAlign: "center",
+                                    color: row.value <= row.min ? "#D1D5DB" : "#374151",
+                                    transition: "all 0.15s", padding: 0,
+                                  }}
+                                >−</button>
+                                <span style={{ fontSize: 14, fontWeight: 600, color: "#1F2937", minWidth: 20, textAlign: "center" }}>{row.value}</span>
+                                <button
+                                  data-testid={`button-inc-${row.label.toLowerCase()}`}
+                                  onClick={() => row.setter(Math.min(row.max, row.value + 1))}
+                                  disabled={row.value >= row.max}
+                                  style={{
+                                    width: 28, height: 28, borderRadius: "50%", border: "1.5px solid",
+                                    borderColor: row.value >= row.max ? "#E5E7EB" : "#2563EB",
+                                    background: row.value >= row.max ? "transparent" : "#EFF6FF",
+                                    cursor: row.value >= row.max ? "default" : "pointer",
+                                    fontSize: 18, lineHeight: "26px", textAlign: "center",
+                                    color: row.value >= row.max ? "#D1D5DB" : "#2563EB",
+                                    transition: "all 0.15s", padding: 0,
+                                  }}
+                                >+</button>
+                              </div>
+                            </div>
                           ))}
-                        </select>
-                      </div>
+                          <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 8, marginBottom: 4 }}>
+                            Capacidade máxima: 8 hóspedes (sem contar bebês)
+                          </div>
+                          <button
+                            data-testid="button-close-guests"
+                            onClick={() => setGuestsExpanded(false)}
+                            style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                          >
+                            Fechar
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    <div style={{ marginBottom: 16 }}>
-                      <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 6 }}>
-                        Noites
-                      </label>
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        border: "1px solid #D1D5DB", borderRadius: 8, padding: "10px 12px",
-                      }}>
-                        <select
-                          value={nights}
-                          onChange={(e) => setNights(Number(e.target.value))}
-                          style={{ border: "none", outline: "none", fontSize: 13, color: "#374151", flex: 1, background: "transparent" }}
-                        >
-                          {[1, 2, 3, 4, 5, 7, 10, 14].map((n) => (
-                            <option key={n} value={n}>{n} {n === 1 ? "noite" : "noites"}</option>
-                          ))}
-                        </select>
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 8 }}>Tipo de tarifa</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {([
+                          {
+                            value: "non-refundable" as const,
+                            label: "Não reembolsável",
+                            price: hotel.price,
+                            desc: "Sem cancelamento gratuito",
+                          },
+                          {
+                            value: "refundable" as const,
+                            label: "Reembolsável",
+                            price: refundablePrice,
+                            desc: "Cancelamento grátis até 24h antes",
+                          },
+                        ]).map((opt) => (
+                          <label
+                            key={opt.value}
+                            data-testid={`radio-price-${opt.value}`}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
+                              border: `1.5px solid ${priceOption === opt.value ? "#2563EB" : "#E5E7EB"}`,
+                              borderRadius: 10, padding: "10px 12px",
+                              background: priceOption === opt.value ? "#EFF6FF" : "#fff",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name="priceOption"
+                              value={opt.value}
+                              checked={priceOption === opt.value}
+                              onChange={() => setPriceOption(opt.value)}
+                              style={{ accentColor: "#2563EB", width: 16, height: 16, cursor: "pointer" }}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "#1F2937" }}>{opt.label}</div>
+                              <div style={{ fontSize: 11, color: "#6B7280" }}>{opt.desc}</div>
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: priceOption === opt.value ? "#2563EB" : "#374151", textAlign: "right" }}>
+                              {formatPrice(opt.price)}<span style={{ fontSize: 10, fontWeight: 500, color: "#9CA3AF" }}>/noite</span>
+                            </div>
+                          </label>
+                        ))}
                       </div>
                     </div>
                   </>
@@ -569,7 +682,7 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                     <span style={{ fontSize: 13, color: "#6B7280" }}>Preço</span>
                     <div style={{ textAlign: "right" as const }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: "#1F2937" }}>
-                        {formatPrice(hotel.price)}
+                        {formatPrice(isPasseio || isDayUse ? hotel.price : activeHotelPrice)}
                       </span>
                       <span style={{ fontSize: 11, color: "#9CA3AF", display: "block" }}>
                         {isPasseio ? "p/ pessoa" : isDayUse ? "p/ pessoa · Day Use" : "por noite"}
@@ -586,13 +699,21 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                       </span>
                     </div>
                   )}
+                  {!isPasseio && !isDayUse && (
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, paddingTop: 8, borderTop: "1px solid #E5E7EB" }}>
+                      <span style={{ fontSize: 12, color: "#6B7280" }}>Cálculo</span>
+                      <span style={{ fontSize: 12, color: "#6B7280" }}>
+                        {formatPrice(activeHotelPrice)} × {computedNights} {computedNights === 1 ? "noite" : "noites"}
+                      </span>
+                    </div>
+                  )}
                   <div style={{
                     display: "flex", justifyContent: "space-between",
                     paddingTop: 8, borderTop: "1px solid #E5E7EB",
                   }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: "#1F2937" }}>Total</span>
                     <div style={{ textAlign: "right" as const }}>
-                      <span style={{ fontSize: 18, fontWeight: 800, color: "#22C55E" }}>
+                      <span data-testid="text-total-price" style={{ fontSize: 18, fontWeight: 800, color: "#22C55E" }}>
                         {formatPrice(totalPrice)}
                       </span>
                       <span style={{ fontSize: 11, color: "#9CA3AF", display: "block" }}>
@@ -600,10 +721,21 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                           ? `${tourPeople} ${tourPeople === 1 ? "pessoa" : "pessoas"} · ${TOUR_SCHEDULES.find((s) => s.value === tourTime)?.label || tourTime}`
                           : isDayUse
                             ? `${quantity} ${quantity === 1 ? "pessoa" : "pessoas"} · ${dayCount} ${dayCount === 1 ? "dia" : "dias"}`
-                            : `por ${nights} ${nights === 1 ? "noite" : "noites"}`}
+                            : `${totalGuests} ${totalGuests === 1 ? "hóspede" : "hóspedes"} · ${computedNights} ${computedNights === 1 ? "noite" : "noites"}`}
                       </span>
                     </div>
                   </div>
+                  {!isPasseio && !isDayUse && (
+                    <div style={{
+                      marginTop: 8, paddingTop: 8, borderTop: "1px solid #E5E7EB",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                    }}>
+                      <span style={{ fontSize: 11, color: "#6B7280" }}>Parcelamento</span>
+                      <span data-testid="text-installment" style={{ fontSize: 12, fontWeight: 700, color: "#2563EB" }}>
+                        6× {formatPrice(totalPrice / 6)} sem juros
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -624,8 +756,11 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                         "_blank",
                       )
                     } else {
+                      const ciText = checkIn ? checkIn.split("-").reverse().join("/") : "a definir"
+                      const coText = checkOut ? checkOut.split("-").reverse().join("/") : "a definir"
+                      const tarifa = priceOption === "refundable" ? "Reembolsável" : "Não Reembolsável"
                       window.open(
-                        `https://wa.me/5564993197555?text=Olá! Quero reservar o ${hotel.title} por ${nights} noites para ${guests} hóspedes. Total: ${formatPrice(totalPrice)}`,
+                        `https://wa.me/5564993197555?text=Olá! Quero reservar o ${hotel.title} de ${ciText} até ${coText} (${computedNights} noites) para ${totalGuests || adults} hóspede(s). Tarifa: ${tarifa}. Total: ${formatPrice(totalPrice)}`,
                         "_blank",
                       )
                     }
