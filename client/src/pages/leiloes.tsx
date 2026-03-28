@@ -176,10 +176,6 @@ export default function LeiloesPage() {
   useEffect(() => {
     const p = getTravelerProfile()
     setProfile(p)
-    if (!p) {
-      const timer = setTimeout(() => setShowProfileModal(true), 3000)
-      return () => clearTimeout(timer)
-    }
   }, [])
 
   useEffect(() => {

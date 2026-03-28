@@ -253,10 +253,6 @@ export default function AtracoesPage() {
   useEffect(() => {
     const saved = getTravelerProfile()
     setProfile(saved)
-    if (!saved) {
-      const timer = setTimeout(() => setShowProfileModal(true), 3000)
-      return () => clearTimeout(timer)
-    }
   }, [])
 
   useEffect(() => {
