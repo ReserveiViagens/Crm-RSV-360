@@ -328,20 +328,6 @@ export default function CaldasAiFloatingAgent() {
               <p style={{ fontSize: 13, color: "#1F2937", margin: 0, paddingRight: 16, lineHeight: 1.5 }}>
                 {balloon.message}
               </p>
-              <button
-                onClick={openWizard}
-                data-testid="balloon-open-wizard"
-                style={{
-                  marginTop: 10, display: "flex", alignItems: "center", gap: 6,
-                  background: "linear-gradient(135deg, #2563EB, #1e3a5f)",
-                  color: "#fff", border: "none", borderRadius: 8,
-                  padding: "7px 12px", fontSize: 12, fontWeight: 700,
-                  cursor: "pointer", width: "100%", justifyContent: "center",
-                }}
-              >
-                <Sparkles size={13} />
-                Abrir Caldas AI
-              </button>
               <div style={{
                 position: "absolute", bottom: -8, right: 28,
                 width: 0, height: 0,
