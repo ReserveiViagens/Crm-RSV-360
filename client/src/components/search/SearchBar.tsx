@@ -19,9 +19,10 @@ interface SearchBarProps {
   onTypeChange: (type: SearchItemType | "all") => void;
   onFiltersOpen: () => void;
   hasActiveFilters?: boolean;
+  hideTypeChips?: boolean;
 }
 
-export default function SearchBar({ value, activeType = "all", onSearch, onTypeChange, onFiltersOpen, hasActiveFilters }: SearchBarProps) {
+export default function SearchBar({ value, activeType = "all", onSearch, onTypeChange, onFiltersOpen, hasActiveFilters, hideTypeChips }: SearchBarProps) {
   const [inputValue, setInputValue] = useState(value);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -121,29 +122,31 @@ export default function SearchBar({ value, activeType = "all", onSearch, onTypeC
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingTop: 10, paddingBottom: 2, scrollbarWidth: "none" }}>
-        {TYPE_CHIPS.map((chip) => {
-          const isActive = activeType === chip.value;
-          return (
-            <button
-              key={chip.value}
-              data-testid={`chip-type-${chip.value}`}
-              onClick={() => onTypeChange(chip.value)}
-              style={{
-                padding: "6px 14px", borderRadius: 999, flexShrink: 0,
-                border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-                background: isActive ? "#2563EB" : "#F9FAFB",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                cursor: "pointer", transition: "all 0.15s",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {chip.label}
-            </button>
-          );
-        })}
-      </div>
+      {!hideTypeChips && (
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingTop: 10, paddingBottom: 2, scrollbarWidth: "none" }}>
+          {TYPE_CHIPS.map((chip) => {
+            const isActive = activeType === chip.value;
+            return (
+              <button
+                key={chip.value}
+                data-testid={`chip-type-${chip.value}`}
+                onClick={() => onTypeChange(chip.value)}
+                style={{
+                  padding: "6px 14px", borderRadius: 999, flexShrink: 0,
+                  border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
+                  background: isActive ? "#2563EB" : "#F9FAFB",
+                  color: isActive ? "#fff" : "#6B7280",
+                  fontSize: 13, fontWeight: isActive ? 700 : 500,
+                  cursor: "pointer", transition: "all 0.15s",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {showSuggestions && suggestions && (
         <SearchSuggestions

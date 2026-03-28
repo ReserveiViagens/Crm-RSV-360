@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigation, Building, Trees, ChevronRight, ChevronLeft, Shield, Wifi, Coffee, Car, Waves, Heart, Lock, Tag, LayoutGrid, Wallet, Info, ChevronDown, ChevronUp } from "lucide-react"
-import { Link, useSearch } from "wouter";
+import { Link, useSearch, useLocation } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
-import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { HotelCategoryNav, type HotelCategory } from "@/components/hotel/HotelCategoryNav"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -742,8 +742,49 @@ function getMatchReasons(profile: TravelerProfile | null, hotel: Hotel): string[
   return reasons.slice(0, 3)
 }
 
+const TYPE_NAV_ITEMS: HotelCategory[] = [
+  {
+    label: "Parques",
+    value: "__nav_parques",
+    icon: Trees,
+    filterUpdate: {},
+    href: "/parques",
+  },
+  {
+    label: "Hotéis",
+    value: "__nav_hoteis",
+    icon: Building,
+    filterUpdate: {},
+    forceActive: true,
+  },
+  {
+    label: "Destinos",
+    value: "__nav_destinos",
+    icon: Navigation,
+    filterUpdate: {},
+    href: "/destinos",
+  },
+  {
+    label: "Combos",
+    value: "__nav_combos",
+    icon: Sparkles,
+    filterUpdate: {},
+    href: "/combos",
+    badge: "NOVO",
+    badgeColor: "orange",
+  },
+]
+
+const DIVIDER_ITEM: HotelCategory = {
+  label: "__divider",
+  value: "__divider",
+  filterUpdate: {},
+  isDivider: true,
+}
+
 export default function HoteisPage() {
   const search = useSearch()
+  const [, navigate] = useLocation()
   const [selectedHotel, setSelectedHotel] = useState<HotelDetailData | null>(null)
   const [activeFilter, setActiveFilter] = useState("Todos")
 
@@ -1472,6 +1513,7 @@ export default function HoteisPage() {
           onTypeChange={() => {}}
           onFiltersOpen={() => {}}
           hasActiveFilters={hasAnySearchFilter}
+          hideTypeChips={true}
         />
       </div>
       <div
@@ -1479,11 +1521,11 @@ export default function HoteisPage() {
         data-testid="filter-bar-hoteis"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
-          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
-          position: "sticky", top: 118, zIndex: 30,
+          padding: "8px 16px", display: "flex", gap: 8, alignItems: "stretch",
+          position: "sticky", top: 84, zIndex: 30,
         }}
       >
-        <div className="rsv-catalog-desktop-only">
+        <div className="rsv-catalog-desktop-only" style={{ display: "flex", alignItems: "center" }}>
           <FilterPopover
             filters={searchFilters}
             facets={searchData?.facets}
@@ -1505,9 +1547,13 @@ export default function HoteisPage() {
           ⚙ Filtros
         </button>
         <HotelCategoryNav
-          categories={dynamicFilters}
+          categories={[...TYPE_NAV_ITEMS, DIVIDER_ITEM, ...dynamicFilters]}
           activeFilter={activeFilter}
           onSelect={(f) => {
+            if (f.href) {
+              navigate(f.href)
+              return
+            }
             setActiveFilter(f.value)
             setSearchFilters({ ...searchFilters, type: "hotel", ...f.filterUpdate })
           }}

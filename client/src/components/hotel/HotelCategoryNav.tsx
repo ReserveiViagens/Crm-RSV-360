@@ -1,12 +1,16 @@
-import { useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import type { SearchFilters } from "@/types/search"
 
 export interface HotelCategory {
   label: string
   value: string
-  icon: LucideIcon
+  icon?: LucideIcon
   filterUpdate: Partial<SearchFilters>
+  badge?: string
+  badgeColor?: "orange" | "blue"
+  href?: string
+  forceActive?: boolean
+  isDivider?: boolean
 }
 
 interface HotelCategoryNavProps {
@@ -16,6 +20,9 @@ interface HotelCategoryNavProps {
 }
 
 function getAnimClass(value: string, label: string): string {
+  if (value.startsWith("__nav_parques")) return "rsv-cat-wave"
+  if (value.startsWith("__nav_destinos")) return "rsv-cat-float"
+  if (value.startsWith("__nav_combos")) return "rsv-cat-star"
   if (label === "Casal") return "rsv-cat-heartbeat"
   if (label === "Família") return "rsv-cat-bounce"
   if (label === "Resort") return "rsv-cat-wave"
@@ -26,11 +33,7 @@ function getAnimClass(value: string, label: string): string {
 }
 
 export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCategoryNavProps) {
-  const [popping, setPopping] = useState<string | null>(null)
-
   function handleClick(cat: HotelCategory) {
-    setPopping(cat.value)
-    setTimeout(() => setPopping(null), 350)
     onSelect(cat)
   }
 
@@ -86,13 +89,13 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
           flex-direction: column;
           align-items: center;
           gap: 6px;
-          padding: 10px 16px 8px;
+          padding: 10px 14px 8px;
           background: transparent;
           border: none;
           cursor: pointer;
           flex-shrink: 0;
           position: relative;
-          min-width: 72px;
+          min-width: 68px;
           transition: opacity 0.15s;
         }
         .rsv-hotel-cat-btn:active { opacity: 0.75; }
@@ -107,6 +110,7 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
           transition: color 0.2s, background 0.2s, transform 0.15s;
           color: #9CA3AF;
           background: #F3F4F6;
+          position: relative;
         }
         .rsv-hotel-cat-btn--active .rsv-hotel-cat-icon {
           color: #2563EB;
@@ -121,9 +125,6 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
           transform: translateY(-2px);
         }
 
-        .rsv-hotel-cat-icon.rsv-cat-popping {
-          animation: rsv-pop-click 0.32s ease-out !important;
-        }
         .rsv-hotel-cat-btn:hover .rsv-hotel-cat-icon.rsv-cat-float {
           animation: rsv-float 0.9s ease-in-out infinite;
         }
@@ -174,42 +175,88 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
         .rsv-hotel-cat-btn--active .rsv-hotel-cat-underline {
           width: 100%;
         }
+
+        .rsv-hotel-cat-badge {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          font-size: 9px;
+          font-weight: 800;
+          line-height: 1;
+          padding: 2px 5px;
+          border-radius: 999px;
+          white-space: nowrap;
+          letter-spacing: 0.04em;
+          border: 1.5px solid #fff;
+          pointer-events: none;
+        }
+        .rsv-hotel-cat-badge--orange {
+          background: #F97316;
+          color: #fff;
+        }
+        .rsv-hotel-cat-badge--blue {
+          background: #2563EB;
+          color: #fff;
+        }
+
+        .rsv-hotel-cat-divider {
+          width: 1px;
+          background: #E5E7EB;
+          align-self: stretch;
+          margin: 8px 4px;
+          flex-shrink: 0;
+        }
       `}</style>
 
       <div
         style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 0,
           overflowX: "auto",
           scrollbarWidth: "none",
           flex: 1,
           minWidth: 0,
         }}
       >
-        {categories.map((cat) => {
-          const Icon = cat.icon
-          const isActive = activeFilter === cat.value
-          const isPopping = popping === cat.value
-          const animClass = getAnimClass(cat.value, cat.label)
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            minWidth: "min-content",
+          }}
+        >
+          {categories.map((cat, idx) => {
+            if (cat.isDivider) {
+              return <div key={`divider-${idx}`} className="rsv-hotel-cat-divider" />
+            }
 
-          return (
-            <button
-              key={cat.value}
-              data-testid={`button-filter-${cat.value}`}
-              className={`rsv-hotel-cat-btn${isActive ? " rsv-hotel-cat-btn--active" : ""}`}
-              onClick={() => handleClick(cat)}
-            >
-              <div
-                className={`rsv-hotel-cat-icon ${animClass}${isPopping ? " rsv-cat-popping" : ""}`}
+            const Icon = cat.icon!
+            const isActive = cat.forceActive || activeFilter === cat.value
+            const animClass = getAnimClass(cat.value, cat.label)
+            const badgeColorClass = cat.badgeColor === "blue"
+              ? "rsv-hotel-cat-badge--blue"
+              : "rsv-hotel-cat-badge--orange"
+
+            return (
+              <button
+                key={cat.value}
+                data-testid={`button-filter-${cat.value}`}
+                className={`rsv-hotel-cat-btn${isActive ? " rsv-hotel-cat-btn--active" : ""}`}
+                onClick={() => handleClick(cat)}
               >
-                <Icon size={28} strokeWidth={isActive ? 2.2 : 1.8} />
-              </div>
-              <span className="rsv-hotel-cat-label">{cat.label}</span>
-              <div className="rsv-hotel-cat-underline" />
-            </button>
-          )
-        })}
+                <div className={`rsv-hotel-cat-icon ${animClass}`}>
+                  <Icon size={28} strokeWidth={isActive ? 2.2 : 1.8} />
+                  {cat.badge && (
+                    <span className={`rsv-hotel-cat-badge ${badgeColorClass}`}>
+                      {cat.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="rsv-hotel-cat-label">{cat.label}</span>
+                <div className="rsv-hotel-cat-underline" />
+              </button>
+            )
+          })}
+        </div>
       </div>
     </>
   )
