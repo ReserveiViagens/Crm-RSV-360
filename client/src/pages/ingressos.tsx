@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
+import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star } from "lucide-react"
 import { useLocation } from "wouter";
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
@@ -592,23 +592,18 @@ export default function IngressosPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const FILTERS = [
-  { label: "Todos",         value: "Todos",          icon: LayoutGrid },
-  { label: "Dia Inteiro",   value: "Dia Inteiro",    icon: Sun },
-  { label: "Meio Dia",      value: "Meio Dia",       icon: Clock },
-  { label: "Mais Popular",  value: "Mais Popular",   icon: Flame },
-  { label: "Maior Desconto",value: "Maior Desconto", icon: Tag },
-]
   const FAMILY_TAGS = ["família", "familia", "kids", "infantil"]
 
   const filteredTickets = useMemo(() => {
     let base = (() => {
       switch (activeFilter) {
-        case "Dia Inteiro": return tickets.filter((t) => t.duration === "Dia inteiro")
-        case "Meio Dia": return tickets.filter((t) => t.duration === "Meio dia")
-        case "Mais Popular": return [...tickets].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
-        case "Maior Desconto": return [...tickets].sort((a, b) => (b.discount || 0) - (a.discount || 0))
-        default: return tickets
+        case "Parques":    return tickets.filter((t) => t.category === "parques")
+        case "Natureza":   return tickets.filter((t) => t.category === "natureza")
+        case "Transporte": return tickets.filter((t) => t.categorySection === "transporte")
+        case "Combos":     return tickets.filter((t) => t.categorySection === "combos")
+        case "Cabanas":    return tickets.filter((t) => t.categorySection === "cabanas")
+        case "Especiais":  return tickets.filter((t) => t.categorySection === "especiais")
+        default:           return tickets
       }
     })()
 
@@ -824,11 +819,13 @@ export default function IngressosPage() {
         categories={[
           ...buildSectionTypeNav("ingressos"),
           CATALOG_DIVIDER,
-          { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
-          { label: "Dia Inteiro", value: "Dia Inteiro", icon: Sun, filterUpdate: {}, testId: "button-filter-dia-inteiro" },
-          { label: "Meio Dia", value: "Meio Dia", icon: Clock, filterUpdate: {}, testId: "button-filter-meio-dia" },
-          { label: "Mais Popular", value: "Mais Popular", icon: Flame, filterUpdate: {}, testId: "button-filter-mais-popular" },
-          { label: "Maior Desconto", value: "Maior Desconto", icon: Tag, filterUpdate: {}, testId: "button-filter-maior-desconto" },
+          { label: "Todos",      value: "Todos",      icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
+          { label: "Parques",    value: "Parques",    icon: Trees,      filterUpdate: {}, testId: "button-filter-parques" },
+          { label: "Natureza",   value: "Natureza",   icon: Leaf,       filterUpdate: {}, testId: "button-filter-natureza" },
+          { label: "Transporte", value: "Transporte", icon: Bus,        filterUpdate: {}, testId: "button-filter-transporte" },
+          { label: "Combos",     value: "Combos",     icon: Sparkles,   filterUpdate: {}, testId: "button-filter-combos" },
+          { label: "Cabanas",    value: "Cabanas",    icon: Home,       filterUpdate: {}, testId: "button-filter-cabanas" },
+          { label: "Especiais",  value: "Especiais",  icon: Star,       filterUpdate: {}, testId: "button-filter-especiais" },
         ]}
         activeFilter={activeFilter}
         onSelect={(f) => {

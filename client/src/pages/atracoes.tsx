@@ -842,13 +842,13 @@ export default function AtracoesPage() {
           categories={[
             ...buildSectionTypeNav("atracoes"),
             CATALOG_DIVIDER,
-            { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-mood-todos" },
-            { label: "Relaxamento", value: "Relaxamento", icon: Waves, filterUpdate: {}, testId: "button-mood-relaxamento" },
-            { label: "Aventura", value: "Aventura", icon: Mountain, filterUpdate: {}, testId: "button-mood-aventura" },
-            { label: "Família", value: "Família", icon: Baby, filterUpdate: {}, testId: "button-mood-familia" },
-            { label: "Romântico", value: "Romântico", icon: HeartHandshake, filterUpdate: {}, testId: "button-mood-romantico" },
-            { label: "Cultura", value: "Cultura", icon: Landmark, filterUpdate: {}, testId: "button-mood-cultura" },
-            { label: "Natureza", value: "Natureza", icon: TreePine, filterUpdate: {}, testId: "button-mood-natureza" },
+            { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
+            { label: "Relaxamento", value: "Relaxamento", icon: Waves, filterUpdate: {}, testId: "button-filter-relaxamento" },
+            { label: "Aventura", value: "Aventura", icon: Mountain, filterUpdate: {}, testId: "button-filter-aventura" },
+            { label: "Família", value: "Família", icon: Baby, filterUpdate: {}, testId: "button-filter-familia" },
+            { label: "Romântico", value: "Romântico", icon: HeartHandshake, filterUpdate: {}, testId: "button-filter-romantico" },
+            { label: "Cultura", value: "Cultura", icon: Landmark, filterUpdate: {}, testId: "button-filter-cultura" },
+            { label: "Natureza", value: "Natureza", icon: TreePine, filterUpdate: {}, testId: "button-filter-natureza" },
           ]}
           activeFilter={activeMood}
           onSelect={(f) => {

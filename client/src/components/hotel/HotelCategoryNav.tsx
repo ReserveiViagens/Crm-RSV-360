@@ -22,8 +22,12 @@ interface HotelCategoryNavProps {
 
 function getAnimClass(value: string, label: string): string {
   if (value.startsWith("__nav_parques")) return "rsv-cat-wave"
-  if (value.startsWith("__nav_destinos")) return "rsv-cat-float"
+  if (value.startsWith("__nav_hoteis")) return "rsv-cat-float"
+  if (value.startsWith("__nav_ingressos")) return "rsv-cat-bounce"
+  if (value.startsWith("__nav_excursoes")) return "rsv-cat-slide"
+  if (value.startsWith("__nav_atracoes")) return "rsv-cat-star"
   if (value.startsWith("__nav_combos")) return "rsv-cat-star"
+  if (value.startsWith("__nav_destinos")) return "rsv-cat-float"
   if (label === "Casal") return "rsv-cat-heartbeat"
   if (label === "Família") return "rsv-cat-bounce"
   if (label === "Resort") return "rsv-cat-wave"

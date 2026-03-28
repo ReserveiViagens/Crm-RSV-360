@@ -131,7 +131,7 @@ export default function SearchPage() {
         <div style={{ borderTop: "1px solid #F3F4F6" }}>
           <HotelCategoryNav
             categories={buildSectionTypeNav("busca")}
-            activeFilter=""
+            activeFilter={activeType}
             onSelect={(f) => { if (f.href) navigate(f.href) }}
           />
         </div>

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { Zap, Clock, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingDown, TrendingUp, Check, AlertTriangle, LayoutGrid, Wallet } from "lucide-react"
 import { useLocation } from "wouter"
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
-import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -481,8 +480,6 @@ export default function FlashDealsPage() {
       }}>
         <HotelCategoryNav
           categories={[
-            ...buildSectionTypeNav("flash-deals"),
-            CATALOG_DIVIDER,
             { label: "Todas", value: "Todas", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todas" },
             { label: "Maior Desconto", value: "Maior Desconto", icon: TrendingDown, filterUpdate: {}, testId: "button-filter-maior-desconto" },
             { label: "Acabando", value: "Acabando", icon: Clock, badge: "🔥", filterUpdate: {}, testId: "button-filter-acabando" },

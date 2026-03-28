@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useSearch, useLocation } from "wouter"
 import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer, LayoutGrid } from "lucide-react"
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
-import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -724,8 +723,6 @@ export default function PromocoesPage() {
       >
         <HotelCategoryNav
           categories={[
-            ...buildSectionTypeNav("promocoes"),
-            CATALOG_DIVIDER,
             { label: "Todas", value: "Todas", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todas" },
             { label: "Hotel", value: "Hotel", icon: Hotel, filterUpdate: {}, testId: "button-filter-hotel" },
             { label: "Parque", value: "Parque", icon: Waves, filterUpdate: {}, testId: "button-filter-parque" },
