@@ -4,10 +4,9 @@
  */
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { Menu, X, Phone, ChevronDown } from 'lucide-react';
+import { Menu, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const WA_URL = 'https://wa.me/5564993197555?text=Olá! Quero informações sobre ingressos para os parques.';
+import { openCaldasAiWizard } from '@/components/caldas-ai-floating-agent';
 
 const NAV_LINKS = [
   { label: 'Ingressos', href: '/ingressos' },
@@ -95,15 +94,15 @@ export function PublicHeader({ variant = 'light', className }: PublicHeaderProps
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
-              <a
-                href={WA_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+              <button
+                onClick={openCaldasAiWizard}
+                data-testid="header-btn-caldas-ai"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition-colors"
+                style={{ background: "linear-gradient(135deg, #2563EB, #1e3a5f)" }}
               >
-                <Phone size={16} />
-                WhatsApp
-              </a>
+                <Sparkles size={16} />
+                Caldas AI
+              </button>
               <Link href="/ingressos">
                 <button className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                   Ver Ingressos
@@ -136,15 +135,15 @@ export function PublicHeader({ variant = 'light', className }: PublicHeaderProps
                 </Link>
               ))}
               <div className="pt-4 space-y-3">
-                <a
-                  href={WA_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg bg-green-500 text-white font-semibold"
+                <button
+                  onClick={() => { setMenuOpen(false); openCaldasAiWizard() }}
+                  data-testid="header-btn-caldas-ai-mobile"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg text-white font-semibold"
+                  style={{ background: "linear-gradient(135deg, #2563EB, #1e3a5f)" }}
                 >
-                  <Phone size={18} />
-                  Falar no WhatsApp
-                </a>
+                  <Sparkles size={18} />
+                  Caldas AI
+                </button>
                 <Link href="/ingressos">
                   <button className="w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold">
                     Ver Ingressos

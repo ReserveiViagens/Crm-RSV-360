@@ -1,11 +1,16 @@
 import { useState } from "react"
-import { Link } from "wouter"
-import { Menu, X, Phone } from "lucide-react"
+import { Link, useLocation } from "wouter"
+import { Menu, X, Sparkles, Phone } from "lucide-react"
+import { openCaldasAiWizard } from "@/components/caldas-ai-floating-agent"
 
 const WA_URL = "https://wa.me/5564993197555?text=Olá! Quero informações sobre ingressos para os parques."
 
+const CALDAS_AI_EXCLUDED = ["/ingressos/checkout", "/ingressos/sucesso"]
+
 export function HomeHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [location] = useLocation()
+  const showCaldasAi = !CALDAS_AI_EXCLUDED.some(r => location.startsWith(r))
 
   return (
     <>
@@ -67,37 +72,72 @@ export function HomeHeader() {
           </nav>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <a
-              href={WA_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="header-btn-whatsapp"
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "8px 14px", borderRadius: 8,
-                background: "#25D366", color: "#fff",
-                fontWeight: 700, fontSize: 13, textDecoration: "none",
-                border: "none", cursor: "pointer",
-              }}
-              className="hidden-mobile"
-            >
-              <Phone style={{ width: 14, height: 14 }} />
-              WhatsApp
-            </a>
-            <a
-              href={WA_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="header-btn-whatsapp-mobile"
-              style={{
-                display: "none", alignItems: "center", justifyContent: "center",
-                width: 36, height: 36, borderRadius: 8,
-                background: "#25D366", textDecoration: "none", flexShrink: 0,
-              }}
-              className="show-mobile"
-            >
-              <Phone style={{ width: 16, height: 16, color: "#fff" }} />
-            </a>
+            {showCaldasAi ? (
+              <>
+                <button
+                  onClick={openCaldasAiWizard}
+                  data-testid="header-btn-caldas-ai"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 8,
+                    background: "linear-gradient(135deg, #2563EB, #1e3a5f)", color: "#fff",
+                    fontWeight: 700, fontSize: 13,
+                    border: "none", cursor: "pointer",
+                  }}
+                  className="hidden-mobile"
+                >
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  Caldas AI
+                </button>
+                <button
+                  onClick={openCaldasAiWizard}
+                  data-testid="header-btn-caldas-ai-mobile"
+                  style={{
+                    display: "none", alignItems: "center", justifyContent: "center",
+                    width: 36, height: 36, borderRadius: 8,
+                    background: "linear-gradient(135deg, #2563EB, #1e3a5f)", flexShrink: 0,
+                    border: "none", cursor: "pointer",
+                  }}
+                  className="show-mobile"
+                >
+                  <Sparkles style={{ width: 16, height: 16, color: "#fff" }} />
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  href={WA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="header-btn-whatsapp"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 8,
+                    background: "#25D366", color: "#fff",
+                    fontWeight: 700, fontSize: 13, textDecoration: "none",
+                    border: "none", cursor: "pointer",
+                  }}
+                  className="hidden-mobile"
+                >
+                  <Phone style={{ width: 14, height: 14 }} />
+                  WhatsApp
+                </a>
+                <a
+                  href={WA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="header-btn-whatsapp-mobile"
+                  style={{
+                    display: "none", alignItems: "center", justifyContent: "center",
+                    width: 36, height: 36, borderRadius: 8,
+                    background: "#25D366", textDecoration: "none", flexShrink: 0,
+                  }}
+                  className="show-mobile"
+                >
+                  <Phone style={{ width: 16, height: 16, color: "#fff" }} />
+                </a>
+              </>
+            )}
             <Link href="/ingressos" className="hidden-mobile">
               <button
                 data-testid="header-btn-ingressos"
@@ -153,20 +193,37 @@ export function HomeHeader() {
                 {link.label}
               </a>
             ))}
-            <a
-              href={WA_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                padding: "12px 16px", borderRadius: 10,
-                background: "#25D366", color: "#fff",
-                fontWeight: 700, fontSize: 15, textDecoration: "none",
-              }}
-            >
-              <Phone style={{ width: 16, height: 16 }} />
-              Falar no WhatsApp
-            </a>
+            {showCaldasAi ? (
+              <button
+                onClick={() => { setMenuOpen(false); openCaldasAiWizard() }}
+                data-testid="header-btn-caldas-ai-menu"
+                style={{
+                  marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  padding: "12px 16px", borderRadius: 10,
+                  background: "linear-gradient(135deg, #2563EB, #1e3a5f)", color: "#fff",
+                  fontWeight: 700, fontSize: 15,
+                  border: "none", cursor: "pointer", width: "100%",
+                }}
+              >
+                <Sparkles style={{ width: 16, height: 16 }} />
+                Caldas AI
+              </button>
+            ) : (
+              <a
+                href={WA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  padding: "12px 16px", borderRadius: 10,
+                  background: "#25D366", color: "#fff",
+                  fontWeight: 700, fontSize: 15, textDecoration: "none",
+                }}
+              >
+                <Phone style={{ width: 16, height: 16 }} />
+                Falar no WhatsApp
+              </a>
+            )}
           </div>
         )}
       </header>

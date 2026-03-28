@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -37,6 +37,7 @@ import ContratosExcursao from "@/pages/admin/contratos";
 import FrotaANTT from "@/pages/admin/frota-antt";
 import Excursoes from "@/pages/excursoes";
 import CircularNav from "@/components/circular-nav";
+import CaldasAiFloatingAgent from "@/components/caldas-ai-floating-agent";
 import KYCVerificacao from "@/pages/kyc-verificacao";
 import WaaSDashboard from "@/pages/admin/waas-dashboard";
 import GamificationDashboard from "@/pages/organizer/gamification-dashboard";
@@ -145,13 +146,37 @@ function Router() {
   );
 }
 
+const CALDAS_AI_EXCLUDED_ROUTES = [
+  "/admin",
+  "/dashboard",
+  "/ingressos/checkout",
+  "/ingressos/sucesso",
+  "/waas",
+  "/live-chat",
+  "/super-financeiro",
+  "/organizer",
+  "/metas",
+]
+
+function AppContent() {
+  const [location] = useLocation()
+  const showCaldasAi = !CALDAS_AI_EXCLUDED_ROUTES.some(r => location.startsWith(r))
+
+  return (
+    <>
+      <Router />
+      <CircularNav />
+      {showCaldasAi && <CaldasAiFloatingAgent />}
+    </>
+  )
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
-        <CircularNav />
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );
