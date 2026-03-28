@@ -136,11 +136,13 @@ const getProfileResponse = (profile: string, userMsg: string, unresolvedTurns: n
   }
 }
 
-const INTRO_MESSAGE: Message = {
-  id: 0,
-  text: "Olá! 👋 Para te ajudar a encontrar a melhor opção em Caldas Novas, me conta: qual é o tipo da sua viagem?",
-  sender: "bot",
-  type: "profile-selection",
+function makeIntroMessage(): Message {
+  return {
+    id: Date.now(),
+    text: "Olá! 👋 Para te ajudar a encontrar a melhor opção em Caldas Novas, me conta: qual é o tipo da sua viagem?",
+    sender: "bot",
+    type: "profile-selection",
+  }
 }
 
 let globalOpenWizard: (() => void) | null = null
@@ -161,7 +163,7 @@ export default function CaldasAiFloatingAgent() {
   const openWizard = useCallback(() => {
     setIsOpen(true)
     setProfile(null)
-    setMessages([INTRO_MESSAGE])
+    setMessages([makeIntroMessage()])
     setInputValue("")
     unresolvedTurnsRef.current = 0
   }, [])
@@ -468,13 +470,14 @@ export default function CaldasAiFloatingAgent() {
         )}
       </AnimatePresence>
 
+      {!isOpen && (
       <motion.button
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         onClick={openWizard}
         data-testid="caldas-ai-floating-btn"
         style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 998,
+          position: "fixed", bottom: 20, right: 20, zIndex: 997,
           width: 60, height: 60, borderRadius: "50%",
           background: "linear-gradient(135deg, #2563EB 0%, #1e3a5f 100%)",
           border: "2.5px solid rgba(255,255,255,0.3)",
@@ -487,6 +490,7 @@ export default function CaldasAiFloatingAgent() {
         <Sparkles size={20} />
         <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.5, lineHeight: 1 }}>AI</span>
       </motion.button>
+      )}
     </>
   )
 }
