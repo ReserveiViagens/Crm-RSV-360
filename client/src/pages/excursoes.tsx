@@ -25,10 +25,10 @@ const WA_URL = "https://wa.me/5564993197555?text=Olá! Quero informações sobre
 
 const PERFIS = [
   { id: "todos",     label: "Todos",     icon: LayoutGrid, desc: "Todas as excursões"      },
-  { id: "família",   label: "Família",   icon: Users,      desc: "Crianças bem-vindas"     },
+  { id: "familia",   label: "Família",   icon: Users,      desc: "Crianças bem-vindas"     },
   { id: "aventura",  label: "Aventura",  icon: Zap,        desc: "Radical & adrenalina"    },
   { id: "luxo",      label: "Luxo",      icon: Star,       desc: "Resort 5★ & all-inclusive"},
-  { id: "econômico", label: "Econômico", icon: Wallet,     desc: "A partir de R$ 290"      },
+  { id: "economico", label: "Econômico", icon: Wallet,     desc: "A partir de R$ 290"      },
   { id: "grupo",     label: "Grupo",     icon: Users,      desc: "Grupos e corporativos"   },
 ]
 
@@ -213,10 +213,10 @@ export default function Excursoes() {
           ...buildSectionTypeNav("excursoes"),
           CATALOG_DIVIDER,
           { label: "Todos",     value: "todos",     icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-Todos" },
-          { label: "Família",   value: "família",   icon: Users,      filterUpdate: {}, testId: "button-filter-Familia" },
+          { label: "Família",   value: "familia",   icon: Users,      filterUpdate: {}, testId: "button-filter-Familia" },
           { label: "Aventura",  value: "aventura",  icon: Zap,        filterUpdate: {}, testId: "button-filter-Aventura" },
           { label: "Luxo",      value: "luxo",      icon: Star,       filterUpdate: {}, testId: "button-filter-Luxo" },
-          { label: "Econômico", value: "econômico", icon: Wallet,     filterUpdate: {}, testId: "button-filter-Economico" },
+          { label: "Econômico", value: "economico", icon: Wallet,     filterUpdate: {}, testId: "button-filter-Economico" },
           { label: "Grupo",     value: "grupo",     icon: Users,      filterUpdate: {}, testId: "button-filter-Grupo" },
         ]}
         activeFilter={perfil ?? "todos"}
