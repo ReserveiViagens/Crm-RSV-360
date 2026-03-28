@@ -2,9 +2,33 @@
 
 Leia nesta ordem antes de alterar qualquer coisa neste projeto:
 
-1. `docs/implantacao/01-STATUS-GERAL.md` — qual fase está ativa agora
-2. `docs/implantacao/02-HANDOFF-ATUAL.md` — onde parou, o que falta, próximo passo exato
-3. `docs/implantacao/fases/FASE-XX-*.md` — checklist detalhado da fase em execução
+1. `AGENTS.md` (este arquivo)
+2. `PROJECT_STATE.md` — estado atual, invariantes, checklist de entrada
+3. `docs/implantacao/README.md` — visão geral da documentação operacional
+4. `docs/implantacao/01-STATUS-GERAL.md` — qual fase está ativa agora
+5. `docs/implantacao/CHECKPOINT-ATUAL.md` — onde parou na última rodada
+6. `docs/implantacao/02-HANDOFF-ATUAL.md` — o que falta, próximo passo exato
+7. `docs/implantacao/00-PLANO-MESTRE.md` — plano geral de fases
+8. `docs/implantacao/03-CHANGELOG-IMPLEMENTACAO.md` — histórico de mudanças
+9. `docs/implantacao/fases/` — checklist detalhado da fase em execução
+10. Código real do repositório
+
+---
+
+## REGRA DE CONTINUIDADE ENTRE RODADAS
+
+Sempre que uma rodada for concluída e uma nova tarefa for iniciada, você deve:
+
+1. Reler os arquivos operacionais do repositório na ordem acima
+2. Validar no código o que realmente foi concluído
+3. Reutilizar o contexto já documentado, sem reiniciar o projeto do zero
+4. Incorporar novas tarefas ao plano atual, à fase atual ou a uma nova fase documentada
+5. Atualizar `CHECKPOINT-ATUAL.md`, `01-STATUS-GERAL.md`, `02-HANDOFF-ATUAL.md`, a fase correspondente e o changelog quando aplicável
+6. Continuar sempre do último passo realmente concluído e validado no código
+
+**Nunca ignore o histórico operacional existente.**  
+**Nunca trate novas tarefas como um contexto isolado se elas pertencem ao mesmo projeto.**  
+Em caso de dúvida entre reiniciar ou reutilizar contexto, reutilize o contexto documentado e audite o código.
 
 ---
 
@@ -44,7 +68,7 @@ Exemplos:
 - `feat(fase-03): implementa CartStickyBar e conclui catálogo /ingressos`
 - `fix(fase-04): corrige trigger do ComboIA após dismiss`
 - `docs(handoff): atualiza status da Fase 3 e próximo passo`
-- `docs(implantacao): adiciona plano mestre, status geral e handoff atual`
+- `fix(ux): remove auto-open do TravelerProfileModal em páginas catálogo`
 
 ---
 
@@ -81,3 +105,17 @@ Exemplos:
 - `server/services/ticket-payment.service.ts` — Pix de ingresso (sem split)
 - `shared/schema.ts` — tipos compartilhados
 - `client/src/components/shells/index.tsx` — 5 shells + componentes base
+- `client/src/components/caldas-ai-floating-agent.tsx` — chat abre direto, sem Step 1
+- `client/src/components/ai-conversion-elements.tsx` — TravelerProfileModal só por clique explícito
+
+---
+
+## Saída obrigatória antes de codar (nova rodada)
+
+Informar:
+- fase atual real
+- subfase atual real
+- último passo realmente concluído
+- itens marcados como concluídos mas ainda parciais
+- pendências imediatas
+- próximo passo exato

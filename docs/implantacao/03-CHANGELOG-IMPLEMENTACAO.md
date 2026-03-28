@@ -217,3 +217,88 @@ _(nada — fase 07 completa)_
 - [x] smoke OK
 - [x] checklist manual OK
 ```
+
+---
+
+## 2026-03-28 — Tasks #4–#7: UX Filtros + HotelNav + UnifiedCatalogNav
+
+**Responsável:** Replit Agent
+
+### Task #4 — Filtros: painel flutuante substitui sidebar lateral
+**Entregáveis:**
+- `client/src/components/FilterDrawer.tsx` — painel flutuante com backdrop blur
+- Sidebar lateral removida das páginas de catálogo
+
+### Task #5 — Hotéis: HotelCategoryNav + painel Airbnb-style
+**Entregáveis:**
+- `client/src/components/hotel/HotelCategoryNav.tsx` — chips animados horizontais (flex-start)
+- Painel de reserva estilo Airbnb em `hoteis.tsx`
+
+### Task #6 — UnifiedCatalogNav: barra de navegação unificada
+**Entregáveis:**
+- `client/src/components/UnifiedCatalogNav.tsx` — tipos (ícones animados) + categorias (badges NOVO)
+- Chips com scroll horizontal, indicador ativo animado
+
+### Task #7 — Padronização da nav unificada em todas as páginas-catálogo
+**Páginas atualizadas:**
+- ingressos, hoteis, atracoes, leiloes, flash-deals, promocoes, excursoes
+
+---
+
+## 2026-03-28 — Task #8: CaldasAiFloatingAgent
+
+**Responsável:** Replit Agent
+
+### Objetivo
+Agente flutuante inteligente com botão Caldas AI e chat integrado.
+
+### Entregáveis
+- `client/src/components/caldas-ai-floating-agent.tsx` — botão flutuante + chat em overlay
+- `openCaldasAiWizard()` exportado para uso nos headers
+- Botão oculto quando chat está aberto
+
+---
+
+## 2026-03-28 — Tasks #9 e #10: UI Quick-Fixes + Caldas AI sem Step 1
+
+**Responsável:** Replit Agent
+
+### Task #9 — UI Quick-Fixes
+**Entregáveis:**
+- Balloon CTA "Abrir Caldas AI" removido
+- `HotelCategoryNav.tsx` chips: `justifyContent: flex-start`
+- `client/src/components/home/MobileCTABar.tsx` → retorna null
+
+### Task #10 — Caldas AI sem Step 1 separado
+**Entregáveis:**
+- `caldas-ai-floating-agent.tsx` reescrito: Step 1 modal removido
+- Chat abre direto com `makeIntroMessage()` (ID dinâmico)
+- 6 cards de perfil inline como primeira mensagem do bot
+- Sistema de balloon/inatividade totalmente removido
+
+---
+
+## 2026-03-28 — Fix: TravelerProfileModal não auto-abre mais
+
+**Commits:** `9129a72` — Prevent profile modal from opening automatically on page load  
+**Responsável:** Replit Agent
+
+### Causa raiz identificada
+`TravelerProfileModal` (`ai-conversion-elements.tsx`) tinha um `setTimeout` em 4 páginas que abria o wizard de perfil automaticamente após 2–3 segundos quando o visitante não tinha perfil salvo no `localStorage`.
+
+### Arquivos corrigidos
+- `client/src/pages/atracoes.tsx` — removido `setTimeout(..., 3000)`
+- `client/src/pages/hoteis.tsx` — removido `setTimeout(..., 2000)`
+- `client/src/pages/promocoes.tsx` — removido `setTimeout(..., 3000)`
+- `client/src/pages/leiloes.tsx` — removido `setTimeout(..., 3000)`
+
+### Comportamento após fix
+- `TravelerProfileModal` abre **apenas** por clique explícito do usuário em um botão
+- Carregamento do perfil salvo (`getTravelerProfile()`) mantido normalmente
+
+### Gate verificado
+- ✅ /atracoes carrega sem modal automático
+- ✅ /hoteis carrega sem modal automático
+- ✅ /promocoes carrega sem modal automático
+- ✅ /leiloes carrega sem modal automático
+- ✅ Modal abre ao clicar no botão correspondente

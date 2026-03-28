@@ -1,14 +1,15 @@
 # 02 — HANDOFF ATUAL
 
-**Atualizado em:** 2026-03-27  
-**Status:** PROJETO CONCLUÍDO — Todas as 8 fases implementadas e validadas  
-**Fase atual:** Fase 08 — Hardening, Observabilidade e Segurança — **CONCLUÍDA**
+**Atualizado em:** 2026-03-28  
+**Status:** PROJETO CONCLUÍDO + CICLO UX/UI CONCLUÍDO (Tasks #1–#10 + fixes)  
+**Fase atual:** Pós-Fase 08 — Melhorias de UX/UI (Tasks #4–#10)
 
 ---
 
 ## Status Final do Projeto
 
-**TODAS AS FASES CONCLUÍDAS** ✅
+**TODAS AS FASES CONCLUÍDAS** ✅  
+**TODAS AS TASKS DE AGENTE CONCLUÍDAS** ✅
 
 | Fase | Título | Status |
 |------|--------|--------|
@@ -24,21 +25,18 @@
 
 ---
 
-## O que foi entregue na Fase 08 (Task #3)
+## O que foi entregue no Ciclo UX/UI (Tasks #4–#10 + fixes)
 
-| Entregável | Status | Arquivo |
-|-----------|--------|---------|
-| `.env.example` | ✅ | `.env.example` |
-| Logger estruturado JSON | ✅ | `server/lib/logger.ts` |
-| Sistema de alertas críticos | ✅ | `server/lib/alerts.ts` |
-| GET /api/status + queues + alerts | ✅ | `server/routes.ts` |
-| UUID v4 + HMAC-SHA256 por voucher | ✅ | `server/routes.ts` |
-| Rate limit: voucher/webhook/recomendações | ✅ | `server/routes.ts` |
-| Admin alerts endpoints | ✅ | `server/routes.ts` |
-| Filas separadas: delivery + confirmation | ✅ | `server/services/retry-queue.service.ts` |
-| Orchestrator com logger + raiseAlert | ✅ | `server/services/post-payment-orchestrator.service.ts` |
-| Painel Alertas Críticos (admin) | ✅ | `client/src/components/admin/CriticalAlertsPanel.tsx` |
-| Runbook de operações | ✅ | `docs/runbook.md` |
+| Task | Entregável | Arquivos principais |
+|------|-----------|---------------------|
+| #4 | Painel flutuante de filtros (substitui sidebar lateral) | `FilterDrawer.tsx` |
+| #5 | HotelCategoryNav animado + painel de reserva Airbnb-style | `HotelCategoryNav.tsx`, `hoteis.tsx` |
+| #6 | UnifiedCatalogNav — barra de nav unificada com ícones animados e badges | `UnifiedCatalogNav.tsx` |
+| #7 | Nav unificada aplicada em 7 páginas-catálogo | ingressos/hoteis/atracoes/leiloes/flash-deals/promocoes/excursoes |
+| #8 | CaldasAiFloatingAgent — botão flutuante + chat integrado | `caldas-ai-floating-agent.tsx` |
+| #9 | UI Quick-Fixes: balloon CTA removido, chips flex-start, MobileCTABar oculta | `MobileCTABar.tsx`, `HotelCategoryNav.tsx` |
+| #10 | Caldas AI sem Step 1 separado: chat abre direto com 6 cards de perfil inline | `caldas-ai-floating-agent.tsx` |
+| — | Fix: TravelerProfileModal não auto-abre mais | `atracoes.tsx`, `hoteis.tsx`, `promocoes.tsx`, `leiloes.tsx` |
 
 ---
 
@@ -59,15 +57,18 @@ GET  /api/status → 200 {ok:true, uptime, queues, alerts}
 
 ---
 
-## Invariantes do projeto (não mudar sem briefing)
+## Invariantes do projeto (NÃO alterar sem briefing)
 
-- **Hero azul `/ingressos`**: gradiente `#0891B2 → #2563EB` — não alterar
+- **Hero azul `/ingressos`**: gradiente `#0891B2 → #2563EB` — nunca alterar
 - **Grid nunca vira lista**: catálogo de ingressos sempre em grade
 - **Combo IA nunca removido**: `server/services/recommendation.service.ts`
 - **Pix Ingresso**: sem split (`ticket-payment.service.ts`)
 - **Pix Excursão**: com split (`payment.service.ts`)
 - **Weather**: frontend nunca chama Open-Meteo diretamente — sempre via `/api/weather`
 - **data-testid** em todos os elementos interativos
+- **TravelerProfileModal**: só abre por clique explícito do usuário — nunca automático
+- **CaldasAiFloatingAgent**: chat abre direto, sem Step 1 separado; botão oculto quando modal aberta
+- **MobileCTABar**: retorna null (oculta em mobile) — não reverter sem briefing
 
 ---
 
@@ -76,13 +77,25 @@ GET  /api/status → 200 {ok:true, uptime, queues, alerts}
 ```
 client/ (React + Vite + TailwindCSS + shadcn/ui)
   pages/
-    ingressos.tsx       → catálogo + seleção de ingressos
-    checkout.tsx        → Pix Ingresso (ticket-payment.service)
-    sucesso.tsx         → confirmação + link voucher
-  components/admin/
-    CriticalAlertsPanel.tsx  → alertas críticos (Fase 08)
-    VoucherDeliveryStatusTable.tsx
-    ComboConversionCard.tsx
+    ingressos.tsx             → catálogo + seleção + UnifiedCatalogNav
+    hoteis.tsx                → catálogo + HotelCategoryNav + painel Airbnb
+    atracoes.tsx              → catálogo + UnifiedCatalogNav
+    leiloes.tsx               → catálogo + UnifiedCatalogNav
+    flash-deals.tsx           → catálogo + UnifiedCatalogNav
+    promocoes.tsx             → catálogo + UnifiedCatalogNav
+    excursoes.tsx             → catálogo + UnifiedCatalogNav
+    caldas-ai.tsx             → página dedicada CaldasAI
+    checkout.tsx              → Pix Ingresso (ticket-payment.service)
+    sucesso.tsx               → confirmação + link voucher
+  components/
+    caldas-ai-floating-agent.tsx  → agente flutuante (chat direto + perfis inline)
+    UnifiedCatalogNav.tsx         → nav unificada (tipos + categorias + ícones animados)
+    hotel/HotelCategoryNav.tsx    → chips animados horizontal (hotéis)
+    home/MobileCTABar.tsx         → retorna null (oculta)
+    FilterDrawer.tsx              → painel flutuante de filtros
+    ai-conversion-elements.tsx    → TravelerProfileModal, calculateMatchScore, etc.
+    admin/CriticalAlertsPanel.tsx → alertas críticos (Fase 08)
+    success/VoucherDownloadCard.tsx
 
 server/
   lib/
@@ -99,8 +112,6 @@ server/
   routes.ts             → todos endpoints + rate limiters + alertas
   routes/
     weather-routes.ts   → /api/weather + /api/weather/by-coords
-  providers/
-    open-meteo-provider.ts → integração Open-Meteo
 
 docs/
   runbook.md            → guia de operação e escalation
