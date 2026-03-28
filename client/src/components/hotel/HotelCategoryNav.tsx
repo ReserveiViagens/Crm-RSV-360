@@ -53,7 +53,8 @@ function getAnimClass(value: string, label: string): string {
   if (label === "Maior Desconto") return "rsv-cat-bounce"
   if (label === "Acabando") return "rsv-cat-heartbeat"
   if (label === "Menor Preço") return "rsv-cat-wiggle"
-  if (label.includes("OFF")) return label.includes("70") ? "rsv-cat-star" : "rsv-cat-wiggle"
+  if (label === "Combos") return "rsv-cat-star"
+  if (label.includes("OFF")) return label.includes("50") ? "rsv-cat-star" : "rsv-cat-wiggle"
   return "rsv-cat-float"
 }
 

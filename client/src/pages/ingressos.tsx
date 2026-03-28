@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star } from "lucide-react"
+import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star, Gift } from "lucide-react"
 import { useLocation } from "wouter";
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
@@ -823,7 +823,7 @@ export default function IngressosPage() {
           { label: "Parques",    value: "Parques",    icon: Trees,      filterUpdate: {}, testId: "button-filter-parques" },
           { label: "Natureza",   value: "Natureza",   icon: Leaf,       filterUpdate: {}, testId: "button-filter-natureza" },
           { label: "Transporte", value: "Transporte", icon: Bus,        filterUpdate: {}, testId: "button-filter-transporte" },
-          { label: "Combos",     value: "Combos",     icon: Sparkles,   filterUpdate: {}, testId: "button-filter-combos" },
+          { label: "Combos",     value: "Combos",     icon: Gift,       filterUpdate: {}, testId: "button-filter-combos" },
           { label: "Cabanas",    value: "Cabanas",    icon: Home,       filterUpdate: {}, testId: "button-filter-cabanas" },
           { label: "Especiais",  value: "Especiais",  icon: Star,       filterUpdate: {}, testId: "button-filter-especiais" },
         ]}
