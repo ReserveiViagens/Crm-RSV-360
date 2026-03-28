@@ -848,7 +848,7 @@ export default function AtracoesPage() {
             { label: "Família", value: "Família", icon: Users, filterUpdate: {}, testId: "button-filter-Familia" },
             { label: "Romântico", value: "Romântico", icon: Heart, filterUpdate: {}, testId: "button-filter-Romantico" },
             { label: "Cultura", value: "Cultura", icon: BookOpen, filterUpdate: {}, testId: "button-filter-Cultura" },
-            { label: "Natureza", value: "Natureza", icon: Leaf, filterUpdate: {}, testId: "button-filter-Natureza" },
+            { label: "Natureza", value: "Natureza", icon: Leaf, filterUpdate: {}, testId: "button-filter-Natureza", animClass: "rsv-cat-wave" },
           ]}
           activeFilter={activeMood}
           onSelect={(f) => {

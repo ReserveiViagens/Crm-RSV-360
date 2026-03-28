@@ -12,6 +12,7 @@ export interface HotelCategory {
   forceActive?: boolean
   isDivider?: boolean
   testId?: string
+  animClass?: string
 }
 
 interface HotelCategoryNavProps {
@@ -20,7 +21,8 @@ interface HotelCategoryNavProps {
   onSelect: (category: HotelCategory) => void
 }
 
-function getAnimClass(value: string, label: string): string {
+function getAnimClass(value: string, label: string, explicit?: string): string {
+  if (explicit) return explicit
   if (value.startsWith("__nav_parques")) return "rsv-cat-wave"
   if (value.startsWith("__nav_hoteis")) return "rsv-cat-float"
   if (value.startsWith("__nav_ingressos")) return "rsv-cat-bounce"
@@ -257,7 +259,7 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
 
             const Icon = cat.icon!
             const isActive = cat.forceActive || activeFilter === cat.value
-            const animClass = getAnimClass(cat.value, cat.label)
+            const animClass = getAnimClass(cat.value, cat.label, cat.animClass)
             const badgeColorClass = cat.badgeColor === "blue"
               ? "rsv-hotel-cat-badge--blue"
               : "rsv-hotel-cat-badge--orange"
