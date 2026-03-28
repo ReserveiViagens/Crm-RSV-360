@@ -565,8 +565,8 @@ export default function HotelDetailPanel({ hotel, onClose }: HotelDetailPanelPro
                       {guestsExpanded && (
                         <div style={{ border: "1.5px solid #D1D5DB", borderTop: "1px solid #E5E7EB", borderRadius: "0 0 12px 12px", padding: "4px 14px 12px", background: "#fff" }}>
                           {([
-                            { label: "Adultos", subtitle: "13 anos ou mais", value: adults, setter: setAdults, min: 1, max: 8 },
-                            { label: "Crianças", subtitle: "2 – 12 anos", value: children, setter: setChildren, min: 0, max: 6 },
+                            { label: "Adultos", subtitle: "13 anos ou mais", value: adults, setter: setAdults, min: 1, max: Math.min(8, 8 - children) },
+                            { label: "Crianças", subtitle: "2 – 12 anos", value: children, setter: setChildren, min: 0, max: Math.min(6, 8 - adults) },
                             { label: "Bebês", subtitle: "Menos de 2 anos", value: babies, setter: setBabies, min: 0, max: 4 },
                             { label: "Animais", subtitle: "De estimação", value: pets, setter: setPets, min: 0, max: 2 },
                           ] as { label: string; subtitle: string; value: number; setter: (n: number) => void; min: number; max: number }[]).map((row, i, arr) => (

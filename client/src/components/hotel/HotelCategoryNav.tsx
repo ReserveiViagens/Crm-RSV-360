@@ -101,9 +101,9 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
           transition: color 0.2s, background 0.2s, transform 0.15s;
           color: #9CA3AF;
           background: #F3F4F6;
@@ -203,7 +203,7 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
               <div
                 className={`rsv-hotel-cat-icon ${animClass}${isPopping ? " rsv-cat-popping" : ""}`}
               >
-                <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} />
+                <Icon size={28} strokeWidth={isActive ? 2.2 : 1.8} />
               </div>
               <span className="rsv-hotel-cat-label">{cat.label}</span>
               <div className="rsv-hotel-cat-underline" />
