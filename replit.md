@@ -300,21 +300,30 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 ### Task #7 — Barra de Navegação Unificada (todas as páginas-catálogo)
 
 **Shared library:**
-- `client/src/lib/catalogNav.ts` — `buildSectionTypeNav(SectionKey)` + `CATALOG_DIVIDER`; `SectionKey` inclui "parques"|"hoteis"|"ingressos"|"excursoes"|"atracoes"|"combos"|"busca"|"promocoes"|"flash-deals"; item da seção ativa recebe `forceActive: true` e perde `href`/`badge`
+- `client/src/lib/catalogNav.ts` — `buildSectionTypeNav(SectionKey)` + `CATALOG_DIVIDER`; `SectionKey` inclui "parques"|"hoteis"|"ingressos"|"excursoes"|"atracoes"|"combos"|"busca"|"promocoes"|"flash-deals"; item da seção ativa recebe `forceActive: true` e perde apenas `href` (badge é preservado)
+- `HotelCategory` interface: campo `animClass?: string` para override explícito de animação
 
-**Páginas atualizadas para usar HotelCategoryNav (seção-tipo + divider + categorias da página):**
-- `/hoteis` — refatorado para `buildSectionTypeNav("hoteis")` + categorias de tipo de hotel
-- `/ingressos` — `buildSectionTypeNav("ingressos")` + Todos/Dia Inteiro/Meio Dia/Mais Popular/Maior Desconto; mantém "Me ajude a escolher" e FilterPopover
-- `/excursoes` — `buildSectionTypeNav("excursoes")` + Todos/Família/Aventura/Luxo/Econômico; substitui PERFIS.map
-- `/atracoes` — `buildSectionTypeNav("atracoes")` + Todos/Relaxamento/Aventura/Família/Romântico/Cultura/Natureza; SearchBar com `hideTypeChips`
-- `/promocoes` — `buildSectionTypeNav("promocoes")` + Todas/Hotel/Parque/Ingresso/>30%/>50%/>70%/IA Recomenda com badges
-- `/flash-deals` — `buildSectionTypeNav("flash-deals")` + Todas/Maior Desconto/Acabando🔥/Menor Preço/IA Recomenda; barra sticky top:64
-- `/busca` (SearchPage) — `buildSectionTypeNav("busca")` como quick-nav (todos com href); SearchBar com `hideTypeChips`
+**Páginas atualizadas para usar HotelCategoryNav:**
+- `/hoteis` — `buildSectionTypeNav("hoteis")` + divider + categorias de tipo de hotel
+- `/ingressos` — seção-tipo + Todos/Parques(Waves)/Natureza(Leaf)/Transporte(Bus)/Combos(Gift)/Cabanas(Home)/Especiais(Star); filtros por `category` e `categorySection`
+- `/excursoes` — seção-tipo + Todos/Família/Aventura/Luxo/Econômico/Grupo; slugs ASCII (familia/economico/grupo); `handlePerfilClick` usa `perfil=` ou `categoria=grupo`
+- `/atracoes` — seção-tipo + Todos/Relaxamento(Coffee)/Aventura(Zap)/Família(Users)/Romântico(Heart)/Cultura(BookOpen)/Natureza(Leaf, animClass=wave); SearchBar com `hideTypeChips`
+- `/promocoes` — chips locais apenas (transversal): Todas/Hotel/Parque/Ingresso/>30% OFF/>50% OFF/>70% OFF/IA Recomenda; icon Tag para tiers OFF
+- `/flash-deals` — chips locais apenas (transversal): Todas/Maior Desconto/Acabando🔥/Menor Preço/IA Recomenda; sticky top:64
+- `/busca` (SearchPage) — `buildSectionTypeNav("busca")` como quick-nav de seção; SearchBar com `hideTypeChips`; `TYPE_TO_NAV` mapeia SearchItemType → `__nav_*`
+
+**Animações (HotelCategoryNav.getAnimClass — 19 regras):**
+- Seção: parques=wave, hoteis=float, ingressos=bounce, excursoes=slide, atracoes=wiggle, combos=star
+- Local ingressos: Transporte=slide, Natureza=float, Cabanas=wiggle, Especiais=star, Combos=star
+- Local atracoes: Relaxamento=heartbeat, Aventura=bounce, Romântico=heartbeat, Cultura=float
+- Local excursoes: Grupo=float
+- Deals: IA Recomenda=star, Maior Desconto=bounce, Acabando=heartbeat, Menor Preço=wiggle; OFF: 30%/70%=wiggle, 50%=star
 
 **Key rules:**
 - Clique em item com `href` → navega para a página da seção
 - Clique em item sem `href` (categoria local) → chama o setter de state da página
-- O divider `CATALOG_DIVIDER` (isDivider: true) separa visualmente seção-tipo das categorias locais
+- O divider `CATALOG_DIVIDER` (isDivider: true) separa seção-tipo das categorias locais
+- `animClass` no item tem prioridade sobre heurísticas de label/value
 
 ### Módulo de Clima Open-Meteo (Task #17)
 
