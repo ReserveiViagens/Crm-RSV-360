@@ -11,6 +11,7 @@ export interface HotelCategory {
   href?: string
   forceActive?: boolean
   isDivider?: boolean
+  testId?: string
 }
 
 interface HotelCategoryNavProps {
@@ -239,7 +240,7 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
             return (
               <button
                 key={cat.value}
-                data-testid={`button-filter-${cat.value}`}
+                data-testid={cat.testId ?? `button-filter-${cat.value}`}
                 className={`rsv-hotel-cat-btn${isActive ? " rsv-hotel-cat-btn--active" : ""}`}
                 onClick={() => handleClick(cat)}
               >

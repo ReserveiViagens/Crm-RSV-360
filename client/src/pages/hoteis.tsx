@@ -749,6 +749,7 @@ const TYPE_NAV_ITEMS: HotelCategory[] = [
     icon: Trees,
     filterUpdate: {},
     href: "/parques",
+    testId: "chip-type-parques",
   },
   {
     label: "Hotéis",
@@ -756,6 +757,7 @@ const TYPE_NAV_ITEMS: HotelCategory[] = [
     icon: Building,
     filterUpdate: {},
     forceActive: true,
+    testId: "chip-type-hoteis",
   },
   {
     label: "Destinos",
@@ -763,6 +765,7 @@ const TYPE_NAV_ITEMS: HotelCategory[] = [
     icon: Navigation,
     filterUpdate: {},
     href: "/destinos",
+    testId: "chip-type-destinos",
   },
   {
     label: "Combos",
@@ -772,6 +775,7 @@ const TYPE_NAV_ITEMS: HotelCategory[] = [
     href: "/combos",
     badge: "NOVO",
     badgeColor: "orange",
+    testId: "chip-type-combos",
   },
 ]
 
@@ -1552,6 +1556,11 @@ export default function HoteisPage() {
           onSelect={(f) => {
             if (f.href) {
               navigate(f.href)
+              return
+            }
+            if (f.value === "__nav_hoteis") {
+              setActiveFilter("Todos")
+              setSearchFilters({ ...searchFilters, type: "hotel", profile: undefined, rating: undefined, maxPrice: undefined, enterprise: undefined, category: undefined })
               return
             }
             setActiveFilter(f.value)
