@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react";
 import SearchBar from "@/components/search/SearchBar";
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav";
+import { buildSectionTypeNav } from "@/lib/catalogNav";
 import SearchFiltersDrawer from "@/components/search/SearchFiltersDrawer";
 import { FilterPopover } from "@/components/search/FilterPopover";
 import SearchResultsGrid from "@/components/search/SearchResultsGrid";
@@ -121,9 +123,17 @@ export default function SearchPage() {
                 onTypeChange={handleTypeChange}
                 onFiltersOpen={() => setMobileDrawerOpen(true)}
                 hasActiveFilters={hasActiveFilters}
+                hideTypeChips
               />
             </div>
           </div>
+        </div>
+        <div style={{ borderTop: "1px solid #F3F4F6" }}>
+          <HotelCategoryNav
+            categories={buildSectionTypeNav("busca")}
+            activeFilter=""
+            onSelect={(f) => { if (f.href) navigate(f.href) }}
+          />
         </div>
       </div>
 

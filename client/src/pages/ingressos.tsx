@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Sun, Clock, Flame, Tag } from "lucide-react"
 import { useLocation } from "wouter";
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import {
   SocialProofBanner,
@@ -818,32 +820,23 @@ export default function IngressosPage() {
       >
         ⚙ Filtros
       </button>
-      {FILTERS.map((f) => {
-        const Icon = f.icon
-        const isActive = activeFilter === f.value
-        return (
-          <button
-            key={f.value}
-            onClick={() => {
-              setActiveFilter(f.value)
-              trackEvent("ticket_filter_change", { filter: "category_tab", value: f.value })
-            }}
-            data-testid={`button-filter-${f.value.toLowerCase().replace(/ /g, "-")}`}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-              border: isActive ? "1.5px solid #F57C00" : "1.5px solid #E5E7EB",
-              background: isActive ? "#F57C00" : "#F3F4F6",
-              color: isActive ? "#fff" : "#6B7280",
-              fontSize: 13, fontWeight: isActive ? 700 : 500,
-              whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-            }}
-          >
-            <Icon size={13} />
-            {f.label}
-          </button>
-        )
-      })}
+      <HotelCategoryNav
+        categories={[
+          ...buildSectionTypeNav("ingressos"),
+          CATALOG_DIVIDER,
+          { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
+          { label: "Dia Inteiro", value: "Dia Inteiro", icon: Sun, filterUpdate: {}, testId: "button-filter-dia-inteiro" },
+          { label: "Meio Dia", value: "Meio Dia", icon: Clock, filterUpdate: {}, testId: "button-filter-meio-dia" },
+          { label: "Mais Popular", value: "Mais Popular", icon: Flame, filterUpdate: {}, testId: "button-filter-mais-popular" },
+          { label: "Maior Desconto", value: "Maior Desconto", icon: Tag, filterUpdate: {}, testId: "button-filter-maior-desconto" },
+        ]}
+        activeFilter={activeFilter}
+        onSelect={(f) => {
+          if (f.href) { navigate(f.href); return }
+          setActiveFilter(f.value)
+          trackEvent("ticket_filter_change", { filter: "category_tab", value: f.value })
+        }}
+      />
       <button
         data-testid="button-help-choose"
         onClick={() => setShowWizard(true)}

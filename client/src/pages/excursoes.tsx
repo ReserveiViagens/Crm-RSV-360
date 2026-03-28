@@ -6,6 +6,8 @@ import {
   Plus, Sparkles, Crown, Rocket, Search, MapPin,
   Phone, Calendar, Clock, LayoutGrid, Wallet,
 } from "lucide-react"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { LiderApplicationDialog } from "@/components/lider-application-dialog"
@@ -191,29 +193,22 @@ export default function Excursoes() {
       >
         ⚙ Filtros
       </button>
-      {PERFIS.map((p) => {
-        const Icon = p.icon
-        const isActive = (perfil ?? "todos") === p.id
-        return (
-          <button
-            key={p.id}
-            data-testid={`btn-perfil-excursoes-${p.id}`}
-            onClick={() => handlePerfilClick(p.id)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-              border: isActive ? "1.5px solid #2563EB" : "1.5px solid #E5E7EB",
-              background: isActive ? "#2563EB" : "#F3F4F6",
-              color: isActive ? "#fff" : "#6B7280",
-              fontSize: 13, fontWeight: isActive ? 700 : 500,
-              whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-            }}
-          >
-            <Icon size={13} />
-            {p.label}
-          </button>
-        )
-      })}
+      <HotelCategoryNav
+        categories={[
+          ...buildSectionTypeNav("excursoes"),
+          CATALOG_DIVIDER,
+          { label: "Todos", value: "todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
+          { label: "Família", value: "família", icon: Users, filterUpdate: {}, testId: "button-filter-familia" },
+          { label: "Aventura", value: "aventura", icon: Zap, filterUpdate: {}, testId: "button-filter-aventura" },
+          { label: "Luxo", value: "luxo", icon: Star, filterUpdate: {}, testId: "button-filter-luxo" },
+          { label: "Econômico", value: "econômico", icon: Wallet, filterUpdate: {}, testId: "button-filter-economico" },
+        ]}
+        activeFilter={perfil ?? "todos"}
+        onSelect={(f) => {
+          if (f.href) { navigate(f.href); return }
+          handlePerfilClick(f.value)
+        }}
+      />
     </div>
   )
 

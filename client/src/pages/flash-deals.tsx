@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Zap, Clock, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingUp, Check, AlertTriangle } from "lucide-react"
+import { Zap, Clock, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingDown, TrendingUp, Check, AlertTriangle, LayoutGrid, Wallet } from "lucide-react"
+import { useLocation } from "wouter"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -265,6 +268,7 @@ function ReservationFeedback({ dealTitle, visible, onDone }: { dealTitle: string
 }
 
 export default function FlashDealsPage() {
+  const [, navigate] = useLocation()
   const [timers, setTimers] = useState<Record<number, number>>({})
   const [globalTimer, setGlobalTimer] = useState(4 * 3600 + 27 * 60 + 33)
   const [activeFilter, setActiveFilter] = useState("Todas")
@@ -471,30 +475,26 @@ export default function FlashDealsPage() {
       </div>
 
       <div style={{
-        display: "flex", gap: 0, padding: "0 16px",
         background: "#fff",
-        borderBottom: "2px solid #E5E7EB",
-        overflowX: "auto",
+        borderBottom: "1px solid #E5E7EB",
+        position: "sticky", top: 64, zIndex: 30,
       }}>
-        {FILTERS.map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            data-testid={`button-filter-${filter.toLowerCase().replace(/\s/g, "-")}`}
-            style={{
-              flex: "0 0 auto", padding: "12px 14px", border: "none",
-              fontSize: 13, fontWeight: activeFilter === filter ? 700 : 500,
-              cursor: "pointer", background: "transparent",
-              color: activeFilter === filter ? "#DC2626" : "#6B7280",
-              borderBottom: activeFilter === filter ? "2px solid #DC2626" : "2px solid transparent",
-              marginBottom: -2, transition: "all 0.2s", whiteSpace: "nowrap",
-              display: "flex", alignItems: "center", gap: 4,
-            }}
-          >
-            {filter === "IA Recomenda" && <Sparkles style={{ width: 12, height: 12 }} />}
-            {filter}
-          </button>
-        ))}
+        <HotelCategoryNav
+          categories={[
+            ...buildSectionTypeNav("flash-deals"),
+            CATALOG_DIVIDER,
+            { label: "Todas", value: "Todas", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todas" },
+            { label: "Maior Desconto", value: "Maior Desconto", icon: TrendingDown, filterUpdate: {}, testId: "button-filter-maior-desconto" },
+            { label: "Acabando", value: "Acabando", icon: Clock, badge: "🔥", filterUpdate: {}, testId: "button-filter-acabando" },
+            { label: "Menor Preço", value: "Menor Preço", icon: Wallet, filterUpdate: {}, testId: "button-filter-menor-preco" },
+            { label: "IA Recomenda", value: "IA Recomenda", icon: Sparkles, badge: "IA", filterUpdate: {}, testId: "button-filter-ia" },
+          ]}
+          activeFilter={activeFilter}
+          onSelect={(f) => {
+            if (f.href) { navigate(f.href); return }
+            setActiveFilter(f.value)
+          }}
+        />
       </div>
 
       <SocialProofBanner pageName="ofertas relâmpago" />

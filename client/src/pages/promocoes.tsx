@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { useSearch } from "wouter"
-import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer } from "lucide-react"
+import { useSearch, useLocation } from "wouter"
+import { Phone, Clock, Copy, Check, Tag, Users, Sparkles, Flame, Gift, Filter, Hotel, Waves, Ticket, Percent, TrendingUp, Heart, ShoppingCart, Timer, LayoutGrid } from "lucide-react"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -190,6 +192,7 @@ export default function PromocoesPage() {
     return CATEGORIA_MAP[cat] || "Todas"
   }, [search])
 
+  const [, navigate] = useLocation()
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 45, seconds: 30 })
   const [activeFilter, setActiveFilter] = useState<FilterType>(initialFilter)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
@@ -719,29 +722,25 @@ export default function PromocoesPage() {
           position: "sticky", top: 64, zIndex: 30,
         }}
       >
-        {filters.map((f) => {
-          const Icon = f.icon
-          const isActive = activeFilter === f.value
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-filter-${f.value}`}
-              onClick={() => setActiveFilter(f.value)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #22C55E" : "1.5px solid #E5E7EB",
-                background: isActive ? "#22C55E" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 12, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon style={{ width: 13, height: 13 }} />
-              {f.label}
-            </button>
-          )
-        })}
+        <HotelCategoryNav
+          categories={[
+            ...buildSectionTypeNav("promocoes"),
+            CATALOG_DIVIDER,
+            { label: "Todas", value: "Todas", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todas" },
+            { label: "Hotel", value: "Hotel", icon: Hotel, filterUpdate: {}, testId: "button-filter-hotel" },
+            { label: "Parque", value: "Parque", icon: Waves, filterUpdate: {}, testId: "button-filter-parque" },
+            { label: "Ingresso", value: "Ingresso", icon: Ticket, filterUpdate: {}, testId: "button-filter-ingresso" },
+            { label: ">30%", value: ">30%", icon: Percent, badge: "30%", filterUpdate: {}, testId: "button-filter-30" },
+            { label: ">50%", value: ">50%", icon: Percent, badge: "50%", filterUpdate: {}, testId: "button-filter-50" },
+            { label: ">70%", value: ">70%", icon: Percent, badge: "70%", filterUpdate: {}, testId: "button-filter-70" },
+            { label: "IA Recomenda", value: "IA Recomenda", icon: Sparkles, badge: "IA", filterUpdate: {}, testId: "button-filter-ia" },
+          ]}
+          activeFilter={activeFilter}
+          onSelect={(f) => {
+            if (f.href) { navigate(f.href); return }
+            setActiveFilter(f.value as FilterType)
+          }}
+        />
       </div>
 
       <SocialProofBanner pageName="promocoes" />

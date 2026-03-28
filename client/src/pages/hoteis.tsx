@@ -3,6 +3,7 @@ import { Star, MapPin, Phone, Eye, Users, X, Check, BarChart3, Sparkles, Navigat
 import { Link, useSearch, useLocation } from "wouter";
 import HotelDetailPanel, { type HotelDetailData } from "@/components/hotel-detail-panel"
 import { HotelCategoryNav, type HotelCategory } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -742,49 +743,6 @@ function getMatchReasons(profile: TravelerProfile | null, hotel: Hotel): string[
   return reasons.slice(0, 3)
 }
 
-const TYPE_NAV_ITEMS: HotelCategory[] = [
-  {
-    label: "Parques",
-    value: "__nav_parques",
-    icon: Trees,
-    filterUpdate: {},
-    href: "/parques",
-    testId: "chip-type-parques",
-  },
-  {
-    label: "Hotéis",
-    value: "__nav_hoteis",
-    icon: Building,
-    filterUpdate: {},
-    forceActive: true,
-    testId: "chip-type-hoteis",
-  },
-  {
-    label: "Destinos",
-    value: "__nav_destinos",
-    icon: Navigation,
-    filterUpdate: {},
-    href: "/destinos",
-    testId: "chip-type-destinos",
-  },
-  {
-    label: "Combos",
-    value: "__nav_combos",
-    icon: Sparkles,
-    filterUpdate: {},
-    href: "/combos",
-    badge: "NOVO",
-    badgeColor: "orange",
-    testId: "chip-type-combos",
-  },
-]
-
-const DIVIDER_ITEM: HotelCategory = {
-  label: "__divider",
-  value: "__divider",
-  filterUpdate: {},
-  isDivider: true,
-}
 
 export default function HoteisPage() {
   const search = useSearch()
@@ -1551,7 +1509,7 @@ export default function HoteisPage() {
           ⚙ Filtros
         </button>
         <HotelCategoryNav
-          categories={[...TYPE_NAV_ITEMS, DIVIDER_ITEM, ...dynamicFilters]}
+          categories={[...buildSectionTypeNav("hoteis"), CATALOG_DIVIDER, ...dynamicFilters]}
           activeFilter={activeFilter}
           onSelect={(f) => {
             if (f.href) {

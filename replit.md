@@ -297,6 +297,25 @@ Full ticket purchase flow implemented without breaking the existing `/ingressos`
 - Regra de ouro: pagamento PAID nunca depende do sucesso da notificação
 - `ticketTransactions` Map é a fonte de verdade para pedidos de ingressos (in-memory)
 
+### Task #7 — Barra de Navegação Unificada (todas as páginas-catálogo)
+
+**Shared library:**
+- `client/src/lib/catalogNav.ts` — `buildSectionTypeNav(SectionKey)` + `CATALOG_DIVIDER`; `SectionKey` inclui "parques"|"hoteis"|"ingressos"|"excursoes"|"atracoes"|"combos"|"busca"|"promocoes"|"flash-deals"; item da seção ativa recebe `forceActive: true` e perde `href`/`badge`
+
+**Páginas atualizadas para usar HotelCategoryNav (seção-tipo + divider + categorias da página):**
+- `/hoteis` — refatorado para `buildSectionTypeNav("hoteis")` + categorias de tipo de hotel
+- `/ingressos` — `buildSectionTypeNav("ingressos")` + Todos/Dia Inteiro/Meio Dia/Mais Popular/Maior Desconto; mantém "Me ajude a escolher" e FilterPopover
+- `/excursoes` — `buildSectionTypeNav("excursoes")` + Todos/Família/Aventura/Luxo/Econômico; substitui PERFIS.map
+- `/atracoes` — `buildSectionTypeNav("atracoes")` + Todos/Relaxamento/Aventura/Família/Romântico/Cultura/Natureza; SearchBar com `hideTypeChips`
+- `/promocoes` — `buildSectionTypeNav("promocoes")` + Todas/Hotel/Parque/Ingresso/>30%/>50%/>70%/IA Recomenda com badges
+- `/flash-deals` — `buildSectionTypeNav("flash-deals")` + Todas/Maior Desconto/Acabando🔥/Menor Preço/IA Recomenda; barra sticky top:64
+- `/busca` (SearchPage) — `buildSectionTypeNav("busca")` como quick-nav (todos com href); SearchBar com `hideTypeChips`
+
+**Key rules:**
+- Clique em item com `href` → navega para a página da seção
+- Clique em item sem `href` (categoria local) → chama o setter de state da página
+- O divider `CATALOG_DIVIDER` (isDivider: true) separa visualmente seção-tipo das categorias locais
+
 ### Módulo de Clima Open-Meteo (Task #17)
 
 **Backend:**

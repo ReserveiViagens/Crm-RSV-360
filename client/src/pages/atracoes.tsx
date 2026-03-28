@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react"
-import { useSearch } from "wouter"
-import { Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Waves, Mountain, Baby, HeartHandshake, Landmark, TreePine } from "lucide-react"
+import { useSearch, useLocation } from "wouter"
+import { Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Waves, Mountain, Baby, HeartHandshake, Landmark, TreePine, LayoutGrid } from "lucide-react"
 import HotelDetailPanel, { HotelDetailData } from "@/components/hotel-detail-panel"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
+import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -205,6 +207,7 @@ const MOOD_COLORS: Record<string, { bg: string; text: string; border: string; so
 }
 
 export default function AtracoesPage() {
+  const [, navigate] = useLocation()
   const search = useSearch()
   const params = new URLSearchParams(search)
   const categoriaParam = params.get("categoria") || ""
@@ -801,6 +804,7 @@ export default function AtracoesPage() {
           onTypeChange={() => {}}
           onFiltersOpen={() => {}}
           hasActiveFilters={hasAnyAtracaoFilter}
+          hideTypeChips
         />
       </div>
       <div
@@ -834,41 +838,26 @@ export default function AtracoesPage() {
         >
           ⚙ Filtros
         </button>
-        {moodFilters.map((f) => {
-          const isActive = activeMood === f.value
-          const MoodIcon = moodIcons[f.value]
-          const colors = MOOD_COLORS[f.value] || MOOD_COLORS["Todos"]
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-mood-${f.value}`}
-              onClick={() => {
-                setActiveMood(f.value)
-                const profileVal = MOOD_TO_PROFILE[f.value]
-                setSearchFilters({ ...searchFilters, type: "park", profile: profileVal })
-              }}
-              style={{
-                padding: "7px 14px",
-                border: isActive ? `1.5px solid ${colors.solid}` : "1.5px solid #E5E7EB",
-                borderRadius: 999,
-                background: isActive ? colors.solid : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                transition: "all 0.2s",
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              {MoodIcon && <MoodIcon size={13} />}
-              {f.label}
-            </button>
-          )
-        })}
+        <HotelCategoryNav
+          categories={[
+            ...buildSectionTypeNav("atracoes"),
+            CATALOG_DIVIDER,
+            { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-mood-todos" },
+            { label: "Relaxamento", value: "Relaxamento", icon: Waves, filterUpdate: {}, testId: "button-mood-relaxamento" },
+            { label: "Aventura", value: "Aventura", icon: Mountain, filterUpdate: {}, testId: "button-mood-aventura" },
+            { label: "Família", value: "Família", icon: Baby, filterUpdate: {}, testId: "button-mood-familia" },
+            { label: "Romântico", value: "Romântico", icon: HeartHandshake, filterUpdate: {}, testId: "button-mood-romantico" },
+            { label: "Cultura", value: "Cultura", icon: Landmark, filterUpdate: {}, testId: "button-mood-cultura" },
+            { label: "Natureza", value: "Natureza", icon: TreePine, filterUpdate: {}, testId: "button-mood-natureza" },
+          ]}
+          activeFilter={activeMood}
+          onSelect={(f) => {
+            if (f.href) { navigate(f.href); return }
+            setActiveMood(f.value)
+            const profileVal = MOOD_TO_PROFILE[f.value]
+            setSearchFilters({ ...searchFilters, type: "park", profile: profileVal })
+          }}
+        />
       </div>
     </>
   )
