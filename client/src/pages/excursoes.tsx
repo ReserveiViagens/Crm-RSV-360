@@ -119,7 +119,10 @@ export default function Excursoes() {
   function getCatalogoLink(q?: string) {
     const p = new URLSearchParams()
     const cat = perfil && PERFIS.find(x => x.id === perfil && x.id !== "todos")?.id
-    if (cat) p.set("category", cat)
+    if (cat) {
+      if (cat === "grupo") p.set("categoria", "grupo")
+      else p.set("perfil", cat)
+    }
     if (q) p.set("q", q)
     const qs = p.toString()
     return qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes"
@@ -130,7 +133,10 @@ export default function Excursoes() {
     const q = heroSearch.trim()
     const p = new URLSearchParams()
     const cat = perfil && PERFIS.find(x => x.id === perfil && x.id !== "todos")?.id
-    if (cat) p.set("category", cat)
+    if (cat) {
+      if (cat === "grupo") p.set("categoria", "grupo")
+      else p.set("perfil", cat)
+    }
     if (q) p.set("q", q)
     const qs = p.toString()
     navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")

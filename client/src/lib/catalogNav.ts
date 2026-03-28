@@ -68,7 +68,7 @@ export function buildSectionTypeNav(activeSection: SectionKey): HotelCategory[] 
   return SECTION_ITEMS.map((item) => {
     const { _key, ...rest } = item
     if (_key === activeSection) {
-      const { href, badge, ...active } = rest
+      const { href, ...active } = rest
       return { ...active, forceActive: true }
     }
     return rest

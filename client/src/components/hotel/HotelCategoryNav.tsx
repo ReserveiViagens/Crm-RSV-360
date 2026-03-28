@@ -34,6 +34,26 @@ function getAnimClass(value: string, label: string): string {
   if (label.includes("Estrelas") || label === "Premium") return "rsv-cat-star"
   if (label === "Econômico") return "rsv-cat-wiggle"
   if (value.startsWith("ent:")) return "rsv-cat-slide"
+  // Ingressos local categories
+  if (label === "Transporte") return "rsv-cat-slide"
+  if (label === "Natureza") return "rsv-cat-wave"
+  if (label === "Cabanas") return "rsv-cat-heartbeat"
+  if (label === "Especiais") return "rsv-cat-star"
+  // Atracoes local categories
+  if (label === "Relaxamento") return "rsv-cat-heartbeat"
+  if (label === "Aventura") return "rsv-cat-slide"
+  if (label === "Romântico") return "rsv-cat-heartbeat"
+  if (label === "Cultura") return "rsv-cat-float"
+  // Excursoes local categories
+  if (label === "Grupo") return "rsv-cat-bounce"
+  // Shared/Promocoes/Flash-deals categories
+  if (label === "Parque" || label === "Parques") return "rsv-cat-wave"
+  if (label === "Ingresso") return "rsv-cat-bounce"
+  if (label === "IA Recomenda") return "rsv-cat-star"
+  if (label === "Maior Desconto") return "rsv-cat-star"
+  if (label === "Acabando") return "rsv-cat-bounce"
+  if (label === "Menor Preço") return "rsv-cat-wiggle"
+  if (label.includes("OFF")) return label.includes("70") ? "rsv-cat-star" : "rsv-cat-wiggle"
   return "rsv-cat-float"
 }
 
