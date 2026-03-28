@@ -171,15 +171,15 @@ function CouponUsageToday({ count }: { count: number }) {
   )
 }
 
-type FilterType = "Todas" | "Hotel" | "Parque" | "Ingresso" | ">30%" | ">50%" | ">70%" | "IA Recomenda"
+type FilterType = "Todas" | "Hotel" | "Parque" | "Ingresso" | ">30% OFF" | ">50% OFF" | ">70% OFF" | "IA Recomenda"
 
 const CATEGORIA_MAP: Record<string, FilterType> = {
   hotel: "Hotel",
   parque: "Parque",
   ingresso: "Ingresso",
-  ">30%": ">30%",
-  ">50%": ">50%",
-  ">70%": ">70%",
+  ">30% OFF": ">30% OFF",
+  ">50% OFF": ">50% OFF",
+  ">70% OFF": ">70% OFF",
   ia: "IA Recomenda",
 }
 
@@ -386,9 +386,9 @@ export default function PromocoesPage() {
       case "Hotel": return scoredPromotions.filter((p) => p.type === "hotel")
       case "Parque": return scoredPromotions.filter((p) => p.type === "parque")
       case "Ingresso": return scoredPromotions.filter((p) => p.type === "ingresso")
-      case ">30%": return scoredPromotions.filter((p) => p.discount > 30)
-      case ">50%": return scoredPromotions.filter((p) => p.discount > 50)
-      case ">70%": return scoredPromotions.filter((p) => p.discount > 70)
+      case ">30% OFF": return scoredPromotions.filter((p) => p.discount > 30)
+      case ">50% OFF": return scoredPromotions.filter((p) => p.discount > 50)
+      case ">70% OFF": return scoredPromotions.filter((p) => p.discount > 70)
       case "IA Recomenda": return [...scoredPromotions].sort((a, b) => b.matchScore - a.matchScore)
       default: return scoredPromotions
     }
@@ -401,9 +401,9 @@ export default function PromocoesPage() {
     { label: "Hotel", value: "Hotel", icon: Hotel },
     { label: "Parque", value: "Parque", icon: Waves },
     { label: "Ingresso", value: "Ingresso", icon: Ticket },
-    { label: ">30%", value: ">30%", icon: Percent },
-    { label: ">50%", value: ">50%", icon: Percent },
-    { label: ">70%", value: ">70%", icon: Percent },
+    { label: ">30% OFF", value: ">30% OFF", icon: Tag },
+    { label: ">50% OFF", value: ">50% OFF", icon: Tag },
+    { label: ">70% OFF", value: ">70% OFF", icon: Tag },
     { label: "IA", value: "IA Recomenda", icon: Sparkles },
   ]
 
@@ -727,9 +727,9 @@ export default function PromocoesPage() {
             { label: "Hotel", value: "Hotel", icon: Hotel, filterUpdate: {}, testId: "button-filter-hotel" },
             { label: "Parque", value: "Parque", icon: Waves, filterUpdate: {}, testId: "button-filter-parque" },
             { label: "Ingresso", value: "Ingresso", icon: Ticket, filterUpdate: {}, testId: "button-filter-ingresso" },
-            { label: ">30%", value: ">30%", icon: Percent, badge: "30%", filterUpdate: {}, testId: "button-filter-30" },
-            { label: ">50%", value: ">50%", icon: Percent, badge: "50%", filterUpdate: {}, testId: "button-filter-50" },
-            { label: ">70%", value: ">70%", icon: Percent, badge: "70%", filterUpdate: {}, testId: "button-filter-70" },
+            { label: ">30% OFF", value: ">30% OFF", icon: Tag, badge: "30%", filterUpdate: {}, testId: "button-filter-30off" },
+            { label: ">50% OFF", value: ">50% OFF", icon: Tag, badge: "50%", filterUpdate: {}, testId: "button-filter-50off" },
+            { label: ">70% OFF", value: ">70% OFF", icon: Tag, badge: "70%", filterUpdate: {}, testId: "button-filter-70off" },
             { label: "IA Recomenda", value: "IA Recomenda", icon: Sparkles, badge: "IA", filterUpdate: {}, testId: "button-filter-ia" },
           ]}
           activeFilter={activeFilter}

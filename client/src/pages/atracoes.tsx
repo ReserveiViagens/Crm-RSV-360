@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { useSearch, useLocation } from "wouter"
-import { Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Waves, Mountain, Baby, HeartHandshake, Landmark, TreePine, LayoutGrid } from "lucide-react"
+import { Phone, MapPin, Clock, Star, Heart, Users, Sparkles, Eye, X, BarChart3, Navigation, DollarSign, Coffee, Zap, BookOpen, Leaf, LayoutGrid } from "lucide-react"
 import HotelDetailPanel, { HotelDetailData } from "@/components/hotel-detail-panel"
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
@@ -51,12 +51,12 @@ const categoryColors: Record<string, string> = {
 }
 
 const moodIcons: Record<string, typeof Sparkles> = {
-  Relaxamento: Waves,
-  Aventura: Mountain,
-  "Família": Baby,
-  "Romântico": HeartHandshake,
-  Cultura: Landmark,
-  Natureza: TreePine,
+  Relaxamento: Coffee,
+  Aventura: Zap,
+  "Família": Users,
+  "Romântico": Heart,
+  Cultura: BookOpen,
+  Natureza: Leaf,
 }
 
 const moodFilters = [
@@ -842,13 +842,13 @@ export default function AtracoesPage() {
           categories={[
             ...buildSectionTypeNav("atracoes"),
             CATALOG_DIVIDER,
-            { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
-            { label: "Relaxamento", value: "Relaxamento", icon: Waves, filterUpdate: {}, testId: "button-filter-relaxamento" },
-            { label: "Aventura", value: "Aventura", icon: Mountain, filterUpdate: {}, testId: "button-filter-aventura" },
-            { label: "Família", value: "Família", icon: Baby, filterUpdate: {}, testId: "button-filter-familia" },
-            { label: "Romântico", value: "Romântico", icon: HeartHandshake, filterUpdate: {}, testId: "button-filter-romantico" },
-            { label: "Cultura", value: "Cultura", icon: Landmark, filterUpdate: {}, testId: "button-filter-cultura" },
-            { label: "Natureza", value: "Natureza", icon: TreePine, filterUpdate: {}, testId: "button-filter-natureza" },
+            { label: "Todos", value: "Todos", icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-Todos" },
+            { label: "Relaxamento", value: "Relaxamento", icon: Coffee, filterUpdate: {}, testId: "button-filter-Relaxamento" },
+            { label: "Aventura", value: "Aventura", icon: Zap, filterUpdate: {}, testId: "button-filter-Aventura" },
+            { label: "Família", value: "Família", icon: Users, filterUpdate: {}, testId: "button-filter-Familia" },
+            { label: "Romântico", value: "Romântico", icon: Heart, filterUpdate: {}, testId: "button-filter-Romantico" },
+            { label: "Cultura", value: "Cultura", icon: BookOpen, filterUpdate: {}, testId: "button-filter-Cultura" },
+            { label: "Natureza", value: "Natureza", icon: Leaf, filterUpdate: {}, testId: "button-filter-Natureza" },
           ]}
           activeFilter={activeMood}
           onSelect={(f) => {

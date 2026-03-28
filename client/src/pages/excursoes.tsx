@@ -29,7 +29,7 @@ const PERFIS = [
   { id: "aventura",  label: "Aventura",  icon: Zap,        desc: "Radical & adrenalina"    },
   { id: "luxo",      label: "Luxo",      icon: Star,       desc: "Resort 5★ & all-inclusive"},
   { id: "econômico", label: "Econômico", icon: Wallet,     desc: "A partir de R$ 290"      },
-  { id: "grupo",     label: "Grupo",     icon: Bus,        desc: "Grupos e corporativos"   },
+  { id: "grupo",     label: "Grupo",     icon: Users,      desc: "Grupos e corporativos"   },
 ]
 
 const TOP_EXCURSOES = [
@@ -203,7 +203,7 @@ export default function Excursoes() {
           { label: "Aventura",  value: "aventura",  icon: Zap,        filterUpdate: {}, testId: "button-filter-aventura" },
           { label: "Luxo",      value: "luxo",      icon: Star,       filterUpdate: {}, testId: "button-filter-luxo" },
           { label: "Econômico", value: "econômico", icon: Wallet,     filterUpdate: {}, testId: "button-filter-economico" },
-          { label: "Grupo",     value: "grupo",     icon: Bus,        filterUpdate: {}, testId: "button-filter-grupo" },
+          { label: "Grupo",     value: "grupo",     icon: Users,      filterUpdate: {}, testId: "button-filter-grupo" },
         ]}
         activeFilter={perfil ?? "todos"}
         onSelect={(f) => {

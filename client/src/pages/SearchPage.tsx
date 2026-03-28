@@ -88,6 +88,17 @@ export default function SearchPage() {
   };
 
   const activeType: SearchItemType | "all" = (filters.type as SearchItemType) || "all";
+
+  const TYPE_TO_NAV: Record<string, string> = {
+    park: "__nav_parques",
+    hotel: "__nav_hoteis",
+    ticket: "__nav_ingressos",
+    excursion: "__nav_excursoes",
+    attraction: "__nav_atracoes",
+    combo: "__nav_combos",
+  }
+  const navActiveFilter = TYPE_TO_NAV[activeType] ?? ""
+
   const displayResults = accumulatedResults.length > 0 ? accumulatedResults : (data?.results ?? []);
   const hasMore = data?.hasMore ?? false;
   const isLoadingMore = isLoading && (filters.page ?? 1) > 1;
@@ -131,7 +142,7 @@ export default function SearchPage() {
         <div style={{ borderTop: "1px solid #F3F4F6" }}>
           <HotelCategoryNav
             categories={buildSectionTypeNav("busca")}
-            activeFilter={activeType}
+            activeFilter={navActiveFilter}
             onSelect={(f) => { if (f.href) navigate(f.href) }}
           />
         </div>
