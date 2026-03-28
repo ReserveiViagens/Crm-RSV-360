@@ -143,11 +143,19 @@ export default function Excursoes() {
       if (heroSearch.trim()) p.set("q", heroSearch.trim())
       const qs = p.toString()
       navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
+    } else if (id === "grupo") {
+      const next = perfilAtivo === id ? null : id
+      setPerfilAtivo(next)
+      const p = new URLSearchParams()
+      if (next) p.set("categoria", "grupo")
+      if (heroSearch.trim()) p.set("q", heroSearch.trim())
+      const qs = p.toString()
+      navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
     } else {
       const next = perfilAtivo === id ? null : id
       setPerfilAtivo(next)
       const p = new URLSearchParams()
-      if (next) p.set("category", next)
+      if (next) p.set("perfil", next)
       if (heroSearch.trim()) p.set("q", heroSearch.trim())
       const qs = p.toString()
       navigate(qs ? `/catalogo-excursoes?${qs}` : "/catalogo-excursoes")
@@ -198,12 +206,12 @@ export default function Excursoes() {
         categories={[
           ...buildSectionTypeNav("excursoes"),
           CATALOG_DIVIDER,
-          { label: "Todos",     value: "todos",     icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-todos" },
-          { label: "Família",   value: "família",   icon: Users,      filterUpdate: {}, testId: "button-filter-familia" },
-          { label: "Aventura",  value: "aventura",  icon: Zap,        filterUpdate: {}, testId: "button-filter-aventura" },
-          { label: "Luxo",      value: "luxo",      icon: Star,       filterUpdate: {}, testId: "button-filter-luxo" },
-          { label: "Econômico", value: "econômico", icon: Wallet,     filterUpdate: {}, testId: "button-filter-economico" },
-          { label: "Grupo",     value: "grupo",     icon: Users,      filterUpdate: {}, testId: "button-filter-grupo" },
+          { label: "Todos",     value: "todos",     icon: LayoutGrid, filterUpdate: {}, testId: "button-filter-Todos" },
+          { label: "Família",   value: "família",   icon: Users,      filterUpdate: {}, testId: "button-filter-Familia" },
+          { label: "Aventura",  value: "aventura",  icon: Zap,        filterUpdate: {}, testId: "button-filter-Aventura" },
+          { label: "Luxo",      value: "luxo",      icon: Star,       filterUpdate: {}, testId: "button-filter-Luxo" },
+          { label: "Econômico", value: "econômico", icon: Wallet,     filterUpdate: {}, testId: "button-filter-Economico" },
+          { label: "Grupo",     value: "grupo",     icon: Users,      filterUpdate: {}, testId: "button-filter-Grupo" },
         ]}
         activeFilter={perfil ?? "todos"}
         onSelect={(f) => {
