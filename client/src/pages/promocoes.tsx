@@ -177,9 +177,9 @@ const CATEGORIA_MAP: Record<string, FilterType> = {
   hotel: "Hotel",
   parque: "Parque",
   ingresso: "Ingresso",
-  ">30% OFF": ">30% OFF",
-  ">50% OFF": ">50% OFF",
-  ">70% OFF": ">70% OFF",
+  ">30% off": ">30% OFF",
+  ">50% off": ">50% OFF",
+  ">70% off": ">70% OFF",
   ia: "IA Recomenda",
 }
 
