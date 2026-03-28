@@ -92,7 +92,6 @@ export default function SearchPage() {
   const TYPE_TO_NAV: Record<string, string> = {
     park: "__nav_parques",
     hotel: "__nav_hoteis",
-    ticket: "__nav_ingressos",
     excursion: "__nav_excursoes",
     attraction: "__nav_atracoes",
     combo: "__nav_combos",
