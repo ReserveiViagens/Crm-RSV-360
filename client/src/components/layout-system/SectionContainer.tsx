@@ -1,24 +1,3 @@
-/**
- * =============================================================================
- * SectionContainer
- * =============================================================================
- * Wrapper para secoes internas dentro de paginas.
- * Fornece spacing vertical consistente entre blocos de conteudo.
- * 
- * RESPONSABILIDADES:
- * - Spacing vertical entre secoes (sm/md/lg/xl)
- * - Variantes de background (default/alt/elevated)
- * - Full-width para heroes ou secoes especiais
- * 
- * USO:
- * <PublicPageShell>
- *   <SectionContainer variant="alt" spacing="lg">
- *     <PageContainer>...</PageContainer>
- *   </SectionContainer>
- * </PublicPageShell>
- * =============================================================================
- */
-
 import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -55,7 +34,7 @@ const variantMap = {
 } as const;
 
 export const SectionContainer = React.forwardRef<
-  HTMLElement,
+  HTMLDivElement,
   SectionContainerProps
 >(({ 
   children, 
@@ -67,8 +46,8 @@ export const SectionContainer = React.forwardRef<
   id,
 }, ref) => {
   return (
-    <Component 
-      ref={ref as React.Ref<HTMLElement>}
+    <Component
+      ref={ref as React.Ref<HTMLDivElement>}
       id={id}
       className={cn(
         'w-full',

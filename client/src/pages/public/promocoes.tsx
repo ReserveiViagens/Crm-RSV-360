@@ -1,15 +1,7 @@
-/**
- * =============================================================================
- * PROMOCOES PAGE - FAMILIA A (Public)
- * =============================================================================
- * Pagina de promocoes e ofertas especiais
- * Max width interno: 1280px | Hero full-bleed | Spacing consistente
- */
 import { useState } from 'react';
 import { Link } from 'wouter';
 import {
   Star,
-  Clock,
   Zap,
   Percent,
   MapPin,
@@ -23,15 +15,14 @@ import { PublicPageShell, PublicSection } from '@/components/layout-system';
 import { PublicHeader, PublicFooter } from '@/components/public';
 import { CTAButton } from '@/components/ui/cta-button';
 import { FilterChips } from '@/components/ui/filter-chips';
-import { cn } from '@/lib/utils';
 
 // Data
 const PROMO_CATEGORIES = [
-  { value: 'todas', label: 'Todas' },
-  { value: 'flash', label: 'Flash Sale' },
-  { value: 'combo', label: 'Combos' },
-  { value: 'feriado', label: 'Feriados' },
-  { value: 'familia', label: 'Familia' },
+  { id: 'todas', label: 'Todas' },
+  { id: 'flash', label: 'Flash Sale' },
+  { id: 'combo', label: 'Combos' },
+  { id: 'feriado', label: 'Feriados' },
+  { id: 'familia', label: 'Familia' },
 ];
 
 const FLASH_DEALS = [
@@ -185,17 +176,17 @@ export default function PromocoesPage() {
       footer={<PublicFooter />}
       background="white"
     >
-      {/* ====== HERO - Full Bleed ====== */}
       <PublicSection fullWidth spacing="none" variant="dark">
         <div className="relative py-16 lg:py-20">
-          {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }} />
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }}
+            />
           </div>
 
-          {/* Content */}
           <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm font-medium mb-6">
               <Flame size={16} />
@@ -229,7 +220,6 @@ export default function PromocoesPage() {
         </div>
       </PublicSection>
 
-      {/* ====== FLASH DEALS ====== */}
       <PublicSection spacing="lg" variant="default">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -252,7 +242,6 @@ export default function PromocoesPage() {
           {FLASH_DEALS.map((deal) => (
             <Link key={deal.id} href={`/produto/${deal.id}`}>
               <div className="group bg-white rounded-xl border-2 border-orange-200 overflow-hidden hover:shadow-xl hover:border-orange-300 transition-all cursor-pointer">
-                {/* Image */}
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <img
                     src={deal.image}
@@ -272,7 +261,6 @@ export default function PromocoesPage() {
                         {deal.soldPercent}% vendido
                       </div>
                     </div>
-                    {/* Progress Bar */}
                     <div className="mt-2 h-1.5 bg-white/30 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-orange-500 rounded-full"
@@ -282,7 +270,6 @@ export default function PromocoesPage() {
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-4">
                   <div className="flex items-center gap-1 text-sm text-slate-500 mb-2">
                     <MapPin size={14} />
@@ -312,7 +299,6 @@ export default function PromocoesPage() {
         </div>
       </PublicSection>
 
-      {/* ====== ALL PROMOS ====== */}
       <PublicSection spacing="lg" variant="alt">
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">
@@ -323,8 +309,10 @@ export default function PromocoesPage() {
           </p>
           <FilterChips
             options={PROMO_CATEGORIES}
-            value={selectedCategory}
-            onChange={setSelectedCategory}
+            
+            onChange={(selected) =>
+              setSelectedCategory(Array.isArray(selected) ? (selected[0] ?? '') : selected)
+            }
           />
         </div>
 
@@ -332,7 +320,6 @@ export default function PromocoesPage() {
           {filteredPromos.map((promo) => (
             <Link key={promo.id} href={`/produto/${promo.id}`}>
               <div className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer">
-                {/* Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
                     src={promo.image}
@@ -346,7 +333,6 @@ export default function PromocoesPage() {
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-4">
                   <div className="flex items-center gap-1 text-sm text-slate-500 mb-2">
                     <MapPin size={14} />
@@ -393,7 +379,6 @@ export default function PromocoesPage() {
         )}
       </PublicSection>
 
-      {/* ====== NEWSLETTER CTA ====== */}
       <PublicSection spacing="lg" variant="primary">
         <div className="text-center">
           <Gift size={48} className="mx-auto text-white/80 mb-4" />

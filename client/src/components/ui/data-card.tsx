@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface DataCardProps {
+export interface DataCardProps {
   title: string;
   description?: string;
   image?: React.ReactNode;

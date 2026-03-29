@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronRight, Loader2 } from 'lucide-react';
 
-interface CTAButtonProps {
+export interface CTAButtonProps {
   label: string;
   onClick?: () => void;
   href?: string;

@@ -1798,19 +1798,32 @@ export async function registerRoutes(
   // NTX — Split Pix Payment
   // ─────────────────────────────────────────────
   app.post("/api/pagamento/gerar-pix", async (req: Request, res: Response) => {
-    const { excursaoId, amount, passengerName, organizerCommission } = req.body as {
-      excursaoId?: string; amount?: number; passengerName?: string; organizerCommission?: number;
-    };
-    if (!excursaoId || !amount || !passengerName) return res.status(400).json({ error: "excursaoId, amount e passengerName são obrigatórios" });
-    const sessionUserId = req.session?.userId;
-    try {
-      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0, sessionUserId);
-      return res.json(result);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erro interno";
-      return res.status(500).json({ error: msg });
-    }
-  });
+  const { excursaoId, amount, passengerName, organizerCommission } = req.body as {
+    excursaoId?: string;
+    amount?: number;
+    passengerName?: string;
+    organizerCommission?: number;
+  };
+
+  if (!excursaoId || !amount || !passengerName) {
+    return res.status(400).json({
+      error: "excursaoId, amount e passengerName são obrigatórios",
+    });
+  }
+
+  try {
+    const result = await createSplitPaymentPix(
+      amount,
+      excursaoId,
+      passengerName,
+      organizerCommission ?? 0
+    );
+    return res.json(result);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Erro interno";
+    return res.status(500).json({ error: msg });
+  }
+});
 
   app.get("/api/pagamento/status/:transactionId", async (req: Request, res: Response) => {
     const transactionId = String(req.params.transactionId);
