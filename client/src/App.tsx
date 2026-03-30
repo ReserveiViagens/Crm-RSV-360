@@ -14,6 +14,7 @@ import Leiloes from "@/pages/leiloes";
 import Ingressos from "@/pages/ingressos";
 import IngressosCheckout from "@/pages/ingressos-checkout";
 import IngressosSucesso from "@/pages/ingressos-sucesso";
+import OrderStatusPage from "@/pages/public/order-status";
 import Atracoes from "@/pages/atracoes";
 import Contato from "@/pages/contato";
 import CaldasAI from "@/pages/caldas-ai";
@@ -84,6 +85,8 @@ function Router() {
       <Route path="/ingressos" component={Ingressos} />
       <Route path="/ingressos/checkout" component={IngressosCheckout} />
       <Route path="/ingressos/sucesso" component={IngressosSucesso} />
+      <Route path="/pedido/:id" component={OrderStatusPage} />
+      <Route path="/orders/:id" component={OrderStatusPage} />
       <Route path="/atracoes" component={Atracoes} />
       <Route path="/contato" component={Contato} />
       <Route path="/caldas-ai" component={CaldasAI} />
