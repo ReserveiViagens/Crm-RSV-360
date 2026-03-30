@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Search, X } from 'lucide-react';
 
-interface CommandItem {
+export interface CommandItem {
   id: string;
   label: string;
   description?: string;
@@ -12,7 +12,7 @@ interface CommandItem {
   onSelect: () => void;
 }
 
-interface CommandBarProps {
+export interface CommandBarProps {
   items: CommandItem[];
   placeholder?: string;
   onClose?: () => void;

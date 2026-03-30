@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Search, X } from 'lucide-react';
 
-interface SearchBarProps {
+export interface SearchBarProps {
   value?: string;
   onChange?: (value: string) => void;
   onSearch?: (value: string) => void;

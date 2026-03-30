@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
-interface MetricCardProps {
+export interface MetricCardProps {
   label: string;
   value: string | number;
   unit?: string;
