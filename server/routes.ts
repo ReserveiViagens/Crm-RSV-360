@@ -70,7 +70,7 @@ export async function registerRoutes(
 registerWeatherRoutes(app);
 registerAccountRoutes(app);
 registerGroupRoutes(app);
-
+registerPaymentRoutes(app);
   // ─── RATE LIMITERS (Fase 08 — hardening) ─────────────────────────────────
   // voucher: 10 req/min por IP — protege geração de PDF e HMAC token
   const voucherRateLimit = rateLimit({
