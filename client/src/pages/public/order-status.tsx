@@ -14,6 +14,10 @@ import {
   type OrderSummaryData,
 } from "@/components/success/OrderSummaryCard";
 import { VoucherDownloadCard } from "@/components/success/VoucherDownloadCard";
+import { PixQrCodePanel } from "@/components/checkout/PixQrCodePanel";
+import { PixCopyPasteField } from "@/components/checkout/PixCopyPasteField";
+import { PixCountdown } from "@/components/checkout/PixCountdown";
+import { PaymentStatusBanner } from "@/components/checkout/PaymentStatusBanner";
 
 type PaymentStatus =
   | "PENDING"
@@ -21,6 +25,27 @@ type PaymentStatus =
   | "EXPIRED"
   | "FAILED"
   | "CANCELLED";
+
+interface TicketPaymentDetails {
+  transactionId: string;
+  status: PaymentStatus;
+  qrCodeBase64: string;
+  copyPasteCode: string;
+  expirationDate: string;
+  totalAmount: number;
+  originalTotal: number;
+  totalSavings: number;
+  isCombo: boolean;
+  items: Array<{
+    ticketId: string;
+    title: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+  demo: boolean;
+  voucherId?: string;
+  voucherToken?: string;
+}
 
 function formatDate(value?: string) {
   if (!value) return "—";
@@ -61,10 +86,12 @@ export default function OrderStatusPage() {
   }, [location]);
 
   const [order, setOrder] = useState<OrderSummaryData | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<TicketPaymentDetails | null>(null);
   const [status, setStatus] = useState<PaymentStatus>("PENDING");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState(0);
 
   async function loadOrder(showLoading = true) {
     if (!orderId) {
@@ -89,9 +116,10 @@ export default function OrderStatusPage() {
       setOrder(orderData);
       setStatus(normalizeStatus(orderData.status));
 
-      const statusRes = await fetch(
-        `/api/payments/tickets/${encodeURIComponent(orderId)}/status`,
-      );
+      const [statusRes, detailsRes] = await Promise.all([
+        fetch(`/api/payments/tickets/${encodeURIComponent(orderId)}/status`),
+        fetch(`/api/payments/tickets/${encodeURIComponent(orderId)}`),
+      ]);
 
       if (statusRes.ok) {
         const statusData = (await statusRes.json()) as {
@@ -102,13 +130,37 @@ export default function OrderStatusPage() {
         setStatus(nextStatus);
         setOrder((prev) =>
           prev
+            ? { ...prev, status: nextStatus }
+            : { ...orderData, status: nextStatus },
+        );
+      }
+
+      if (detailsRes.ok) {
+        const details = (await detailsRes.json()) as TicketPaymentDetails;
+        const nextStatus = normalizeStatus(details.status);
+        setPaymentDetails({ ...details, status: nextStatus });
+        setStatus(nextStatus);
+
+        const expirationSource = details.expirationDate ?? orderData.expirationDate;
+        if (expirationSource) {
+          const diffSec = Math.max(
+            0,
+            Math.floor((new Date(expirationSource).getTime() - Date.now()) / 1000),
+          );
+          setSecondsLeft(diffSec);
+        }
+
+        setOrder((prev) =>
+          prev
             ? {
                 ...prev,
                 status: nextStatus,
+                expirationDate: details.expirationDate ?? prev.expirationDate,
               }
             : {
                 ...orderData,
                 status: nextStatus,
+                expirationDate: details.expirationDate ?? orderData.expirationDate,
               },
         );
       }
@@ -148,6 +200,14 @@ export default function OrderStatusPage() {
             }
           : prev,
       );
+      setPaymentDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: nextStatus,
+            }
+          : prev,
+      );
     } finally {
       setRefreshing(false);
     }
@@ -166,6 +226,31 @@ export default function OrderStatusPage() {
 
     return () => window.clearInterval(timer);
   }, [status, orderId]);
+
+  useEffect(() => {
+    if (!paymentDetails?.expirationDate) return;
+
+    const updateSeconds = () => {
+      const diffSec = Math.max(
+        0,
+        Math.floor(
+          (new Date(paymentDetails.expirationDate).getTime() - Date.now()) / 1000,
+        ),
+      );
+      setSecondsLeft(diffSec);
+    };
+
+    updateSeconds();
+
+    if (status !== "PENDING") return;
+
+    const timer = window.setInterval(updateSeconds, 1000);
+    return () => window.clearInterval(timer);
+  }, [paymentDetails?.expirationDate, status]);
+
+  const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const seconds = String(secondsLeft % 60).padStart(2, "0");
+  const isExpired = secondsLeft === 0 && status === "PENDING";
 
   const statusConfig = {
     PENDING: {
@@ -198,8 +283,7 @@ export default function OrderStatusPage() {
     FAILED: {
       icon: <XCircle style={{ width: 24, height: 24, color: "#DC2626" }} />,
       title: "Falha no pagamento",
-      description:
-        "Não foi possível confirmar o pagamento deste pedido.",
+      description: "Não foi possível confirmar o pagamento deste pedido.",
       bg: "#FEF2F2",
       border: "#FCA5A5",
       text: "#991B1B",
@@ -487,11 +571,119 @@ export default function OrderStatusPage() {
                   color: "#111827",
                 }}
               >
-                {formatDate(order.expirationDate)}
+                {formatDate(paymentDetails?.expirationDate ?? order.expirationDate)}
               </p>
             </div>
           </div>
         </div>
+
+        {status === "PENDING" && paymentDetails && (
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 16,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            }}
+            data-testid="card-pix-pending-status"
+          >
+            <PaymentStatusBanner status={status} isExpired={isExpired} />
+
+            {paymentDetails.demo && (
+              <div
+                style={{
+                  background: "#EFF6FF",
+                  border: "1px solid #BFDBFE",
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  marginBottom: 14,
+                  fontSize: 12,
+                  color: "#1D4ED8",
+                }}
+                data-testid="badge-demo-mode"
+              >
+                Modo demonstração — nenhum pagamento real será processado
+              </div>
+            )}
+
+            {!isExpired && (
+              <PixCountdown
+                minutes={minutes}
+                seconds={seconds}
+                isExpired={isExpired}
+              />
+            )}
+
+            <PixQrCodePanel qrCodeBase64={paymentDetails.qrCodeBase64} />
+
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: 13,
+                color: "#6B7280",
+                margin: "0 0 12px",
+              }}
+            >
+              Ou copie o código abaixo:
+            </p>
+
+            <PixCopyPasteField
+              copyPasteCode={paymentDetails.copyPasteCode}
+              transactionId={paymentDetails.transactionId}
+              disabled={isExpired}
+            />
+
+            <div style={{ borderTop: "1px solid #F3F4F6", paddingTop: 14, marginTop: 6 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  margin: "0 0 6px",
+                  color: "#374151",
+                }}
+              >
+                Como pagar:
+              </p>
+
+              {[
+                "Abra seu banco ou app de pagamento",
+                "Escolha pagar via Pix",
+                "Escaneie o QR Code ou cole o código",
+                "Confirme o pagamento e acompanhe o status nesta página",
+              ].map((step, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      background: "#DCFCE7",
+                      color: "#16A34A",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span style={{ fontSize: 13, color: "#6B7280" }}>{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <OrderSummaryCard data={{ ...order, status }} />
 
@@ -519,10 +711,10 @@ export default function OrderStatusPage() {
             <VoucherDownloadCard
               orderId={order.orderId}
               demo={order.demo}
-              voucherToken={voucherToken}
+              voucherToken={voucherToken ?? paymentDetails?.voucherToken}
             />
 
-            {!voucherToken && (
+            {!voucherToken && !paymentDetails?.voucherToken && (
               <p style={{ margin: "8px 0 0 0", fontSize: 12, color: "#6B7280" }}>
                 Se o download não for autorizado, use o link recebido por e-mail ou WhatsApp com o token de acesso.
               </p>
@@ -545,7 +737,7 @@ export default function OrderStatusPage() {
           <ul style={{ margin: 0, paddingLeft: 18, color: "#4B5563", fontSize: 14, lineHeight: 1.6 }}>
             {status === "PENDING" && (
               <>
-                <li>Finalize o pagamento para liberar o voucher.</li>
+                <li>Escaneie o QR Code ou copie o código Pix.</li>
                 <li>Esta página atualiza o status automaticamente a cada 5 segundos.</li>
               </>
             )}
