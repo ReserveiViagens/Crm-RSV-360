@@ -257,34 +257,50 @@ export default function IngressosCheckoutPage() {
     return () => clearInterval(timerRef.current!)
   }, [step, paymentMethod, paymentData])
 
-  const createPaymentMutation = useMutation({
-    mutationFn: async () => {
-      const dados = dadosForm.getValues()
-      const payload = {
-        items: cart.map((c) => ({
-          ticketId: c.ticketId,
-          quantity: c.quantity,
-        })),
-        customer: {
-          name: `${dados.firstName.trim()} ${dados.lastName.trim()}`,
-          email: emailForm.getValues("email").trim(),
-          cpf: dados.cpf.replace(/\D/g, ""),
-          phone: dados.phone.replace(/\D/g, ""),
-        },
-      }
-      const res = await apiRequest("POST", "/api/payments/tickets/create", payload)
-      return res.json() as Promise<PaymentData>
-    },
-    onSuccess: (data) => {
-      setPaymentData(data)
-      const expMs = new Date(data.expirationDate).getTime()
-      const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000))
-      setSecondsLeft(diffSec)
-      trackEvent("pix_qr_visible", { transactionId: data.transactionId })
-    },
-  })
+ const demoConfirmMutation = useMutation({
+  mutationFn: async (transactionId: string) => {
+    const res = await apiRequest("POST", `/api/payments/tickets/${transactionId}/demo-confirm`, {})
+    return res.json() as Promise<{ status: string; paid: boolean }>
+  },
+  onSuccess: (data) => {
+    if (data.paid || data.status === "APPROVED") {
+      trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId, demo: true })
+      clearCart()
+      const tok = paymentData?.voucherToken ? `?token=${encodeURIComponent(paymentData.voucherToken)}` : ""
+      navigate(`/pedido/${paymentData?.transactionId}${tok}`)
+    }
+  },
+ })
+ const createPaymentMutation = useMutation({
+  mutationFn: async () => {
+    const dados = dadosForm.getValues()
+    const payload = {
+      items: cart.map((c) => ({
+        ticketId: c.ticketId,
+        quantity: c.quantity,
+      })),
+      customer: {
+        name: `${dados.firstName.trim()} ${dados.lastName.trim()}`,
+        email: emailForm.getValues("email").trim(),
+        cpf: dados.cpf.replace(/\D/g, ""),
+        phone: dados.phone.replace(/\D/g, ""),
+      },
+    }
+    const res = await apiRequest("POST", "/api/payments/tickets/create", payload)
+    return res.json() as Promise<PaymentData>
+  },
+  onSuccess: (data) => {
+    setPaymentData(data)
+    const expMs = new Date(data.expirationDate).getTime()
+    const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000))
+    setSecondsLeft(diffSec)
+    trackEvent("pix_qr_visible", { transactionId: data.transactionId })
 
-  const cancelPaymentMutation = useMutation({
+    const tok = data.voucherToken ? `?token=${encodeURIComponent(data.voucherToken)}` : ""
+    navigate(`/pedido/${data.transactionId}${tok}`)
+  },
+})
+ const cancelPaymentMutation = useMutation({
     mutationFn: async (transactionId: string) => {
       const res = await apiRequest("POST", `/api/payments/tickets/${transactionId}/cancel`, {})
       return res.json() as Promise<{ cancelled: boolean; status: string }>
@@ -295,21 +311,7 @@ export default function IngressosCheckoutPage() {
     },
   })
 
-  const demoConfirmMutation = useMutation({
-    mutationFn: async (transactionId: string) => {
-      const res = await apiRequest("POST", `/api/payments/tickets/${transactionId}/demo-confirm`, {})
-      return res.json() as Promise<{ status: string; paid: boolean }>
-    },
-    onSuccess: (data) => {
-      if (data.paid || data.status === "APPROVED") {
-        trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId, demo: true })
-        clearCart()
-        const tok = paymentData?.voucherToken ? `&token=${encodeURIComponent(paymentData.voucherToken)}` : ""
-        navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}${tok}`)
-      }
-    },
-  })
-
+  
   const isTerminal = (s: PaymentStatus) =>
     s === "APPROVED" || s === "EXPIRED" || s === "FAILED" || s === "CANCELLED"
 
@@ -332,15 +334,15 @@ export default function IngressosCheckoutPage() {
     },
   })
 
-  useEffect(() => {
-    if (!statusData) return
-    if (statusData.paid || statusData.status === "APPROVED") {
-      trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId })
-      clearCart()
-      const tok = paymentData?.voucherToken ? `&token=${encodeURIComponent(paymentData.voucherToken)}` : ""
-      navigate(`/ingressos/sucesso?orderId=${paymentData?.transactionId}${tok}`)
-    }
-  }, [statusData])
+ useEffect(() => {
+  if (!statusData) return
+  if (statusData.paid || statusData.status === "APPROVED") {
+    trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId })
+    clearCart()
+    const tok = paymentData?.voucherToken ? `?token=${encodeURIComponent(paymentData.voucherToken)}` : ""
+    navigate(`/pedido/${paymentData?.transactionId}${tok}`)
+  }
+}, [statusData, paymentData, navigate])
 
   async function fetchViaCep() {
     const clean = dadosForm.getValues("cep").replace(/\D/g, "")
@@ -389,6 +391,55 @@ export default function IngressosCheckoutPage() {
   if (cart.length === 0) return null
 
   const isApplePay = typeof window !== "undefined" && "ApplePaySession" in window
+  if (paymentData && paymentMethod === "pix") {
+  return (
+    <div className="rsv-subpage" style={{ background: "#F8FAFC", minHeight: "100vh" }}>
+      <HomeHeader />
+      <div
+        style={{
+          minHeight: "60vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 520,
+            background: "#fff",
+            borderRadius: 16,
+            padding: 24,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            textAlign: "center",
+          }}
+        >
+          <Loader2
+            style={{
+              width: 28,
+              height: 28,
+              color: "#2563EB",
+              margin: "0 auto 12px",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <h2 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#111827" }}>
+            Redirecionando para o acompanhamento do pedido
+          </h2>
+          <p style={{ margin: 0, fontSize: 14, color: "#6B7280" }}>
+            Seu Pix foi gerado. Você será levado para a página do pedido para acompanhar o pagamento.
+          </p>
+        </div>
+      </div>
+      <HomeFooter />
+      <MobileCTABar />
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  )
+}
 
   const sidebarProps = {
     cart,
