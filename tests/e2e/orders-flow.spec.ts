@@ -146,25 +146,27 @@ test.describe("Fluxo E2E de pedidos", () => {
     await expect(page).toHaveURL(/\/ingressos/);
     await expect(page.getByText(/Carrinho restaurado/i)).toBeVisible();
 
-    const continueCheckout = page
-      .locator("a,button")
-      .filter({ hasText: /Continuar checkout/i })
-      .first();
+    const continueCheckout = page.getByTestId("button-retry-continue-checkout");
 
     await expect(continueCheckout).toBeVisible();
     await continueCheckout.click();
 
-    await expect(page).toHaveURL(/\/ingressos-checkout/);
+    await expect(page).toHaveURL(/\/ingressos(\/checkout|\-checkout)/);
 
-    // TODO: Verificar prefill dos dados do cliente
-    // const nameParts = order.customer.name.trim().split(" ").filter(Boolean);
-    // const prefillFirstName = nameParts.length > 0 ? nameParts[0] : "";
-    // const prefillLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
-    // await expect(page.locator('input[name="firstName"]').first()).toHaveValue(prefillFirstName);
-    // await expect(page.locator('input[name="lastName"]').first()).toHaveValue(prefillLastName);
-    // await expect(page.locator('input[name="email"]').first()).toHaveValue(order.customer.email);
-    // await expect(page.locator('input[name="phone"]').first()).toHaveValue(order.customer.phone);
-    // await expect(page.locator('input[name="cpf"]').first()).toHaveValue(order.customer.cpf);
+    // Verifica prefill no step de e-mail
+    await expect(page.getByTestId("input-email")).toHaveValue(order.customer.email);
+    await expect(page.getByTestId("button-next-email")).toBeVisible();
+    await page.getByTestId("button-next-email").click();
+
+    // Verifica prefill no step de dados
+    const nameParts = order.customer.name.trim().split(" ").filter(Boolean);
+    const prefillFirstName = nameParts.length > 0 ? nameParts[0] : "";
+    const prefillLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+    await expect(page.getByTestId("input-firstName")).toHaveValue(prefillFirstName);
+    await expect(page.getByTestId("input-lastName")).toHaveValue(prefillLastName);
+    await expect(page.getByTestId("input-phone")).toHaveValue(order.customer.phone);
+    await expect(page.getByTestId("input-cpf")).toHaveValue(order.customer.cpf);
   });
 
   test("pedido EXPIRED permite retry contextual e restaura carrinho", async ({
