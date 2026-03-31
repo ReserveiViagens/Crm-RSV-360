@@ -1,6 +1,6 @@
 # Status Geral — RSV360
 
-  ## Última atualização: 2026-03-28
+  ## Última atualização: 2026-03-31
 
   ## Resumo por Fase
 
@@ -29,7 +29,8 @@
   | 8 | Caldas AI — Agente Flutuante Inteligente | ✅ CONCLUÍDA | CaldasAiFloatingAgent com botão flutuante e chat integrado |
   | 9 | UI Quick-Fixes: balloon, nav alignment, MobileCTABar | ✅ CONCLUÍDA | Balloon CTA removido, HotelCategoryNav chips flex-start, MobileCTABar retorna null |
   | 10 | Caldas AI: Wizard embutido no chat (sem Step 1 separado) | ✅ CONCLUÍDA | Chat abre direto; 6 cards de perfil inline como 1ª mensagem; botão oculto quando modal aberta |
-  | — | Fix: TravelerProfileModal não abre automaticamente | ✅ CONCLUÍDA | Removido setTimeout que auto-abria o wizard em atracoes, hoteis, promocoes, leiloes |
+  | 11 | Fix: TravelerProfileModal não abre automaticamente | ✅ CONCLUÍDA | Removido setTimeout que auto-abria o wizard em atracoes, hoteis, promocoes, leiloes |
+  | 12 | Task 8 — Restaurar carrinho do pedido anterior no retry | ✅ CONCLUÍDA | replaceCart em cart-store; restore=1 em order-status; restore logic em ingressos; banner contextual |
 
   ## Smoke Tests Validados (Task #2)
 
