@@ -13,7 +13,7 @@ import {
 } from "@/components/ai-conversion-elements"
 import { useTicketsCart } from "@/hooks/useTicketsCart"
 import { trackEvent } from "@/lib/analytics"
-import { saveSelectedDate, replaceCart } from "@/lib/cart-store"
+import { saveSelectedDate, replaceCart, setCheckoutPrefill } from "@/lib/cart-store"
 import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
@@ -618,6 +618,27 @@ export default function IngressosPage() {
 
         // Replace cart with restored items
         replaceCart(cartItems)
+
+        // Try to restore customer data (nome, email, telefone, cpf) for checkout
+        try {
+          const orderRes = await fetch(`/api/orders/${encodeURIComponent(orderId)}`)
+          if (orderRes.ok) {
+            const orderData = await orderRes.json() as {
+              customer?: { name?: string; email?: string; phone?: string; cpf?: string }
+            }
+            if (orderData.customer?.name && orderData.customer?.email) {
+              setCheckoutPrefill({
+                name: orderData.customer.name,
+                email: orderData.customer.email,
+                phone: orderData.customer.phone,
+                cpf: orderData.customer.cpf,
+              })
+            }
+          }
+        } catch {
+          // não falhar a restauração do carrinho em caso de erro extra de łoad
+        }
+
         setRetryRestoreDone(true)
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Erro ao restaurar o carrinho"

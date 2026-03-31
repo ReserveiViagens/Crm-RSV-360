@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useQuery, useMutation } from "@tanstack/react-query"
-import { getCart, getCartTotal, clearCart, getSelectedDate, type CartItem } from "@/lib/cart-store"
+import { getCart, getCartTotal, clearCart, getSelectedDate, getCheckoutPrefill, clearCheckoutPrefill, type CartItem } from "@/lib/cart-store"
 import { trackEvent } from "@/lib/analytics"
 import { apiRequest } from "@/lib/queryClient"
 import { IngressosSidebar } from "@/components/IngressosSidebar"
@@ -222,15 +222,23 @@ export default function IngressosCheckoutPage() {
   const [card, setCard] = useState<CardState>({ number: "", holderName: "", expiry: "", cvv: "" })
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  const checkoutPrefill = getCheckoutPrefill()
+  const nameParts = (checkoutPrefill?.name ?? "").trim().split(" ").filter(Boolean)
+  const prefillFirstName = nameParts.length > 0 ? nameParts[0] : ""
+  const prefillLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : ""
+
   const emailForm = useForm<EmailFormValues>({
     resolver: zodResolver(emailSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: checkoutPrefill?.email ?? "" },
   })
 
   const dadosForm = useForm<DadosFormValues>({
     resolver: zodResolver(dadosSchema),
     defaultValues: {
-      firstName: "", lastName: "", phone: "", cpf: "",
+      firstName: prefillFirstName,
+      lastName: prefillLastName,
+      phone: checkoutPrefill?.phone ?? "",
+      cpf: checkoutPrefill?.cpf ?? "",
       country: "Brasil", cep: "", estado: "", cidade: "",
       endereco: "", numero: "", bairro: "", complemento: "", cupom: "",
     },
@@ -295,6 +303,7 @@ export default function IngressosCheckoutPage() {
     const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000))
     setSecondsLeft(diffSec)
     trackEvent("pix_qr_visible", { transactionId: data.transactionId })
+    clearCheckoutPrefill()
 
     const tok = data.voucherToken ? `?token=${encodeURIComponent(data.voucherToken)}` : ""
     navigate(`/pedido/${data.transactionId}${tok}`)
@@ -339,6 +348,7 @@ export default function IngressosCheckoutPage() {
   if (statusData.paid || statusData.status === "APPROVED") {
     trackEvent("pix_payment_confirmed", { transactionId: paymentData?.transactionId })
     clearCart()
+    clearCheckoutPrefill()
     const tok = paymentData?.voucherToken ? `?token=${encodeURIComponent(paymentData.voucherToken)}` : ""
     navigate(`/pedido/${paymentData?.transactionId}${tok}`)
   }

@@ -111,6 +111,46 @@ export function getCartItemQty(items: CartItem[], ticketId: string): number {
   return items.find((c) => c.ticketId === ticketId)?.quantity ?? 0
 }
 
+export type CheckoutCustomerPrefill = {
+  name: string
+  email: string
+  phone?: string
+  cpf?: string
+}
+
+const CHECKOUT_PREFILL_KEY = "rsv_checkout_prefill"
+
+export function setCheckoutPrefill(customer: CheckoutCustomerPrefill): void {
+  try {
+    localStorage.setItem(CHECKOUT_PREFILL_KEY, JSON.stringify(customer))
+  } catch {}
+}
+
+export function getCheckoutPrefill(): CheckoutCustomerPrefill | null {
+  try {
+    const raw = localStorage.getItem(CHECKOUT_PREFILL_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      typeof parsed.name !== "string" ||
+      typeof parsed.email !== "string"
+    ) {
+      return null
+    }
+    return parsed as CheckoutCustomerPrefill
+  } catch {
+    return null
+  }
+}
+
+export function clearCheckoutPrefill(): void {
+  try {
+    localStorage.removeItem(CHECKOUT_PREFILL_KEY)
+  } catch {}
+}
+
 const DATE_KEY = "rsv_visit_date"
 
 export function getSelectedDate(): Date | null {
