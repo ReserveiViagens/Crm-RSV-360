@@ -1,53 +1,47 @@
 # 02-HANDOFF-ATUAL
 
 ## Último estado conhecido
-Task 9 — Pré-preencher dados do comprador no retry — 100% concluída e validada.
+Task 11 — Pipeline CI com check/build/e2e — 100% concluída e validada.
 
 ## Estado atual
 - ✅ Branch: main
-- ✅ Commit: f17e053 — feat(orders): preenche dados do comprador no retry de pedidos
+- ✅ Commit: 321b692 — Merge pull request #8
 - ✅ npm run check: PASSOU
 - ✅ npm run build: PASSOU
-- ✅ Funcionalidade: Retry com prefill automático de dados do comprador + limpeza após pagamento
+- ✅ npm run e2e: 3/3 testes passando
+- ✅ CI pipeline: rodando automaticamente em push/PR
+- ✅ Cobertura E2E: PENDING→APPROVED, FAILED→retry, EXPIRED→retry
 
 ## Mudanças implementadas (resumo)
 
-### 1. cart-store.ts
-- Adicionada `CheckoutCustomerPrefill` type (name, email, phone?, cpf?)
-- Adicionada `setCheckoutPrefill(customer)` — armazena em localStorage
-- Adicionada `getCheckoutPrefill()` — recupera com validação
-- Adicionada `clearCheckoutPrefill()` — limpa após uso
+### Task 10 — E2E Tests
+- Playwright instalado e configurado
+- `tests/e2e/orders-flow.spec.ts` com 3 cenários completos
+- Seletores estabilizados com `data-testid`
+- Rota checkout corrigida (`/ingressos/checkout`)
+- Validação: 3/3 testes passando localmente
 
-### 2. server/routes.ts
-- Atualizado `/api/orders/:id` para incluir phone e cpf no customer object
-- customer: { name, email, phone, cpf }
-
-### 3. ingressos.tsx
-- Atualizado `restoreCartFromOrder()` para buscar também `/api/orders/:id`
-- Chama `setCheckoutPrefill(customer)` após restaurar carrinho
-
-### 4. ingressos-checkout.tsx
-- Adicionado prefill automático nos campos do formulário
-- `checkoutPrefill = getCheckoutPrefill()`
-- Campos preenchidos: firstName/lastName (split name), email, phone, cpf
-- `clearCheckoutPrefill()` chamado em onSuccess (após criar pagamento)
+### Task 11 — CI Pipeline
+- `.github/workflows/ci-e2e.yml` criado
+- Pipeline: checkout → Node 20 → npm ci → playwright install → check → build → e2e
+- Upload relatório Playwright como artefato
+- README.md criado com badge CI
+- PR #8 merged com sucesso
 
 ## Fluxo funcional (ponta a ponta)
 
-1. Usuário em /pedido/:id vê status EXPIRED/FAILED
-2. Clica em "Refazer pedido"
-3. Redireciona para `/ingressos?retry=1&restore=1&fromOrder=abc123&status=EXPIRED`
-4. Página ingressos detecta parâmetros
-5. Chama `/api/orders/abc123/tickets` e `/api/orders/abc123`
-6. Restaura carrinho automaticamente + armazena dados do comprador
-7. Exibe banner verde: "Carrinho restaurado" + botão "Continuar checkout"
-8. Usuário vai para checkout
-9. Formulário já preenchido com nome, email, telefone, cpf
-10. Após pagamento criado, dados de prefill são limpos
-11. Menos atrito, menos abandono, experiência fluida
+1. Desenvolvedor faz commit/push
+2. GitHub Actions dispara CI automaticamente
+3. Pipeline roda: check (TypeScript) → build → e2e tests
+4. Se falhar: relatório Playwright disponível como artefato
+5. Se passar: badge verde no README
+6. Regressões no fluxo de pedidos são detectadas automaticamente
 
 ## Critério de aceite cumprido
-- [x] Retry restaura carrinho + dados do comprador
+- [x] Cobertura E2E para fluxo crítico de pedidos
+- [x] Pipeline CI com check/build/e2e
+- [x] Artefatos para debug de falhas
+- [x] Badge visual de status
 - [x] Formulário checkout pré-preenchido automaticamente
 - [x] Dados limpos após criação de pagamento (não persistem)
 - [x] Backend expõe phone e cpf via /api/orders/:id

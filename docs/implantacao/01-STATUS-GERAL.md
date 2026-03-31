@@ -32,6 +32,8 @@
   | 11 | Fix: TravelerProfileModal não abre automaticamente | ✅ CONCLUÍDA | Removido setTimeout que auto-abria o wizard em atracoes, hoteis, promocoes, leiloes |
   | 12 | Task 8 — Restaurar carrinho do pedido anterior no retry | ✅ CONCLUÍDA | replaceCart em cart-store; restore=1 em order-status; restore logic em ingressos; banner contextual |
   | 13 | Task 9 — Pré-preencher dados do comprador no retry | ✅ CONCLUÍDA | setCheckoutPrefill/getCheckoutPrefill em cart-store; backend expõe phone/cpf; prefill em checkout; limpeza após pagamento |
+  | 14 | Task 10 — E2E tests para fluxo de pedidos | ✅ CONCLUÍDA | Playwright com 3 cenários: PENDING→APPROVED, FAILED→retry, EXPIRED→retry; carrinho restaurado + prefill buyer data |
+  | 15 | Task 11 — Pipeline CI com check/build/e2e | ✅ CONCLUÍDA | GitHub Actions com check, build, e2e; upload relatório Playwright; badge CI no README |
 
   ## Smoke Tests Validados (Task #2)
 
