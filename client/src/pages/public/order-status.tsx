@@ -862,7 +862,11 @@ export default function OrderStatusPage() {
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
             <a
-              href="/ingressos"
+              href={
+                status === "EXPIRED" || status === "FAILED"
+                  ? `/ingressos?retry=1&fromOrder=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`
+                  : "/ingressos"
+              }
               style={{
                 textDecoration: "none",
                 borderRadius: 10,

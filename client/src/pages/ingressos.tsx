@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star, Gift, Waves } from "lucide-react"
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
@@ -470,6 +470,15 @@ function getBestValueId(list: TicketItem[]) {
 
 export default function IngressosPage() {
   const [, navigate] = useLocation()
+  const search = useSearch()
+  const retryParams = useMemo(() => {
+    const params = new URLSearchParams(search);
+    return {
+      retry: params.get("retry"),
+      fromOrder: params.get("fromOrder"),
+      status: params.get("status"),
+    };
+  }, [search]);
   const isDesktop = useIsDesktop()
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [activePick, setActivePick] = useState<QuickPick | null>(null)
@@ -864,6 +873,24 @@ export default function IngressosPage() {
         />
       }
     >
+      {retryParams.retry === "1" && retryParams.fromOrder && retryParams.status && (
+        <div style={{
+          background: "#FFF7ED",
+          border: "1px solid #FDE68A",
+          borderRadius: 8,
+          padding: "12px 16px",
+          margin: "16px",
+          fontSize: 14,
+          color: "#92400E",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}>
+          <Timer style={{ width: 16, height: 16 }} />
+          Você está refazendo um pedido {retryParams.status === "EXPIRED" ? "expirado" : "com falha"} (ID: {retryParams.fromOrder}).
+        </div>
+      )}
+
       <div
         style={{
           background: "linear-gradient(135deg, #0F1F38 0%, #1E3A5F 100%)",
