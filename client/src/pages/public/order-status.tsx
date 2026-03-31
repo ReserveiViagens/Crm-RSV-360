@@ -6,6 +6,7 @@ import {
   Clock3,
   Copy,
   Loader2,
+  MessageCircle,
   RefreshCcw,
   Ticket,
   XCircle,
@@ -52,6 +53,7 @@ function formatDate(value?: string) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
+
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
@@ -66,6 +68,7 @@ function getOrderIdFromPath(pathname: string) {
 
 function normalizeStatus(value?: string): PaymentStatus {
   const normalized = String(value ?? "PENDING").toUpperCase();
+
   if (
     normalized === "APPROVED" ||
     normalized === "EXPIRED" ||
@@ -74,12 +77,39 @@ function normalizeStatus(value?: string): PaymentStatus {
   ) {
     return normalized;
   }
+
   return "PENDING";
+}
+
+const SUPPORT_WHATSAPP_NUMBER = "5562999999999";
+
+function getSupportMessage(status: PaymentStatus, orderId: string) {
+  const safeOrderId = orderId || "sem-id";
+
+  if (status === "PENDING") {
+    return `Olá! Preciso de ajuda para concluir o pagamento do pedido ${safeOrderId}.`;
+  }
+
+  if (status === "FAILED") {
+    return `Olá! Meu pagamento falhou e preciso de suporte no pedido ${safeOrderId}.`;
+  }
+
+  if (status === "EXPIRED") {
+    return `Olá! Meu pedido expirou e quero ajuda para gerar um novo pedido. Pedido: ${safeOrderId}.`;
+  }
+
+  if (status === "APPROVED") {
+    return `Olá! Tenho uma dúvida sobre o voucher do pedido ${safeOrderId}.`;
+  }
+
+  return `Olá! Preciso de atendimento sobre o pedido ${safeOrderId}.`;
 }
 
 export default function OrderStatusPage() {
   const [location] = useLocation();
+
   const orderId = useMemo(() => getOrderIdFromPath(location), [location]);
+
   const voucherToken = useMemo(() => {
     if (typeof window === "undefined") return undefined;
     const token = new URLSearchParams(window.location.search).get("token");
@@ -128,6 +158,7 @@ export default function OrderStatusPage() {
           status?: string;
           paid?: boolean;
         };
+
         const nextStatus = normalizeStatus(statusData.status ?? orderData.status);
         setStatus(nextStatus);
         setOrder((prev) =>
@@ -140,6 +171,7 @@ export default function OrderStatusPage() {
       if (detailsRes.ok) {
         const details = (await detailsRes.json()) as TicketPaymentDetails;
         const nextStatus = normalizeStatus(details.status);
+
         setPaymentDetails({ ...details, status: nextStatus });
         setStatus(nextStatus);
 
@@ -175,61 +207,63 @@ export default function OrderStatusPage() {
     }
   }
 
-async function refreshStatus() {
-  if (!orderId) return;
+  async function refreshStatus() {
+    if (!orderId) return;
 
-  try {
-    setRefreshing(true);
+    try {
+      setRefreshing(true);
 
-    const statusRes = await fetch(
-      `/api/payments/tickets/${encodeURIComponent(orderId)}/status`,
-    );
+      const statusRes = await fetch(
+        `/api/payments/tickets/${encodeURIComponent(orderId)}/status`,
+      );
 
-    if (!statusRes.ok) return;
+      if (!statusRes.ok) return;
 
-    const statusData = (await statusRes.json()) as {
-      status?: string;
-      paid?: boolean;
-    };
+      const statusData = (await statusRes.json()) as {
+        status?: string;
+        paid?: boolean;
+      };
 
-    const nextStatus = normalizeStatus(statusData.status);
-    setStatus(nextStatus);
-    setOrder((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: nextStatus,
-          }
-        : prev,
-    );
-    setPaymentDetails((prev) =>
-      prev
-        ? {
-            ...prev,
-            status: nextStatus,
-          }
-        : prev,
-    );
-  } finally {
-    setRefreshing(false);
+      const nextStatus = normalizeStatus(statusData.status);
+      setStatus(nextStatus);
+
+      setOrder((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: nextStatus,
+            }
+          : prev,
+      );
+
+      setPaymentDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: nextStatus,
+            }
+          : prev,
+      );
+    } finally {
+      setRefreshing(false);
+    }
   }
-}  
 
   const handleCopyOrderLink = async () => {
-  try {
-    const base =
-      typeof window !== "undefined" ? window.location.origin : "";
-    const token = voucherToken ?? paymentDetails?.voucherToken;
-    const suffix = token ? `?token=${encodeURIComponent(token)}` : "";
-    const link = `${base}/pedido/${orderId}${suffix}`;
+    try {
+      const base =
+        typeof window !== "undefined" ? window.location.origin : "";
+      const token = voucherToken ?? paymentDetails?.voucherToken;
+      const suffix = token ? `?token=${encodeURIComponent(token)}` : "";
+      const link = `${base}/pedido/${orderId}${suffix}`;
 
-    await navigator.clipboard.writeText(link);
-    setLinkCopied(true);
-    window.setTimeout(() => setLinkCopied(false), 2000);
-  } catch {
-    setLinkCopied(false);
-  }
-};
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      setLinkCopied(false);
+    }
+  };
 
   useEffect(() => {
     loadOrder(true);
@@ -317,6 +351,10 @@ async function refreshStatus() {
   } as const;
 
   const currentStatus = statusConfig[status];
+
+  const whatsappHref = `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    getSupportMessage(status, orderId),
+  )}`;
 
   if (loading) {
     return (
@@ -491,54 +529,54 @@ async function refreshStatus() {
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-  <button
-    onClick={handleCopyOrderLink}
-    style={{
-      border: "none",
-      borderRadius: 10,
-      padding: "10px 12px",
-      background: "#fff",
-      color: "#111827",
-      fontWeight: 700,
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-    }}
-    data-testid="button-copy-order-link"
-  >
-    <Copy style={{ width: 16, height: 16 }} />
-    {linkCopied ? "Link copiado" : "Copiar link do pedido"}
-  </button>
+              <button
+                onClick={handleCopyOrderLink}
+                style={{
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 12px",
+                  background: "#fff",
+                  color: "#111827",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+                data-testid="button-copy-order-link"
+              >
+                <Copy style={{ width: 16, height: 16 }} />
+                {linkCopied ? "Link copiado" : "Copiar link do pedido"}
+              </button>
 
-  {status === "PENDING" && (
-    <button
-      onClick={refreshStatus}
-      disabled={refreshing}
-      style={{
-        border: "none",
-        borderRadius: 10,
-        padding: "10px 12px",
-        background: "#fff",
-        color: "#111827",
-        fontWeight: 700,
-        cursor: refreshing ? "not-allowed" : "pointer",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-      }}
-    >
-      <RefreshCcw
-        style={{
-          width: 16,
-          height: 16,
-          animation: refreshing ? "spin 1s linear infinite" : "none",
-        }}
-      />
-      Atualizar status
-    </button>
-  )}
-</div>
+              {status === "PENDING" && (
+                <button
+                  onClick={refreshStatus}
+                  disabled={refreshing}
+                  style={{
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    background: "#fff",
+                    color: "#111827",
+                    fontWeight: 700,
+                    cursor: refreshing ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <RefreshCcw
+                    style={{
+                      width: 16,
+                      height: 16,
+                      animation: refreshing ? "spin 1s linear infinite" : "none",
+                    }}
+                  />
+                  Atualizar status
+                </button>
+              )}
+            </div>
           </div>
 
           <div
@@ -745,7 +783,9 @@ async function refreshStatus() {
             </div>
 
             <p style={{ marginTop: 0, marginBottom: 14, fontSize: 13, color: "#6B7280" }}>
-              Baixe o voucher em PDF para apresentar no atendimento. Se você recebeu um link com token por e-mail ou WhatsApp, esta página também aceita esse token automaticamente.
+              Baixe o voucher em PDF para apresentar no atendimento. Se você recebeu um
+              link com token por e-mail ou WhatsApp, esta página também aceita esse
+              token automaticamente.
             </p>
 
             <VoucherDownloadCard
@@ -756,7 +796,8 @@ async function refreshStatus() {
 
             {!voucherToken && !paymentDetails?.voucherToken && (
               <p style={{ margin: "8px 0 0 0", fontSize: 12, color: "#6B7280" }}>
-                Se o download não for autorizado, use o link recebido por e-mail ou WhatsApp com o token de acesso.
+                Se o download não for autorizado, use o link recebido por e-mail ou
+                WhatsApp com o token de acesso.
               </p>
             )}
           </div>
@@ -774,31 +815,43 @@ async function refreshStatus() {
             Próximos passos
           </h3>
 
-          <ul style={{ margin: 0, paddingLeft: 18, color: "#4B5563", fontSize: 14, lineHeight: 1.6 }}>
+          <ul
+            style={{
+              margin: 0,
+              paddingLeft: 18,
+              color: "#4B5563",
+              fontSize: 14,
+              lineHeight: 1.6,
+            }}
+          >
             {status === "PENDING" && (
               <>
                 <li>Escaneie o QR Code ou copie o código Pix.</li>
                 <li>Esta página atualiza o status automaticamente a cada 5 segundos.</li>
               </>
             )}
+
             {status === "APPROVED" && (
               <>
                 <li>Baixe e salve o voucher em PDF.</li>
-                <li>Apresente o voucher na entrada ou no atendimento.</li>
+                <li>Apresente o voucher no atendimento.</li>
               </>
             )}
+
             {status === "EXPIRED" && (
               <>
                 <li>O pedido expirou e não pode mais ser pago.</li>
                 <li>Volte para a página de ingressos para gerar um novo pedido.</li>
               </>
             )}
+
             {status === "FAILED" && (
               <>
                 <li>Houve uma falha na confirmação do pagamento.</li>
-                <li>Tente novamente ou entre em contato com o suporte.</li>
+                <li>Tente novamente ou fale com o suporte.</li>
               </>
             )}
+
             {status === "CANCELLED" && (
               <>
                 <li>O pedido foi cancelado e não pode ser reutilizado.</li>
@@ -823,17 +876,28 @@ async function refreshStatus() {
             </a>
 
             <a
-              href="/suporte"
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
               style={{
                 textDecoration: "none",
                 borderRadius: 10,
                 padding: "10px 14px",
-                background: "#E5E7EB",
-                color: "#111827",
+                background: "#25D366",
+                color: "#fff",
                 fontWeight: 700,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
               }}
+              data-testid="button-whatsapp-support"
             >
-              Falar com suporte
+              <MessageCircle style={{ width: 16, height: 16 }} />
+              {status === "PENDING" && "Ajuda para pagar"}
+              {status === "FAILED" && "Falar com suporte"}
+              {status === "EXPIRED" && "Gerar novo pedido"}
+              {status === "APPROVED" && "Dúvida sobre voucher"}
+              {status === "CANCELLED" && "Atendimento comercial"}
             </a>
           </div>
         </div>
