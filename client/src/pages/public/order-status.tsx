@@ -91,7 +91,7 @@ function getSupportMessage(status: PaymentStatus, orderId: string) {
   }
 
   if (status === "FAILED") {
-    return `Olá! Meu pagamento falhou e preciso de suporte no pedido ${safeOrderId}.`;
+    return `Olá! Meu pagamento falhou e quero tentar novamente no pedido ${safeOrderId}.`;
   }
 
   if (status === "EXPIRED") {
@@ -872,7 +872,9 @@ export default function OrderStatusPage() {
                 fontWeight: 700,
               }}
             >
-              Voltar para ingressos
+              {status === "EXPIRED" || status === "FAILED"
+                ? "Refazer pedido"
+                : "Voltar para ingressos"}
             </a>
 
             <a
