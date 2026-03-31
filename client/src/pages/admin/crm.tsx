@@ -1,10 +1,27 @@
-import { useState } from "react";
-import { Link } from "wouter";
-import { useToast } from "@/hooks/use-toast";
+/**
+ * =============================================================================
+ * Pagina CRM - Admin
+ * =============================================================================
+ * Migrada para usar AdminShell e componentes do design system.
+ * =============================================================================
+ */
+
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { AdminShell, AdminPageHeader, AdminCard } from '@/components/layout-system';
+import { AdminSidebar, AdminTopBar, AdminLogo } from '@/components/admin';
+import { SearchBar } from '@/components/ui/search-bar';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
-  ArrowLeft,
-  UserCheck,
-  Search,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Phone,
   Mail,
   MessageSquare,
@@ -12,13 +29,13 @@ import {
   Send,
   Clock,
   User,
-  Plus,
-} from "lucide-react";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Interacao {
   id: string;
   data: string;
-  tipo: "Ligação" | "WhatsApp" | "E-mail" | "Reunião";
+  tipo: 'Ligacao' | 'WhatsApp' | 'E-mail' | 'Reuniao';
   texto: string;
 }
 
@@ -27,81 +44,120 @@ interface ClienteCRM {
   nome: string;
   email: string;
   telefone: string;
-  status: "ativo" | "lead" | "inativo";
+  status: 'ativo' | 'lead' | 'inativo';
   ultimoContato: string;
   interacoes: Interacao[];
 }
 
 const tipoIcons: Record<string, React.ReactNode> = {
-  "Ligação": <Phone style={{ width: 14, height: 14 }} />,
-  "WhatsApp": <MessageSquare style={{ width: 14, height: 14 }} />,
-  "E-mail": <Mail style={{ width: 14, height: 14 }} />,
-  "Reunião": <Video style={{ width: 14, height: 14 }} />,
+  Ligacao: <Phone className="w-3.5 h-3.5" />,
+  WhatsApp: <MessageSquare className="w-3.5 h-3.5" />,
+  'E-mail': <Mail className="w-3.5 h-3.5" />,
+  Reuniao: <Video className="w-3.5 h-3.5" />,
 };
 
 const tipoColors: Record<string, string> = {
-  "Ligação": "#2563EB",
-  "WhatsApp": "#22C55E",
-  "E-mail": "#F57C00",
-  "Reunião": "#8B5CF6",
+  Ligacao: 'bg-blue-600',
+  WhatsApp: 'bg-green-600',
+  'E-mail': 'bg-orange-600',
+  Reuniao: 'bg-violet-600',
 };
 
 const mockCRM: ClienteCRM[] = [
   {
-    id: "1", nome: "João Silva", email: "joao@email.com", telefone: "(62) 99999-1234", status: "ativo", ultimoContato: "2026-03-12",
+    id: '1',
+    nome: 'Joao Silva',
+    email: 'joao@email.com',
+    telefone: '(62) 99999-1234',
+    status: 'ativo',
+    ultimoContato: '2026-03-12',
     interacoes: [
-      { id: "i1", data: "2026-03-12", tipo: "WhatsApp", texto: "Cliente confirmou interesse na excursão de abril para Caldas Novas." },
-      { id: "i2", data: "2026-03-10", tipo: "Ligação", texto: "Ligação de follow-up. Cliente solicitou orçamento para grupo de 8 pessoas." },
-      { id: "i3", data: "2026-03-05", tipo: "E-mail", texto: "Enviado catálogo de excursões e promoções do mês." },
+      { id: 'i1', data: '2026-03-12', tipo: 'WhatsApp', texto: 'Cliente confirmou interesse na excursao de abril para Caldas Novas.' },
+      { id: 'i2', data: '2026-03-10', tipo: 'Ligacao', texto: 'Ligacao de follow-up. Cliente solicitou orcamento para grupo de 8 pessoas.' },
+      { id: 'i3', data: '2026-03-05', tipo: 'E-mail', texto: 'Enviado catalogo de excursoes e promocoes do mes.' },
     ],
   },
   {
-    id: "2", nome: "Maria Santos", email: "maria@email.com", telefone: "(62) 99999-5678", status: "ativo", ultimoContato: "2026-03-11",
+    id: '2',
+    nome: 'Maria Santos',
+    email: 'maria@email.com',
+    telefone: '(62) 99999-5678',
+    status: 'ativo',
+    ultimoContato: '2026-03-11',
     interacoes: [
-      { id: "i4", data: "2026-03-11", tipo: "Reunião", texto: "Reunião presencial para fechar pacote família (4 pessoas)." },
-      { id: "i5", data: "2026-03-08", tipo: "WhatsApp", texto: "Enviado link de pagamento PIX." },
+      { id: 'i4', data: '2026-03-11', tipo: 'Reuniao', texto: 'Reuniao presencial para fechar pacote familia (4 pessoas).' },
+      { id: 'i5', data: '2026-03-08', tipo: 'WhatsApp', texto: 'Enviado link de pagamento PIX.' },
     ],
   },
   {
-    id: "3", nome: "Pedro Costa", email: "pedro@email.com", telefone: "(34) 99999-9012", status: "lead", ultimoContato: "2026-03-09",
+    id: '3',
+    nome: 'Pedro Costa',
+    email: 'pedro@email.com',
+    telefone: '(34) 99999-9012',
+    status: 'lead',
+    ultimoContato: '2026-03-09',
     interacoes: [
-      { id: "i6", data: "2026-03-09", tipo: "E-mail", texto: "Lead veio pelo site. Demonstrou interesse em excursões para Rio Quente." },
+      { id: 'i6', data: '2026-03-09', tipo: 'E-mail', texto: 'Lead veio pelo site. Demonstrou interesse em excursoes para Rio Quente.' },
     ],
   },
   {
-    id: "4", nome: "Ana Oliveira", email: "ana@email.com", telefone: "(11) 99999-3456", status: "ativo", ultimoContato: "2026-03-13",
+    id: '4',
+    nome: 'Ana Oliveira',
+    email: 'ana@email.com',
+    telefone: '(11) 99999-3456',
+    status: 'ativo',
+    ultimoContato: '2026-03-13',
     interacoes: [
-      { id: "i7", data: "2026-03-13", tipo: "Ligação", texto: "Cliente ligou para alterar datas da reserva RSV-2026-042." },
-      { id: "i8", data: "2026-03-07", tipo: "WhatsApp", texto: "Confirmação de pagamento recebida." },
-      { id: "i9", data: "2026-03-01", tipo: "E-mail", texto: "Enviado voucher de reserva por e-mail." },
-      { id: "i10", data: "2026-02-25", tipo: "Reunião", texto: "Primeira reunião — apresentação dos pacotes disponíveis." },
+      { id: 'i7', data: '2026-03-13', tipo: 'Ligacao', texto: 'Cliente ligou para alterar datas da reserva RSV-2026-042.' },
+      { id: 'i8', data: '2026-03-07', tipo: 'WhatsApp', texto: 'Confirmacao de pagamento recebida.' },
+      { id: 'i9', data: '2026-03-01', tipo: 'E-mail', texto: 'Enviado voucher de reserva por e-mail.' },
+      { id: 'i10', data: '2026-02-25', tipo: 'Reuniao', texto: 'Primeira reuniao - apresentacao dos pacotes disponiveis.' },
     ],
   },
   {
-    id: "5", nome: "Carlos Mendes", email: "carlos@email.com", telefone: "(61) 99999-7890", status: "inativo", ultimoContato: "2025-12-20",
+    id: '5',
+    nome: 'Carlos Mendes',
+    email: 'carlos@email.com',
+    telefone: '(61) 99999-7890',
+    status: 'inativo',
+    ultimoContato: '2025-12-20',
     interacoes: [
-      { id: "i11", data: "2025-12-20", tipo: "E-mail", texto: "Tentativa de reativação — enviado promoção de Natal." },
+      { id: 'i11', data: '2025-12-20', tipo: 'E-mail', texto: 'Tentativa de reativacao - enviado promocao de Natal.' },
     ],
   },
   {
-    id: "6", nome: "Fernanda Lima", email: "fernanda@email.com", telefone: "(21) 99999-2345", status: "lead", ultimoContato: "2026-03-14",
+    id: '6',
+    nome: 'Fernanda Lima',
+    email: 'fernanda@email.com',
+    telefone: '(21) 99999-2345',
+    status: 'lead',
+    ultimoContato: '2026-03-14',
     interacoes: [
-      { id: "i12", data: "2026-03-14", tipo: "WhatsApp", texto: "Novo lead via Instagram. Pediu informações sobre Hot Park." },
+      { id: 'i12', data: '2026-03-14', tipo: 'WhatsApp', texto: 'Novo lead via Instagram. Pediu informacoes sobre Hot Park.' },
     ],
   },
 ];
 
+const statusMap: Record<string, { status: 'success' | 'warning' | 'pending'; label: string }> = {
+  ativo: { status: 'success', label: 'Ativo' },
+  lead: { status: 'warning', label: 'Lead' },
+  inativo: { status: 'pending', label: 'Inativo' },
+};
+
 export default function CRMPage() {
   const { toast } = useToast();
   const [clientes, setClientes] = useState<ClienteCRM[]>(mockCRM);
-  const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<string>("todos");
-  const [selecionadoId, setSelecionadoId] = useState<string>("1");
-  const [novaInteracao, setNovaInteracao] = useState({ tipo: "WhatsApp" as Interacao["tipo"], texto: "" });
+  const [busca, setBusca] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState<string>('todos');
+  const [selecionadoId, setSelecionadoId] = useState<string>('1');
+  const [novaInteracao, setNovaInteracao] = useState({
+    tipo: 'WhatsApp' as Interacao['tipo'],
+    texto: '',
+  });
 
   const filtrados = clientes.filter((c) => {
     const matchBusca = c.nome.toLowerCase().includes(busca.toLowerCase());
-    const matchStatus = filtroStatus === "todos" || c.status === filtroStatus;
+    const matchStatus = filtroStatus === 'todos' || c.status === filtroStatus;
     return matchBusca && matchStatus;
   });
 
@@ -109,210 +165,244 @@ export default function CRMPage() {
 
   const handleAddInteracao = () => {
     if (!novaInteracao.texto.trim()) {
-      toast({ title: "Texto obrigatório", description: "Escreva uma nota sobre a interação.", variant: "destructive" });
+      toast({
+        title: 'Texto obrigatorio',
+        description: 'Escreva uma nota sobre a interacao.',
+        variant: 'destructive',
+      });
       return;
     }
     const newI: Interacao = {
       id: `i${Date.now()}`,
-      data: new Date().toISOString().split("T")[0],
+      data: new Date().toISOString().split('T')[0],
       tipo: novaInteracao.tipo,
       texto: novaInteracao.texto.trim(),
     };
-    setClientes(clientes.map((c) =>
-      c.id === selecionadoId
-        ? { ...c, interacoes: [newI, ...c.interacoes], ultimoContato: newI.data }
-        : c
-    ));
-    setNovaInteracao({ tipo: "WhatsApp", texto: "" });
-    toast({ title: "Interação registrada!", description: `${newI.tipo} adicionada ao histórico.` });
-  };
-
-  const statusColors: Record<string, { bg: string; color: string; dot: string }> = {
-    ativo: { bg: "#dcfce7", color: "#166534", dot: "#22C55E" },
-    lead: { bg: "#fef9c3", color: "#854d0e", dot: "#F59E0B" },
-    inativo: { bg: "#f3f4f6", color: "#6b7280", dot: "#9CA3AF" },
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box",
+    setClientes(
+      clientes.map((c) =>
+        c.id === selecionadoId
+          ? { ...c, interacoes: [newI, ...c.interacoes], ultimoContato: newI.data }
+          : c
+      )
+    );
+    setNovaInteracao({ tipo: 'WhatsApp', texto: '' });
+    toast({
+      title: 'Interacao registrada!',
+      description: `${newI.tipo} adicionada ao historico.`,
+    });
   };
 
   return (
-    <div data-testid="page-crm" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
-      <header style={{ background: "linear-gradient(135deg, #1e3a5f, #2563EB)", padding: "20px 24px", color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
-        <Link href="/admin/dashboard">
-          <button data-testid="button-voltar" style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "8px 14px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 500 }}>
-            <ArrowLeft style={{ width: 18, height: 18 }} /> Voltar
-          </button>
-        </Link>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, display: "flex", alignItems: "center", gap: 10 }}>
-            <UserCheck style={{ width: 28, height: 28 }} /> CRM — Atendimento
-          </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 14, opacity: 0.85 }}>Sistema de gestão de relacionamento com clientes</p>
-        </div>
-      </header>
+    <AdminShell
+      sidebar={<AdminSidebar />}
+      topBar={<AdminTopBar userName="Admin" notificationCount={3} />}
+      logo={<AdminLogo />}
+    >
+      <AdminPageHeader
+        title="CRM - Atendimento"
+        description="Sistema de gestao de relacionamento com clientes"
+      />
 
-      <div style={{ display: "flex", height: "calc(100vh - 88px)" }}>
-        <div style={{ width: 340, borderRight: "1px solid #e5e7eb", background: "#fff", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ padding: 16, borderBottom: "1px solid #e5e7eb" }}>
-            <div style={{ position: "relative", marginBottom: 10 }}>
-              <Search style={{ position: "absolute", left: 10, top: 10, width: 16, height: 16, color: "#9ca3af" }} />
-              <input data-testid="input-busca-crm" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente..." style={{ ...inputStyle, paddingLeft: 34 }} />
-            </div>
-            <select data-testid="select-filtro-crm" value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ ...inputStyle, fontSize: 13 }}>
-              <option value="todos">Todos</option>
-              <option value="ativo">Ativo</option>
-              <option value="lead">Lead</option>
-              <option value="inativo">Inativo</option>
-            </select>
+      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+        {/* Lista de Clientes */}
+        <AdminCard className="lg:w-[340px] flex-shrink-0 flex flex-col" noPadding>
+          <div className="p-4 border-b border-slate-200 space-y-3">
+            <SearchBar
+              value={busca}
+              onChange={setBusca}
+              placeholder="Buscar cliente..."
+              size="sm"
+            />
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Filtrar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="lead">Lead</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div style={{ flex: 1, overflow: "auto" }}>
+          <div className="flex-1 overflow-y-auto">
             {filtrados.map((c) => {
-              const sc = statusColors[c.status] ?? statusColors.inativo;
+              const statusInfo = statusMap[c.status] || statusMap.inativo;
               const isSelected = c.id === selecionadoId;
               return (
                 <button
                   key={c.id}
-                  data-testid={`crm-cliente-${c.id}`}
                   onClick={() => setSelecionadoId(c.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "14px 16px",
-                    border: "none", borderBottom: "1px solid #f3f4f6", cursor: "pointer", textAlign: "left",
-                    background: isSelected ? "#EFF6FF" : "transparent",
-                  }}
+                  className={cn(
+                    'flex items-center gap-3 w-full px-4 py-3 text-left border-b border-slate-100 transition-colors',
+                    isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'
+                  )}
                 >
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: sc.dot, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: isSelected ? 700 : 500, color: "#1f2937", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nome}</p>
-                    <p style={{ fontSize: 12, color: "#9ca3af", margin: "2px 0 0" }}>{c.interacoes.length} interações</p>
+                  <div
+                    className={cn(
+                      'w-2.5 h-2.5 rounded-full flex-shrink-0',
+                      statusInfo.status === 'success' && 'bg-green-500',
+                      statusInfo.status === 'warning' && 'bg-amber-500',
+                      statusInfo.status === 'pending' && 'bg-slate-400'
+                    )}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={cn(
+                        'text-sm truncate',
+                        isSelected ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'
+                      )}
+                    >
+                      {c.nome}
+                    </p>
+                    <p className="text-xs text-slate-400">{c.interacoes.length} interacoes</p>
                   </div>
-                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: sc.bg, color: sc.color, fontWeight: 600 }}>
-                    {c.status === "ativo" ? "Ativo" : c.status === "lead" ? "Lead" : "Inativo"}
-                  </span>
+                  <StatusBadge
+                    status={statusInfo.status}
+                    label={statusInfo.label}
+                    size="sm"
+                    showIcon={false}
+                  />
                 </button>
               );
             })}
             {filtrados.length === 0 && (
-              <p style={{ padding: 20, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>Nenhum cliente encontrado.</p>
+              <p className="py-8 text-center text-slate-400 text-sm">
+                Nenhum cliente encontrado.
+              </p>
             )}
           </div>
-        </div>
+        </AdminCard>
 
-        <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+        {/* Detalhes do Cliente */}
+        <div className="flex-1 flex flex-col gap-6 min-w-0 overflow-y-auto">
           {selecionado ? (
             <>
-              <div style={{ background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", marginBottom: 20 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+              {/* Info do Cliente */}
+              <AdminCard>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                   <div>
-                    <h2 data-testid="crm-nome-selecionado" style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f", margin: 0 }}>{selecionado.nome}</h2>
-                    <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#6b7280" }}><Mail style={{ width: 14, height: 14 }} /> {selecionado.email}</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#6b7280" }}><Phone style={{ width: 14, height: 14 }} /> {selecionado.telefone}</span>
+                    <h2 className="text-xl font-bold text-slate-900">{selecionado.nome}</h2>
+                    <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" /> {selecionado.email}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-4 h-4" /> {selecionado.telefone}
+                      </span>
                     </div>
                   </div>
-                  <span style={{ padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: statusColors[selecionado.status]?.bg, color: statusColors[selecionado.status]?.color }}>
-                    {selecionado.status === "ativo" ? "Ativo" : selecionado.status === "lead" ? "Lead" : "Inativo"}
-                  </span>
+                  <StatusBadge
+                    status={statusMap[selecionado.status]?.status || 'pending'}
+                    label={statusMap[selecionado.status]?.label || 'Inativo'}
+                  />
                 </div>
-                <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                  <div style={{ padding: "12px 20px", background: "#f9fafb", borderRadius: 10, border: "1px solid #e5e7eb" }}>
-                    <span style={{ fontSize: 12, color: "#6b7280" }}>Último contato</span>
-                    <p style={{ fontSize: 16, fontWeight: 600, color: "#1f2937", margin: "4px 0 0" }}>{new Date(selecionado.ultimoContato).toLocaleDateString("pt-BR")}</p>
+                <div className="flex gap-4 flex-wrap">
+                  <div className="px-4 py-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-xs text-slate-500">Ultimo contato</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {new Date(selecionado.ultimoContato).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
-                  <div style={{ padding: "12px 20px", background: "#f9fafb", borderRadius: 10, border: "1px solid #e5e7eb" }}>
-                    <span style={{ fontSize: 12, color: "#6b7280" }}>Total de interações</span>
-                    <p style={{ fontSize: 16, fontWeight: 600, color: "#2563EB", margin: "4px 0 0" }}>{selecionado.interacoes.length}</p>
+                  <div className="px-4 py-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-xs text-slate-500">Total de interacoes</p>
+                    <p className="text-sm font-semibold text-blue-600">
+                      {selecionado.interacoes.length}
+                    </p>
                   </div>
                 </div>
-              </div>
+              </AdminCard>
 
-              <div style={{ background: "#fff", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", marginBottom: 20, border: "1px solid #DBEAFE" }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1e3a5f", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
-                  <Plus style={{ width: 16, height: 16 }} /> Nova Interação
-                </h3>
-                <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                  {(["Ligação", "WhatsApp", "E-mail", "Reunião"] as const).map((tipo) => (
-                    <button
+              {/* Nova Interacao */}
+              <AdminCard title="Nova Interacao" className="border-blue-200">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {(['Ligacao', 'WhatsApp', 'E-mail', 'Reuniao'] as const).map((tipo) => (
+                    <Button
                       key={tipo}
-                      data-testid={`button-tipo-${tipo.toLowerCase().replace("ã", "a")}`}
+                      size="sm"
+                      variant={novaInteracao.tipo === tipo ? 'default' : 'outline'}
+                      className={cn(
+                        'gap-1.5',
+                        novaInteracao.tipo === tipo && tipoColors[tipo]
+                      )}
                       onClick={() => setNovaInteracao({ ...novaInteracao, tipo })}
-                      style={{
-                        padding: "6px 14px", borderRadius: 20, border: "1px solid",
-                        borderColor: novaInteracao.tipo === tipo ? tipoColors[tipo] : "#d1d5db",
-                        background: novaInteracao.tipo === tipo ? tipoColors[tipo] : "transparent",
-                        color: novaInteracao.tipo === tipo ? "#fff" : "#374151",
-                        fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: 4,
-                      }}
                     >
                       {tipoIcons[tipo]} {tipo}
-                    </button>
+                    </Button>
                   ))}
                 </div>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <textarea
-                    data-testid="input-nova-interacao"
+                <div className="flex gap-3">
+                  <Textarea
                     value={novaInteracao.texto}
-                    onChange={(e) => setNovaInteracao({ ...novaInteracao, texto: e.target.value })}
-                    placeholder="Descreva a interação com o cliente..."
+                    onChange={(e) =>
+                      setNovaInteracao({ ...novaInteracao, texto: e.target.value })
+                    }
+                    placeholder="Descreva a interacao com o cliente..."
                     rows={2}
-                    style={{ ...inputStyle, flex: 1, resize: "vertical" }}
+                    className="flex-1"
                   />
-                  <button
-                    data-testid="button-enviar-interacao"
-                    onClick={handleAddInteracao}
-                    style={{
-                      padding: "10px 18px", borderRadius: 8, border: "none",
-                      background: "linear-gradient(135deg, #1e3a5f, #2563EB)",
-                      color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, alignSelf: "flex-end",
-                    }}
-                  >
-                    <Send style={{ width: 16, height: 16 }} /> Enviar
-                  </button>
+                  <Button onClick={handleAddInteracao} className="self-end gap-2">
+                    <Send className="w-4 h-4" /> Enviar
+                  </Button>
                 </div>
-              </div>
+              </AdminCard>
 
-              <div style={{ background: "#fff", borderRadius: 12, padding: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1e3a5f", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Clock style={{ width: 18, height: 18 }} /> Timeline de Interações
-                </h3>
-                <div style={{ position: "relative", paddingLeft: 24 }}>
-                  <div style={{ position: "absolute", left: 7, top: 0, bottom: 0, width: 2, background: "#e5e7eb" }} />
+              {/* Timeline */}
+              <AdminCard
+                title="Timeline de Interacoes"
+                headerActions={
+                  <span className="text-sm text-slate-500">
+                    <Clock className="w-4 h-4 inline mr-1" />
+                    {selecionado.interacoes.length} registros
+                  </span>
+                }
+              >
+                <div className="relative pl-6">
+                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-slate-200" />
                   {selecionado.interacoes.map((inter) => (
-                    <div key={inter.id} data-testid={`interacao-${inter.id}`} style={{ position: "relative", marginBottom: 20, paddingLeft: 16 }}>
-                      <div style={{
-                        position: "absolute", left: -20, top: 4,
-                        width: 16, height: 16, borderRadius: "50%",
-                        background: tipoColors[inter.tipo] ?? "#9ca3af",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />
+                    <div key={inter.id} className="relative mb-5 last:mb-0">
+                      <div
+                        className={cn(
+                          'absolute -left-4 top-1 w-4 h-4 rounded-full flex items-center justify-center',
+                          tipoColors[inter.tipo] || 'bg-slate-400'
+                        )}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-white" />
                       </div>
-                      <div style={{ background: "#f9fafb", borderRadius: 10, padding: "12px 16px", border: "1px solid #e5e7eb" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: tipoColors[inter.tipo] }}>
+                      <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 ml-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span
+                            className={cn(
+                              'flex items-center gap-1 text-xs font-semibold',
+                              inter.tipo === 'Ligacao' && 'text-blue-600',
+                              inter.tipo === 'WhatsApp' && 'text-green-600',
+                              inter.tipo === 'E-mail' && 'text-orange-600',
+                              inter.tipo === 'Reuniao' && 'text-violet-600'
+                            )}
+                          >
                             {tipoIcons[inter.tipo]} {inter.tipo}
                           </span>
-                          <span style={{ fontSize: 12, color: "#9ca3af" }}>{new Date(inter.data).toLocaleDateString("pt-BR")}</span>
+                          <span className="text-xs text-slate-400">
+                            {new Date(inter.data).toLocaleDateString('pt-BR')}
+                          </span>
                         </div>
-                        <p style={{ fontSize: 14, color: "#374151", margin: 0, lineHeight: 1.5 }}>{inter.texto}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed">{inter.texto}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </AdminCard>
             </>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#9ca3af" }}>
-              <div style={{ textAlign: "center" }}>
-                <User style={{ width: 48, height: 48, marginBottom: 12 }} />
-                <p style={{ fontSize: 16 }}>Selecione um cliente para ver detalhes</p>
+            <div className="flex-1 flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <User className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">Selecione um cliente para ver detalhes</p>
               </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </AdminShell>
   );
 }

@@ -1,34 +1,51 @@
-import { useState } from "react";
-import { Link } from "wouter";
+/**
+ * =============================================================================
+ * Pagina Financeiro - Admin
+ * =============================================================================
+ * Migrada para usar AdminShell e componentes do design system.
+ * =============================================================================
+ */
+
+import { useState } from 'react';
+import { AdminShell, AdminPageHeader, AdminCard } from '@/components/layout-system';
+import { AdminSidebar, AdminTopBar, AdminLogo } from '@/components/admin';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import {
-  ArrowLeft,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   DollarSign,
-  TrendingUp,
-  Users,
+  Wallet,
   CreditCard,
   Receipt,
   Calculator,
-  CheckCircle,
-  Clock,
-  AlertCircle,
   Percent,
   Building2,
-  Wallet,
-  BarChart3
-} from "lucide-react";
+  TrendingUp,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Fornecedor {
   nome: string;
   valor: number;
-  status: "Pago" | "Pendente";
+  status: 'Pago' | 'Pendente';
 }
 
 interface PagamentoIndividual {
   id: string;
   passageiro: string;
   valor: number;
-  metodo: "Pix" | "Cartão" | "Boleto";
-  status: "Pago" | "Pendente" | "Atrasado";
+  metodo: 'Pix' | 'Cartao' | 'Boleto';
+  status: 'Pago' | 'Pendente' | 'Atrasado';
   data: string;
 }
 
@@ -40,10 +57,10 @@ export default function Financeiro() {
   const repasseFornecedores = totalExcursao * 0.85;
 
   const fornecedores: Fornecedor[] = [
-    { nome: "Hotel Termas DiRoma", valor: 18500, status: "Pago" },
-    { nome: "Hot Park", valor: 12000, status: "Pago" },
-    { nome: "Transporte Goiânia Tur", valor: 5800, status: "Pendente" },
-    { nome: "Seguro GTA", valor: 1950, status: "Pago" },
+    { nome: 'Hotel Termas DiRoma', valor: 18500, status: 'Pago' },
+    { nome: 'Hot Park', valor: 12000, status: 'Pago' },
+    { nome: 'Transporte Goiania Tur', valor: 5800, status: 'Pendente' },
+    { nome: 'Seguro GTA', valor: 1950, status: 'Pago' },
   ];
 
   const descontos = [
@@ -54,17 +71,17 @@ export default function Financeiro() {
   ];
 
   const pagamentos: PagamentoIndividual[] = [
-    { id: "1", passageiro: "João Silva", valor: 1500, metodo: "Pix", status: "Pago", data: "2026-03-10" },
-    { id: "2", passageiro: "Maria Santos", valor: 1500, metodo: "Cartão", status: "Pago", data: "2026-03-11" },
-    { id: "3", passageiro: "Pedro Costa", valor: 1500, metodo: "Boleto", status: "Pendente", data: "2026-03-12" },
-    { id: "4", passageiro: "Ana Oliveira", valor: 1500, metodo: "Pix", status: "Pago", data: "2026-03-13" },
-    { id: "5", passageiro: "Carlos Mendes", valor: 1500, metodo: "Cartão", status: "Atrasado", data: "2026-03-05" },
-    { id: "6", passageiro: "Fernanda Lima", valor: 1500, metodo: "Pix", status: "Pago", data: "2026-03-14" },
-    { id: "7", passageiro: "Roberto Alves", valor: 1500, metodo: "Boleto", status: "Pendente", data: "2026-03-15" },
-    { id: "8", passageiro: "Juliana Rocha", valor: 1500, metodo: "Cartão", status: "Pago", data: "2026-03-16" },
+    { id: '1', passageiro: 'Joao Silva', valor: 1500, metodo: 'Pix', status: 'Pago', data: '2026-03-10' },
+    { id: '2', passageiro: 'Maria Santos', valor: 1500, metodo: 'Cartao', status: 'Pago', data: '2026-03-11' },
+    { id: '3', passageiro: 'Pedro Costa', valor: 1500, metodo: 'Boleto', status: 'Pendente', data: '2026-03-12' },
+    { id: '4', passageiro: 'Ana Oliveira', valor: 1500, metodo: 'Pix', status: 'Pago', data: '2026-03-13' },
+    { id: '5', passageiro: 'Carlos Mendes', valor: 1500, metodo: 'Cartao', status: 'Atrasado', data: '2026-03-05' },
+    { id: '6', passageiro: 'Fernanda Lima', valor: 1500, metodo: 'Pix', status: 'Pago', data: '2026-03-14' },
+    { id: '7', passageiro: 'Roberto Alves', valor: 1500, metodo: 'Boleto', status: 'Pendente', data: '2026-03-15' },
+    { id: '8', passageiro: 'Juliana Rocha', valor: 1500, metodo: 'Cartao', status: 'Pago', data: '2026-03-16' },
   ];
 
-  const totalArrecadado = pagamentos.reduce((acc, p) => acc + (p.status === "Pago" ? p.valor : 0), 0);
+  const totalArrecadado = pagamentos.reduce((acc, p) => acc + (p.status === 'Pago' ? p.valor : 0), 0);
   const mdr = totalArrecadado * 0.025;
   const iss = totalArrecadado * 0.05;
   const lucroLiquido = comissaoRSV - mdr - iss;
@@ -82,623 +99,228 @@ export default function Financeiro() {
   const valorComDesconto = valorBase * (1 - descontoAtual / 100);
   const economiaTotal = (valorBase - valorComDesconto) * simuladorQtd;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Pago":
-        return { bg: "#dcfce7", color: "#166534", icon: <CheckCircle style={{ width: 14, height: 14 }} /> };
-      case "Pendente":
-        return { bg: "#fef9c3", color: "#854d0e", icon: <Clock style={{ width: 14, height: 14 }} /> };
-      case "Atrasado":
-        return { bg: "#fecaca", color: "#991b1b", icon: <AlertCircle style={{ width: 14, height: 14 }} /> };
-      default:
-        return { bg: "#f3f4f6", color: "#374151", icon: null };
-    }
+  const statusMap: Record<string, { status: 'success' | 'warning' | 'error'; label: string }> = {
+    Pago: { status: 'success', label: 'Pago' },
+    Pendente: { status: 'warning', label: 'Pendente' },
+    Atrasado: { status: 'error', label: 'Atrasado' },
   };
 
-  const headerGradient = "linear-gradient(135deg, #1e3a5f, #2563EB)";
-
   return (
-    <div data-testid="page-financeiro" style={{ minHeight: "100vh", background: "#F9FAFB" }}>
-      <header
-        data-testid="header-financeiro"
-        style={{
-          background: headerGradient,
-          padding: "24px 32px",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
+    <AdminShell
+      sidebar={<AdminSidebar />}
+      topBar={<AdminTopBar userName="Admin" notificationCount={2} />}
+      logo={<AdminLogo />}
+    >
+      <AdminPageHeader
+        title="Split de Pagamento e Estrutura Fiscal"
+        description="Modulo 5 - Gestao financeira, splits e descontos progressivos"
+      />
+
+      {/* Split de Pagamento */}
+      <AdminCard
+        title="Split de Pagamento"
+        headerActions={<Wallet className="w-5 h-5 text-blue-600" />}
+        className="mb-6"
       >
-        <Link href="/admin/dashboard" data-testid="link-voltar-dashboard">
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              color: "#fff",
-              cursor: "pointer",
-              background: "rgba(255,255,255,0.15)",
-              padding: "8px 16px",
-              borderRadius: 8,
-            }}
-          >
-            <ArrowLeft style={{ width: 20, height: 20 }} />
-            <span style={{ fontSize: 14, fontWeight: 500 }}>Voltar</span>
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <div className="bg-slate-900 text-white px-6 py-4 rounded-xl text-center min-w-[160px]">
+            <p className="text-xs opacity-80 mb-1">Valor Total</p>
+            <p className="text-2xl font-bold">R$ {totalExcursao.toLocaleString('pt-BR')}</p>
           </div>
-        </Link>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Split de Pagamento e Estrutura Fiscal</h1>
-          <p style={{ margin: "4px 0 0", opacity: 0.85, fontSize: 14 }}>
-            Módulo 5 — Gestão financeira, splits e descontos progressivos
-          </p>
+          <span className="text-2xl text-slate-300">-&gt;</span>
+          <div className="bg-blue-600 text-white px-6 py-4 rounded-xl text-center min-w-[160px]">
+            <p className="text-xs opacity-80 mb-1">Comissao RSV (15%)</p>
+            <p className="text-2xl font-bold">R$ {comissaoRSV.toLocaleString('pt-BR')}</p>
+          </div>
+          <span className="text-2xl text-slate-300">-&gt;</span>
+          <div className="bg-green-600 text-white px-6 py-4 rounded-xl text-center min-w-[160px]">
+            <p className="text-xs opacity-80 mb-1">Fornecedores (85%)</p>
+            <p className="text-2xl font-bold">R$ {repasseFornecedores.toLocaleString('pt-BR')}</p>
+          </div>
         </div>
-        <DollarSign style={{ width: 36, height: 36, opacity: 0.7 }} />
-      </header>
 
-      <div style={{ padding: "32px", display: "grid", gap: 32 }}>
-        {/* SPLIT DE PAGAMENTO */}
-        <section data-testid="section-split-pagamento">
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-            <Wallet style={{ width: 24, height: 24, color: "#2563EB" }} />
-            Split de Pagamento
-          </h2>
-
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              marginBottom: 24,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-              <div
-                data-testid="display-valor-total"
-                style={{
-                  background: "#1e3a5f",
-                  color: "#fff",
-                  padding: "16px 24px",
-                  borderRadius: 10,
-                  textAlign: "center",
-                  minWidth: 160,
-                }}
-              >
-                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Valor Total</div>
-                <div style={{ fontSize: 24, fontWeight: 700 }}>R$ {totalExcursao.toLocaleString("pt-BR")}</div>
-              </div>
-              <div style={{ fontSize: 28, color: "#9ca3af", fontWeight: 300 }}>→</div>
-              <div
-                data-testid="display-comissao-rsv"
-                style={{
-                  background: "#2563EB",
-                  color: "#fff",
-                  padding: "16px 24px",
-                  borderRadius: 10,
-                  textAlign: "center",
-                  minWidth: 160,
-                }}
-              >
-                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Comissão RSV (15%)</div>
-                <div style={{ fontSize: 24, fontWeight: 700 }}>R$ {comissaoRSV.toLocaleString("pt-BR")}</div>
-              </div>
-              <div style={{ fontSize: 28, color: "#9ca3af", fontWeight: 300 }}>→</div>
-              <div
-                data-testid="display-repasse-fornecedores"
-                style={{
-                  background: "#22C55E",
-                  color: "#fff",
-                  padding: "16px 24px",
-                  borderRadius: 10,
-                  textAlign: "center",
-                  minWidth: 160,
-                }}
-              >
-                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>Repasse Fornecedores (85%)</div>
-                <div style={{ fontSize: 24, fontWeight: 700 }}>R$ {repasseFornecedores.toLocaleString("pt-BR")}</div>
-              </div>
-            </div>
-
-            <div
-              data-testid="display-barra-split"
-              style={{
-                height: 32,
-                borderRadius: 16,
-                overflow: "hidden",
-                display: "flex",
-                marginBottom: 16,
-              }}
-            >
-              <div
-                style={{
-                  width: "15%",
-                  background: "#2563EB",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                15%
-              </div>
-              <div
-                style={{
-                  width: "85%",
-                  background: "#22C55E",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                85%
-              </div>
-            </div>
-
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "#374151", marginBottom: 12 }}>Fornecedores</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
-              {fornecedores.map((f, i) => {
-                const badge = getStatusBadge(f.status);
-                return (
-                  <div
-                    key={i}
-                    data-testid={`card-fornecedor-${i}`}
-                    style={{
-                      background: "#f9fafb",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 10,
-                      padding: 16,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, color: "#1f2937", fontSize: 14 }}>{f.nome}</div>
-                      <div style={{ color: "#6b7280", fontSize: 13, marginTop: 2 }}>
-                        R$ {f.valor.toLocaleString("pt-BR")}
-                      </div>
-                    </div>
-                    <span
-                      data-testid={`badge-fornecedor-status-${i}`}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        padding: "4px 10px",
-                        borderRadius: 20,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        background: badge.bg,
-                        color: badge.color,
-                      }}
-                    >
-                      {badge.icon}
-                      {f.status}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="h-8 rounded-full overflow-hidden flex mb-6">
+          <div className="w-[15%] bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+            15%
           </div>
-        </section>
+          <div className="w-[85%] bg-green-600 flex items-center justify-center text-white text-xs font-semibold">
+            85%
+          </div>
+        </div>
 
-        {/* DESCONTOS PROGRESSIVOS */}
-        <section data-testid="section-descontos-progressivos">
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-            <Percent style={{ width: 24, height: 24, color: "#F57C00" }} />
-            Descontos Progressivos
-          </h2>
-
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: 12,
-                marginBottom: 28,
-              }}
-            >
-              {descontos.map((d, i) => (
-                <div
-                  key={i}
-                  data-testid={`card-desconto-${d.min}`}
-                  style={{
-                    background: simuladorQtd >= d.min ? "#2563EB" : "#f3f4f6",
-                    color: simuladorQtd >= d.min ? "#fff" : "#374151",
-                    borderRadius: 10,
-                    padding: "20px 16px",
-                    textAlign: "center",
-                    transition: "all 0.3s ease",
-                    border: simuladorQtd >= d.min ? "2px solid #2563EB" : "2px solid #e5e7eb",
-                  }}
-                >
-                  <div style={{ fontSize: 28, fontWeight: 800 }}>{d.desconto}%</div>
-                  <div style={{ fontSize: 13, marginTop: 4, opacity: 0.85 }}>{d.min}+ pessoas</div>
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                background: "#f0f9ff",
-                borderRadius: 10,
-                padding: 24,
-                border: "1px solid #bae6fd",
-              }}
-            >
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: "#1e3a5f", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                <Calculator style={{ width: 20, height: 20 }} />
-                Simulador de Desconto
-              </h3>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <h4 className="text-sm font-semibold text-slate-700 mb-3">Fornecedores</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {fornecedores.map((f, i) => {
+            const statusInfo = statusMap[f.status] || statusMap.Pendente;
+            return (
+              <div
+                key={i}
+                className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between items-center"
+              >
                 <div>
-                  <label
-                    htmlFor="input-simulador-qtd"
-                    style={{ fontSize: 13, color: "#6b7280", display: "block", marginBottom: 6 }}
-                  >
-                    Quantidade de pessoas
-                  </label>
-                  <input
-                    id="input-simulador-qtd"
-                    data-testid="input-simulador-qtd"
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={simuladorQtd}
-                    onChange={(e) => setSimuladorQtd(Math.max(1, parseInt(e.target.value) || 1))}
-                    style={{
-                      padding: "10px 16px",
-                      borderRadius: 8,
-                      border: "1px solid #d1d5db",
-                      fontSize: 16,
-                      width: 120,
-                      fontWeight: 600,
-                    }}
-                  />
+                  <p className="font-semibold text-slate-900 text-sm">{f.nome}</p>
+                  <p className="text-slate-500 text-sm">R$ {f.valor.toLocaleString('pt-BR')}</p>
                 </div>
-                <div style={{ fontSize: 28, color: "#9ca3af" }}>→</div>
-                <div data-testid="display-desconto-resultado" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                  <div
-                    style={{
-                      background: "#fff",
-                      borderRadius: 10,
-                      padding: "12px 20px",
-                      border: "1px solid #e5e7eb",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>Desconto</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#F57C00" }}>{descontoAtual}%</div>
-                  </div>
-                  <div
-                    style={{
-                      background: "#fff",
-                      borderRadius: 10,
-                      padding: "12px 20px",
-                      border: "1px solid #e5e7eb",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>Valor p/ pessoa</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f" }}>
-                      R$ {valorComDesconto.toLocaleString("pt-BR")}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      background: "#fff",
-                      borderRadius: 10,
-                      padding: "12px 20px",
-                      border: "1px solid #e5e7eb",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>Economia total</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#22C55E" }}>
-                      R$ {economiaTotal.toLocaleString("pt-BR")}
-                    </div>
-                  </div>
-                </div>
+                <StatusBadge
+                  status={statusInfo.status}
+                  label={statusInfo.label}
+                  size="sm"
+                />
+              </div>
+            );
+          })}
+        </div>
+      </AdminCard>
+
+      {/* Descontos Progressivos */}
+      <AdminCard
+        title="Descontos Progressivos"
+        headerActions={<Percent className="w-5 h-5 text-orange-600" />}
+        className="mb-6"
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {descontos.map((d, i) => (
+            <div
+              key={i}
+              className={cn(
+                'rounded-xl p-5 text-center transition-all border-2',
+                simuladorQtd >= d.min
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-slate-100 text-slate-700 border-slate-200'
+              )}
+            >
+              <p className="text-3xl font-extrabold">{d.desconto}%</p>
+              <p className="text-sm mt-1 opacity-80">{d.min}+ pessoas</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-sky-50 border border-sky-200 rounded-xl p-6">
+          <h4 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-blue-600" />
+            Simulador de Desconto
+          </h4>
+          <div className="flex flex-wrap items-center gap-4">
+            <div>
+              <Label htmlFor="qtd" className="text-sm text-slate-600 mb-1.5 block">
+                Quantidade de pessoas
+              </Label>
+              <Input
+                id="qtd"
+                type="number"
+                min={1}
+                max={100}
+                value={simuladorQtd}
+                onChange={(e) => setSimuladorQtd(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-28"
+              />
+            </div>
+            <span className="text-2xl text-slate-300">-&gt;</span>
+            <div className="flex gap-3">
+              <div className="bg-white rounded-lg px-5 py-3 border text-center">
+                <p className="text-xs text-slate-500">Desconto</p>
+                <p className="text-xl font-bold text-orange-600">{descontoAtual}%</p>
+              </div>
+              <div className="bg-white rounded-lg px-5 py-3 border text-center">
+                <p className="text-xs text-slate-500">Valor p/ pessoa</p>
+                <p className="text-xl font-bold text-slate-900">
+                  R$ {valorComDesconto.toLocaleString('pt-BR')}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg px-5 py-3 border text-center">
+                <p className="text-xs text-slate-500">Economia total</p>
+                <p className="text-xl font-bold text-green-600">
+                  R$ {economiaTotal.toLocaleString('pt-BR')}
+                </p>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </AdminCard>
 
-        {/* PAGAMENTOS INDIVIDUAIS */}
-        <section data-testid="section-pagamentos-individuais">
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-            <CreditCard style={{ width: 24, height: 24, color: "#2563EB" }} />
-            Pagamentos Individuais
-          </h2>
+      {/* Pagamentos Individuais */}
+      <AdminCard
+        title="Pagamentos Individuais"
+        headerActions={<CreditCard className="w-5 h-5 text-blue-600" />}
+        noPadding
+        className="mb-6"
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Passageiro</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Metodo</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Data</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pagamentos.map((p) => {
+              const statusInfo = statusMap[p.status] || statusMap.Pendente;
+              return (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.passageiro}</TableCell>
+                  <TableCell className="font-semibold">
+                    R$ {p.valor.toLocaleString('pt-BR')}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded text-xs font-medium">
+                      {p.metodo === 'Pix' && <Wallet className="w-3 h-3" />}
+                      {p.metodo === 'Cartao' && <CreditCard className="w-3 h-3" />}
+                      {p.metodo === 'Boleto' && <Receipt className="w-3 h-3" />}
+                      {p.metodo}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={statusInfo.status}
+                      label={statusInfo.label}
+                      size="sm"
+                    />
+                  </TableCell>
+                  <TableCell className="text-slate-500">
+                    {new Date(p.data).toLocaleDateString('pt-BR')}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </AdminCard>
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ overflowX: "auto" }}>
-              <table data-testid="table-pagamentos" style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#f9fafb" }}>
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Passageiro
-                    </th>
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Valor
-                    </th>
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Método
-                    </th>
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Status
-                    </th>
-                    <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Data
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pagamentos.map((p) => {
-                    const badge = getStatusBadge(p.status);
-                    return (
-                      <tr
-                        key={p.id}
-                        data-testid={`row-pagamento-${p.id}`}
-                        style={{ borderTop: "1px solid #f3f4f6" }}
-                      >
-                        <td style={{ padding: "14px 16px", fontSize: 14, fontWeight: 500, color: "#1f2937" }}>
-                          {p.passageiro}
-                        </td>
-                        <td style={{ padding: "14px 16px", fontSize: 14, color: "#374151", fontWeight: 600 }}>
-                          R$ {p.valor.toLocaleString("pt-BR")}
-                        </td>
-                        <td style={{ padding: "14px 16px", fontSize: 14, color: "#6b7280" }}>
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "3px 10px",
-                              borderRadius: 6,
-                              background: "#f3f4f6",
-                              fontSize: 12,
-                              fontWeight: 500,
-                            }}
-                          >
-                            {p.metodo === "Pix" && <Wallet style={{ width: 12, height: 12 }} />}
-                            {p.metodo === "Cartão" && <CreditCard style={{ width: 12, height: 12 }} />}
-                            {p.metodo === "Boleto" && <Receipt style={{ width: 12, height: 12 }} />}
-                            {p.metodo}
-                          </span>
-                        </td>
-                        <td style={{ padding: "14px 16px" }}>
-                          <span
-                            data-testid={`badge-pagamento-status-${p.id}`}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              padding: "4px 10px",
-                              borderRadius: 20,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              background: badge.bg,
-                              color: badge.color,
-                            }}
-                          >
-                            {badge.icon}
-                            {p.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: "14px 16px", fontSize: 13, color: "#6b7280" }}>
-                          {new Date(p.data).toLocaleDateString("pt-BR")}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+      {/* Resumo Fiscal */}
+      <AdminCard
+        title="Estrutura Fiscal"
+        headerActions={<Building2 className="w-5 h-5 text-violet-600" />}
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+            <p className="text-xs text-slate-500 mb-1">Total Arrecadado</p>
+            <p className="text-xl font-bold text-green-700">
+              R$ {totalArrecadado.toLocaleString('pt-BR')}
+            </p>
           </div>
-        </section>
-
-        {/* RESUMO FISCAL */}
-        <section data-testid="section-resumo-fiscal">
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e3a5f", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-            <BarChart3 style={{ width: 24, height: 24, color: "#22C55E" }} />
-            Resumo Fiscal
-          </h2>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 16,
-              marginBottom: 24,
-            }}
-          >
-            <div
-              data-testid="card-total-arrecadado"
-              style={{
-                background: "#fff",
-                borderRadius: 12,
-                padding: 24,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                borderLeft: "4px solid #2563EB",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <DollarSign style={{ width: 20, height: 20, color: "#2563EB" }} />
-                <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>Total Arrecadado</span>
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "#1e3a5f" }}>
-                R$ {totalArrecadado.toLocaleString("pt-BR")}
-              </div>
-            </div>
-
-            <div
-              data-testid="card-mdr"
-              style={{
-                background: "#fff",
-                borderRadius: 12,
-                padding: 24,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                borderLeft: "4px solid #F57C00",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <CreditCard style={{ width: 20, height: 20, color: "#F57C00" }} />
-                <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>MDR (Taxa Cartão 2,5%)</span>
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "#F57C00" }}>
-                R$ {mdr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-
-            <div
-              data-testid="card-iss"
-              style={{
-                background: "#fff",
-                borderRadius: 12,
-                padding: 24,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                borderLeft: "4px solid #ef4444",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <Building2 style={{ width: 20, height: 20, color: "#ef4444" }} />
-                <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>ISS (5%)</span>
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "#ef4444" }}>
-                R$ {iss.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </div>
-            </div>
-
-            <div
-              data-testid="card-lucro-liquido"
-              style={{
-                background: "#fff",
-                borderRadius: 12,
-                padding: 24,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                borderLeft: "4px solid #22C55E",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <TrendingUp style={{ width: 20, height: 20, color: "#22C55E" }} />
-                <span style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>Lucro Líquido</span>
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: "#22C55E" }}>
-                R$ {lucroLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </div>
-            </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <p className="text-xs text-slate-500 mb-1">MDR (2.5%)</p>
+            <p className="text-xl font-bold text-amber-700">
+              R$ {mdr.toLocaleString('pt-BR')}
+            </p>
           </div>
-
-          <div
-            data-testid="display-barra-composicao-fiscal"
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 24,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "#374151", marginBottom: 16 }}>
-              Composição de Custos
-            </h3>
-            <div style={{ height: 40, borderRadius: 20, overflow: "hidden", display: "flex", marginBottom: 16 }}>
-              {(() => {
-                const total = comissaoRSV;
-                const lucroPerc = (lucroLiquido / total) * 100;
-                const mdrPerc = (mdr / total) * 100;
-                const issPerc = (iss / total) * 100;
-                return (
-                  <>
-                    <div
-                      style={{
-                        width: `${lucroPerc}%`,
-                        background: "#22C55E",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Lucro {lucroPerc.toFixed(1)}%
-                    </div>
-                    <div
-                      style={{
-                        width: `${mdrPerc}%`,
-                        background: "#F57C00",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      MDR
-                    </div>
-                    <div
-                      style={{
-                        width: `${issPerc}%`,
-                        background: "#ef4444",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      ISS
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 12, height: 12, borderRadius: 3, background: "#22C55E" }} />
-                <span style={{ fontSize: 13, color: "#6b7280" }}>
-                  Lucro Líquido: R$ {lucroLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 12, height: 12, borderRadius: 3, background: "#F57C00" }} />
-                <span style={{ fontSize: 13, color: "#6b7280" }}>
-                  MDR: R$ {mdr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 12, height: 12, borderRadius: 3, background: "#ef4444" }} />
-                <span style={{ fontSize: 13, color: "#6b7280" }}>
-                  ISS: R$ {iss.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <p className="text-xs text-slate-500 mb-1">ISS (5%)</p>
+            <p className="text-xl font-bold text-red-700">
+              R$ {iss.toLocaleString('pt-BR')}
+            </p>
           </div>
-        </section>
-      </div>
-    </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+            <p className="text-xs text-slate-500 mb-1">Lucro Liquido</p>
+            <p className="text-xl font-bold text-blue-700">
+              R$ {lucroLiquido.toLocaleString('pt-BR')}
+            </p>
+          </div>
+        </div>
+      </AdminCard>
+    </AdminShell>
   );
 }
