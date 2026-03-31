@@ -1,0 +1,8 @@
+server/
+*.ts
+!client/**/*.ts
+!client/**/*.tsx
+.env
+.env.local
+node_modules/
+.git

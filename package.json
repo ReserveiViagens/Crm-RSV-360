@@ -7,7 +7,7 @@
     "dev": "vite --config vite.config.ts",
     "dev:server": "NODE_ENV=development tsx server/index.ts",
     "build": "vite build --config vite.config.ts",
-    "start": "NODE_ENV=production node dist/index.cjs",
+    "start": "echo 'Frontend build complete. Served as static files.'",
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },
