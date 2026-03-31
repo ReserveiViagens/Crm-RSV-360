@@ -31,6 +31,7 @@
   | 10 | Caldas AI: Wizard embutido no chat (sem Step 1 separado) | ✅ CONCLUÍDA | Chat abre direto; 6 cards de perfil inline como 1ª mensagem; botão oculto quando modal aberta |
   | 11 | Fix: TravelerProfileModal não abre automaticamente | ✅ CONCLUÍDA | Removido setTimeout que auto-abria o wizard em atracoes, hoteis, promocoes, leiloes |
   | 12 | Task 8 — Restaurar carrinho do pedido anterior no retry | ✅ CONCLUÍDA | replaceCart em cart-store; restore=1 em order-status; restore logic em ingressos; banner contextual |
+  | 13 | Task 9 — Pré-preencher dados do comprador no retry | ✅ CONCLUÍDA | setCheckoutPrefill/getCheckoutPrefill em cart-store; backend expõe phone/cpf; prefill em checkout; limpeza após pagamento |
 
   ## Smoke Tests Validados (Task #2)
 

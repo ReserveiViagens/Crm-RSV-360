@@ -1,30 +1,36 @@
 # 02-HANDOFF-ATUAL
 
 ## Último estado conhecido
-Task 8 — Restaurar carrinho do pedido anterior no retry — 100% concluída e validada.
+Task 9 — Pré-preencher dados do comprador no retry — 100% concluída e validada.
 
 ## Estado atual
-- ✅ Branch: feat/orders-retry-context
-- ✅ Commit: 7e58d35 — feat(orders): restaura carrinho no retry de pedidos
+- ✅ Branch: main
+- ✅ Commit: f17e053 — feat(orders): preenche dados do comprador no retry de pedidos
 - ✅ npm run check: PASSOU
 - ✅ npm run build: PASSOU
-- ✅ Funcionalidade: Retry com prefill automático + banner contextual + 4 estados
+- ✅ Funcionalidade: Retry com prefill automático de dados do comprador + limpeza após pagamento
 
 ## Mudanças implementadas (resumo)
 
 ### 1. cart-store.ts
-- Adicionada função `replaceCart(items)` que substitui o carrinho inteiro
-- Dispara evento `rsv360-cart-updated` ao substituir
+- Adicionada `CheckoutCustomerPrefill` type (name, email, phone?, cpf?)
+- Adicionada `setCheckoutPrefill(customer)` — armazena em localStorage
+- Adicionada `getCheckoutPrefill()` — recupera com validação
+- Adicionada `clearCheckoutPrefill()` — limpa após uso
 
-### 2. order-status.tsx
-- Atualizado query string: agora inclui `&restore=1` quando status é EXPIRED ou FAILED
-- URL completa: `/ingressos?retry=1&restore=1&fromOrder=<id>&status=<status>`
+### 2. server/routes.ts
+- Atualizado `/api/orders/:id` para incluir phone e cpf no customer object
+- customer: { name, email, phone, cpf }
 
 ### 3. ingressos.tsx
-- Adicionados 3 estados de retry: `retryRestoreLoading`, `retryRestoreDone`, `retryRestoreError`
-- Novo useEffect que detecta parâmetros e chama `/api/orders/:id/tickets`
-- Converte response API para formato CartItem e chama `replaceCart()`
-- Banner contextual mostra 4 estados: loading, sucesso, erro, info
+- Atualizado `restoreCartFromOrder()` para buscar também `/api/orders/:id`
+- Chama `setCheckoutPrefill(customer)` após restaurar carrinho
+
+### 4. ingressos-checkout.tsx
+- Adicionado prefill automático nos campos do formulário
+- `checkoutPrefill = getCheckoutPrefill()`
+- Campos preenchidos: firstName/lastName (split name), email, phone, cpf
+- `clearCheckoutPrefill()` chamado em onSuccess (após criar pagamento)
 
 ## Fluxo funcional (ponta a ponta)
 
@@ -32,28 +38,21 @@ Task 8 — Restaurar carrinho do pedido anterior no retry — 100% concluída e 
 2. Clica em "Refazer pedido"
 3. Redireciona para `/ingressos?retry=1&restore=1&fromOrder=abc123&status=EXPIRED`
 4. Página ingressos detecta parâmetros
-5. Chama `/api/orders/abc123/tickets` (já existe no backend)
-6. Restaura carrinho automaticamente
+5. Chama `/api/orders/abc123/tickets` e `/api/orders/abc123`
+6. Restaura carrinho automaticamente + armazena dados do comprador
 7. Exibe banner verde: "Carrinho restaurado" + botão "Continuar checkout"
-8. Usuário vai para checkout com itens já no carrinho
-9. Menos atrito, menos abandono
+8. Usuário vai para checkout
+9. Formulário já preenchido com nome, email, telefone, cpf
+10. Após pagamento criado, dados de prefill são limpos
+11. Menos atrito, menos abandono, experiência fluida
 
 ## Critério de aceite cumprido
-- [x] Retry a partir do pedido em EXPIRED/FAILED leva para /ingressos?retry=1&restore=1&fromOrder=<id>&status=<status>
-- [x] Página ingressos lê os parâmetros
-- [x] Chama /api/orders/:id/tickets
-- [x] Restaura o carrinho automaticamente
-- [x] Exibe banner contextual
-- [x] Botão "Continuar checkout" funciona
-- [x] Checkout abre com carrinho restaurado
-- [x] Não redireciona de volta para /ingressos por carrinho vazio
+- [x] Retry restaura carrinho + dados do comprador
+- [x] Formulário checkout pré-preenchido automaticamente
+- [x] Dados limpos após criação de pagamento (não persistem)
+- [x] Backend expõe phone e cpf via /api/orders/:id
+- [x] localStorage usado para prefill temporário
+- [x] Validação typecheck + build OK
 
 ## Próxima ação
-Aguardar:
-1. Revisão de PR (feat/orders-retry-context)
-2. Aprovação e merge para main
-3. Decisão sobre próxima task:
-   - Task 9: Deploy em staging com PostgreSQL persistente
-   - Task 9: Testes E2E Cypress (retry flow)
-   - Task 9: Integração com Evolution API (WhatsApp real)
-   - Outra task conforme prioridade do projeto
+Aguardar definição de próxima task funcional/técnica (ex.: Task 10 — Deploy em staging ou Testes E2E)
