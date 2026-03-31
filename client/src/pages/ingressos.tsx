@@ -994,7 +994,7 @@ export default function IngressosPage() {
                 </div>
               </div>
               <button
-                onClick={() => navigate("/ingressos-checkout")}
+                onClick={() => navigate("/ingressos/checkout")}
                 style={{
                   background: "#15803D",
                   color: "#fff",
