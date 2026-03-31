@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star, Gift, Waves } from "lucide-react"
+import { Phone, ShoppingCart, Sparkles, BarChart3, X, Check, Timer, ChevronRight, Wand2, LayoutGrid, Trees, Leaf, Bus, Home, Star, Gift, Waves, AlertCircle, Loader2 } from "lucide-react"
 import { useLocation, useSearch } from "wouter";
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { buildSectionTypeNav, CATALOG_DIVIDER } from "@/lib/catalogNav"
@@ -13,7 +13,7 @@ import {
 } from "@/components/ai-conversion-elements"
 import { useTicketsCart } from "@/hooks/useTicketsCart"
 import { trackEvent } from "@/lib/analytics"
-import { saveSelectedDate } from "@/lib/cart-store"
+import { saveSelectedDate, replaceCart } from "@/lib/cart-store"
 import { QuickDecisionSection } from "@/components/QuickDecisionSection"
 import { MiniWizard } from "@/components/MiniWizard"
 import { TicketsGrid, type TicketItem } from "@/components/TicketsGrid"
@@ -495,6 +495,9 @@ export default function IngressosPage() {
   const [cartModalPrice, setCartModalPrice] = useState(0)
   const [comboDatesTicket, setComboDatesTicket] = useState<TicketItem | null>(null)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [retryRestoreLoading, setRetryRestoreLoading] = useState(false)
+  const [retryRestoreDone, setRetryRestoreDone] = useState(false)
+  const [retryRestoreError, setRetryRestoreError] = useState("")
 
   const {
     filters: searchFilters,
@@ -578,6 +581,54 @@ export default function IngressosPage() {
       setSearchFilter("city", destino)
     }
   }, [])
+
+  // Handle retry restore: fetch order items and restore cart
+  useEffect(() => {
+    async function restoreCartFromOrder() {
+      if (retryParams.retry !== "1" || retryParams.fromOrder === null || retryParams.status === null) {
+        return
+      }
+
+      try {
+        setRetryRestoreLoading(true)
+        setRetryRestoreError("")
+
+        const orderId = retryParams.fromOrder
+        const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/tickets`)
+        if (!response.ok) {
+          throw new Error(`Falha ao buscar itens do pedido: ${response.statusText}`)
+        }
+
+        const data = (await response.json()) as { orderId: string; items: Array<{ ticketId: string; title: string; quantity: number; unitPrice: number; lineTotal: number }> }
+
+        if (!data.items || data.items.length === 0) {
+          throw new Error("Nenhum item encontrado no pedido anterior")
+        }
+
+        // Convert API response to CartItem format
+        const cartItems = data.items.map((item) => ({
+          ticketId: item.ticketId,
+          name: item.title,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          originalPrice: item.unitPrice,
+          discount: 0,
+          image: "",
+        }))
+
+        // Replace cart with restored items
+        replaceCart(cartItems)
+        setRetryRestoreDone(true)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Erro ao restaurar o carrinho"
+        setRetryRestoreError(message)
+      } finally {
+        setRetryRestoreLoading(false)
+      }
+    }
+
+    restoreCartFromOrder()
+  }, [retryParams.retry, retryParams.fromOrder, retryParams.status])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -874,21 +925,111 @@ export default function IngressosPage() {
       }
     >
       {retryParams.retry === "1" && retryParams.fromOrder && retryParams.status && (
-        <div style={{
-          background: "#FFF7ED",
-          border: "1px solid #FDE68A",
-          borderRadius: 8,
-          padding: "12px 16px",
-          margin: "16px",
-          fontSize: 14,
-          color: "#92400E",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}>
-          <Timer style={{ width: 16, height: 16 }} />
-          Você está refazendo um pedido {retryParams.status === "EXPIRED" ? "expirado" : "com falha"} (ID: {retryParams.fromOrder}).
-        </div>
+        <>
+          {/* Error banner if restore failed */}
+          {retryRestoreError && (
+            <div style={{
+              background: "#FEE2E2",
+              border: "1px solid #FECACA",
+              borderRadius: 8,
+              padding: "12px 16px",
+              margin: "16px",
+              fontSize: 14,
+              color: "#991B1B",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }} data-testid="banner-retry-restore-error">
+              <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+              <div>
+                <p style={{ margin: 0, fontWeight: 700 }}>Não foi possível restaurar o carrinho</p>
+                <p style={{ margin: "4px 0 0", fontSize: 12, opacity: 0.9 }}>{retryRestoreError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Success banner if restore succeeded */}
+          {retryRestoreDone && !retryRestoreError && (
+            <div style={{
+              background: "#DCFCE7",
+              border: "1px solid #86EFAC",
+              borderRadius: 8,
+              padding: "12px 16px",
+              margin: "16px",
+              fontSize: 14,
+              color: "#15803D",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+            }} data-testid="banner-retry-restore-success">
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Check style={{ width: 16, height: 16, flexShrink: 0 }} />
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    Carrinho restaurado do pedido {retryParams.status === "EXPIRED" ? "expirado" : "com falha"}
+                  </p>
+                  <p style={{ margin: "4px 0 0", fontSize: 12, opacity: 0.9 }}>ID: {retryParams.fromOrder}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/ingressos-checkout")}
+                style={{
+                  background: "#15803D",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+                data-testid="button-retry-continue-checkout"
+              >
+                Continuar checkout
+              </button>
+            </div>
+          )}
+
+          {/* Loading banner if restore is in progress */}
+          {retryRestoreLoading && (
+            <div style={{
+              background: "#EFF6FF",
+              border: "1px solid #BFDBFE",
+              borderRadius: 8,
+              padding: "12px 16px",
+              margin: "16px",
+              fontSize: 14,
+              color: "#1D4ED8",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }} data-testid="banner-retry-restore-loading">
+              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite", flexShrink: 0 }} />
+              Restaurando carrinho do pedido anterior...
+            </div>
+          )}
+
+          {/* Info banner if no restore was attempted yet */}
+          {!retryRestoreLoading && !retryRestoreDone && !retryRestoreError && (
+            <div style={{
+              background: "#FFF7ED",
+              border: "1px solid #FDE68A",
+              borderRadius: 8,
+              padding: "12px 16px",
+              margin: "16px",
+              fontSize: 14,
+              color: "#92400E",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}>
+              <Timer style={{ width: 16, height: 16 }} />
+              Você está refazendo um pedido {retryParams.status === "EXPIRED" ? "expirado" : "com falha"} (ID: {retryParams.fromOrder}).
+            </div>
+          )}
+        </>
       )}
 
       <div

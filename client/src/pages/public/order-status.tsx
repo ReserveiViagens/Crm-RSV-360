@@ -864,7 +864,7 @@ export default function OrderStatusPage() {
             <a
               href={
                 status === "EXPIRED" || status === "FAILED"
-                  ? `/ingressos?retry=1&fromOrder=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`
+                  ? `/ingressos?retry=1&restore=1&fromOrder=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`
                   : "/ingressos"
               }
               style={{

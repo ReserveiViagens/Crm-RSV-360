@@ -45,6 +45,12 @@ export function saveCart(items: CartItem[]): void {
   localStorage.setItem(CART_KEY, JSON.stringify(items))
 }
 
+export function replaceCart(items: CartItem[]): void {
+  const deduplicated = dedupeCart(items)
+  localStorage.setItem(CART_KEY, JSON.stringify(deduplicated))
+  window.dispatchEvent(new Event("rsv360-cart-updated"))
+}
+
 export function addToCart(item: Omit<CartItem, "quantity">, qty: number = 1): CartItem[] {
   const current = getCart()
   const existing = current.find((c) => c.ticketId === item.ticketId)
