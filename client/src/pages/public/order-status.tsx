@@ -4,6 +4,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock3,
+  Copy,
   Loader2,
   RefreshCcw,
   Ticket,
@@ -92,6 +93,7 @@ export default function OrderStatusPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   async function loadOrder(showLoading = true) {
     if (!orderId) {
@@ -173,45 +175,61 @@ export default function OrderStatusPage() {
     }
   }
 
-  async function refreshStatus() {
-    if (!orderId) return;
+async function refreshStatus() {
+  if (!orderId) return;
 
-    try {
-      setRefreshing(true);
+  try {
+    setRefreshing(true);
 
-      const statusRes = await fetch(
-        `/api/payments/tickets/${encodeURIComponent(orderId)}/status`,
-      );
+    const statusRes = await fetch(
+      `/api/payments/tickets/${encodeURIComponent(orderId)}/status`,
+    );
 
-      if (!statusRes.ok) return;
+    if (!statusRes.ok) return;
 
-      const statusData = (await statusRes.json()) as {
-        status?: string;
-        paid?: boolean;
-      };
+    const statusData = (await statusRes.json()) as {
+      status?: string;
+      paid?: boolean;
+    };
 
-      const nextStatus = normalizeStatus(statusData.status);
-      setStatus(nextStatus);
-      setOrder((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: nextStatus,
-            }
-          : prev,
-      );
-      setPaymentDetails((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: nextStatus,
-            }
-          : prev,
-      );
-    } finally {
-      setRefreshing(false);
-    }
+    const nextStatus = normalizeStatus(statusData.status);
+    setStatus(nextStatus);
+    setOrder((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: nextStatus,
+          }
+        : prev,
+    );
+    setPaymentDetails((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: nextStatus,
+          }
+        : prev,
+    );
+  } finally {
+    setRefreshing(false);
   }
+}  
+
+  const handleCopyOrderLink = async () => {
+  try {
+    const base =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const token = voucherToken ?? paymentDetails?.voucherToken;
+    const suffix = token ? `?token=${encodeURIComponent(token)}` : "";
+    const link = `${base}/pedido/${orderId}${suffix}`;
+
+    await navigator.clipboard.writeText(link);
+    setLinkCopied(true);
+    window.setTimeout(() => setLinkCopied(false), 2000);
+  } catch {
+    setLinkCopied(false);
+  }
+};
 
   useEffect(() => {
     loadOrder(true);
@@ -472,33 +490,55 @@ export default function OrderStatusPage() {
               </div>
             </div>
 
-            {status === "PENDING" && (
-              <button
-                onClick={refreshStatus}
-                disabled={refreshing}
-                style={{
-                  border: "none",
-                  borderRadius: 10,
-                  padding: "10px 12px",
-                  background: "#fff",
-                  color: "#111827",
-                  fontWeight: 700,
-                  cursor: refreshing ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <RefreshCcw
-                  style={{
-                    width: 16,
-                    height: 16,
-                    animation: refreshing ? "spin 1s linear infinite" : "none",
-                  }}
-                />
-                Atualizar status
-              </button>
-            )}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+  <button
+    onClick={handleCopyOrderLink}
+    style={{
+      border: "none",
+      borderRadius: 10,
+      padding: "10px 12px",
+      background: "#fff",
+      color: "#111827",
+      fontWeight: 700,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+    }}
+    data-testid="button-copy-order-link"
+  >
+    <Copy style={{ width: 16, height: 16 }} />
+    {linkCopied ? "Link copiado" : "Copiar link do pedido"}
+  </button>
+
+  {status === "PENDING" && (
+    <button
+      onClick={refreshStatus}
+      disabled={refreshing}
+      style={{
+        border: "none",
+        borderRadius: 10,
+        padding: "10px 12px",
+        background: "#fff",
+        color: "#111827",
+        fontWeight: 700,
+        cursor: refreshing ? "not-allowed" : "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      <RefreshCcw
+        style={{
+          width: 16,
+          height: 16,
+          animation: refreshing ? "spin 1s linear infinite" : "none",
+        }}
+      />
+      Atualizar status
+    </button>
+  )}
+</div>
           </div>
 
           <div
