@@ -144,8 +144,8 @@ A API pública resolve as URLs finais de logo e banner. O frontend público **nu
 // Response — settings público (SEM IDs de mídia)
 interface PublicSettingsResponse {
   siteName: string
-  logoUrl: string | null         // URL completa resolvida (ex: "/uploads/website/uuid-logo.png")
-  defaultBannerUrl: string | null // URL completa resolvida
+  logoUrl: string | null         // URL pronta para uso em <img src> — ver "Convenção de URL" abaixo
+  defaultBannerUrl: string | null // URL pronta para uso em <img src>
   primaryColor: string | null
   contactEmail: string | null
   contactPhone: string | null
@@ -153,7 +153,13 @@ interface PublicSettingsResponse {
 }
 ```
 
-**Decisão de branding:** Admin salva `logoMediaId` e `defaultBannerMediaId` (UUIDs). A API pública faz join com `website_media` e devolve `logoUrl` e `defaultBannerUrl` como URLs absolutas resolvidas. Páginas draft nunca aparecem neste endpoint.
+**Decisão de branding:** Admin salva `logoMediaId` e `defaultBannerMediaId` (UUIDs). A API pública faz join com `website_media` e devolve `logoUrl` e `defaultBannerUrl` como URLs prontas para uso direto. Páginas draft nunca aparecem neste endpoint.
+
+**Convenção de URL** (canon para todos os campos `*Url` na API pública):
+- Desenvolvimento: URL relativa — `/uploads/website/{uuid}-{filename}.{ext}`
+- Produção: URL absoluta com CDN — `https://cdn.example.com/{uuid}-{filename}.{ext}`
+- O client trata o valor como-está em `<img src>` — nunca concatena prefixo manualmente.
+- O server monta a URL a partir de `MEDIA_CDN_BASE_URL` (vazio → relativa, preenchido → absoluta).
 
 ### Páginas Públicas (GET /api/website/pages/:slug)
 
@@ -167,7 +173,7 @@ interface PublicPageResponse {
   content: object
   metaTitle: string | null
   metaDescription: string | null
-  bannerUrl: string | null  // URL resolvida (não ID) — null se sem banner
+  bannerUrl: string | null  // URL pronta para <img src> (segue a Convenção de URL — nunca um ID)
   publishedAt: string       // ISO datetime (UTC)
 }
 ```
@@ -257,12 +263,7 @@ O hardening completo (`requireAdmin` middleware) é implementado apenas no PR 7 
 
 **Risco documentado:** Em ambiente de desenvolvimento, qualquer usuário pode acessar as rotas admin dos PRs 3–6. **Não deployar em produção antes do PR 7.**
 
-**Credenciais de teste (desenvolvimento):**
-```
-email: demo@reservei.com.br
-senha: demo123
-role: admin
-```
+**Credenciais de teste:** Consulte o guia de setup local do projeto. Não registrar credenciais neste documento de contratos.
 
 ---
 
