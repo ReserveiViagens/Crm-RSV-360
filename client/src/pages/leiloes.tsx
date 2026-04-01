@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { Gavel, Clock, Star, MapPin, TrendingUp, Users, Flame, X, Plus, Minus, Bell, ChevronRight, Sparkles, Zap, Pause, Play, LayoutGrid, Timer, Building2, Package } from "lucide-react"
+import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
@@ -183,7 +184,6 @@ export default function LeiloesPage() {
       setLeiloes(prev => prev.map(l => ({
         ...l,
         timeLeftSeconds: Math.max(0, l.timeLeftSeconds - 1),
-        endingSoon: l.timeLeftSeconds <= 600,
       })))
     }, 1000)
     return () => clearInterval(interval)
@@ -260,18 +260,32 @@ export default function LeiloesPage() {
     window.open(`https://wa.me/5564993197555?text=${whatsappMessage}`, "_blank")
   }
 
-  const filtered = leiloes.filter((l) => {
-    if (activeFilter === "Encerrando") return l.endingSoon
-    if (activeFilter === "Hotéis") return l.category === "hotel"
-    if (activeFilter === "Pacotes") return l.category === "pacote"
-    return true
-  })
+  const bidKey = leiloes.map(l => `${l.id}:${l.currentBid}:${l.totalBids}`).join(',')
+  const profileKey = [
+    profile?.tripType ?? '',
+    profile?.budget ?? '',
+    profile?.companions ?? '',
+    profile?.interests?.join('|') ?? '',
+  ].join(':')
 
-  const sortedByMatch = [...filtered].sort((a, b) => {
-    const scoreA = calculateMatchScore(profile, { category: a.category, price: a.currentBid, tags: a.tags })
-    const scoreB = calculateMatchScore(profile, { category: b.category, price: b.currentBid, tags: b.tags })
-    return scoreB - scoreA
-  })
+  const sortedIds = useMemo(() => {
+    return [...leiloes].sort((a, b) => {
+      const scoreA = calculateMatchScore(profile, { category: a.category, price: a.currentBid, tags: a.tags })
+      const scoreB = calculateMatchScore(profile, { category: b.category, price: b.currentBid, tags: b.tags })
+      return scoreB - scoreA
+    }).map(l => l.id)
+  }, [bidKey, profileKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sortedByMatch = (() => {
+    const filtered = leiloes.filter((l) => {
+      const endingSoon = l.timeLeftSeconds <= 600
+      if (activeFilter === "Encerrando") return endingSoon
+      if (activeFilter === "Hotéis") return l.category === "hotel"
+      if (activeFilter === "Pacotes") return l.category === "pacote"
+      return true
+    })
+    return [...filtered].sort((a, b) => sortedIds.indexOf(a.id) - sortedIds.indexOf(b.id))
+  })()
 
   const crossSellItems = [
     { name: "Hot Park - Ingresso", price: 189, image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/hot-park-Jm2Xy9K8RfqL3vN5wT1pA6sD4hB7eC.jpg", link: "/ingressos", badge: "-30%" },
@@ -385,42 +399,23 @@ export default function LeiloesPage() {
       </div>
 
       <div
-        className="rsv-filter-bar"
         data-testid="filter-bar-leiloes"
         style={{
           background: "#fff", borderBottom: "1px solid #E5E7EB",
-          padding: "12px 16px", display: "flex", gap: 8, overflowX: "auto",
           position: "sticky", top: 64, zIndex: 30,
+          display: "flex",
         }}
       >
-        {[
-          { label: "Todos",      value: "Todos",      icon: LayoutGrid },
-          { label: "Encerrando", value: "Encerrando", icon: Timer },
-          { label: "Hotéis",     value: "Hotéis",     icon: Building2 },
-          { label: "Pacotes",    value: "Pacotes",    icon: Package },
-        ].map((f) => {
-          const Icon = f.icon
-          const isActive = activeFilter === f.value
-          return (
-            <button
-              key={f.value}
-              data-testid={`button-filter-${f.value.toLowerCase()}`}
-              onClick={() => setActiveFilter(f.value)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "7px 14px", borderRadius: 999, cursor: "pointer",
-                border: isActive ? "1.5px solid #F59E0B" : "1.5px solid #E5E7EB",
-                background: isActive ? "#F59E0B" : "#F3F4F6",
-                color: isActive ? "#fff" : "#6B7280",
-                fontSize: 13, fontWeight: isActive ? 700 : 500,
-                whiteSpace: "nowrap", transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              <Icon size={13} />
-              {f.label}
-            </button>
-          )
-        })}
+        <HotelCategoryNav
+          categories={[
+            { label: "Todos",      value: "Todos",      icon: LayoutGrid,  filterUpdate: {}, testId: "button-filter-todos" },
+            { label: "Encerrando", value: "Encerrando", icon: Timer,        filterUpdate: {}, testId: "button-filter-encerrando", badge: "🔥" },
+            { label: "Hotéis",     value: "Hotéis",     icon: Building2,    filterUpdate: {}, testId: "button-filter-hoteis" },
+            { label: "Pacotes",    value: "Pacotes",    icon: Package,      filterUpdate: {}, testId: "button-filter-pacotes" },
+          ]}
+          activeFilter={activeFilter}
+          onSelect={(f) => setActiveFilter(f.value)}
+        />
       </div>
 
       <SocialProofBanner viewers={onlineCompetitors} pageName="leilões" />
@@ -498,7 +493,7 @@ export default function LeiloesPage() {
         </div>
       )}
 
-      <div className="rsv-leiloes-grid" style={{ padding: "16px 20px 24px", maxWidth: 900, margin: "0 auto", display: "grid", gap: 20 }}>
+      <div className="rsv-leiloes-grid" style={{ padding: "16px 20px 24px", maxWidth: 900, margin: "0 auto", display: "grid", gap: 20, overflowAnchor: "none" }}>
         {sortedByMatch.map((leilao, idx) => {
           const time = formatSecondsToTime(leilao.timeLeftSeconds)
           const heat = getHeatColor(leilao.totalBids)
@@ -522,10 +517,9 @@ export default function LeiloesPage() {
                   ? "0 12px 40px rgba(37,99,235,0.25), 0 0 0 1px rgba(37,99,235,0.3)"
                   : "0 4px 16px rgba(0,0,0,0.3)",
                 transform: isHovered ? "translateY(-4px)" : "translateY(0)",
-                transition: "all 0.3s ease",
-                animation: `fadeInUp 0.6s ease-out ${idx * 0.15}s both`,
+                transition: "box-shadow 0.3s ease, transform 0.3s ease, border 0.3s ease",
+                animation: isEnding ? "heatPulse 2s infinite" : "none",
                 border: isEnding ? "1px solid rgba(220,38,38,0.4)" : "1px solid rgba(255,255,255,0.06)",
-                ...(isEnding ? { animation: `fadeInUp 0.6s ease-out ${idx * 0.15}s both, heatPulse 2s infinite` } : {}),
               }}
             >
               <div style={{ height: 180, position: "relative", overflow: "hidden" }}>
