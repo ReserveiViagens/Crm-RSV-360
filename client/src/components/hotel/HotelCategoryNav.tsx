@@ -248,8 +248,8 @@ export function HotelCategoryNav({ categories, activeFilter, onSelect }: HotelCa
           style={{
             display: "flex",
             alignItems: "flex-end",
-            justifyContent: "flex-start",
-            minWidth: "min-content",
+            justifyContent: "space-evenly",
+            width: "100%",
           }}
         >
           {categories.map((cat, idx) => {
