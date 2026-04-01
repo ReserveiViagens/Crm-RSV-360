@@ -6,10 +6,6 @@
   "framework": null,
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -29,5 +25,8 @@
         { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": ""
+  }
 }
