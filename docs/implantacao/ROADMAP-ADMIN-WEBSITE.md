@@ -102,7 +102,7 @@
 **Dependência:** PR 1
 
 ### Gate
-- [x] 7 enums criados: `page_status`, `page_section`, `media_type`, `media_placement`, `media_status`, `audit_action`, `audit_entity` (settings_key omitido — não usada em nenhum contrato)
+- [x] 8 enums criados: `page_status`, `page_section`, `media_type`, `media_placement`, `media_status`, `audit_action`, `audit_entity`, `settings_key`
 - [x] 5 tabelas criadas: `website_pages`, `website_media`, `website_settings`, `website_page_versions`, `audit_logs`
 - [x] `website_media` tem colunas: `placement`, `pageId`, `createdAt`, `updatedAt`
 - [x] `website_settings` é singleton (id=1, uma única linha)
