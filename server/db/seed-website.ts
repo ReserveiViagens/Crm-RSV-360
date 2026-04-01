@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { websitePages, websiteSettings } from "../../shared/schema.js";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { websitePages, websiteSettings, websiteMedia } from "../../shared/schema.js";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    RSV360 — Website CMS seed (idempotente)
-   Rodando 2× não duplica dados. Usa upsert por slug/id.
+   Rodando 2× não duplica dados. Usa verificação por slug/id/url antes de inserir.
    ───────────────────────────────────────────────────────────────────────────── */
 
 const DEMO_PAGES = [
@@ -107,7 +107,43 @@ const DEFAULT_SETTINGS = {
   },
 };
 
-export async function seedWebsite(db: NodePgDatabase<Record<string, never>>): Promise<void> {
+const DEMO_MEDIA = [
+  {
+    filename: "hero-home-caldas-novas.jpg",
+    originalName: "hero-home-caldas-novas.jpg",
+    mimetype: "image/jpeg",
+    sizeBytes: 0,
+    url: "/uploads/website/hero-home-caldas-novas.jpg",
+    altText: "Vista aérea das águas termais de Caldas Novas",
+    type: "image" as const,
+    placement: "hero" as const,
+    status: "active" as const,
+  },
+  {
+    filename: "logo-rsv360.png",
+    originalName: "logo-rsv360.png",
+    mimetype: "image/png",
+    sizeBytes: 0,
+    url: "/uploads/website/logo-rsv360.png",
+    altText: "Logo RSV360",
+    type: "image" as const,
+    placement: "avatar" as const,
+    status: "active" as const,
+  },
+  {
+    filename: "banner-hot-park.jpg",
+    originalName: "banner-hot-park.jpg",
+    mimetype: "image/jpeg",
+    sizeBytes: 0,
+    url: "/uploads/website/banner-hot-park.jpg",
+    altText: "Hot Park — Rio Quente Resorts",
+    type: "image" as const,
+    placement: "banner" as const,
+    status: "active" as const,
+  },
+];
+
+export async function seedWebsite(db: NodePgDatabase): Promise<void> {
   let pagesSeeded = 0;
   let pagesSkipped = 0;
 
@@ -151,8 +187,30 @@ export async function seedWebsite(db: NodePgDatabase<Record<string, never>>): Pr
     settingsAction = "skipped";
   }
 
+  let mediaSeeded = 0;
+  let mediaSkipped = 0;
+
+  for (const media of DEMO_MEDIA) {
+    const existing = await db
+      .select({ id: websiteMedia.id })
+      .from(websiteMedia)
+      .where(eq(websiteMedia.url, media.url))
+      .limit(1);
+
+    if (existing.length > 0) {
+      mediaSkipped++;
+      continue;
+    }
+
+    await db.insert(websiteMedia).values(media);
+    mediaSeeded++;
+  }
+
   console.log(
     `[seed] website_pages: ${pagesSeeded} criadas, ${pagesSkipped} já existiam (idempotente)`
   );
   console.log(`[seed] website_settings: ${settingsAction} (singleton)`);
+  console.log(
+    `[seed] website_media: ${mediaSeeded} criadas, ${mediaSkipped} já existiam (idempotente)`
+  );
 }
