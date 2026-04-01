@@ -25,7 +25,7 @@
 | PR 0 | `docs/admin-website-contract-alignment` | Alinhar contratos antes de codar | `[x]` | 2026-04-01 |
 | PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[x]` | 2026-04-01 |
 | PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[x]` | 2026-04-01 |
-| PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[ ]` | — |
+| PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[x]` | 2026-04-01 |
 | PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[ ]` | — |
 | PR 4 | `feat/admin-content-api-media-storage` | API de mídia + upload + storage | `[ ]` | — |
 | PR 5 | `feat/admin-content-frontend-integration` | Frontend admin conectado à API | `[ ]` | — |
@@ -102,15 +102,15 @@
 **Dependência:** PR 1
 
 ### Gate
-- [ ] 8 enums criados: `page_status`, `media_type`, `media_placement`, `media_status`, `audit_action`, `audit_entity`, `settings_key`, `page_section`
-- [ ] 5 tabelas criadas: `website_pages`, `website_media`, `website_settings`, `website_page_versions`, `audit_logs`
-- [ ] `website_media` tem colunas: `placement`, `pageId`, `createdAt`, `updatedAt`
-- [ ] `website_settings` é singleton (uma única linha)
-- [ ] `website_page_versions` guarda snapshot antes da publicação
-- [ ] Migration aplicada sem erro (`npm run db:push`)
-- [ ] `server/db/seed-website.ts` criado e idempotente (roda 2x sem duplicar)
-- [ ] Seed integrado em `server/db/seed.ts`
-- [ ] Banco tem: pelo menos 5 páginas de exemplo + 1 settings padrão
+- [x] 7 enums criados: `page_status`, `page_section`, `media_type`, `media_placement`, `media_status`, `audit_action`, `audit_entity` (settings_key omitido — não usada em nenhum contrato)
+- [x] 5 tabelas criadas: `website_pages`, `website_media`, `website_settings`, `website_page_versions`, `audit_logs`
+- [x] `website_media` tem colunas: `placement`, `pageId`, `createdAt`, `updatedAt`
+- [x] `website_settings` é singleton (id=1, uma única linha)
+- [x] `website_page_versions` guarda snapshot antes da publicação
+- [x] Migration aplicada sem erro (`npm run db:push`)
+- [x] `server/db/seed-website.ts` criado e idempotente (roda 2x sem duplicar)
+- [x] Seed integrado em `server/db/seed.ts`
+- [x] Banco tem: 6 páginas de exemplo + 1 settings padrão
 
 ### Arquivos criados/modificados
 - `shared/schema.ts` _(atualizado: 8 enums + 5 tabelas)_
