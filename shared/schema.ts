@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, pgEnum, text, varchar, integer, numeric, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, text, varchar, integer, numeric, timestamp, boolean, jsonb, check } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import {
@@ -251,17 +251,21 @@ export const websiteMedia = pgTable("website_media", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const websiteSettings = pgTable("website_settings", {
-  id: integer("id").primaryKey().default(1),
-  siteName: text("site_name").notNull().default("RSV360"),
-  logoMediaId: varchar("logo_media_id"),
-  defaultBannerMediaId: varchar("default_banner_media_id"),
-  primaryColor: text("primary_color"),
-  contactEmail: text("contact_email"),
-  contactPhone: text("contact_phone"),
-  socialLinks: jsonb("social_links"),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const websiteSettings = pgTable(
+  "website_settings",
+  {
+    id: integer("id").primaryKey().default(1),
+    siteName: text("site_name").notNull().default("RSV360"),
+    logoMediaId: varchar("logo_media_id"),
+    defaultBannerMediaId: varchar("default_banner_media_id"),
+    primaryColor: text("primary_color"),
+    contactEmail: text("contact_email"),
+    contactPhone: text("contact_phone"),
+    socialLinks: jsonb("social_links"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [check("website_settings_singleton", sql`${table.id} = 1`)]
+);
 
 export const websitePageVersions = pgTable("website_page_versions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
