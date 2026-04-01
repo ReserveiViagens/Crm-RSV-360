@@ -23,7 +23,7 @@
 | PR | Branch | Objetivo | Status | Concluído em |
 |----|--------|----------|--------|--------------|
 | PR 0 | `docs/admin-website-contract-alignment` | Alinhar contratos antes de codar | `[x]` | 2026-04-01 |
-| PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[ ]` | — |
+| PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[x]` | 2026-04-01 |
 | PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[ ]` | — |
 | PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[ ]` | — |
 | PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[ ]` | — |
@@ -66,10 +66,10 @@
 **Arquivo:** `docs/implantacao/fases/PR0.5-AUDITORIA-CMS-EXISTENTE.md`
 
 ### Gate
-- [ ] Inventário completo de superfícies CMS/admin/website existentes no repositório
-- [ ] Decisão arquitetural tomada: adaptar / substituir / criar paralelo controlado
-- [ ] Decisão justificada no documento
-- [ ] Risco de duplicação eliminado antes de qualquer API nova
+- [x] Inventário completo de superfícies CMS/admin/website existentes no repositório
+- [x] Decisão arquitetural tomada: adaptar / substituir / criar paralelo controlado
+- [x] Decisão justificada no documento
+- [x] Risco de duplicação eliminado antes de qualquer API nova
 
 ### Arquivos criados/modificados
 - `docs/implantacao/fases/PR0.5-AUDITORIA-CMS-EXISTENTE.md`
