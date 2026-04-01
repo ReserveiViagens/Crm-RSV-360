@@ -3,45 +3,55 @@
    Canonical source of truth for ALL types in this module.
    Server imports: import { ... } from '../../shared/website-types'
    Client imports: import type { ... } from '@shared/website-types'
+
+   Design rule: enum literals live ONCE here as const arrays.
+   Both TS types and Zod schemas derive from these arrays — no duplication.
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ─── Enums ──────────────────────────────────────────────────────────────── */
+/* ─── Enum const arrays (single source of truth) ────────────────────────── */
 
-export type PageStatus = "draft" | "published" | "archived";
+export const PAGE_STATUSES = ["draft", "published", "archived"] as const;
+export const PAGE_SECTIONS = [
+  "main",
+  "hoteis",
+  "parques",
+  "combos",
+  "ingressos",
+  "outros",
+] as const;
+export const MEDIA_TYPES = ["image", "video", "document"] as const;
+export const MEDIA_PLACEMENTS = [
+  "hero",
+  "card",
+  "banner",
+  "gallery",
+  "avatar",
+  "icon",
+  "background",
+  "misc",
+] as const;
+export const MEDIA_STATUSES = ["active", "archived", "orphan"] as const;
+export const AUDIT_ACTIONS = [
+  "create",
+  "update",
+  "delete",
+  "publish",
+  "unpublish",
+  "upload",
+  "swap",
+  "unlink",
+] as const;
+export const AUDIT_ENTITIES = ["page", "settings", "media"] as const;
 
-export type PageSection =
-  | "main"
-  | "hoteis"
-  | "parques"
-  | "combos"
-  | "ingressos"
-  | "outros";
+/* ─── Enum types (derived from const arrays) ─────────────────────────────── */
 
-export type MediaType = "image" | "video" | "document";
-
-export type MediaPlacement =
-  | "hero"
-  | "card"
-  | "banner"
-  | "gallery"
-  | "avatar"
-  | "icon"
-  | "background"
-  | "misc";
-
-export type MediaStatus = "active" | "archived" | "orphan";
-
-export type AuditAction =
-  | "create"
-  | "update"
-  | "delete"
-  | "publish"
-  | "unpublish"
-  | "upload"
-  | "swap"
-  | "unlink";
-
-export type AuditEntity = "page" | "settings" | "media";
+export type PageStatus = (typeof PAGE_STATUSES)[number];
+export type PageSection = (typeof PAGE_SECTIONS)[number];
+export type MediaType = (typeof MEDIA_TYPES)[number];
+export type MediaPlacement = (typeof MEDIA_PLACEMENTS)[number];
+export type MediaStatus = (typeof MEDIA_STATUSES)[number];
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+export type AuditEntity = (typeof AUDIT_ENTITIES)[number];
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 
@@ -159,6 +169,16 @@ export interface UpdateMediaRequest {
   status?: MediaStatus;
 }
 
+export interface MediaUploadMetaRequest {
+  altText?: string;
+  placement?: MediaPlacement;
+  pageId?: string | null;
+}
+
+export interface MediaDeleteQuery {
+  force?: boolean;
+}
+
 /* ─── Admin Response DTOs ────────────────────────────────────────────────── */
 
 export interface AdminPageResponse extends WebsitePage {}
@@ -166,11 +186,7 @@ export interface AdminPageResponse extends WebsitePage {}
 export interface AdminPageListResponse {
   success: true;
   data: AdminPageResponse[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-  };
+  meta: PaginationMeta;
 }
 
 export interface AdminSettingsResponse extends WebsiteSettings {}
@@ -180,21 +196,13 @@ export interface AdminMediaResponse extends WebsiteMedia {}
 export interface AdminMediaListResponse {
   success: true;
   data: AdminMediaResponse[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-  };
+  meta: PaginationMeta;
 }
 
 export interface AdminAuditListResponse {
   success: true;
   data: AuditLog[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-  };
+  meta: PaginationMeta;
 }
 
 /* ─── Public Response DTOs ───────────────────────────────────────────────── */
