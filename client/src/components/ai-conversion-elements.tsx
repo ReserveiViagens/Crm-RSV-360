@@ -305,20 +305,20 @@ export function CrossSellSection({ title, items }: {
 
   useEffect(() => {
     if (slidePaused || items.length <= 1) return
-    const interval = setInterval(() => setSlideIdx(p => p + 1), 3500)
+    const interval = setInterval(() => setSlideIdx(p => p + 1), 5000)
     return () => clearInterval(interval)
   }, [slidePaused, items.length])
 
   useEffect(() => {
     if (slideIdx > 0 && slideIdx >= items.length) {
-      const t = setTimeout(() => { setSlideTransition(false); setSlideIdx(0) }, 420)
+      const t = setTimeout(() => { setSlideTransition(false); setSlideIdx(0) }, 850)
       return () => clearTimeout(t)
     }
   }, [slideIdx, items.length])
 
   useEffect(() => {
     if (!slideTransition) {
-      const t = setTimeout(() => setSlideTransition(true), 50)
+      const t = setTimeout(() => setSlideTransition(true), 80)
       return () => clearTimeout(t)
     }
   }, [slideTransition])
@@ -341,7 +341,7 @@ export function CrossSellSection({ title, items }: {
         <div style={{
           display: "flex", gap: 12,
           transform: `translateX(-${slideIdx * 152}px)`,
-          transition: slideTransition ? "transform 0.45s ease" : "none",
+          transition: slideTransition ? "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)" : "none",
         }}>
         {[...items, items[0]].filter(Boolean).map((item, i) => (
           <a key={i} href={item.link} style={{
