@@ -438,9 +438,8 @@ export default function WaaSDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Create Group Dialog */}
+        {/* Create Group Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-md" data-testid="create-group-dialog">
           <DialogHeader>
