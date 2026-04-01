@@ -300,6 +300,7 @@ export default function Parques() {
           label: f.label,
           value: f.value,
           icon: f.icon,
+          filterUpdate: {},
           testId: `button-filter-park-${f.value}`,
         }))}
         activeFilter={activeFilter}
