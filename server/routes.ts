@@ -1,4 +1,6 @@
 
+import express from "express";
+import path from "path";
 import type { Express, Request, Response, NextFunction } from "express";
 import { type Server } from "http";
 import { scrypt, randomBytes, timingSafeEqual, createHmac, randomUUID } from "crypto";
@@ -68,6 +70,10 @@ export async function registerRoutes(
   app: Express,
 ): Promise<Server> {
   registerWeatherRoutes(app);
+
+  // ─── STATIC — Media uploads ───────────────────────────────────────────────
+  const uploadsDir = path.resolve(process.cwd(), "uploads", "website");
+  app.use("/uploads/website", express.static(uploadsDir));
 
   // ─── ADMIN WEBSITE CMS ───────────────────────────────────────────────────
   app.use("/api/admin/website", async (req, res, next) => {
