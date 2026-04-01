@@ -197,3 +197,6 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type GamificacaoPontos = typeof gamificacaoPontos.$inferSelect;
 export type GamificacaoHistorico = typeof gamificacaoHistorico.$inferSelect;
 export type GamificacaoConquista = typeof gamificacaoConquistas.$inferSelect;
+
+/* ─── Admin/Website Module ───────────────────────────────────────────────── */
+export * from "./website-types";
