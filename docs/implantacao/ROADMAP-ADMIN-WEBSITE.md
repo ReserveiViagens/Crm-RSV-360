@@ -26,7 +26,7 @@
 | PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[x]` | 2026-04-01 |
 | PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[x]` | 2026-04-01 |
 | PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[x]` | 2026-04-01 |
-| PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[ ]` | — |
+| PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[x]` | 2026-04-01 |
 | PR 4 | `feat/admin-content-api-media-storage` | API de mídia + upload + storage | `[ ]` | — |
 | PR 5 | `feat/admin-content-frontend-integration` | Frontend admin conectado à API | `[ ]` | — |
 | PR 6 | `feat/public-website-content-consumption` | API pública + consumo no site | `[ ]` | — |
@@ -127,13 +127,13 @@
 > **Atenção:** Settings entra AQUI. Não criar PR separado para settings.
 
 ### Gate
-- [ ] `listPages`, `getPageById`, `createPage`, `updatePage`, `deletePage` funcionais
-- [ ] `publishPage` / `unpublishPage` funcionais (cria snapshot em `website_page_versions`)
-- [ ] `getSettings` / `updateSettings` funcionais
-- [ ] Delete respeita `PROTECTED_ROUTES` (retorna 403)
-- [ ] Auditoria básica gravada em `audit_logs`
-- [ ] Resposta padronizada: `{ success: true, data }` ou `{ success: false, error, code }`
-- [ ] `app.use('/api/admin/website', adminWebsiteRoutes)` registrado em `server/routes.ts`
+- [x] `listPages`, `getPageById`, `createPage`, `updatePage`, `deletePage` funcionais
+- [x] `publishPage` / `unpublishPage` funcionais (cria snapshot em `website_page_versions`)
+- [x] `getSettings` / `updateSettings` funcionais
+- [x] Delete respeita `PROTECTED_ROUTES` (retorna 403)
+- [x] Auditoria básica gravada em `audit_logs`
+- [x] Resposta padronizada: `{ success: true, data }` ou `{ success: false, error, code }`
+- [x] `app.use('/api/admin/website', adminWebsiteRoutes)` registrado em `server/routes.ts`
 
 ### Arquivos criados/modificados
 - `server/services/admin-website.service.ts` _(novo)_
