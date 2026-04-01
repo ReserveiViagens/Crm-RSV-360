@@ -4,13 +4,9 @@ import multer, { type FileFilterCallback } from "multer";
 import type { Request } from "express";
 import { randomUUID } from "crypto";
 import { db } from "../db.js";
-import { websiteMedia, auditLogs } from "../../shared/schema.js";
+import { websiteMedia, auditLogs, type WebsiteMediaRow } from "../../shared/schema.js";
 import { eq, and, ilike, gte, lte, sql, count } from "drizzle-orm";
-import type {
-  WebsiteMediaRow,
-  MediaQueryFilter,
-  MediaUpdateRequest,
-} from "../../shared/website-types.js";
+import type { UpdateMediaRequest, MediaQueryFilter } from "../../shared/website-types.js";
 
 /* ─── Constants ────────────────────────────────────────────────────────────── */
 
@@ -101,19 +97,18 @@ export function validateFile(file: Express.Multer.File): {
   return { ok: true, mediaType };
 }
 
-/* ─── Delete file from disk (best-effort) ──────────────────────────────────── */
+/* ─── Delete file from disk (best-effort, non-fatal) ──────────────────────── */
 
 export function deleteFileFromDisk(filename: string): void {
   const filePath = path.join(UPLOADS_DIR, filename);
   try {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   } catch {
-    // non-fatal — log only
     console.warn(`[media-storage] Could not delete file: ${filePath}`);
   }
 }
 
-/* ─── Persist media record ─────────────────────────────────────────────────── */
+/* ─── Persist media record (upload) ────────────────────────────────────────── */
 
 export async function persistMediaRecord(
   file: Express.Multer.File,
@@ -124,21 +119,29 @@ export async function persistMediaRecord(
 ): Promise<WebsiteMediaRow> {
   const url = buildMediaUrl(file.filename);
 
-  const [row] = await db
-    .insert(websiteMedia)
-    .values({
-      type: mediaType,
-      placement: (meta.placement ?? "misc") as WebsiteMediaRow["placement"],
-      status: "active",
-      filename: file.filename,
-      originalName: file.originalname,
-      mimetype: file.mimetype,
-      sizeBytes: file.size,
-      url,
-      altText: meta.altText ?? null,
-      pageId: meta.pageId ?? null,
-    })
-    .returning();
+  let row: WebsiteMediaRow;
+  try {
+    const rows = await db
+      .insert(websiteMedia)
+      .values({
+        type: mediaType,
+        placement: (meta.placement ?? "misc") as WebsiteMediaRow["placement"],
+        status: "active",
+        filename: file.filename,
+        originalName: file.originalname,
+        mimetype: file.mimetype,
+        sizeBytes: file.size,
+        url,
+        altText: meta.altText ?? null,
+        pageId: meta.pageId ?? null,
+      })
+      .returning();
+    row = rows[0];
+  } catch (err) {
+    // Cleanup orphaned file before propagating
+    deleteFileFromDisk(file.filename);
+    throw err;
+  }
 
   await writeMediaAudit({
     entityId: row.id,
@@ -201,7 +204,7 @@ export async function getMediaById(id: string): Promise<WebsiteMediaRow | null> 
 
 export async function updateMedia(
   id: string,
-  input: MediaUpdateRequest,
+  input: UpdateMediaRequest,
   actorId: string,
   actorName: string
 ): Promise<WebsiteMediaRow | null> {
@@ -233,42 +236,56 @@ export async function updateMedia(
 
 /* ─── Swap file binary ──────────────────────────────────────────────────────── */
 
+export type SwapMediaResult =
+  | { ok: true; media: WebsiteMediaRow }
+  | { ok: false; error: "not_found" | "validation_error"; message: string };
+
 export async function swapMediaFile(
   id: string,
   newFile: Express.Multer.File,
   actorId: string,
   actorName: string
-): Promise<WebsiteMediaRow | null> {
+): Promise<SwapMediaResult> {
   const existing = await getMediaById(id);
   if (!existing) {
     deleteFileFromDisk(newFile.filename);
-    return null;
+    return { ok: false, error: "not_found", message: "Mídia não encontrada" };
   }
 
   const validation = validateFile(newFile);
   if (!validation.ok) {
     deleteFileFromDisk(newFile.filename);
-    return null;
+    return { ok: false, error: "validation_error", message: validation.error ?? "Arquivo inválido" };
   }
 
-  // Delete old file from disk
-  deleteFileFromDisk(existing.filename);
-
   const newUrl = buildMediaUrl(newFile.filename);
+  const oldFilename = existing.filename;
 
-  const [updated] = await db
-    .update(websiteMedia)
-    .set({
-      filename: newFile.filename,
-      originalName: newFile.originalname,
-      mimetype: newFile.mimetype,
-      sizeBytes: newFile.size,
-      url: newUrl,
-      type: validation.mediaType!,
-      updatedAt: new Date(),
-    })
-    .where(eq(websiteMedia.id, id))
-    .returning();
+  // Update DB first — only delete old file if DB succeeds
+  let updated: WebsiteMediaRow;
+  try {
+    const rows = await db
+      .update(websiteMedia)
+      .set({
+        filename: newFile.filename,
+        originalName: newFile.originalname,
+        mimetype: newFile.mimetype,
+        sizeBytes: newFile.size,
+        url: newUrl,
+        type: validation.mediaType!,
+        updatedAt: new Date(),
+      })
+      .where(eq(websiteMedia.id, id))
+      .returning();
+    updated = rows[0];
+  } catch (err) {
+    // DB failed — cleanup new file, keep old intact
+    deleteFileFromDisk(newFile.filename);
+    throw err;
+  }
+
+  // DB succeeded — now safe to remove old file
+  deleteFileFromDisk(oldFilename);
 
   await writeMediaAudit({
     entityId: id,
@@ -276,12 +293,12 @@ export async function swapMediaFile(
     actorId,
     actorName,
     diff: {
-      old: { filename: existing.filename },
+      old: { filename: oldFilename },
       new: { filename: newFile.filename, size: newFile.size },
     },
   });
 
-  return updated ?? null;
+  return { ok: true, media: updated };
 }
 
 /* ─── Unlink media from page ────────────────────────────────────────────────── */
@@ -334,16 +351,20 @@ export async function deleteMedia(
     };
   }
 
-  deleteFileFromDisk(existing.filename);
+  const filename = existing.filename;
 
+  // Delete DB record first — only remove file from disk if DB succeeds
   await db.delete(websiteMedia).where(eq(websiteMedia.id, id));
+
+  // DB delete succeeded — now safe to remove file from disk
+  deleteFileFromDisk(filename);
 
   await writeMediaAudit({
     entityId: id,
     action: "delete",
     actorId,
     actorName,
-    diff: { filename: existing.filename, force },
+    diff: { filename, force },
   });
 
   return { deleted: true };
