@@ -216,6 +216,7 @@ export const mediaPlacementEnum = pgEnum("media_placement", MEDIA_PLACEMENTS);
 export const mediaStatusEnum = pgEnum("media_status", MEDIA_STATUSES);
 export const auditActionEnum = pgEnum("audit_action", AUDIT_ACTIONS);
 export const auditEntityEnum = pgEnum("audit_entity", AUDIT_ENTITIES);
+export const settingsKeyEnum = pgEnum("settings_key", ["general", "seo", "branding", "contact", "social"]);
 
 /* ─── Admin/Website Module — Tables ─────────────────────────────────────── */
 
