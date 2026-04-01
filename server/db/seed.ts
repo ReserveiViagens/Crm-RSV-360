@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { ticketCatalog } from "../../shared/schema.js";
 import { CATALOG_GROUP_LABELS } from "../../shared/catalog-groups.js";
 import { generateSlug } from "../utils/slug.js";
+import { seedWebsite } from "./seed-website.js";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required");
@@ -81,6 +82,8 @@ export async function runSeed(): Promise<void> {
   } else {
     console.log("[seed] ticket_catalog: nenhuma entrada nova (idempotente)");
   }
+
+  await seedWebsite(db as any);
 
   await pool.end();
 }
