@@ -6,6 +6,10 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://rsv360-api.replit.app/api/$1"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -27,6 +31,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": ""
+    "VITE_API_URL": "@rsv360-api-url"
   }
 }
