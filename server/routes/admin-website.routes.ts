@@ -245,6 +245,7 @@ router.post(
 
     const validation = validateFile(req.file);
     if (!validation.ok) {
+      deleteFileFromDisk(req.file.filename);
       return res.status(422).json({
         success: false,
         error: validation.error,
@@ -254,6 +255,7 @@ router.post(
 
     const metaParsed = mediaUploadMetaValidator.safeParse(req.body);
     if (!metaParsed.success) {
+      deleteFileFromDisk(req.file.filename);
       return res.status(400).json({
         success: false,
         error: metaParsed.error.errors[0]?.message ?? "Metadados inválidos",
@@ -306,10 +308,7 @@ router.post(
   async (req: Request, res: Response) => {
     const paramParsed = mediaIdParamValidator.safeParse(req.params);
     if (!paramParsed.success) {
-      if (req.file) {
-        const { deleteFileFromDisk } = await import("../services/media-storage.service.js");
-        deleteFileFromDisk(req.file.filename);
-      }
+      if (req.file) deleteFileFromDisk(req.file.filename);
       return res.status(400).json({ success: false, error: "ID inválido", code: "VALIDATION_ERROR" });
     }
 
@@ -324,11 +323,14 @@ router.post(
     const { actorId, actorName } = getActor(req);
 
     try {
-      const media = await swapMediaFile(paramParsed.data.id, req.file, actorId, actorName);
-      if (!media) {
-        return res.status(404).json({ success: false, error: "Mídia não encontrada", code: "NOT_FOUND" });
+      const result = await swapMediaFile(paramParsed.data.id, req.file, actorId, actorName);
+      if (!result.ok) {
+        if (result.error === "not_found") {
+          return res.status(404).json({ success: false, error: result.message, code: "NOT_FOUND" });
+        }
+        return res.status(422).json({ success: false, error: result.message, code: "VALIDATION_ERROR" });
       }
-      return res.json({ success: true, data: media });
+      return res.json({ success: true, data: result.media });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao fazer swap de mídia";
       return res.status(500).json({ success: false, error: msg, code: "INTERNAL_ERROR" });
