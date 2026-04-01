@@ -1,222 +1,325 @@
-import { useState, useRef, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bot, Send, User, Users, Play, Pause } from "lucide-react";
+import { AdminShell } from "@/components/layout-system/AdminShell";
+import { PageContainer } from "@/components/layout-system";
+import { AdminSidebar, AdminTopBar } from "@/components/admin";
+import {
+  MessageSquare, Send, Search, FileText, MapPin, CreditCard,
+  Clock, CheckCheck, Paperclip, Smile, MoreVertical, Phone, Video
+} from "lucide-react";
+import {
+  ScrollArea
+} from "@/components/ui/scroll-area";
 
-type ChatGroup = { id: string; name: string; members: number; lastMsg: string; aiPaused: boolean };
-type Message = { id: string; author: string; text: string; type: "ai" | "human" | "system"; time: string };
-
-const MOCK_GROUPS: ChatGroup[] = [
-  { id: "g1", name: "Caldas Novas — Turma Março", members: 24, lastMsg: "CaldasAI: Boa tarde! Restam apenas 3 vagas 🔥", aiPaused: false },
-  { id: "g2", name: "Rio Quente — Abril", members: 15, lastMsg: "CaldasAI: Seu pagamento foi confirmado! ✅", aiPaused: false },
-  { id: "g3", name: "Caldas Novas Família", members: 8, lastMsg: "Ana: Oi, qual o horário de saída?", aiPaused: true },
+// Mock data
+const CONVERSATIONS = [
+  {
+    id: 1,
+    name: "João Silva",
+    avatar: "JS",
+    status: "online" as const,
+    lastMessage: "Qual é o horário de saída?",
+    timestamp: "10:35",
+    unread: 2,
+    initials: "JS"
+  },
+  {
+    id: 2,
+    name: "Maria Oliveira",
+    avatar: "MO",
+    status: "online" as const,
+    lastMessage: "Obrigada pela ajuda!",
+    timestamp: "09:12",
+    unread: 0,
+    initials: "MO"
+  },
+  {
+    id: 3,
+    name: "Carlos Santos",
+    avatar: "CS",
+    status: "offline" as const,
+    lastMessage: "Preciso de informações sobre o hotel",
+    timestamp: "Ontem",
+    unread: 0,
+    initials: "CS"
+  },
+  {
+    id: 4,
+    name: "Ana Costa",
+    avatar: "AC",
+    status: "online" as const,
+    lastMessage: "Posso cancelar a reserva?",
+    timestamp: "08:45",
+    unread: 1,
+    initials: "AC"
+  },
 ];
 
-const INITIAL_MESSAGES: Record<string, Message[]> = {
-  g1: [
-    { id: "1", author: "CaldasAI", text: "👋 Boa tarde, turma! Restam apenas 3 vagas para nossa excursão de Caldas Novas. Confirme sua vaga agora pelo Pix! 🔥", type: "ai", time: "14:30" },
-    { id: "2", author: "Douglas Silva", text: "Boa tarde! Já paguei o meu!", type: "human", time: "14:32" },
-    { id: "3", author: "CaldasAI", text: "🎉 Pagamento do Douglas confirmado! Seja bem-vindo(a), Douglas! Vaga garantida! ✅", type: "ai", time: "14:32" },
-    { id: "4", author: "Ana Souza", text: "Qual o horário de saída?", type: "human", time: "14:35" },
-    { id: "5", author: "CaldasAI", text: "Olá Ana! A saída está prevista para as 22h do dia 14/05, da Praça do CPA. Precisando de mais alguma info? 😊", type: "ai", time: "14:35" },
+const MESSAGES = [
+  {
+    id: 1,
+    sender: "João Silva",
+    isAgent: false,
+    text: "Olá, gostaria de saber mais sobre a excursão para Caldas Novas",
+    timestamp: "10:15",
+    read: true
+  },
+  {
+    id: 2,
+    sender: "Agent",
+    isAgent: true,
+    text: "Olá João! Bem-vindo! A excursão para Caldas Novas inclui hospedagem 5 estrelas, refeições e atividades aquáticas. Qual seu período de interesse?",
+    timestamp: "10:16",
+    read: true
+  },
+  {
+    id: 3,
+    sender: "João Silva",
+    isAgent: false,
+    text: "Qual é o horário de saída?",
+    timestamp: "10:35",
+    read: true
+  },
+  {
+    id: 4,
+    sender: "Agent",
+    isAgent: true,
+    text: "A saída é às 07:00 da manhã no ponto de encontro. Você tem interesse em participar?",
+    timestamp: "10:36",
+    read: true
+  },
+];
+
+const CLIENT_PROFILE = {
+  id: 1,
+  name: "João Silva",
+  email: "joao.silva@email.com",
+  phone: "(11) 98765-4321",
+  joinDate: "15 Mar 2024",
+  totalPurchases: "R$ 2.450,00",
+  status: "Ativo",
+  avatar: "JS",
+  purchases: [
+    { id: 1, name: "Caldas Novas - Março", value: "R$ 890,00", status: "Concluída", date: "10 Mar 2024" },
+    { id: 2, name: "Rio Quente - Feriado Abril", value: "R$ 1.560,00", status: "Confirmada", date: "25 Mar 2024" },
   ],
-  g2: [
-    { id: "1", author: "CaldasAI", text: "Seu pagamento foi confirmado! Bem-vindo(a) ao grupo oficial da excursão Rio Quente ✅", type: "ai", time: "10:00" },
-  ],
-  g3: [
-    { id: "1", author: "CaldasAI", text: "Olá família! A excursão está aberta para reservas 🏊", type: "ai", time: "09:00" },
-    { id: "2", author: "Ana", text: "Oi, qual o horário de saída?", type: "human", time: "09:05" },
-    { id: "3", author: "Sistema", text: "⚠️ CaldasAI pausado — operador humano assumiu o atendimento.", type: "system", time: "09:06" },
-  ],
+  reservations: [
+    { id: 1, event: "Caldas Novas 2024", date: "10-12 Março", status: "Concluída" },
+    { id: 2, event: "Rio Quente Feriado", date: "20-22 Abril", status: "Confirmada" },
+  ]
 };
 
 export default function LiveChat() {
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [selectedGroupId, setSelectedGroupId] = useState("g1");
-  const [groups, setGroups] = useState(MOCK_GROUPS);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [inputText, setInputText] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [selectedConversation, setSelectedConversation] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [messageText, setMessageText] = useState("");
 
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId)!;
-  const isAIPaused = selectedGroup?.aiPaused ?? false;
-
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, selectedGroupId]);
-
-  const toggleAI = useMutation({
-    mutationFn: (paused: boolean) =>
-      paused
-        ? apiRequest("POST", `/api/handoff/${selectedGroupId}/pausar`, { operatorId: "op-001" })
-        : apiRequest("POST", `/api/handoff/${selectedGroupId}/retomar`, {}),
-    onSuccess: (_, paused) => {
-      setGroups((prev) => prev.map((g) => g.id === selectedGroupId ? { ...g, aiPaused: paused } : g));
-      const sysMsg: Message = {
-        id: String(Date.now()), author: "Sistema",
-        text: paused ? "⚠️ CaldasAI pausado — operador humano assumiu o atendimento." : "✅ CaldasAI retomou o atendimento automático.",
-        type: "system", time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-      };
-      setMessages((prev) => ({ ...prev, [selectedGroupId]: [...(prev[selectedGroupId] || []), sysMsg] }));
-      toast({ title: paused ? "🔴 Modo Humano ativado" : "🤖 CaldasAI retomado" });
-    },
-  });
-
-  const sendMessage = () => {
-    if (!inputText.trim() || !isAIPaused) return;
-    const newMsg: Message = {
-      id: String(Date.now()), author: "Operador",
-      text: inputText,
-      type: "human", time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setMessages((prev) => ({ ...prev, [selectedGroupId]: [...(prev[selectedGroupId] || []), newMsg] }));
-    setInputText("");
-  };
+  const selected = CONVERSATIONS.find(c => c.id === selectedConversation);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="live-chat-page">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setLocation("/admin")} className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-              <Bot className="w-6 h-6 text-primary" /> Central de Atendimento — Handoff
-            </h1>
-            <p className="text-sm text-muted-foreground">Monitore e assuma conversas do CaldasAI</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" style={{ height: "calc(100vh - 200px)" }}>
-          {/* Group list */}
-          <Card className="shadow-sm overflow-hidden flex flex-col">
-            <CardHeader className="py-3 px-4 border-b border-border">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" /> Grupos WA
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 overflow-y-auto flex-1">
-              {groups.map((g) => (
-                <button
-                  key={g.id}
-                  onClick={() => setSelectedGroupId(g.id)}
-                  className={`w-full text-left px-4 py-3.5 border-b border-border transition-colors ${selectedGroupId === g.id ? "bg-primary/8 border-l-2 border-l-primary" : "hover:bg-muted/30"}`}
-                  data-testid={`group-item-${g.id}`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="font-semibold text-sm text-foreground leading-tight">{g.name}</p>
-                    {g.aiPaused ? (
-                      <Badge className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5">HUMANO</Badge>
-                    ) : (
-                      <Badge className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5">AI</Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate">{g.lastMsg}</p>
-                  <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                    <Users className="w-3 h-3" /> {g.members} membros
-                  </div>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Chat area */}
-          <Card className="lg:col-span-2 shadow-sm flex flex-col overflow-hidden">
-            {/* Chat header */}
-            <CardHeader className="py-3 px-4 border-b border-border flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-foreground text-sm">{selectedGroup?.name}</p>
-                  <p className="text-xs text-muted-foreground">{selectedGroup?.members} membros</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isAIPaused && (
-                    <Badge className="bg-red-500 text-white text-xs font-bold animate-pulse px-2 gap-1">
-                      <User className="w-3 h-3" /> MODO HUMANO
-                    </Badge>
-                  )}
-                  <Button
-                    size="sm"
-                    variant={isAIPaused ? "default" : "outline"}
-                    className={`rounded-xl h-8 text-xs gap-1.5 ${isAIPaused ? "bg-emerald-500 hover:bg-emerald-400 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}`}
-                    onClick={() => toggleAI.mutate(!isAIPaused)}
-                    disabled={toggleAI.isPending}
-                    data-testid="btn-toggle-ai"
+    <AdminShell
+      sidebar={<AdminSidebar currentPath="/superadmin/live-chat" />}
+      topbar={<AdminTopBar title="Atendimento ao Cliente" />}
+    >
+      <PageContainer
+        title="Atendimento em Tempo Real"
+        subtitle="Gerenciar conversas com clientes e resolver dúvidas"
+        icon={<MessageSquare className="w-6 h-6" />}
+        data-testid="live-chat"
+      >
+        <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+          {/* Left Panel - Conversations List */}
+          <div className="col-span-12 lg:col-span-3 border rounded-lg bg-white overflow-hidden flex flex-col">
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar conversa..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="space-y-1 p-2">
+                {CONVERSATIONS.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => setSelectedConversation(conv.id)}
+                    className={`w-full text-left p-3 rounded-lg transition-colors ${
+                      selectedConversation === conv.id
+                        ? "bg-blue-50 border-l-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
                   >
-                    {isAIPaused ? (
-                      <><Play className="w-3 h-3" /> Devolver ao CaldasAI</>
-                    ) : (
-                      <><Pause className="w-3 h-3" /> Intervir como Humano</>
-                    )}
-                  </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-700">
+                          {conv.initials}
+                        </div>
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                          conv.status === "online" ? "bg-green-500" : "bg-gray-400"
+                        }`}></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-sm truncate">{conv.name}</p>
+                          <span className="text-xs text-muted-foreground">{conv.timestamp}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
+                      </div>
+                      {conv.unread > 0 && (
+                        <Badge className="bg-red-500 text-white text-xs">{conv.unread}</Badge>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Center Panel - Chat */}
+          <div className="col-span-12 lg:col-span-6 border rounded-lg bg-white overflow-hidden flex flex-col">
+            {/* Chat Header */}
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-700">
+                  {selected?.initials}
+                </div>
+                <div>
+                  <p className="font-semibold">{selected?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selected?.status === "online" ? "Online agora" : "Offline"}
+                  </p>
                 </div>
               </div>
-            </CardHeader>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Phone className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Video className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
 
             {/* Messages */}
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/10">
-              {(messages[selectedGroupId] || []).map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.type === "system" ? "justify-center" : msg.author === "Operador" ? "justify-end" : "justify-start"}`}
-                  data-testid={`msg-${msg.id}`}
-                >
-                  {msg.type === "system" ? (
-                    <span className="text-xs text-muted-foreground bg-muted border border-border px-3 py-1 rounded-full">{msg.text}</span>
-                  ) : (
-                    <div className={`max-w-[75%] space-y-1 ${msg.author === "Operador" ? "items-end" : "items-start"} flex flex-col`}>
-                      <div className={`flex items-center gap-1.5 ${msg.author === "Operador" ? "justify-end" : ""}`}>
-                        {msg.type === "ai" && <Bot className="w-3.5 h-3.5 text-primary" />}
-                        <span className="text-xs font-semibold text-muted-foreground">{msg.author}</span>
-                        <span className="text-[10px] text-muted-foreground/60">{msg.time}</span>
-                      </div>
-                      <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${msg.author === "Operador" ? "bg-primary text-white rounded-tr-sm" : msg.type === "ai" ? "bg-white border border-border text-foreground rounded-tl-sm shadow-sm" : "bg-slate-100 text-slate-700 rounded-tl-sm"}`}>
-                        {msg.text}
-                      </div>
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-4">
+                {MESSAGES.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.isAgent ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-xs rounded-lg p-3 ${
+                      msg.isAgent
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-900"
+                    }`}>
+                      <p className="text-sm">{msg.text}</p>
+                      <p className={`text-xs mt-1 ${msg.isAgent ? "text-blue-100" : "text-gray-500"}`}>
+                        {msg.timestamp}
+                      </p>
                     </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </CardContent>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
 
             {/* Input */}
-            <div className="p-3 border-t border-border bg-white flex-shrink-0">
-              {!isAIPaused && (
-                <p className="text-xs text-muted-foreground text-center mb-2">
-                  Clique em "Intervir como Humano" para digitar mensagens.
-                </p>
-              )}
-              <div className="flex gap-2">
+            <div className="p-4 border-t space-y-2">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                  <Paperclip className="w-4 h-4" />
+                </Button>
                 <Input
-                  placeholder={isAIPaused ? "Digite sua mensagem para o grupo..." : "CaldasAI está no controle..."}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  disabled={!isAIPaused}
-                  className="rounded-xl"
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  data-testid="input-chat-msg"
+                  placeholder="Digite sua mensagem..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  className="flex-1"
                 />
-                <Button
-                  disabled={!isAIPaused || !inputText.trim()}
-                  onClick={sendMessage}
-                  className="rounded-xl"
-                  data-testid="btn-send-chat"
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                  <Smile className="w-4 h-4" />
+                </Button>
+                <Button size="icon" className="h-8 w-8 bg-blue-500 hover:bg-blue-600">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-          </Card>
+          </div>
+
+          {/* Right Panel - Client Context */}
+          <div className="col-span-12 lg:col-span-3 border rounded-lg bg-white overflow-hidden flex flex-col">
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-4">
+                {/* Profile Header */}
+                <div className="text-center pb-4 border-b">
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 mx-auto mb-2">
+                    {CLIENT_PROFILE.avatar}
+                  </div>
+                  <h3 className="font-semibold text-lg">{CLIENT_PROFILE.name}</h3>
+                  <p className="text-xs text-muted-foreground">{CLIENT_PROFILE.email}</p>
+                  <Badge className="mt-2 bg-green-100 text-green-800">{CLIENT_PROFILE.status}</Badge>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-2 pb-4 border-b">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{CLIENT_PROFILE.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Membro desde {CLIENT_PROFILE.joinDate}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold text-green-700">{CLIENT_PROFILE.totalPurchases}</span>
+                  </div>
+                </div>
+
+                {/* Recent Purchases */}
+                <div className="pb-4 border-b">
+                  <h4 className="font-semibold text-sm mb-2">Compras Recentes</h4>
+                  <div className="space-y-2">
+                    {CLIENT_PROFILE.purchases.map((purchase) => (
+                      <div key={purchase.id} className="text-xs p-2 bg-gray-50 rounded">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{purchase.name}</span>
+                          <Badge className="bg-emerald-100 text-emerald-800 text-xs">{purchase.status}</Badge>
+                        </div>
+                        <p className="text-muted-foreground mt-1">{purchase.date}</p>
+                        <p className="font-semibold text-green-700 mt-1">{purchase.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Active Reservations */}
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Reservas Ativas</h4>
+                  <div className="space-y-2">
+                    {CLIENT_PROFILE.reservations.map((res) => (
+                      <div key={res.id} className="text-xs p-2 bg-blue-50 rounded border border-blue-200">
+                        <div className="font-medium text-blue-900">{res.event}</div>
+                        <div className="flex items-center gap-2 mt-1 text-blue-700">
+                          <MapPin className="w-3 h-3" />
+                          <span>{res.date}</span>
+                        </div>
+                        <Badge className="mt-2 bg-blue-100 text-blue-800 text-xs">{res.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          </div>
         </div>
-      </div>
-    </div>
+      </PageContainer>
+    </AdminShell>
   );
 }
