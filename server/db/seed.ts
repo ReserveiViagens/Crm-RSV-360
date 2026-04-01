@@ -83,7 +83,7 @@ export async function runSeed(): Promise<void> {
     console.log("[seed] ticket_catalog: nenhuma entrada nova (idempotente)");
   }
 
-  await seedWebsite(db as any);
+  await seedWebsite(db);
 
   await pool.end();
 }
