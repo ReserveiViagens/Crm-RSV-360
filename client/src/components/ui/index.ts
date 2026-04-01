@@ -18,3 +18,16 @@ export type { CommandBarProps, CommandItem } from './command-bar';
 
 export { EmptyState } from './empty-state';
 export type { EmptyStateProps } from './empty-state';
+
+// Fase 6 - Componentes Especializados
+export { RatingStars } from './rating-stars';
+export type { RatingStarsProps } from './rating-stars';
+
+export { HotelCard } from './hotel-card';
+export type { HotelCardProps } from './hotel-card';
+
+export { FlashDealCard } from './flash-deal-card';
+export type { FlashDealCardProps } from './flash-deal-card';
+
+export { ExcursionCard } from './excursion-card';
+export type { ExcursionCardProps } from './excursion-card';
