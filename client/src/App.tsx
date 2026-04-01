@@ -15,7 +15,8 @@ import Ingressos from "@/pages/ingressos";
 import IngressosCheckout from "@/pages/ingressos-checkout";
 import IngressosSucesso from "@/pages/ingressos-sucesso";
 import Atracoes from "@/pages/atracoes";
-import Parques from "@/pages/parques";
+import Parques from "@/pages/parques"
+import CombosAcesse from "@/pages/combosacesse";
 import Contato from "@/pages/contato";
 import CaldasAI from "@/pages/caldas-ai";
 import MapaCaldas from "@/pages/mapa-caldas-novas";
@@ -86,6 +87,8 @@ function Router() {
       <Route path="/ingressos/checkout" component={IngressosCheckout} />
       <Route path="/ingressos/sucesso" component={IngressosSucesso} />
       <Route path="/parques" component={Parques} />
+      <Route path="/combos" component={CombosAcesse} />
+      <Route path="/combosacesse" component={CombosAcesse} />
       <Route path="/atracoes" component={Atracoes} />
       <Route path="/contato" component={Contato} />
       <Route path="/caldas-ai" component={CaldasAI} />
