@@ -7,12 +7,10 @@ import { AdminShell } from "@/components/layout-system/AdminShell";
 import { PageContainer } from "@/components/layout-system";
 import { AdminSidebar, AdminTopBar } from "@/components/admin";
 import {
-  MessageSquare, Send, Search, FileText, MapPin, CreditCard,
-  Clock, CheckCheck, Paperclip, Smile, MoreVertical, Phone, Video
+  MessageSquare, Send, Search, MapPin, CreditCard, Clock, CheckCheck,
+  Paperclip, Smile, MoreVertical, Phone, Video
 } from "lucide-react";
-import {
-  ScrollArea
-} from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Mock data
 const CONVERSATIONS = [
@@ -46,16 +44,6 @@ const CONVERSATIONS = [
     unread: 0,
     initials: "CS"
   },
-  {
-    id: 4,
-    name: "Ana Costa",
-    avatar: "AC",
-    status: "online" as const,
-    lastMessage: "Posso cancelar a reserva?",
-    timestamp: "08:45",
-    unread: 1,
-    initials: "AC"
-  },
 ];
 
 const MESSAGES = [
@@ -63,7 +51,7 @@ const MESSAGES = [
     id: 1,
     sender: "João Silva",
     isAgent: false,
-    text: "Olá, gostaria de saber mais sobre a excursão para Caldas Novas",
+    text: "Olá, gostaria de saber mais sobre a excursão",
     timestamp: "10:15",
     read: true
   },
@@ -71,7 +59,7 @@ const MESSAGES = [
     id: 2,
     sender: "Agent",
     isAgent: true,
-    text: "Olá João! Bem-vindo! A excursão para Caldas Novas inclui hospedagem 5 estrelas, refeições e atividades aquáticas. Qual seu período de interesse?",
+    text: "Bem-vindo! A excursão inclui hospedagem e refeições. Qual seu período?",
     timestamp: "10:16",
     read: true
   },
@@ -81,14 +69,6 @@ const MESSAGES = [
     isAgent: false,
     text: "Qual é o horário de saída?",
     timestamp: "10:35",
-    read: true
-  },
-  {
-    id: 4,
-    sender: "Agent",
-    isAgent: true,
-    text: "A saída é às 07:00 da manhã no ponto de encontro. Você tem interesse em participar?",
-    timestamp: "10:36",
     read: true
   },
 ];
@@ -104,7 +84,7 @@ const CLIENT_PROFILE = {
   avatar: "JS",
   purchases: [
     { id: 1, name: "Caldas Novas - Março", value: "R$ 890,00", status: "Concluída", date: "10 Mar 2024" },
-    { id: 2, name: "Rio Quente - Feriado Abril", value: "R$ 1.560,00", status: "Confirmada", date: "25 Mar 2024" },
+    { id: 2, name: "Rio Quente Feriado", value: "R$ 1.560,00", status: "Confirmada", date: "25 Mar 2024" },
   ],
   reservations: [
     { id: 1, event: "Caldas Novas 2024", date: "10-12 Março", status: "Concluída" },
