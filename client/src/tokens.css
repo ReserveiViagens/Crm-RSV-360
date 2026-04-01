@@ -207,7 +207,66 @@
   --rsv-tracking-wide: 0.025em;
 
   /* ==========================================================================
-     9. COMPONENTES
+     9. TAMANHOS DE CARDS (Estrategicos por Contexto)
+     ========================================================================== */
+
+  /* Card Widths - Baseados em UX Research */
+  --rsv-card-discovery: 280px;      /* Home carousel - mostra mais opcoes */
+  --rsv-card-product: 320px;        /* Ingressos/Produtos - decisao rapida */
+  --rsv-card-premium: 360px;        /* Hoteis - exploracao detalhada */
+  --rsv-card-deal: 300px;           /* Flash Deals - urgencia visual */
+  --rsv-card-tour: 340px;           /* Excursoes - info completa */
+  --rsv-card-compact: 240px;        /* Relacionados/Sugestoes */
+  --rsv-card-full: 100%;            /* Full width cards */
+
+  /* Card Min/Max Constraints */
+  --rsv-card-min: 260px;
+  --rsv-card-max: 400px;
+
+  /* Card Image Heights */
+  --rsv-card-img-sm: 140px;
+  --rsv-card-img-md: 180px;
+  --rsv-card-img-lg: 220px;
+  --rsv-card-img-xl: 260px;
+
+  /* Card Image Aspect Ratios (usar com aspect-ratio CSS) */
+  --rsv-ratio-square: 1 / 1;
+  --rsv-ratio-landscape: 4 / 3;
+  --rsv-ratio-wide: 16 / 9;
+  --rsv-ratio-ultrawide: 21 / 9;
+  --rsv-ratio-portrait: 3 / 4;
+
+  /* Card Paddings */
+  --rsv-card-padding-sm: var(--rsv-space-3);   /* 12px */
+  --rsv-card-padding-md: var(--rsv-space-4);   /* 16px */
+  --rsv-card-padding-lg: var(--rsv-space-5);   /* 20px */
+
+  /* Card Gaps */
+  --rsv-card-gap-sm: var(--rsv-space-3);       /* 12px */
+  --rsv-card-gap-md: var(--rsv-space-4);       /* 16px */
+  --rsv-card-gap-lg: var(--rsv-space-6);       /* 24px */
+
+  /* ==========================================================================
+     10. THUMBNAILS E AVATARES
+     ========================================================================== */
+
+  /* Thumbnails */
+  --rsv-thumb-xs: 32px;
+  --rsv-thumb-sm: 48px;
+  --rsv-thumb-md: 64px;
+  --rsv-thumb-lg: 96px;
+  --rsv-thumb-xl: 128px;
+
+  /* Avatares */
+  --rsv-avatar-xs: 24px;
+  --rsv-avatar-sm: 32px;
+  --rsv-avatar-md: 40px;
+  --rsv-avatar-lg: 56px;
+  --rsv-avatar-xl: 80px;
+  --rsv-avatar-2xl: 120px;
+
+  /* ==========================================================================
+     11. COMPONENTES DE FORMULARIO
      ========================================================================== */
 
   /* Input Heights */
@@ -221,7 +280,7 @@
   --rsv-btn-padding-lg: var(--rsv-space-4) var(--rsv-space-6);
 
   /* ==========================================================================
-     10. TRANSICOES E ANIMACOES
+     12. TRANSICOES E ANIMACOES
      ========================================================================== */
 
   --rsv-duration-fast: 150ms;
@@ -235,7 +294,7 @@
   --rsv-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ==========================================================================
-     11. Z-INDEX SCALE
+     13. Z-INDEX SCALE
      ========================================================================== */
 
   --rsv-z-base: 0;
@@ -309,3 +368,66 @@
     padding-right: var(--rsv-space-8);
   }
 }
+
+/* =============================================================================
+   UTILITY CLASSES PARA CARDS
+   ============================================================================= */
+
+/* Card Widths */
+.rsv-card-discovery { width: var(--rsv-card-discovery); }
+.rsv-card-product { width: var(--rsv-card-product); }
+.rsv-card-premium { width: var(--rsv-card-premium); }
+.rsv-card-deal { width: var(--rsv-card-deal); }
+.rsv-card-tour { width: var(--rsv-card-tour); }
+.rsv-card-compact { width: var(--rsv-card-compact); }
+
+/* Card Image Ratios */
+.rsv-ratio-square { aspect-ratio: var(--rsv-ratio-square); }
+.rsv-ratio-landscape { aspect-ratio: var(--rsv-ratio-landscape); }
+.rsv-ratio-wide { aspect-ratio: var(--rsv-ratio-wide); }
+.rsv-ratio-ultrawide { aspect-ratio: var(--rsv-ratio-ultrawide); }
+.rsv-ratio-portrait { aspect-ratio: var(--rsv-ratio-portrait); }
+
+/* Card Shadows */
+.rsv-card-shadow {
+  box-shadow: var(--rsv-shadow-card);
+  transition: box-shadow var(--rsv-duration-base) var(--rsv-ease-default);
+}
+
+.rsv-card-shadow:hover {
+  box-shadow: var(--rsv-shadow-card-hover);
+}
+
+/* Card Grid Layouts */
+.rsv-grid-cards {
+  display: grid;
+  gap: var(--rsv-card-gap-md);
+  grid-template-columns: repeat(auto-fill, minmax(var(--rsv-card-min), 1fr));
+}
+
+.rsv-grid-discovery {
+  display: grid;
+  gap: var(--rsv-card-gap-md);
+  grid-template-columns: repeat(auto-fill, minmax(var(--rsv-card-discovery), 1fr));
+}
+
+.rsv-grid-premium {
+  display: grid;
+  gap: var(--rsv-card-gap-lg);
+  grid-template-columns: repeat(auto-fill, minmax(var(--rsv-card-premium), 1fr));
+}
+
+/* Avatar Sizes */
+.rsv-avatar-xs { width: var(--rsv-avatar-xs); height: var(--rsv-avatar-xs); }
+.rsv-avatar-sm { width: var(--rsv-avatar-sm); height: var(--rsv-avatar-sm); }
+.rsv-avatar-md { width: var(--rsv-avatar-md); height: var(--rsv-avatar-md); }
+.rsv-avatar-lg { width: var(--rsv-avatar-lg); height: var(--rsv-avatar-lg); }
+.rsv-avatar-xl { width: var(--rsv-avatar-xl); height: var(--rsv-avatar-xl); }
+.rsv-avatar-2xl { width: var(--rsv-avatar-2xl); height: var(--rsv-avatar-2xl); }
+
+/* Thumbnail Sizes */
+.rsv-thumb-xs { width: var(--rsv-thumb-xs); height: var(--rsv-thumb-xs); }
+.rsv-thumb-sm { width: var(--rsv-thumb-sm); height: var(--rsv-thumb-sm); }
+.rsv-thumb-md { width: var(--rsv-thumb-md); height: var(--rsv-thumb-md); }
+.rsv-thumb-lg { width: var(--rsv-thumb-lg); height: var(--rsv-thumb-lg); }
+.rsv-thumb-xl { width: var(--rsv-thumb-xl); height: var(--rsv-thumb-xl); }

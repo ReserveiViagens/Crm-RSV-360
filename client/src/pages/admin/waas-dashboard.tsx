@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AdminShell } from "@/components/layout-system/AdminShell";
+import { PageContainer, SectionContainer } from "@/components/layout-system";
+import { AdminSidebar, AdminTopBar } from "@/components/admin";
 import {
   MessageSquare, ShieldAlert, Plus, Users, CheckCircle, Loader2,
   Send, Wifi, WifiOff, Phone, BarChart3, ArrowLeft, Bot,
@@ -181,24 +184,22 @@ export default function WaaSDashboard() {
     s === "BLOCKED" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
 
   return (
-    <div className="min-h-screen bg-background pb-20" data-testid="waas-dashboard">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setLocation("/admin")} className="text-muted-foreground hover:text-foreground" data-testid="btn-back-admin">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-              <Bot className="w-6 h-6 text-primary" /> WhatsApp as a Service
-            </h1>
-            <p className="text-sm text-muted-foreground">Gerencie grupos de excursão no WhatsApp via CaldasAI</p>
-          </div>
+    <AdminShell
+      sidebar={<AdminSidebar currentPath="/admin/waas-dashboard" />}
+      topbar={<AdminTopBar title="WhatsApp as a Service" />}
+    >
+      <PageContainer
+        title="WhatsApp as a Service"
+        subtitle="Gerencie grupos de excursão no WhatsApp via CaldasAI"
+        icon={<Bot className="w-6 h-6" />}
+        actions={
           <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full ${isConnected ? "bg-emerald-50 text-emerald-700" : isDemo ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"}`}>
             {isConnected ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
             {isDemo ? "Modo demo" : isConnected ? "Conectado" : isConnecting ? "Conectando..." : "Desconectado"}
           </div>
-        </div>
+        }
+        data-testid="waas-dashboard"
+      >
 
         {/* Connection Card */}
         <Card className="mb-6" data-testid="connection-card">
@@ -530,6 +531,7 @@ export default function WaaSDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </PageContainer>
+    </AdminShell>
   );
 }

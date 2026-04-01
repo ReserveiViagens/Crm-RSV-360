@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { AdminShell } from "@/components/layout-system/AdminShell";
+import { PageContainer } from "@/components/layout-system";
+import { AdminSidebar, AdminTopBar } from "@/components/admin";
 import { Trophy, Gift, Target, Lock, Loader2, ArrowLeft, Sparkles, TrendingUp, Star, AlertTriangle } from "lucide-react";
 
 type OrganizerGoal = {
@@ -92,19 +95,16 @@ export default function GamificationDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20" data-testid="gamification-dashboard">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setLocation("/")} className="text-muted-foreground hover:text-foreground" data-testid="btn-voltar-gamification">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
-              <Trophy className="w-7 h-7 text-amber-500" /> Suas Metas e Recompensas
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Quanto mais você vende, mais você ganha!</p>
-          </div>
-        </div>
+    <AdminShell
+      sidebar={<AdminSidebar currentPath="/organizer/gamification" />}
+      topbar={<AdminTopBar title="Metas e Recompensas" />}
+    >
+      <PageContainer
+        title="Suas Metas e Recompensas"
+        subtitle="Quanto mais você vende, mais você ganha!"
+        icon={<Trophy className="w-6 h-6 text-amber-500" />}
+        data-testid="gamification-dashboard"
+      >
 
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
@@ -230,7 +230,7 @@ export default function GamificationDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </PageContainer>
+    </AdminShell>
   );
 }

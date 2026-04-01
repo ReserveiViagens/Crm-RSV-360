@@ -184,7 +184,13 @@ export function TicketsGrid({
   }, [cart])
 
   return (
-    <div className="rsv-subpage-grid" style={{ padding: "20px 16px 100px" }}>
+    <div 
+      className="rsv-grid-cards"
+      style={{ 
+        padding: "var(--rsv-space-5) var(--rsv-space-4) 100px",
+        gap: "var(--rsv-card-gap-md)",
+      }}
+    >
       {tickets.map((ticket) => {
         const qty = qtyById.get(ticket.id) ?? 0
         const isBestValue = ticket.id === bestValueId
@@ -207,17 +213,21 @@ export function TicketsGrid({
             onMouseEnter={() => onHover?.(ticket.id)}
             onMouseLeave={() => onHover?.(null)}
             style={{
-              background: "#fff",
-              borderRadius: 16,
+              background: "var(--rsv-surface-base)",
+              borderRadius: "var(--rsv-radius-xl)",
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
               boxShadow: isHovered
-                ? "0 8px 30px rgba(0,0,0,0.15)"
-                : "0 2px 12px rgba(0,0,0,0.08)",
+                ? "var(--rsv-shadow-lg)"
+                : "var(--rsv-shadow-card)",
               transform: isHovered ? "scale(1.02)" : "scale(1)",
-              transition: "all 0.3s ease",
-              border: isComparing ? "2px solid #3B82F6" : ticket.popular ? "2px solid #FACC15" : "none",
+              transition: `all var(--rsv-duration-base) var(--rsv-ease-default)`,
+              border: isComparing 
+                ? "2px solid var(--rsv-info)" 
+                : ticket.popular 
+                  ? "2px solid var(--rsv-warning)" 
+                  : "1px solid var(--rsv-border-color)",
               position: "relative",
             }}
           >
@@ -265,15 +275,25 @@ export function TicketsGrid({
                 <img
                   src={ticket.image}
                   alt={ticket.name}
-                  style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }}
+                  style={{ 
+                    width: "100%", 
+                    aspectRatio: "var(--rsv-ratio-landscape)",
+                    objectFit: "cover", 
+                    display: "block" 
+                  }}
                 />
               )}
             </div>
 
-            <div style={{ padding: 16, display: "flex", flexDirection: "column", flex: 1 }}>
+            <div style={{ padding: "var(--rsv-card-padding-md)", display: "flex", flexDirection: "column", flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                 <h3
-                  style={{ fontSize: 18, fontWeight: 700, margin: 0 }}
+                  style={{ 
+                    fontSize: "var(--rsv-text-lg)", 
+                    fontWeight: "var(--rsv-font-bold)", 
+                    margin: 0,
+                    color: "var(--rsv-text-primary)"
+                  }}
                   data-testid={`text-ticket-name-${ticket.id}`}
                 >
                   {ticket.name}
@@ -297,7 +317,12 @@ export function TicketsGrid({
                 )}
               </div>
 
-              <p style={{ fontSize: 13, color: "#6B7280", margin: "0 0 10px", lineHeight: 1.5 }}>
+              <p style={{ 
+                fontSize: "var(--rsv-text-sm)", 
+                color: "var(--rsv-text-secondary)", 
+                margin: "0 0 var(--rsv-space-3)", 
+                lineHeight: "var(--rsv-leading-normal)" 
+              }}>
                 {ticket.description}
               </p>
 
@@ -355,18 +380,30 @@ export function TicketsGrid({
               </div>
 
               {ticket.features && ticket.features.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-                  {ticket.features.map((f) => (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--rsv-space-2)", marginBottom: "var(--rsv-space-3)" }}>
+                  {ticket.features.slice(0, 4).map((f) => (
                     <span
                       key={f}
                       style={{
-                        background: "#F3F4F6", borderRadius: 6,
-                        padding: "4px 10px", fontSize: 11, color: "#374151",
+                        background: "var(--rsv-surface-alt)", 
+                        borderRadius: "var(--rsv-radius-sm)",
+                        padding: "var(--rsv-space-1) var(--rsv-space-3)", 
+                        fontSize: "var(--rsv-text-xs)", 
+                        color: "var(--rsv-text-secondary)",
                       }}
                     >
                       {f}
                     </span>
                   ))}
+                  {ticket.features.length > 4 && (
+                    <span style={{
+                      fontSize: "var(--rsv-text-xs)",
+                      color: "var(--rsv-text-tertiary)",
+                      padding: "var(--rsv-space-1) var(--rsv-space-2)",
+                    }}>
+                      +{ticket.features.length - 4} mais
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -377,20 +414,33 @@ export function TicketsGrid({
                 onQuickAdd={(t) => onBuy(t)}
               />
 
-              <div style={{ marginTop: "auto", paddingTop: 10 }}>
-                <div style={{ marginBottom: 12 }}>
+              <div style={{ marginTop: "auto", paddingTop: "var(--rsv-space-3)" }}>
+                <div style={{ marginBottom: "var(--rsv-space-3)" }}>
                   {ticket.originalPrice && (
-                    <span style={{ fontSize: 14, color: "#9CA3AF", textDecoration: "line-through", marginRight: 8 }}>
+                    <span style={{ 
+                      fontSize: "var(--rsv-text-sm)", 
+                      color: "var(--rsv-text-muted)", 
+                      textDecoration: "line-through", 
+                      marginRight: "var(--rsv-space-2)" 
+                    }}>
                       {formatPrice(ticket.originalPrice)}
                     </span>
                   )}
                   <span
-                    style={{ fontSize: 26, fontWeight: 700, color: "#16A34A" }}
+                    style={{ 
+                      fontSize: "var(--rsv-text-2xl)", 
+                      fontWeight: "var(--rsv-font-bold)", 
+                      color: "var(--rsv-success-dark)" 
+                    }}
                     data-testid={`text-price-${ticket.id}`}
                   >
                     {formatPrice(ticket.price)}
                   </span>
-                  <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>por pessoa</span>
+                  <span style={{ 
+                    fontSize: "var(--rsv-text-xs)", 
+                    color: "var(--rsv-text-muted)", 
+                    marginLeft: "var(--rsv-space-1)" 
+                  }}>por pessoa</span>
                 </div>
 
                 <div style={{ minHeight: 44 }}>
@@ -399,14 +449,23 @@ export function TicketsGrid({
                       data-testid={`button-buy-${ticket.id}`}
                       onClick={() => onBuy(ticket)}
                       style={{
-                        width: "100%", padding: "14px 0", border: "none", borderRadius: 12,
-                        color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
+                        width: "100%", 
+                        padding: "var(--rsv-space-4) 0", 
+                        border: "none", 
+                        borderRadius: "var(--rsv-radius-lg)",
+                        color: "var(--rsv-white)", 
+                        fontSize: "var(--rsv-text-base)", 
+                        fontWeight: "var(--rsv-font-bold)", 
+                        cursor: "pointer",
                         background: ticket.popular
-                          ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                          : "linear-gradient(135deg, #0891B2, #06B6D4)",
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                        transition: "all 0.2s",
+                          ? "linear-gradient(135deg, var(--rsv-success), var(--rsv-success-dark))"
+                          : "linear-gradient(135deg, var(--rsv-info), var(--rsv-action-blue))",
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center", 
+                        gap: "var(--rsv-space-2)",
+                        boxShadow: "var(--rsv-shadow-md)",
+                        transition: `all var(--rsv-duration-base) var(--rsv-ease-default)`,
                       }}
                     >
                       <ShoppingCart style={{ width: 18, height: 18 }} />
@@ -416,10 +475,14 @@ export function TicketsGrid({
                     <div
                       data-testid={`stepper-${ticket.id}`}
                       style={{
-                        width: "100%", display: "flex", alignItems: "center",
-                        justifyContent: "space-between", borderRadius: 12,
-                        border: "2px solid #22C55E", padding: "9px 12px",
-                        background: "#F0FDF4",
+                        width: "100%", 
+                        display: "flex", 
+                        alignItems: "center",
+                        justifyContent: "space-between", 
+                        borderRadius: "var(--rsv-radius-lg)",
+                        border: "2px solid var(--rsv-success)", 
+                        padding: "var(--rsv-space-3) var(--rsv-space-3)",
+                        background: "var(--rsv-success-light)",
                       }}
                     >
                       <button
