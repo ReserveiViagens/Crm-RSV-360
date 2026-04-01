@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSV360 - Teste de Servidor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 40px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #2c3e50; margin-bottom: 20px; }
+    .status { padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; margin: 20px 0; color: #155724; }
+    .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+    .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    code { font-family: 'Courier New', monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RSV360 - Status do Servidor</h1>
+    
+    <div class="status">
+      ✓ Servidor Express respondendo corretamente
+    </div>
+
+    <h2>Informações do Sistema</h2>
+    <pre><code>Projeto: Crm-RSV-360
+Servidor: Express + Vite (Desenvolvimento)
+Porta: 5000
+Status: ATIVO
+
+Frontend: React + TypeScript
+Backend: Node.js + Express
+</code></pre>
+
+    <h2>Próximas Ações</h2>
+    <ol style="margin-left: 20px; line-height: 1.8;">
+      <li>Se você vê esta página simples, o servidor está funcionando</li>
+      <li>O erro 404 indica que o Vite middleware pode estar com erro</li>
+      <li>Verifique os logs do console para mensagens de erro</li>
+      <li>Execute <code>npm run build</code> para criar versão de produção</li>
+      <li>Ou execute <code>npm run dev</code> para reiniciar o servidor</li>
+    </ol>
+
+    <div class="status info" style="margin-top: 30px;">
+      <strong>Debug Info:</strong> Verifique o console/terminal para logs detalhados do Vite
+    </div>
+  </div>
+</body>
+</html>

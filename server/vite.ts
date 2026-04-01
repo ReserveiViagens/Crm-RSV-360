@@ -21,6 +21,7 @@ export async function setupVite(server: Server, app: Express) {
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
+        console.error("[v0] VITE ERROR:", msg);
         viteLogger.error(msg, options);
         process.exit(1);
       },
@@ -33,6 +34,7 @@ export async function setupVite(server: Server, app: Express) {
 
   app.use("/{*path}", async (req, res, next) => {
     const url = req.originalUrl;
+    console.log("[v0] Vite catch-all route hit for:", url);
 
     try {
       const clientTemplate = path.resolve(
@@ -42,15 +44,24 @@ export async function setupVite(server: Server, app: Express) {
         "index.html",
       );
 
+      console.log("[v0] Looking for template at:", clientTemplate);
+
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      console.log("[v0] Template loaded, length:", template.length);
+      
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
+      
+      console.log("[v0] Transforming HTML...");
       const page = await vite.transformIndexHtml(url, template);
+      console.log("[v0] HTML transformed, length:", page.length);
+      
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
+      console.error("[v0] Error in vite catch-all:", e);
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }
