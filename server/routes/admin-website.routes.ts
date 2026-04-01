@@ -6,6 +6,11 @@ import {
   pageSlugParamValidator,
   pageListQueryValidator,
   updateSettingsValidator,
+  mediaQueryValidator,
+  mediaUploadMetaValidator,
+  mediaUpdateValidator,
+  mediaIdParamValidator,
+  mediaDeleteQueryValidator,
 } from "../validators/admin-website.validator.js";
 import {
   listPages,
@@ -19,6 +24,17 @@ import {
   getSettings,
   updateSettings,
 } from "../services/admin-website.service.js";
+import {
+  upload,
+  validateFile,
+  persistMediaRecord,
+  listMedia,
+  getMediaById,
+  updateMedia,
+  swapMediaFile,
+  unlinkMedia,
+  deleteMedia,
+} from "../services/media-storage.service.js";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    RSV360 — Admin Website Router
@@ -197,6 +213,167 @@ router.patch("/settings", async (req: Request, res: Response) => {
   const { actorId, actorName } = getActor(req);
   const settings = await updateSettings(parsed.data, actorId, actorName);
   return res.json({ success: true, data: settings });
+});
+
+/* ─── Media ──────────────────────────────────────────────────────────────── */
+
+router.get("/media", async (req: Request, res: Response) => {
+  const parsed = mediaQueryValidator.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      error: parsed.error.errors[0]?.message ?? "Parâmetros inválidos",
+      code: "VALIDATION_ERROR",
+    });
+  }
+
+  const result = await listMedia(parsed.data);
+  return res.json({ success: true, ...result });
+});
+
+router.post(
+  "/media/upload",
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Nenhum arquivo enviado. Use o campo 'file' no multipart/form-data.",
+        code: "NO_FILE",
+      });
+    }
+
+    const validation = validateFile(req.file);
+    if (!validation.ok) {
+      return res.status(422).json({
+        success: false,
+        error: validation.error,
+        code: validation.code ?? "VALIDATION_ERROR",
+      });
+    }
+
+    const metaParsed = mediaUploadMetaValidator.safeParse(req.body);
+    if (!metaParsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: metaParsed.error.errors[0]?.message ?? "Metadados inválidos",
+        code: "VALIDATION_ERROR",
+      });
+    }
+
+    const { actorId, actorName } = getActor(req);
+
+    try {
+      const media = await persistMediaRecord(
+        req.file,
+        metaParsed.data,
+        validation.mediaType!,
+        actorId,
+        actorName
+      );
+      return res.status(201).json({ success: true, data: media });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao salvar mídia";
+      return res.status(500).json({ success: false, error: msg, code: "INTERNAL_ERROR" });
+    }
+  }
+);
+
+router.put("/media/:id", async (req: Request, res: Response) => {
+  const paramParsed = mediaIdParamValidator.safeParse(req.params);
+  if (!paramParsed.success) {
+    return res.status(400).json({ success: false, error: "ID inválido", code: "VALIDATION_ERROR" });
+  }
+
+  const bodyParsed = mediaUpdateValidator.safeParse(req.body);
+  if (!bodyParsed.success) {
+    return res.status(400).json({
+      success: false,
+      error: bodyParsed.error.errors[0]?.message ?? "Dados inválidos",
+      code: "VALIDATION_ERROR",
+    });
+  }
+
+  const { actorId, actorName } = getActor(req);
+  const media = await updateMedia(paramParsed.data.id, bodyParsed.data, actorId, actorName);
+  if (!media) return res.status(404).json({ success: false, error: "Mídia não encontrada", code: "NOT_FOUND" });
+  return res.json({ success: true, data: media });
+});
+
+router.post(
+  "/media/:id/swap",
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    const paramParsed = mediaIdParamValidator.safeParse(req.params);
+    if (!paramParsed.success) {
+      if (req.file) {
+        const { deleteFileFromDisk } = await import("../services/media-storage.service.js");
+        deleteFileFromDisk(req.file.filename);
+      }
+      return res.status(400).json({ success: false, error: "ID inválido", code: "VALIDATION_ERROR" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Nenhum arquivo enviado. Use o campo 'file' no multipart/form-data.",
+        code: "NO_FILE",
+      });
+    }
+
+    const { actorId, actorName } = getActor(req);
+
+    try {
+      const media = await swapMediaFile(paramParsed.data.id, req.file, actorId, actorName);
+      if (!media) {
+        return res.status(404).json({ success: false, error: "Mídia não encontrada", code: "NOT_FOUND" });
+      }
+      return res.json({ success: true, data: media });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao fazer swap de mídia";
+      return res.status(500).json({ success: false, error: msg, code: "INTERNAL_ERROR" });
+    }
+  }
+);
+
+router.post("/media/:id/unlink", async (req: Request, res: Response) => {
+  const parsed = mediaIdParamValidator.safeParse(req.params);
+  if (!parsed.success) {
+    return res.status(400).json({ success: false, error: "ID inválido", code: "VALIDATION_ERROR" });
+  }
+
+  const { actorId, actorName } = getActor(req);
+  const media = await unlinkMedia(parsed.data.id, actorId, actorName);
+  if (!media) return res.status(404).json({ success: false, error: "Mídia não encontrada", code: "NOT_FOUND" });
+  return res.json({ success: true, data: media });
+});
+
+router.delete("/media/:id", async (req: Request, res: Response) => {
+  const paramParsed = mediaIdParamValidator.safeParse(req.params);
+  if (!paramParsed.success) {
+    return res.status(400).json({ success: false, error: "ID inválido", code: "VALIDATION_ERROR" });
+  }
+
+  const queryParsed = mediaDeleteQueryValidator.safeParse(req.query);
+  const force = queryParsed.success ? queryParsed.data.force : false;
+
+  const { actorId, actorName } = getActor(req);
+  const result = await deleteMedia(paramParsed.data.id, force, actorId, actorName);
+
+  if ("error" in result) {
+    if (result.error === "not_found") {
+      return res.status(404).json({ success: false, error: "Mídia não encontrada", code: "NOT_FOUND" });
+    }
+    if (result.error === "has_references") {
+      return res.status(409).json({
+        success: false,
+        error: (result as { error: "has_references"; message: string }).message,
+        code: "HAS_REFERENCES",
+      });
+    }
+  }
+
+  return res.json({ success: true, data: { deleted: true } });
 });
 
 export default router;
