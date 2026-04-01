@@ -5,3 +5,5 @@ server/public
 vite.config.ts.*
 *.tar.gz
 data/db.json
+uploads/website/*
+!uploads/website/.gitkeep
