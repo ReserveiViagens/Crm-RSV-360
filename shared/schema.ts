@@ -1,7 +1,16 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, text, varchar, integer, numeric, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  PAGE_STATUSES,
+  PAGE_SECTIONS,
+  MEDIA_TYPES,
+  MEDIA_PLACEMENTS,
+  MEDIA_STATUSES,
+  AUDIT_ACTIONS,
+  AUDIT_ENTITIES,
+} from "./website-types";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -198,5 +207,98 @@ export type GamificacaoPontos = typeof gamificacaoPontos.$inferSelect;
 export type GamificacaoHistorico = typeof gamificacaoHistorico.$inferSelect;
 export type GamificacaoConquista = typeof gamificacaoConquistas.$inferSelect;
 
-/* ─── Admin/Website Module ───────────────────────────────────────────────── */
+/* ─── Admin/Website Module — Drizzle Enums ───────────────────────────────── */
+
+export const pageStatusEnum = pgEnum("page_status", PAGE_STATUSES);
+export const pageSectionEnum = pgEnum("page_section", PAGE_SECTIONS);
+export const mediaTypeEnum = pgEnum("media_type", MEDIA_TYPES);
+export const mediaPlacementEnum = pgEnum("media_placement", MEDIA_PLACEMENTS);
+export const mediaStatusEnum = pgEnum("media_status", MEDIA_STATUSES);
+export const auditActionEnum = pgEnum("audit_action", AUDIT_ACTIONS);
+export const auditEntityEnum = pgEnum("audit_entity", AUDIT_ENTITIES);
+
+/* ─── Admin/Website Module — Tables ─────────────────────────────────────── */
+
+export const websitePages = pgTable("website_pages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  section: pageSectionEnum("section").notNull().default("outros"),
+  content: jsonb("content").notNull().default({}),
+  status: pageStatusEnum("status").notNull().default("draft"),
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  bannerMediaId: varchar("banner_media_id"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const websiteMedia = pgTable("website_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: mediaTypeEnum("type").notNull().default("image"),
+  placement: mediaPlacementEnum("placement").notNull().default("misc"),
+  status: mediaStatusEnum("status").notNull().default("active"),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimetype: text("mimetype").notNull(),
+  sizeBytes: integer("size_bytes").notNull().default(0),
+  url: text("url").notNull(),
+  altText: text("alt_text"),
+  pageId: varchar("page_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const websiteSettings = pgTable("website_settings", {
+  id: integer("id").primaryKey().default(1),
+  siteName: text("site_name").notNull().default("RSV360"),
+  logoMediaId: varchar("logo_media_id"),
+  defaultBannerMediaId: varchar("default_banner_media_id"),
+  primaryColor: text("primary_color"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  socialLinks: jsonb("social_links"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const websitePageVersions = pgTable("website_page_versions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pageId: varchar("page_id").notNull(),
+  content: jsonb("content").notNull().default({}),
+  snapshot: jsonb("snapshot").notNull().default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  entity: auditEntityEnum("entity").notNull(),
+  entityId: varchar("entity_id").notNull(),
+  action: auditActionEnum("action").notNull(),
+  actorId: varchar("actor_id").notNull(),
+  actorName: text("actor_name").notNull(),
+  diff: jsonb("diff"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ─── Insert schemas and types for website tables ─────────────────────────── */
+
+export const insertWebsitePageSchema = createInsertSchema(websitePages).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertWebsiteMediaSchema = createInsertSchema(websiteMedia).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertWebsiteSettingsSchema = createInsertSchema(websiteSettings).omit({ updatedAt: true });
+export const insertWebsitePageVersionSchema = createInsertSchema(websitePageVersions).omit({ id: true, createdAt: true });
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, createdAt: true });
+
+export type WebsitePageRow = typeof websitePages.$inferSelect;
+export type InsertWebsitePage = z.infer<typeof insertWebsitePageSchema>;
+export type WebsiteMediaRow = typeof websiteMedia.$inferSelect;
+export type InsertWebsiteMedia = z.infer<typeof insertWebsiteMediaSchema>;
+export type WebsiteSettingsRow = typeof websiteSettings.$inferSelect;
+export type InsertWebsiteSettings = z.infer<typeof insertWebsiteSettingsSchema>;
+export type WebsitePageVersionRow = typeof websitePageVersions.$inferSelect;
+export type InsertWebsitePageVersion = z.infer<typeof insertWebsitePageVersionSchema>;
+export type AuditLogRow = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+/* ─── Re-export shared types ─────────────────────────────────────────────── */
 export * from "./website-types";
