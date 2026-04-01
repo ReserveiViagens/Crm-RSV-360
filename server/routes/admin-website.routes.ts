@@ -27,6 +27,7 @@ import {
 import {
   upload,
   validateFile,
+  deleteFileFromDisk,
   persistMediaRecord,
   listMedia,
   getMediaById,
@@ -35,6 +36,7 @@ import {
   unlinkMedia,
   deleteMedia,
 } from "../services/media-storage.service.js";
+import type { NextFunction } from "express";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    RSV360 — Admin Website Router
@@ -377,5 +379,38 @@ router.delete("/media/:id", async (req: Request, res: Response) => {
 
   return res.json({ success: true, data: { deleted: true } });
 });
+
+/* ─── Multer error handler ───────────────────────────────────────────────── */
+
+router.use(
+  (err: unknown, req: Request, res: Response, _next: NextFunction) => {
+    if (err && typeof err === "object" && "code" in err) {
+      const code = (err as { code: string }).code;
+      if (code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({
+          success: false,
+          error: "Arquivo excede o limite de 10 MB",
+          code: "FILE_TOO_LARGE",
+        });
+      }
+      if (code === "UNSUPPORTED_FILE_TYPE") {
+        return res.status(422).json({
+          success: false,
+          error: "Tipo de arquivo não suportado",
+          code: "UNSUPPORTED_FILE_TYPE",
+        });
+      }
+      if (code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({
+          success: false,
+          error: "Campo de arquivo inesperado. Use o campo 'file'.",
+          code: "UNEXPECTED_FILE_FIELD",
+        });
+      }
+    }
+    const msg = err instanceof Error ? err.message : "Erro interno";
+    return res.status(500).json({ success: false, error: msg, code: "INTERNAL_ERROR" });
+  }
+);
 
 export default router;
