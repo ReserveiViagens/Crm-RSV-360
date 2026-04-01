@@ -24,7 +24,7 @@
 |----|--------|----------|--------|--------------|
 | PR 0 | `docs/admin-website-contract-alignment` | Alinhar contratos antes de codar | `[x]` | 2026-04-01 |
 | PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[x]` | 2026-04-01 |
-| PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[ ]` | — |
+| PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[x]` | 2026-04-01 |
 | PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[ ]` | — |
 | PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[ ]` | — |
 | PR 4 | `feat/admin-content-api-media-storage` | API de mídia + upload + storage | `[ ]` | — |
@@ -82,12 +82,12 @@
 **Dependência:** PR 0.5
 
 ### Gate
-- [ ] `shared/website-types.ts` criado com enums, entidades, DTOs, filtros, responses e `PROTECTED_ROUTES`
-- [ ] `shared/schema.ts` exporta `* from './website-types'`
-- [ ] `server/validators/admin-website.validator.ts` criado com todos os validators Zod
-- [ ] Validators de mídia incluem `placement`, `status`, `dateFrom`, `dateTo`, `pageId`, `search`
-- [ ] `npm run build` passa sem erros
-- [ ] Client e server usam o mesmo contrato (sem campos fora do shared)
+- [x] `shared/website-types.ts` criado com enums, entidades, DTOs, filtros, responses e `PROTECTED_ROUTES`
+- [x] `shared/schema.ts` exporta `* from './website-types'`
+- [x] `server/validators/admin-website.validator.ts` criado com todos os validators Zod
+- [x] Validators de mídia incluem `placement`, `status`, `dateFrom`, `dateTo`, `pageId`, `search`
+- [x] `npm run build` passa sem erros
+- [x] Client e server usam o mesmo contrato (sem campos fora do shared)
 
 ### Arquivos criados/modificados
 - `shared/website-types.ts` _(novo)_
