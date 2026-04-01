@@ -27,7 +27,7 @@
 | PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[x]` | 2026-04-01 |
 | PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[x]` | 2026-04-01 |
 | PR 3 | `feat/admin-content-api-core` | API admin core: páginas + settings | `[x]` | 2026-04-01 |
-| PR 4 | `feat/admin-content-api-media-storage` | API de mídia + upload + storage | `[ ]` | — |
+| PR 4 | `feat/admin-content-api-media-storage` | API de mídia + upload + storage | `[x]` | 2026-04-01 |
 | PR 5 | `feat/admin-content-frontend-integration` | Frontend admin conectado à API | `[ ]` | — |
 | PR 6 | `feat/public-website-content-consumption` | API pública + consumo no site | `[ ]` | — |
 | PR 7 | `chore/admin-website-hardening` | Segurança, auditoria, produção | `[ ]` | — |
