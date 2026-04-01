@@ -22,7 +22,7 @@
 
 | PR | Branch | Objetivo | Status | Concluído em |
 |----|--------|----------|--------|--------------|
-| PR 0 | `docs/admin-website-contract-alignment` | Alinhar contratos antes de codar | `[ ]` | — |
+| PR 0 | `docs/admin-website-contract-alignment` | Alinhar contratos antes de codar | `[x]` | 2026-04-01 |
 | PR 0.5 | `chore/cms-surface-assessment` | Auditar e decidir reuso do CMS existente | `[ ]` | — |
 | PR 1 | `feat/admin-foundation-content-types` | Tipos compartilhados + validators | `[ ]` | — |
 | PR 2 | `feat/admin-content-db-schema` | Banco + migrations + seed | `[ ]` | — |
@@ -48,12 +48,12 @@
 **Arquivo:** `docs/implantacao/fases/PR0-ALINHAMENTO-CONTRATOS-WEBSITE.md`
 
 ### Gate
-- [ ] Payload admin fechado (validators de mídia com `placement`, `status`, `dateFrom`, `dateTo`, `pageId`, `search`)
-- [ ] Payload público fechado (branding: admin salva IDs, API pública devolve URLs resolvidas)
-- [ ] Import oficial de `shared/website-types` definido para client e server
-- [ ] Storage local `uploads/website` documentado como adapter de dev
-- [ ] Autenticação admin declarada como placeholder até PR 7
-- [ ] Nenhuma fase posterior depende de campo implícito
+- [x] Payload admin fechado (validators de mídia com `placement`, `status`, `dateFrom`, `dateTo`, `pageId`, `search`)
+- [x] Payload público fechado (branding: admin salva IDs, API pública devolve URLs resolvidas)
+- [x] Import oficial de `shared/website-types` definido para client e server
+- [x] Storage local `uploads/website` documentado como adapter de dev
+- [x] Autenticação admin declarada como placeholder até PR 7
+- [x] Nenhuma fase posterior depende de campo implícito
 
 ### Arquivos criados/modificados
 - `docs/implantacao/fases/PR0-ALINHAMENTO-CONTRATOS-WEBSITE.md`
