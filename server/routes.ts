@@ -2738,5 +2738,38 @@ export async function registerRoutes(
     }
   });
 
+  // ─── PMS PROXY ROUTES ───────────────────────────────────────────────────
+  // Proxy routes to PMS backend via Cloudflare Tunnel
+
+  const PMS_BASE_URL = process.env.PMS_API_URL || 'https://exp-safari-sarah-moved.trycloudflare.com';
+
+  async function proxyToPMS(req: Request, res: Response, endpoint: string) {
+    try {
+      const url = `${PMS_BASE_URL}${endpoint}`;
+      const method = req.method;
+      const headers = { ...req.headers };
+      delete headers.host;
+      delete headers['content-length'];
+
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: method !== 'GET' && method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
+      });
+
+      const data = await response.text();
+      res.status(response.status).set(Object.fromEntries(response.headers.entries())).send(data);
+    } catch (error) {
+      console.error('[PMS Proxy] Error:', error);
+      res.status(500).json({ error: 'PMS backend unavailable' });
+    }
+  }
+
+  // Proxy all PMS API routes
+  app.all('/api/pms/*', (req: Request, res: Response) => {
+    const endpoint = req.url.replace('/api/pms', '/api/v1');
+    proxyToPMS(req, res, endpoint);
+  });
+
   return httpServer;
 }
