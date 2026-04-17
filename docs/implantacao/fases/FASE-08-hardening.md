@@ -18,7 +18,7 @@ Endurecer a operação antes de escalar: logging estruturado, proteção de vouc
 - `server/index.ts` — Express server configurado
 - `server/routes.ts` — endpoints principais
 - `server/persistence.ts` — in-memory store
-- Variáveis de ambiente usadas (sem `.env.example` formal)
+- Variáveis de ambiente usadas (com `.env.example` formal)
 
 ---
 
@@ -77,30 +77,13 @@ Endurecer a operação antes de escalar: logging estruturado, proteção de vouc
 
 ### 08.9 — Gate final + fechamento de todos os docs + push
 - [x] Build + typecheck + smoke OK
-- [x] Prova que voucher tem ID não previsível (UUID v4: fba529eb-c4dc-49cf-…)
-- [x] Rate limit retorna 429 corretamente (voucher 8+, recomendações 61+)
+- [x] Prova que voucher tem ID não previsível (UUID v4)
+- [x] Rate limit retorna 429 corretamente (voucher, recomendações)
 - [x] Alertas visíveis no painel admin (`GET /api/admin/alerts`)
 - [x] `01-STATUS-GERAL.md` — todas as fases `[x]`
 - [x] `02-HANDOFF-ATUAL.md` — projeto concluído
 - [x] `03-CHANGELOG-IMPLEMENTACAO.md` — entrada final
 - [x] Commit + push feitos
-
----
-
-## Implementado nesta fase
-
-| Item | Arquivo | Detalhe |
-|------|---------|---------|
-| `.env.example` | `.env.example` | Todas as env vars documentadas com comentários |
-| Logger estruturado | `server/lib/logger.ts` | JSON: level, message, timestamp, orderId, correlationId |
-| Alerts críticos | `server/lib/alerts.ts` | raiseAlert / acknowledgeAlert / getActiveAlerts |
-| Healthcheck completo | `server/routes.ts` | GET /api/status com queues + alerts |
-| UUID+HMAC voucher | `server/routes.ts` | voucherId UUID v4 + voucherToken HMAC-SHA256 |
-| Rate limiting | `server/routes.ts` | express-rate-limit em voucher / webhook / recomendações |
-| Filas separadas | `server/services/retry-queue.service.ts` | voucherDeliveryQueue + paymentConfirmationQueue |
-| Orchestrator com logger | `server/services/post-payment-orchestrator.service.ts` | logger.info/error + raiseAlert |
-| CriticalAlertsPanel | `client/src/components/admin/CriticalAlertsPanel.tsx` | Painel no admin-dashboard |
-| Runbook | `docs/runbook.md` | Rollback, reenvio, invalidação, escalation |
 
 ---
 
@@ -126,3 +109,13 @@ Nenhum.
 - `docs/runbook.md` completo
 - Todas as fases marcadas `[x]` no `01-STATUS-GERAL.md`
 - Commit + push feitos
+
+---
+
+## Adendo (pós-fase) — Operação local / Sessões (Task 16)
+
+Este adendo não altera o gate da Fase 08; serve para registrar melhorias de operação local/ambiente.
+
+- [~] Sessões com Redis Store quando `REDIS_URL` definido (`server/index.ts`)
+- [~] Scripts carregam `.env` via `--env-file=.env` (`package.json`)
+- [~] Validar no browser que o erro `createContext` sumiu após rebuild (pendente)

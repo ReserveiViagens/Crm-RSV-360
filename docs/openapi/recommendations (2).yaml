@@ -1,0 +1,228 @@
+openapi: "3.0.3"
+
+info:
+  title: RSV360 — Recommendations API v1
+  description: |
+    Documentação mínima dos endpoints de recomendação Combo IA da plataforma RSV360
+    (Reservei Viagens). Cobre os dois endpoints do prefixo `/api/v1/recommendations`:
+    consulta de recomendações por afinidade de grupo hoteleiro e sincronização
+    idempotente do catálogo de ingressos na base de dados PostgreSQL via Drizzle.
+  version: "1.0.0"
+  contact:
+    name: Reservei Viagens
+    url: https://reservei.com.br
+
+servers:
+  - url: /api/v1
+    description: API v1 (Express)
+
+tags:
+  - name: recommendations
+    description: Recomendações Combo IA e sincronização de catálogo
+
+paths:
+
+  /recommendations:
+    get:
+      summary: Lista recomendações de combo para os ingressos informados
+      description: |
+        Retorna sugestões de combo IA baseadas na afinidade de grupos hoteleiros
+        (DIROMA, PRIVE, GOLDEN_DOLPHIN, RIO_QUENTE, INDEPENDENTE). Desconto de 15%
+        é aplicado automaticamente quando o combo contém ≥ 2 itens compatíveis.
+        Este endpoint não requer autenticação.
+      tags: [recommendations]
+      parameters:
+        - name: ticketIds
+          in: query
+          required: false
+          description: IDs dos ingressos separados por vírgula (itens já no carrinho)
+          schema:
+            type: string
+            example: "hot-park,diroma-acqua-park"
+        - name: profile
+          in: query
+          required: false
+          description: Perfil do viajante — usado como sessionId no motor de recomendações
+          schema:
+            type: string
+            example: "familia"
+        - name: limit
+          in: query
+          required: false
+          description: Número máximo de recomendações retornadas (1–10, padrão 5)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 5
+      responses:
+        "200":
+          description: Recomendações geradas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationResponse"
+              example:
+                sessionId: "sess_1711530000000_abc123"
+                generatedAt: "2026-03-27T10:00:00.000Z"
+                suggestions:
+                  - id: "cabana-standard"
+                    name: "Cabana Standard — até 4 pessoas"
+                    reason: "Mesmo complexo Rio Quente Resorts"
+                    originalPrice: 350
+                    comboPrice: 297.50
+                    savings: 52.50
+        "400":
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommendations/sync:
+    post:
+      summary: Sincroniza catálogo de ingressos na base de dados (admin)
+      description: |
+        Executa upsert idempotente de todos os ingressos definidos em `ticket-catalog.ts`
+        para a tabela `ticket_catalog` no PostgreSQL via Drizzle. O campo `basePrice`
+        de entradas existentes é preservado (não sobrescrito). Reruns são seguros —
+        nenhuma duplicata é gerada. Requer sessão autenticada com role `admin`.
+      tags: [recommendations]
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dryRun:
+                  type: boolean
+                  default: false
+                  description: Se true, simula o sync sem persistir nada no banco
+      responses:
+        "200":
+          description: Sincronização concluída (ou simulada se dryRun=true)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+              example:
+                created: 3
+                updated: 27
+                total: 30
+                dryRun: false
+                syncedAt: "2026-03-27T10:00:00.000Z"
+        "401":
+          description: Sessão não autenticada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Não autenticado"
+        "403":
+          description: Usuário não tem role admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: "Acesso restrito a administradores"
+        "500":
+          description: Erro interno durante o upsert no banco
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+      description: Sessão Express — autenticar via POST /api/auth/login antes de chamar este endpoint
+
+  schemas:
+
+    RecommendationResponse:
+      type: object
+      required: [sessionId, suggestions, generatedAt]
+      properties:
+        sessionId:
+          type: string
+          description: Identificador da sessão de recomendação (gerado automaticamente ou vindo do parâmetro profile)
+          example: "sess_1711530000000_abc123"
+        generatedAt:
+          type: string
+          format: date-time
+          description: Timestamp ISO 8601 de quando as recomendações foram geradas
+          example: "2026-03-27T10:00:00.000Z"
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecommendationSuggestion"
+
+    RecommendationSuggestion:
+      type: object
+      required: [id, name, reason, originalPrice, comboPrice, savings]
+      properties:
+        id:
+          type: string
+          description: ID do ingresso recomendado (chave primária em ticket_catalog)
+          example: "cabana-standard"
+        name:
+          type: string
+          description: Nome legível do ingresso
+          example: "Cabana Standard — até 4 pessoas"
+        reason:
+          type: string
+          description: Justificativa gerada pelo motor de afinidade
+          example: "Mesmo complexo Rio Quente Resorts"
+        originalPrice:
+          type: number
+          description: Preço original antes do desconto combo
+          example: 350
+        comboPrice:
+          type: number
+          description: Preço com desconto combo de 15%
+          example: 297.50
+        savings:
+          type: number
+          description: Economia proporcionada pelo combo
+          example: 52.50
+
+    SyncResponse:
+      type: object
+      required: [created, updated, total, dryRun, syncedAt]
+      properties:
+        created:
+          type: integer
+          description: Novas entradas inseridas no ticket_catalog
+          example: 3
+        updated:
+          type: integer
+          description: Entradas existentes atualizadas (basePrice preservado)
+          example: 27
+        total:
+          type: integer
+          description: Total de ingressos no catálogo após o sync
+          example: 30
+        dryRun:
+          type: boolean
+          description: Se true, nenhuma alteração foi persistida
+          example: false
+        syncedAt:
+          type: string
+          format: date-time
+          example: "2026-03-27T10:00:00.000Z"
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "Não autenticado"

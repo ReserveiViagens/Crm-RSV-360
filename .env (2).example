@@ -1,0 +1,107 @@
+# RSV360 — Reservei Viagens
+# Copie este arquivo para .env e preencha os valores reais.
+# NUNCA faça commit do arquivo .env com valores reais.
+
+# ─── Servidor ───────────────────────────────────────────────────────────────
+# Porta do servidor Express (padrão: 5000)
+PORT=5000
+
+# Segredo da sessão Express (use string aleatória longa em produção)
+SESSION_SECRET=troque-por-uma-string-aleatoria-longa
+
+# ─── Voucher ────────────────────────────────────────────────────────────────
+# Chave HMAC para assinar/verificar tokens de download de voucher
+VOUCHER_SECRET=troque-por-uma-string-aleatoria-segura
+
+# ─── Gateway de Pagamento ───────────────────────────────────────────────────
+# URL base da API do gateway de pagamento (Pix)
+GATEWAY_API_URL=https://api.seugateway.com.br
+
+# Chave de API do gateway de pagamento
+GATEWAY_API_KEY=sua-chave-de-api
+
+# Segredo para validar webhooks do gateway
+WEBHOOK_SECRET=segredo-do-webhook
+WEBHOOK_PAYMENT_SECRET=segredo-do-webhook-excursoes
+
+# ─── WhatsApp (Evolution API) ────────────────────────────────────────────────
+# URL base da instância Evolution API
+EVOLUTION_API_URL=https://api.evolution.seudominio.com.br
+
+# Chave de API da Evolution API
+EVOLUTION_API_KEY=sua-chave-evolution
+
+# Nome da instância WhatsApp na Evolution API
+EVOLUTION_INSTANCE_NAME=CaldasMaster
+
+# ─── E-mail (SMTP) ───────────────────────────────────────────────────────────
+# Host do servidor SMTP
+SMTP_HOST=smtp.seudominio.com.br
+
+# Porta do servidor SMTP (587 para TLS, 465 para SSL)
+SMTP_PORT=587
+
+# Usuário do servidor SMTP
+SMTP_USER=noreply@seudominio.com.br
+
+# Senha do servidor SMTP
+SMTP_PASS=sua-senha-smtp
+
+# E-mail remetente (aparece no "De:" das mensagens)
+SMTP_FROM=RSV360 <noreply@seudominio.com.br>
+
+# ─── Integrações ─────────────────────────────────────────────────────────────
+# (Opcional) Chave da API OpenAI para funcionalidades de IA
+OPENAI_API_KEY=sk-...
+
+# (Opcional) Chave do Google Maps para funcionalidades de mapa
+GOOGLE_MAPS_API_KEY=AIza...
+
+# ─── Ambiente ────────────────────────────────────────────────────────────────
+# Ambiente de execução: development | production
+NODE_ENV=development
+
+# ─── Mídia / Storage ─────────────────────────────────────────────────────────
+# Diretório local onde os arquivos de upload serão armazenados.
+# O servidor Express serve este diretório estaticamente em /uploads/website.
+# Em produção com object storage (S3, R2, etc.), este caminho pode ser ignorado.
+MEDIA_UPLOAD_DIR=./uploads/website
+
+# URL pública base usada para montar a URL de acesso aos arquivos de mídia.
+# Em desenvolvimento: http://localhost:5000/uploads/website
+# Em produção com disco local: https://seudominio.com.br/uploads/website
+# Em produção com CDN: https://cdn.reservei.com.br/website
+MEDIA_PUBLIC_URL=http://localhost:5000/uploads/website
+
+# (Opcional) URL base do CDN para servir arquivos de mídia em produção.
+# Em desenvolvimento, arquivos são servidos em /uploads/website/ (relativo).
+# Em produção, configure para o domínio do CDN (ex: Cloudflare R2, S3, etc).
+# Exemplo: https://cdn.reservei.com.br/website
+# Se não configurado, usa /uploads/website/<filename> (só funciona com disco local).
+MEDIA_CDN_BASE_URL=
+
+# ─── Object Storage (produção cloud — opcional) ───────────────────────────────
+# Configure estas variáveis ao usar AWS S3 (ou compatível como Cloudflare R2)
+# para armazenar mídias em vez do disco local.
+# Se AWS_S3_BUCKET estiver definido, o storage usa S3; caso contrário, usa disco local.
+
+# Nome do bucket S3 onde as mídias serão armazenadas.
+# Exemplo: rsv360-media-prod
+# AWS_S3_BUCKET=
+
+# Região AWS onde o bucket está localizado.
+# Exemplo: sa-east-1 (São Paulo), us-east-1 (N. Virginia)
+# AWS_S3_REGION=us-east-1
+
+# Credenciais AWS (obrigatórias para modo S3).
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+
+# URL pública do CDN configurado na frente do S3 (CloudFront, Cloudflare R2, etc).
+# Quando definida, todas as URLs de mídia usarão este prefixo em vez do local.
+# Exemplo: https://cdn.reservei.com.br/website
+# CDN_BASE_URL=
+
+# ─── Demo e Debug ────────────────────────────────────────────────────────────
+# (Opcional) Delay em ms para auto-confirmar pagamentos demo (0 = desativado)
+DEMO_CONFIRM_DELAY_MS=0

@@ -28,57 +28,11 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
+    sourcemap: process.env.VITE_SOURCEMAP === "true",
+    manifest: process.env.VITE_MANIFEST === "true",
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 1200,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) return;
-
-          if (
-            id.includes("/react/") ||
-            id.includes("/react-dom/") ||
-            id.includes("/scheduler/")
-          ) {
-            return "react-vendor";
-          }
-
-          if (id.includes("/@radix-ui/")) {
-            return "radix-vendor";
-          }
-
-          if (id.includes("/leaflet/")) {
-            return "maps-vendor";
-          }
-
-          if (
-            id.includes("/recharts/") ||
-            id.includes("/d3-")
-          ) {
-            return "charts-vendor";
-          }
-
-          if (
-            id.includes("/@tanstack/") ||
-            id.includes("/react-hook-form/") ||
-            id.includes("/@hookform/") ||
-            id.includes("/zod/")
-          ) {
-            return "forms-data-vendor";
-          }
-
-          if (
-            id.includes("/lucide-react/") ||
-            id.includes("/react-icons/")
-          ) {
-            return "icons-vendor";
-          }
-
-          return "vendor";
-        },
-      },
-    },
   },
   server: {
     fs: {

@@ -1,52 +1,27 @@
 # 02-HANDOFF-ATUAL
 
 ## Último estado conhecido
-Task 11 — Pipeline CI com check/build/e2e — 100% concluída e validada.
+Task 11 — Pipeline CI com check/build/e2e — 100% concluída e validada (commit `321b692`).
 
-## Estado atual
-- ✅ Branch: main
-- ✅ Commit: 321b692 — Merge pull request #8
-- ✅ npm run check: PASSOU
-- ✅ npm run build: PASSOU
-- ✅ npm run e2e: 3/3 testes passando
-- ✅ CI pipeline: rodando automaticamente em push/PR
-- ✅ Cobertura E2E: PENDING→APPROVED, FAILED→retry, EXPIRED→retry
+## Estado atual (2026-04-17)
+- [~] Task 16 — Bootstrap local (env-file + build fix + sessão Redis)
+- Branch: `main`
+- Status: alterações locais ainda não commitadas
 
-## Mudanças implementadas (resumo)
+## Problema reportado
+- Frontend em branco com erro no console:
+  - `Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')`
+  - apontando para chunk `forms-data-vendor-*.js`
 
-### Task 10 — E2E Tests
-- Playwright instalado e configurado
-- `tests/e2e/orders-flow.spec.ts` com 3 cenários completos
-- Seletores estabilizados com `data-testid`
-- Rota checkout corrigida (`/ingressos/checkout`)
-- Validação: 3/3 testes passando localmente
+## Mudanças implementadas nesta rodada (Task 16)
+- `vite.config.ts`: removido `rollupOptions.output.manualChunks` (estava gerando dependência circular entre chunks e deixando `React` `undefined` no runtime)
+- `package.json`: scripts agora carregam `.env` via `--env-file=.env` (dev/build/start/seed/sync)
+- `server/index.ts`: sessão persistente via Redis Store (`connect-redis` + `ioredis`) quando `REDIS_URL` está definido
+- `client/src/components/ui/form.tsx`: contexts agora usam default `null` e `useFormField()` valida presença antes de acessar
 
-### Task 11 — CI Pipeline
-- `.github/workflows/ci-e2e.yml` criado
-- Pipeline: checkout → Node 20 → npm ci → playwright install → check → build → e2e
-- Upload relatório Playwright como artefato
-- README.md criado com badge CI
-- PR #8 merged com sucesso
-
-## Fluxo funcional (ponta a ponta)
-
-1. Desenvolvedor faz commit/push
-2. GitHub Actions dispara CI automaticamente
-3. Pipeline roda: check (TypeScript) → build → e2e tests
-4. Se falhar: relatório Playwright disponível como artefato
-5. Se passar: badge verde no README
-6. Regressões no fluxo de pedidos são detectadas automaticamente
-
-## Critério de aceite cumprido
-- [x] Cobertura E2E para fluxo crítico de pedidos
-- [x] Pipeline CI com check/build/e2e
-- [x] Artefatos para debug de falhas
-- [x] Badge visual de status
-- [x] Formulário checkout pré-preenchido automaticamente
-- [x] Dados limpos após criação de pagamento (não persistem)
-- [x] Backend expõe phone e cpf via /api/orders/:id
-- [x] localStorage usado para prefill temporário
-- [x] Validação typecheck + build OK
-
-## Próxima ação
-Aguardar definição de próxima task funcional/técnica (ex.: Task 10 — Deploy em staging ou Testes E2E)
+## O que ainda falta (próximo passo exato)
+1. Pare o servidor atual (Ctrl+C) e rode `npm run start`
+2. Abra `http://localhost:5000` e faça hard refresh (Ctrl+F5)
+3. Confirmar que o console não mostra mais o erro `createContext`
+4. Testar login `demo@reservei.com.br` / `demo123`
+5. (Opcional) Validar Redis sessions: `redis-cli keys "rsv360:sess:*"`

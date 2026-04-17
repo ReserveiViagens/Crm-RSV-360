@@ -7,3 +7,11 @@ vite.config.ts.*
 data/db.json
 uploads/website/*
 !uploads/website/.gitkeep
+
+attached_assets/
+.local/
+.canvas/
+.venv/
+playwright-report/
+test-results/
+* (2).*

@@ -37,4 +37,4 @@ npm run check
 - `shared/` - Tipos compartilhados
 - `tests/` - Testes E2E
 - `docs/` - Documentação</content>
-<parameter name="filePath">c:\Users\RSV 360\Documents\GitHub\Crm-RSV-360\README.md
+<parameter name="filePath">c:\Users\RSV 360\Documents\GitHub\Crm-RSV-360\README.md# replit-crm-rsv-360
