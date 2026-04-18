@@ -1,0 +1,1046 @@
+# CRM-RSV-360 — Reservei Viagens | Cursor AI Design & Architecture Rules
+
+## Projeto
+Plataforma de turismo para Caldas Novas e Rio Quente (GO, Brasil).
+Stack: React 18 + TypeScript + Vite (frontend) · Express + Node.js + tsx (backend) · Tailwind CSS + shadcn/ui · TanStack Query v5 · wouter (routing) · WebSocket (ws).
+
+---
+
+## 1. STACK OBRIGATÓRIA — nunca substituir sem aprovação explícita
+
+| Camada | Tecnologia |
+|---|---|
+| Bundler | Vite (não Next.js, não CRA) |
+| Router | `wouter` |
+| Data fetching | `@tanstack/react-query` v5 |
+| UI primitives | `shadcn/ui` (style: new-york) |
+| Estilos | Tailwind CSS + CSS custom properties |
+| Icons | `lucide-react` (ícones gerais) · `react-icons/si` (logos de marcas) |
+| Backend | Express + tsx (ESM) |
+| ORM | Drizzle ORM |
+| WebSocket | `ws` (server) · client nativo (browser) |
+| Formulários | `react-hook-form` + `zodResolver` |
+
+---
+
+## 2. DESIGN SYSTEM — tokens de cor e escala
+
+### Cores (definidas em `client/src/index.css` como variáveis HSL sem `hsl()`)
+```css
+--primary: 221.2 83.2% 53.3%;          /* azul principal */
+--primary-foreground: 210 40% 98%;
+--background: 0 0% 100%;
+--foreground: 222.2 84% 4.9%;
+--muted: 210 40% 96%;
+--muted-foreground: 215.4 16.3% 46.9%;
+--border: 214.3 31.8% 91.4%;
+--card: 0 0% 100%;
+--destructive: 0 84.2% 60.2%;
+```
+
+### Hierarquia de cores semânticas para features de turismo
+- **Sucesso / disponível**: `emerald-500` / `bg-emerald-50 text-emerald-600`
+- **Alerta / urgência**: `amber-500` / `bg-amber-50 text-amber-600`
+- **Erro / esgotado**: `red-500` / `bg-red-50 text-red-600`
+- **Destaque / premium**: `primary` (azul)
+- **Texto secundário**: `text-muted-foreground`
+
+---
+
+## 3. COMPONENTES — regras de construção
+
+### Cards
+```tsx
+// Padrão obrigatório para todos os cards de listagem
+<div className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-border
+                transition-all duration-200 hover:-translate-y-1 hover:shadow-xl flex flex-col">
+```
+- Sempre `rounded-2xl` para cards principais
+- Hover: `hover:-translate-y-1 hover:shadow-xl`
+- Imagens internas: `h-48` com `object-cover` e `group-hover:scale-105 transition-transform duration-500`
+- Gradient overlay na imagem: `bg-gradient-to-t from-black/60 via-transparent to-transparent`
+
+### Botões
+```tsx
+// Primário
+<Button className="rounded-xl font-semibold" />
+
+// Primário grande (hero/CTA)
+<Button size="lg" className="rounded-2xl font-bold px-8 h-12" />
+
+// Outline sobre fundo escuro
+<Button variant="outline" className="rounded-2xl border-white/40 text-white hover:bg-white/10" />
+```
+
+### Badges
+```tsx
+// Destaque/tag sobre imagem
+<Badge className="bg-primary text-white text-xs font-semibold shadow" />
+
+// Desconto
+<Badge className="bg-emerald-500 text-white text-xs font-bold shadow" />
+
+// Tag neutra
+<Badge className="bg-amber-500 text-white text-xs font-semibold shadow" />
+```
+
+### Inputs e Selects
+```tsx
+<Input className="h-11 rounded-xl" />
+<SelectTrigger className="h-11 rounded-xl" />
+```
+
+### Seções Hero
+```tsx
+<section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+  {/* Imagem de fundo com overlay */}
+  <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url(...)", backgroundSize: "cover" }} />
+  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/30 to-blue-900/70" />
+  {/* Conteúdo */}
+  <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
+    {/* Badge topo */}
+    <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6" />
+    {/* Título */}
+    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 tracking-tight" />
+    {/* Subtítulo */}
+    <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-8 leading-relaxed" />
+  </div>
+</section>
+```
+
+### Seções CTA (call-to-action)
+```tsx
+<section className="bg-gradient-to-br from-indigo-600 to-blue-700 text-white py-16
+                    mx-4 mb-10 rounded-3xl max-w-6xl md:mx-auto px-6">
+```
+
+### Layout de página
+```tsx
+<div className="min-h-screen bg-background">
+  {/* Hero */}
+  {/* Seção auxiliar (como funciona, filtros...) bg-muted/40 border-b */}
+  {/* Conteúdo principal max-w-6xl mx-auto px-4 py-10 */}
+  {/* CTA */}
+  {/* Rodapé de suporte border-t bg-muted/30 */}
+</div>
+```
+
+---
+
+## 4. ESTRUTURA DE ARQUIVOS — onde colocar cada coisa
+
+```
+client/src/
+  pages/                  ← uma página = um arquivo .tsx
+    admin/                ← sub-páginas do painel admin
+  components/
+    ui/                   ← shadcn primitivos (não editar)
+    *.tsx                 ← componentes reutilizáveis do projeto
+  lib/
+    queryClient.ts        ← TanStack Query + apiRequest
+    socket.ts             ← cliente WebSocket
+    caldas-ai-regras.ts   ← lógica CaldasAI / FOMO / upsell
+    utils.ts              ← cn() e helpers
+  hooks/
+    use-toast.ts
+    use-mobile.tsx
+
+server/
+  index.ts               ← HTTP server + WebSocket setup
+  routes.ts              ← todas as rotas REST
+  storage.ts             ← interface IStorage + MemStorage
+  persistence.ts         ← estado em memória (_db)
+  social-commerce.ts     ← lógica de grupos e social commerce
+  socket.ts              ← broadcast de eventos WebSocket
+  services/
+    bureaucracyService.ts
+    accountingService.ts
+
+shared/
+  schema.ts              ← tipos Drizzle + Zod insert schemas
+```
+
+---
+
+## 5. ROTAS REGISTRADAS — nunca quebrar estas URLs
+
+| Rota | Componente | Notas |
+|---|---|---|
+| `/` | Home | |
+| `/hoteis` | Hoteis | |
+| `/hoteis/:id` | Hoteis | detalhe como painel lateral |
+| `/excursoes` | Excursoes | landing pública de excursões |
+| `/promocoes` | Promocoes | |
+| `/flash-deals` | FlashDeals | |
+| `/leiloes` | Leiloes | |
+| `/ingressos` | Ingressos | |
+| `/atracoes` | Atracoes | |
+| `/contato` | Contato | |
+| `/caldas-ai` | CaldasAI | |
+| `/mapa` | MapaCaldas | alias de /mapa-caldas-novas |
+| `/mapa-caldas-novas` | MapaCaldas | |
+| `/perfil` | Perfil | hierarquia por role (Visitante/Passageiro/Organizador/Admin) |
+| `/minhas-reservas` | MinhasReservas | lista de reservas do passageiro |
+| `/notificacoes` | Notificacoes | notificações com marcar como lida |
+| `/configuracoes` | Configuracoes | edição de dados pessoais + preferências |
+| `/programa-fidelidade` | ProgramaFidelidade | níveis Bronze/Prata/Ouro/Diamante |
+| `/minhas-avaliacoes` | MinhasAvaliacoes | avaliações do passageiro |
+| `/viagens-grupo` | ViagensGrupo | gestão interna de grupos — 5 abas primárias (Início, Roteiro, Planejar, Votar, Chat) |
+| `/viagens-grupo/:id` | ViagensGrupo | grupo específico — mesma estrutura de 5 abas |
+| `/criar-excursao` | CriarExcursao | wizard de criação (ProtectedRoute: LIDER/admin) |
+| `/criar-excursao/:id` | CriarExcursao | edição (ProtectedRoute: LIDER/admin) |
+| `/quem-somos` | QuemSomos | |
+| `/politica-de-privacidade` | PoliticaPrivacidade | |
+| `/admin` | AdminDashboard | alias de /admin/dashboard |
+| `/admin/dashboard` | AdminDashboard | |
+| `/admin/financeiro` | Financeiro | |
+| `/admin/frota` | FrotaANTT | alias de /admin/frota-antt |
+| `/admin/frota-antt` | FrotaANTT | |
+| `/admin/excursoes` | ViagensGrupo | |
+| `/admin/passageiros` | ViagensGrupo | |
+| `/admin/fnrh` | AdminFnrh | |
+| `/admin/assinatura-digital` | AssinaturaDigital | |
+| `/admin/integracoes` | Integracoes | |
+| `/admin/cadastur` | CadasturPage | |
+| `/admin/lgpd` | LGPDDashboard | |
+| `/admin/relatorios-ads` | RelatoriosAds | |
+| `/admin/seguro-viagem` | SeguroViagem | |
+| `/admin/seguranca-embarque` | SegurancaEmbarque | |
+| `/admin/contratos` | ContratosExcursao | |
+
+---
+
+## 6. REGRAS DE CÓDIGO — padrões obrigatórios
+
+### React / TypeScript
+- **Nunca** importar React explicitamente (`import React from 'react'`) — o Vite já configura o JSX transform
+- Variáveis de ambiente no frontend: `import.meta.env.VITE_*` (não `process.env`)
+- Usar `cn()` do `@/lib/utils` para classes condicionais
+- Dark mode: sempre fornecer variantes explícitas `dark:` quando não usar tokens de design
+
+### TanStack Query v5
+```tsx
+// Query (apenas forma de objeto)
+const { data, isLoading } = useQuery({ queryKey: ['/api/excursoes'] })
+
+// Mutation com invalidação
+const mutation = useMutation({
+  mutationFn: (data) => apiRequest('POST', '/api/excursoes', data),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/excursoes'] }),
+})
+```
+
+### Formulários
+```tsx
+const form = useForm<InsertType>({
+  resolver: zodResolver(insertSchema),
+  defaultValues: { campo: "" },
+})
+```
+
+### data-testid — obrigatório em todos os elementos interativos
+```tsx
+// Padrão: {ação}-{alvo} para botões/inputs
+data-testid="btn-reservar"
+data-testid="input-busca"
+data-testid="select-categoria"
+
+// Padrão: {tipo}-{descricao}-{id} para listas
+data-testid={`card-excursao-${exc.id}`}
+data-testid={`btn-favoritar-${exc.id}`}
+```
+
+### WebSocket
+```tsx
+// Client: usar socketEmit() — não socket.emit() diretamente
+import { socketEmit, subscribeExcursao } from "@/lib/socket"
+socketEmit("entrar_excursao", { excursaoId })
+
+// subscribeExcursao aceita objeto de handlers
+subscribeExcursao(id, {
+  onPixExpirado: (data) => { ... },
+  onVigilancia: (data) => { ... },
+  onEstadoGrupo: (data) => { ... },
+  onAiIntervention: (data) => { ... },
+})
+```
+
+---
+
+## 7. NAVEGAÇÃO CIRCULAR — circular-nav.tsx
+
+O menu circular tem dois anéis: `outer` (páginas principais) e `inner` (utilitários).
+
+**Anel externo (outer):** Início, Hotéis, Promoções, Ingressos, Atrações, Ofertas, Leilão, **Excursões**
+**Anel interno (inner):** Contato, Mapa, Perfil, Grupos, CaldasAI, Quem Somos
+
+Ao adicionar uma nova página principal, adicionar ao `allNavItems` com `ring: "outer"`.
+Ao adicionar utilitário/admin, usar `ring: "inner"`.
+
+---
+
+## 8. BACKEND — padrões de rotas
+
+```typescript
+// Sempre validar body com Zod antes de passar ao storage
+app.post('/api/excursoes', async (req, res) => {
+  const parsed = insertExcursaoSchema.safeParse(req.body)
+  if (!parsed.success) return res.status(400).json({ error: parsed.error })
+  const result = await storage.createExcursao(parsed.data)
+  res.json(result)
+})
+
+// Emitir eventos WebSocket após mutações
+import { broadcastToExcursao } from './socket'
+broadcastToExcursao(excursaoId, 'estado_grupo', payload)
+```
+
+---
+
+## 9. CONTEÚDO — contexto editorial
+
+- **Língua**: Português brasileiro (pt-BR) em toda interface e dados estáticos
+- **Destinos**: Caldas Novas e Rio Quente (Goiás, Brasil)
+- **Tom**: profissional mas acolhedor, focado em família e grupos
+- **Moeda**: Real brasileiro (R$), formatado com `toLocaleString("pt-BR")`
+- **Datas**: `toLocaleDateString("pt-BR")` ou `{ day: "2-digit", month: "short" }`
+- **Horários**: `toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })`
+
+---
+
+## 10. WIZARD DE EXCURSÃO — padrões de /criar-excursao
+
+### Arquitetura do Wizard
+O wizard `/criar-excursao/:id` tem **5 steps sequenciais** com navegação por `StepBar`:
+```
+[1. Básico] → [2. Veículo] → [3. Hotel] → [4. Roteiro] → [5. Revisão]
+```
+
+### StepBar (barra de progresso)
+```tsx
+// Componente StepBar — steps completados ficam verdes com checkmark
+<StepBar active={activeStep} completed={completedSteps} />
+
+// State necessário
+const [activeStep, setActiveStep] = useState(1);
+const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+
+// Ao avançar, sempre usar goStep() para marcar step atual como completo
+function goStep(n: number) {
+  setCompletedSteps((prev) => new Set(Array.from(prev).concat(activeStep)));
+  setActiveStep(n);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+```
+- Nunca usar `[...prev]` para espalhar um `Set` — usar `Array.from(prev)` (evita erro TypeScript com target não-ES2015)
+
+### Cards de veículo (Step 2)
+```tsx
+// 3 cards clicáveis: Van / Micro / Ônibus
+// vehicleByCapacity(capacidade) retorna sugestão automática
+// BUG CORRIGIDO: ao selecionar manualmente, usar:
+setRoteiro((p) => ({
+  ...p,
+  veiculoTipo: tipo,
+  manualVehicleOverride: tipo !== suggestedVehicle,
+  veiculoAutomatico: tipo === suggestedVehicle,
+}));
+
+// useEffect de auto-veículo DEVE checar !roteiro.manualVehicleOverride (não veiculoAutomatico)
+useEffect(() => {
+  if (roteiro.manualVehicleOverride) return; // <-- correto
+  const auto = vehicleByCapacity(capacidade);
+  if (roteiro.veiculoTipo !== auto) setRoteiro((prev) => ({ ...prev, veiculoTipo: auto }));
+}, [capacidade, roteiro.manualVehicleOverride]);
+```
+
+### Catálogo estático Caldas Novas (DEFAULT_CATALOG)
+Quando a API `/api/excursoes/:id/catalogo-roteiro` retorna vazio, usa-se catálogo estático:
+- **Parques**: Hot Park, Di Roma Acqua Park, Golden Dolphin Water Park, Turmalina Termas, Lagoa Quente
+- **Atrações**: Lago Corumbá, Parque das Nascentes, Mirante de Caldas Novas, Mercado Municipal, Igreja Matriz
+- **Passeios**: City Tour Caldas Novas, Passeio de Barco Lago Corumbá, Tour Gastronômico, Trilha Ecológica
+```tsx
+const catalogoRoteiro = useMemo(() => ({
+  atracoes: apiCatalogo.atracoes.length > 0 ? apiCatalogo.atracoes : DEFAULT_ATRACOES,
+  passeios: apiCatalogo.passeios.length > 0 ? apiCatalogo.passeios : DEFAULT_PASSEIOS,
+  parquesAquaticos: apiCatalogo.parquesAquaticos.length > 0 ? apiCatalogo.parquesAquaticos : DEFAULT_PARQUES,
+  ...
+}), [apiCatalogo]);
+```
+
+### Mapa de dias (Step 4)
+```tsx
+// Estado dos dias
+const [activeDayTab, setActiveDayTab] = useState<string>("");
+type DaySelections = Record<string, { atracoes: string[]; passeios: string[]; parques: string[] }>;
+const [daySelections, setDaySelections] = useState<DaySelections>({});
+
+// tripDays calculado de dataIda a dataVolta
+const tripDays = useMemo(() => { /* itera de dataIda até dataVolta */ }, [dataIda, dataVolta]);
+
+// Tab ativa: bg-primary text-white; dias com conteúdo: badge verde com count
+// Clicar num item do catálogo sincroniza tanto daySelections quanto selectedCatalogIds globais
+```
+
+### Hotel — separação admin/público (Step 3)
+```tsx
+// Detectar admin via query param
+const urlParams = new URLSearchParams(window.location.search);
+setIsAdminMode(urlParams.get("admin") === "1");
+
+// Admin: formulário completo com accordion por card (HotelAdminCard)
+// Público: cards visuais bonitos (HotelPublicCard) ou placeholder elegante
+{isAdminMode ? <HotelAdminCard ... /> : <HotelPublicCard ... />}
+```
+
+### Barra de completude (Step 5 Revisão)
+```tsx
+const completionScore = useMemo(() => {
+  let score = 0;
+  if (nome.trim()) score += 20;                           // nome: 20%
+  if (roteiro.hoteis[0]?.titulo.trim()) score += 20;      // hotel: 20%
+  if (selectedCatalogIds.parquesAquaticos.length > 0) score += 20; // parques: 20%
+  if (selectedCatalogIds.atracoes.length > 0) score += 20;         // atrações: 20%
+  if (selectedCatalogIds.passeios.length > 0) score += 20;         // passeios: 20%
+  return score; // 0-100
+}, [nome, roteiro.hoteis, selectedCatalogIds]);
+
+// Visual: emerald quando >= 80%, amber quando >= 50%, primary abaixo disso
+```
+
+### Neuromarketing no catálogo
+```tsx
+// neuroCounts: Record<string, number> mapeando card.id → qtd de excursões que usaram
+const neuroCounts: Record<string, number> = {
+  "def-hot-park": 89, "def-city-tour": 74, "def-golden-dolphin": 61, ...
+};
+
+// Badges: badgeTipo="popular" → "🔥 Mais escolhido", badgeTipo="ia" → "⭐ Recomendado IA"
+// Preço gratuito (precoPorPessoa === 0) → badge "💰 Gratuito" verde
+```
+
+### data-testid do wizard
+| Elemento | testid |
+|---|---|
+| Step 1 card | `wizard-step-1` |
+| Step 2 card | `wizard-step-2` |
+| Step 3 card | `wizard-step-3` |
+| Step 4 card | `wizard-step-4` |
+| Step 5 card | `wizard-step-5` |
+| Botão próximo | `btn-step-next-{n}` |
+| Card veículo | `vehicle-card-van`, `vehicle-card-micro`, `vehicle-card-ônibus` |
+| Card catálogo | `catalog-card-{id}` |
+| Tab de dia | `day-tab-{YYYY-MM-DD}` |
+| Barra completude | `completion-bar` |
+| Publicar | `criar-excursao-wizard-publicar` |
+| Salvar rascunho | `criar-excursao-wizard-salvar` |
+
+---
+
+## 11. O QUE NUNCA FAZER
+
+- ❌ Não mudar o bundler para Next.js, webpack ou outro
+- ❌ Não substituir `wouter` por `react-router-dom`
+- ❌ Não usar `process.env` no frontend (usar `import.meta.env`)
+- ❌ Não importar React explicitamente
+- ❌ Não editar `package.json` scripts sem aprovação
+- ❌ Não editar `vite.config.ts` ou `server/vite.ts` sem necessidade crítica
+- ❌ Não editar `drizzle.config.ts`
+- ❌ Não usar `socket.emit()` diretamente — usar `socketEmit()`
+- ❌ Não criar componentes sem `data-testid` nos elementos interativos
+- ❌ Não definir variáveis de cor CSS com `hsl()` — usar apenas `H S% L%` separados por espaço
+- ❌ Não usar `array(text())` no Drizzle — usar `text().array()`
+- ❌ Não cachear o cliente de integrações externas (tokens expiram)
+- ❌ Não usar a forma de array do TanStack Query v4 (`useQuery(['key'])`) — usar sempre objeto
+
+---
+
+## 12. SISTEMA DE AUTENTICAÇÃO — Padrões e Arquitetura
+
+### 12.1 Auth Backend (Express Session + Scrypt)
+- **Middleware**: `express-session` com `SESSION_SECRET`, `cookie: { httpOnly: true, sameSite: "lax", maxAge: 7d }`
+- **Rotas**:
+  - `POST /api/auth/register` — `{ nome, email, telefone, senha, cpf? }` → cria usuário
+  - `POST /api/auth/login` — `{ identificador, senha }` — detecta tipo automaticamente (email/telefone/CPF)
+  - `POST /api/auth/logout` — destroi sessão
+  - `GET  /api/auth/me` — retorna `safeUser()` ou 401
+  - `POST /api/auth/selfie` — `{ fotoUrl: string (base64) }` → salva foto no usuário autenticado
+  - `GET  /api/auth/google` — redireciona para OAuth Google
+  - `GET  /api/auth/google/callback` — callback OAuth, cria/vincula conta
+  - `GET  /api/auth/google/status` → `{ configured: boolean }`
+  - `PATCH /api/auth/perfil` — `{ nome?, telefone? }` → atualiza dados do perfil (auth required)
+  - `GET  /api/reservas/minhas` — retorna reservas do usuário autenticado `{ items: Reserva[] }`
+  - `GET  /api/notificacoes` — retorna notificações do usuário `{ items: Notificacao[], naoLidas: number }`
+  - `PATCH /api/notificacoes/:id/lida` — marca notificação como lida
+- **`safeUser()`** retorna: `{ id, nome, email, telefone, role, cpf, fotoUrl, provider }`
+- **Hash**: `scrypt` + salt hex, formato `hash.salt`
+
+### 12.2 Smart Login — detecção automática de identificador
+```
+loginSchema.identificador detecta:
+- "(" → telefone (formato (XX) XXXXX-XXXX)
+- regex CPF (\d{3}\.\d{3}\.\d{3}-\d{2}) → CPF
+- "@" → email
+- 11 dígitos contíguos → telefone
+```
+- `getUserByIdentifier(identificador)` no storage resolve telefone/CPF com/sem formatação
+
+### 12.3 Schema de usuário (shared/schema.ts)
+```ts
+// Campos extra além do básico:
+cpf: text()           // opcional, máscara 000.000.000-00
+googleId: text()      // OAuth Google
+fotoUrl: text()       // base64 selfie ou URL
+provider: text()      // "local" | "google"
+```
+
+### 12.4 Hooks de Auth (client/src/hooks/use-auth.ts)
+```ts
+useAuth()         // { user, isLoading } — queryKey ["/api/auth/me"]
+useLogin()        // mutationFn POST /api/auth/login, campo: identificador
+useRegister()     // mutationFn POST /api/auth/register
+useLogout()       // mutationFn POST /api/auth/logout, limpa cache
+```
+
+### 12.5 Selfie Biométrica — SelfieModal e BiometricCapture
+
+**`SelfieModal`** (`client/src/components/selfie/SelfieModal.tsx`):
+- Prop `contexto: "perfil" | "excursao" | "cadastro"` → muda cor, ícone e mensagem
+- Chama `POST /api/auth/selfie` após captura → atualiza cache do usuário
+- Prop `onSucesso?: (fotoUrl: string) => void` para callback local
+- Prop `onFechar: () => void`
+
+**`BiometricCapture`** (`client/src/components/kyc/BiometricCapture.tsx`):
+- Prop `mensagemSucesso?: string` — mensagem customizável na tela de sucesso
+- Estados: `camera` → `preview` → `success`
+- Oval silhouette overlay sobre o webcam
+- Delay de 1200ms simulando processamento biométrico
+
+**Integração no Perfil** (`/perfil`):
+- Avatar clicável (`data-testid="avatar-selfie-trigger"`) → abre SelfieModal contexto "perfil"
+- Banner CTA "Tirar selfie" (`data-testid="button-tirar-selfie"`) aparece quando `!user.fotoUrl`
+- Badge "Identidade verificada" (verde) aparece após selfie salva
+
+**Gate no Criar Excursão** (`/criar-excursao`):
+- Banner verde escuro (`data-testid="selfie-gate-banner"`) aparece quando `user && !user.fotoUrl`
+- Botão "Verificar agora" (`data-testid="button-selfie-gate"`) abre SelfieModal contexto "excursao"
+- Badge verde "Identidade verificada! Você pode criar e publicar excursões." após sucesso (`data-testid="selfie-gate-ok"`)
+
+### 12.6 Google OAuth
+- Requer: `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env vars
+- Callback URL: `{HOST}/api/auth/google/callback`
+- Degrada graciosamente — botão Google sempre visível, mostra badge "Configurar" se não configurado
+- Vinculação automática: se e-mail já existe na base, vincula `googleId` sem criar duplicata
+
+---
+
+## 13. MÓDULOS NTX (Next Generation) — Arquitetura e Padrões
+
+### 12.1 KYC Biométrico (T001)
+- **Fluxo**: `LGPDAcceptanceModal` → scroll obrigatório até o fim → checkbox → `BiometricCapture` → tela de sucesso
+- **Componentes**:
+  - `client/src/components/kyc/LGPDAcceptanceModal.tsx` — Dialog shadcn, scroll obrigatório antes de habilitar botão
+  - `client/src/components/kyc/BiometricCapture.tsx` — react-webcam, oval overlay, estados: camera → preview → success
+  - `client/src/pages/kyc-verificacao.tsx` — rota `/kyc`, orquestra o fluxo completo
+- **Regra**: Botão de aceite só ativa após `hasScrolled === true` E `isChecked === true`
+- **Test IDs**: `lgpd-modal`, `lgpd-scroll-area`, `lgpd-checkbox`, `lgpd-accept-btn`, `biometric-capture`, `btn-capture-photo`, `btn-retry-photo`, `btn-confirm-photo`, `biometric-success`
+
+### 12.2 WhatsApp WaaS — Evolution API (T002)
+- **Serviço**: `server/services/whatsapp.service.ts`
+- **Modo demo automático**: Se `EVOLUTION_API_URL` ou `EVOLUTION_API_KEY` ausentes → todas as funções retornam mock `{ success: true, demo: true }` sem lançar erros
+- **`INSTANCE_NAME`**: Lê de `EVOLUTION_INSTANCE_NAME` env var com fallback `"CaldasMaster"`
+- **Estado em memória**: `cachedConnectionState` (open/connecting/close) e `cachedPhoneNumber` — atualizados por polling e webhook
+- **Funções exportadas**:
+  - `createExcursionGroup(groupName, organizerPhone)` — cria grupo, promove admin, envia boas-vindas via CaldasAI
+  - `sendTextToGroup(groupId, text)` — envia mensagem com `humanDelay()` anti-ban (3-7s aleatório)
+  - `sendPollToGroup(groupId, question, options)` — envia enquete (singleCount=1)
+  - `sendPaymentConfirmation(groupId, passengerName, amount)` — mensagem de celebração
+  - `getWaasStatus()` — retorna `{ configured, demo, instance, apiUrl, state, phoneNumber }`
+  - `createInstance()` — cria instância na Evolution API (`/instance/create`) com `qrcode: true`
+  - `getInstanceStatus()` — consulta `/instance/connectionState/{name}`, atualiza cache em memória
+  - `getQRCode()` — consulta `/instance/connect/{name}`, retorna `{ base64, pairingCode }`
+  - `deleteInstance()` — desconecta via `/instance/logout/{name}`, reseta cache
+  - `fetchAllGroups()` — consulta `/group/fetchAllGroups/{name}?getParticipants=false`
+  - `handleWebhookEvent(event, data)` — processa `connection.update` (atualiza cache) e `messages.upsert` (loga)
+- **Rotas backend**:
+  - `GET /api/waas/status` — status geral da instância + state + phoneNumber
+  - `POST /api/waas/instancia` — cria instância
+  - `GET /api/waas/instancia/status` — estado de conexão (open/connecting/close) + número
+  - `GET /api/waas/instancia/qrcode` — QR code base64
+  - `DELETE /api/waas/instancia` — desconecta instância
+  - `POST /api/waas/webhook` — recebe eventos Evolution API
+  - `GET /api/waas/grupos` — grupos reais (conectado) ou vazio (demo)
+  - `POST /api/waas/criar-grupo` — `{ name, phone }`
+  - `POST /api/waas/:excursaoId/mensagem` — `{ text }`
+  - `POST /api/waas/:excursaoId/enquete` — `{ question, options: string[] }`
+- **Frontend**: `client/src/pages/admin/waas-dashboard.tsx` — rota `/admin/waas`
+  - **Connection Card**: 3 estados — demo (alerta âmbar com instruções), desconectado (QR code auto-refresh 30s + botão Criar Instância), conectado (badge verde + número + botão Desconectar)
+  - Grupos reais exibidos quando conectado via `/api/waas/grupos`
+  - Tabela de grupos de excursão com MOCK_GROUPS como fallback em demo
+  - Dialogs: criar grupo, enviar mensagem, enviar enquete
+- **Test IDs**: `connection-card`, `btn-create-instance`, `btn-disconnect`, `btn-refresh-qr`, `qr-code-image`, `pairing-code`, `real-groups-card`
+
+### 12.3 Split de Pagamento Pix (T003)
+- **Serviço**: `server/services/payment.service.ts`
+- **Modo demo automático**: Se `GATEWAY_API_URL` ausente → retorna mock com QR code placeholder base64 e pixCopyPaste simulado
+- **Interface `SplitRule`**: `{ recipientId, amount, liable, chargeProcessingFee }`
+- **Função principal**: `createSplitPaymentPix(amount, orderId, customerName, organizerCommission)` → `PixPaymentResult`
+- **Webhook**: `POST /api/webhook/payment` — evento `transaction.paid` → `sendPaymentConfirmation()` + `emitEstadoGrupo()`
+- **Componente**: `client/src/components/checkout/PaymentCheckout.tsx` — countdown 30min, QR code, Pix copia e cola, split breakdown
+- **CRÍTICO**: `apiRequest` retorna `Promise<Response>` — para dados, usar `const res = await apiRequest(...); return res.json()`
+
+### 12.4 Gamificação do Organizador (T004 → T007 refatorado)
+- **Modelo em memória**: `OrganizerGoal` com campos `{ id, nivel, title, description, targetSeats, achievedSeats, rewardType, rewardValue, status }`
+- **3 Níveis de Meta**:
+  - Nível 1: Kit Conforto para 2 Pessoas (CORTESIA 🎟️) — 15 vagas
+  - Nível 2: Ingresso Lagoa Termas Parque (UPGRADE_DIVERSAO 🏨) — 10 vagas
+  - Nível 3: Viagem 50% de Desconto (CASHBACK 💰) — 30 vagas/mês
+- **Status possíveis**: `"LOCKED"` | `"UNLOCKED"` | `"CLAIMED"`
+- **RewardType**: `"CORTESIA"` | `"CASHBACK"` | `"UPGRADE_DIVERSAO"`
+- **Backend com dados reais**:
+  - `GET /api/organizador/:userId/metas` — calcula `achievedSeats` a partir de reservas `confirmada` no `reservaStore` + `gamificationExtraSeats` (incrementado pelo webhook)
+  - `PATCH /api/organizador/metas/:id/resgatar` — persiste status `CLAIMED` no in-memory `gamificationClaimed` por userId; rejeita se meta não atingida
+  - `POST /api/webhook/payment` — incrementa `gamificationExtraSeats` a cada `transaction.paid`
+- **Frontend**: `client/src/pages/organizer/gamification-dashboard.tsx` — rota `/organizer/metas`
+  - `useQuery` com `refetchInterval: 30000` busca dados reais do backend
+  - Badge de nível (Nível 1/2/3) em cada card com cor contextual
+  - Aviso visível amarelo em goals LOCKED: "Você precisa atingir esta meta para que o sistema libere o bônus automaticamente. Faltam X vagas!"
+  - Toast de desbloqueio: detecta transição LOCKED→UNLOCKED via `useRef` + `useEffect`
+  - Loading state com spinner enquanto dados carregam
+- **Design**: Botão "Resgatar" ativo apenas quando `status === "UNLOCKED"` (meta atingiu 100%)
+
+### 12.5 Landing Pages Dinâmicas de Excursão (T005)
+- **Rota**: `/excursoes/:slug` → `client/src/pages/excursao-landing.tsx`
+- **Anatomia**: Hero (gradient azul-teal + countdown FOMO + price) → Benefícios → Itinerário D1/D2/D3 → Depoimentos → `PaymentCheckout` (componente T003)
+- **Analytics**: `POST /api/analytics/pageview` ao montar a página (`useEffect` com `trackView.mutate()`)
+- **Demo disponível**: `/excursoes/caldas-novas-maio` usa dados hardcoded (MOCK_LANDING)
+- **Rotas backend**: `GET /api/excursoes/landing/:slug` — busca excursão por slug normalizado (`nome.toLowerCase().replace(/\s+/g, "-")`)
+
+### 12.6 Live Chat Handoff (T006 - parte 1)
+- **Serviço**: `server/services/humanHandoff.service.ts`
+- **Armazenamento**: `Map<groupId, { operatorId, since }>` em memória
+- **Funções**: `pauseAI(groupId, operatorId)`, `resumeAI(groupId)`, `isAIPaused(groupId)`, `getHandoffInfo(groupId)`, `listPausedGroups()`
+- **Evento WebSocket**: ao pausar/resumir emite `emitEstadoGrupo(groupId, { type: "ai_paused" | "ai_resumed" })`
+- **Rotas**:
+  - `POST /api/handoff/:groupId/pausar` — `{ operatorId }`
+  - `POST /api/handoff/:groupId/retomar`
+  - `GET /api/handoff/pausados`
+- **Frontend**: `client/src/pages/superadmin/live-chat.tsx` — rota `/admin/live-chat`, toggle verde (AI)/vermelho (Humano), badge piscante "MODO HUMANO", input desabilitado quando AI ativa
+
+### 12.7 Super-Admin Financeiro (T006 - parte 2)
+- **Frontend**: `client/src/pages/superadmin/financial-dashboard.tsx` — rota `/admin/super-financeiro`
+- **KPIs**: Lucro Líquido, GMV, Repasses (Split), Passageiros Pagantes
+- **Gráficos (recharts)**: `BarChart` (GMV vs Lucro por mês) + `LineChart` (taxa de conversão)
+- **Export CSV**: botão `data-testid="btn-export-csv"` gera e baixa CSV dos dados de excursão
+
+### 12.8 Novas Rotas Registradas em App.tsx
+```
+/kyc                      → KYCVerificacao
+/admin/waas               → WaaSDashboard
+/organizer/metas          → GamificationDashboard
+/admin/super-financeiro   → FinancialDashboard
+/admin/live-chat          → LiveChat
+/excursoes/:slug          → ExcursaoLanding
+```
+
+### 12.9 Sidebar Admin — Seção NTX
+Os links NTX foram adicionados ao `admin-dashboard.tsx` na seção "🚀 NTX — Next Gen":
+- KYC Biométrico → `/kyc`
+- WhatsApp WaaS → `/admin/waas`
+- Live Chat Handoff → `/admin/live-chat`
+- Super-Admin Financeiro → `/admin/super-financeiro`
+- Gamificação → `/organizer/metas`
+- Landing Page Demo → `/excursoes/caldas-novas-maio`
+
+### 12.10 Privacidade e Controle de Acesso a Grupos (session: group-privacy)
+**Problema resolvido**: qualquer pessoa acessava `/viagens-grupo` sem login, convite ou aprovação.
+
+**Fluxo de gates implementado em `client/src/pages/viagens-grupo.tsx`:**
+
+```
+Acessa /viagens-grupo?excursao=ID
+       ↓
+Gate 1 — Auth: usuário está logado? (useAuth)
+  NÃO → tela "Grupo Privado" com botão → /entrar?next=URL
+  SIM ↓
+Gate 2 — Membership: qual é o role? (GET /api/excursoes/:id/me-role)
+  null (estranho)   → tela "Entrada Restrita" (código convite + solicitar)
+  PENDING           → tela "Aguardando Aprovação"
+  REJEITADO         → tela "Acesso Negado"
+  MEMBER | ADMIN    → grupo aberto normalmente
+```
+
+**Roles possíveis** (`membershipStore`):
+- `ADMIN` — criador/promovido, edita roteiro oficial
+- `MEMBER` — entrou via convite aprovado, pode sugerir/votar
+- `PENDING` — solicitou entrada, aguarda aprovação
+- `REJEITADO` — entrada negada pelo organizador
+- `null` — sem registro de membership
+
+**Ações no gate "Entrada Restrita":**
+- Código de convite → `POST /api/invites/join` `{ code, userId, nome }` → role vira MEMBER
+- Solicitar participação → `POST /api/excursoes/:id/solicitar-participacao` `{ userId, nome }` → role vira PENDING
+
+**Backend (`server/routes.ts`):**
+- `GET /api/excursoes/:id/me-role` agora prefere `req.session.userId` (auth real) sobre header `x-user-id` (legacy)
+- Todos os handlers de sugestão/votação usam `user?.id` e `user?.nome` do `useAuth()`, não mais localStorage
+
+**Badge visual em `client/src/pages/excursoes.tsx`:**
+- Cada card tem badge âmbar "Grupo Privado" com ícone Lock (`data-testid: badge-privado-{id}`)
+- Não bloqueia o clique — o gate do viagens-grupo trata o acesso
+
+**data-testids importantes:**
+- `btn-gate-login` — botão "Entrar na conta" (gate não autenticado)
+- `btn-gate-join-invite` — botão "Entrar com convite"
+- `input-gate-invite-code` — campo de código de convite
+- `btn-gate-request-join` — botão "Solicitar participação"
+- `btn-gate-refresh` — botão "Atualizar status" (tela PENDING)
+- `btn-gate-back-excursoes` — botão voltar (tela REJEITADO)
+- `badge-privado-{excursaoId}` — badge no card da excursão
+
+---
+
+### 12.11 Wizard /criar-excursao — Componentes Interativos (session: wizard-enhancement)
+
+**Sub-componentes adicionados em `client/src/pages/criar-excursao.tsx`:**
+
+#### DateRangePicker
+- Calendário inline construído em React puro (sem biblioteca externa)
+- Clique 1 → define `dataIda`; Clique 2 → define `dataVolta`
+- Range entre datas destacado com `bg-blue-100`; datas selecionadas com `bg-primary text-white rounded-full`
+- Exibe badge "N dias · N noites" após seleção
+- Timeline visual de dias (D1 · D2 · ...) com linha horizontal conectando pontos
+
+#### DestinoPicker
+- 7 destinos pré-definidos com foto Unsplash + nome + estado
+- `DESTINOS_PRESET`: Caldas Novas GO, Rio Quente GO, Pirenópolis GO, Chapada dos Veadeiros GO, Goiânia GO, Brasília DF, Bonito MS
+- Card selecionado com `ring-2 ring-primary`
+- Opção "+ Outro destino" abre `<Input>` para texto livre
+
+#### LocalSaidaPicker
+- `ORIGENS_PRESET`: 4 cidades pré-definidas + "Outro"
+- Cards com ícone `MapPin`, ring azul quando selecionado
+- "Outro" abre input de texto livre
+
+#### CapacidadeStepper
+- Stepper visual com botões `−` / `+` (`rounded-full`)
+- Range: 4–60 pessoas
+- Badge automático por faixa: Mini grupo (4–6), Grupo médio (7–15), Grupo grande (16–28), Excursão completa (29–60)
+- Sugestão de veículo como badge inline (atualiza dinamicamente)
+- Visualização de ícones `User` (máx 20 visíveis + "+N")
+
+#### HOTEIS_CALDAS_PRESET (Step 3)
+- 6 hotéis reais de Caldas Novas com foto, nome, preço/pessoa, descrição
+- IDs: `diroma-fiori`, `diroma-acqua`, `sesc`, `hot-park-suites`, `nautico`, `pousada-rio-quente`
+- Botão "Usar este" → cria `RoteiroCard` preenchido em `roteiro.hoteis`
+- Sem duplicação: verifica `roteiro.hoteis.some(c => c.titulo === h.nome)`
+- data-testid: `hoteis-preset-grid`, `hotel-preset-{id}`, `btn-usar-hotel-{id}`
+
+#### Share Panel (Step 5 — após publicar)
+- Estado: `isPublished: boolean`, `linkCopied: boolean`
+- Após `handleSaveRoteiro(true)` bem-sucedido: `setIsPublished(true)` + `goStep(5)` (não redireciona mais)
+- Painel com gradiente emerald-teal: data-testid `share-panel`
+- URL display: `{origin}/viagens-grupo?excursao={excursaoId}` — data-testid `share-link-text`
+- Botão Copiar (data-testid `btn-copiar-link`): feedback "Copiado!" por 2s via `setLinkCopied`
+- WhatsApp share: `https://wa.me/?text=...` com nome + link — data-testid `btn-compartilhar-whatsapp`
+- "Ver meu grupo": link para `/viagens-grupo?excursao={id}` — data-testid `btn-ver-meu-grupo`
+- Após publicar: botões de preview e salvar alterações ainda visíveis (painel separado)
+
+### 12.12 Wizard Persuasivo com Convite (session: wizard-convite)
+
+#### Conceito
+- Quando um visitante não-logado acessa `/viagens-grupo?excursao=X&convite=INV-ABCD-123`, vê um card especial de convite em vez do card genérico de login.
+- O card exibe: ícone de envelope (Mail), badge "Você foi convidado!" (verde), nome da excursão (via `GATE_EXCURSAO_INFO`), texto persuasivo, e dois botões: "Entrar na conta" e "Criar conta grátis".
+- Ambos os botões redirecionam com `?next=` preservando `excursao=` e `convite=` na URL de retorno.
+- Após login/cadastro, o usuário retorna com `?convite=` na URL, que pré-preenche automaticamente o input de código de convite no gate `memberRole === null` via `useEffect`.
+- `conviteFromQuery` é extraído de `window.location.search` junto às demais query params.
+- Quando não há `?convite=`, o card genérico de login é exibido normalmente.
+
+#### data-testids
+- `wizard-convite-card` — card do wizard completo
+- `btn-wizard-login` — botão "Entrar na conta" no wizard
+- `btn-wizard-cadastrar` — botão "Criar conta grátis" no wizard
+
+### 12.13 PIX Checkout — Gate na Landing + Seção no Grupo (session: pix-checkout)
+
+#### Conceito
+- **Landing page** (`excursao-landing.tsx`): Para visitantes não-logados, o `<PaymentCheckout>` é substituído por um card com botões "Entrar" e "Cadastrar" que redirecionam para `/entrar?next=/viagens-grupo?excursao=ID` e `/cadastrar?next=/viagens-grupo?excursao=ID`. Logados veem o checkout normalmente.
+- **Grupo** (`viagens-grupo.tsx`): Seção "Reserve agora, pague pelo Pix" adicionada na aba Início (activePrimaryTab === 0), antes do Planejador IA. Usa `GATE_EXCURSAO_INFO` para nome/preço da excursão com comissão organizador de 15%.
+- `GATE_EXCURSAO_INFO` agora inclui campo `preco` por excursão.
+
+#### data-testids
+- `btn-landing-login` — botão "Entrar" na landing (para não-logados)
+- `btn-landing-cadastrar` — botão "Cadastrar" na landing (para não-logados)
+- `section-pix-grupo` — seção PIX dentro do grupo autenticado
+
+### 12.14 Pontos do Passageiro + Minha Jornada RSV + Ranking (T008)
+- **Sistema de Pontos**: 1 ponto por R$1 pago via PIX. Creditado pelo `POST /api/webhook/payment` → `pontosStore[passengerName]` + evento em `pontosHistoricoStore[passengerName]`
+- **Endpoints**:
+  - `GET /api/gamification/pontos` → `{ pontos, streak, nome }` (streak = nº reservas confirmadas do usuário logado)
+  - `GET /api/gamification/historico` → `{ historico: [{ data, motivo, valor }] }` (últimos 50, reversed)
+  - `GET /api/gamification/conquistas` → `{ conquistas: [{ id, titulo, descricao, icone, threshold, desbloqueada }] }`
+  - `GET /api/gamification/ranking-organizadores` → `{ ranking: [{ nome, vagas }] }` (top 10 por reservas confirmadas)
+- **Conquistas disponíveis**: primeira-viagem (1 reserva), grupo-de-5 (5 reservas), fiel-caldas (3 reservas), mil-pontos (1000 pts), embaixador (5000 pts)
+- **Página Minha Jornada RSV**: `client/src/pages/minha-jornada.tsx` → rota `/minha-jornada`
+  - Saldo de pontos (🪙 gradiente laranja) + Streak/viagens confirmadas (🔥 gradiente vermelho)
+  - Grid de conquistas com badges bloqueadas/desbloqueadas
+  - Histórico de pontos com data/motivo/valor
+  - Card CTA "Acumule mais pontos viajando com a RSV360!"
+- **Página Ranking Organizadores**: `client/src/pages/ranking-organizadores.tsx` → rota `/ranking-organizadores`
+  - Pódio visual (🥇🥈🥉) top 3 + tabela 4–10
+  - Link no sidebar do admin-dashboard (`link-sidebar-ranking`)
+- **Perfil atualizado**: `perfil.tsx` busca saldo real via `useQuery` ao `/api/gamification/pontos`, card "Meus Pontos" clicável navega para `/minha-jornada`, menu item "Minha Jornada RSV" com ícone Trophy
+- **data-testids**: `minha-jornada-page`, `card-saldo-pontos`, `card-streak`, `section-conquistas`, `conquista-{id}`, `section-historico-pontos`, `historico-item-{i}`, `card-cta-pontos`, `link-explorar-viagens`, `card-meus-pontos`, `text-pontos-saldo`, `ranking-organizadores-page`, `podium-{1,2,3}`, `tabela-ranking-restantes`, `ranking-row-{n}`, `link-sidebar-ranking`
+
+### 12.15 Sistema Líder — Mini-Wizard de Candidatura + Acesso Exclusivo (session: lider-gate)
+
+#### Conceito
+- Somente usuários com `role === "LIDER"` ou `role === "admin"` podem criar excursões.
+- O botão "Quero criar minha excursão" fica **visível para todos** (incluindo não-logados).
+- Ao clicar, abre o `LiderApplicationDialog` — um mini-wizard de candidatura em 3 passos.
+- Após completar o wizard com sucesso, o usuário recebe `role = "LIDER"` e é redirecionado para `/criar-excursao`.
+
+#### Backend — Novas Rotas (`server/routes.ts`)
+- `POST /api/auth/tornar-lider`: requer sessão; aceita body `{ tipoGrupo, qtdPessoas }`; loga a candidatura; define `role = "LIDER"` via `storage.updateUser`; retorna `safeUser(updated)`.
+- `POST /api/excursoes`: agora requer sessão (401) + LIDER/admin role (403 `NOT_LIDER`).
+
+#### Componente `LiderApplicationDialog` (`client/src/components/lider-application-dialog.tsx`)
+- Reusável, com props: `open`, `onOpenChange`, `user: AuthUser | null`.
+- **3 passos**:
+  1. **Tipo de grupo**: 7 opções como chips clicáveis com emoji + label + cor por tipo. `TIPOS_GRUPO`: `igreja`, `empresa`, `familia`, `amigos`, `escola`, `agencia`, `outro`. `COR_MAP` mapeia cor para classes Tailwind.
+  2. **Quantas pessoas**: número grande + botões +/- + chips rápidos (5/10/15/20/28/40). Mínimo 3 para prosseguir.
+  3a. **Se não logado**: resumo da candidatura + botões "Já tenho conta" (`/entrar`) + "Criar conta" (`/cadastro`).
+  3b. **Se logado**: lista de compromissos (emerald cards) + checkbox de aceite + botão "Ativar minha liderança!".
+- `tornarLiderMutation`: POST `/api/auth/tornar-lider` com `{ tipoGrupo, qtdPessoas }`; onSuccess: invalidate `/api/auth/me` + toast + `setLocation("/criar-excursao")`.
+- Após fechar, reset state com `setTimeout`.
+- Progress bar por passos (amber quando ativo).
+- data-testids: `tipo-grupo-{id}`, `btn-step1-proximo`, `btn-qtd-minus`, `btn-qtd-plus`, `qtd-pessoas-display`, `qtd-chip-{n}`, `btn-step2-proximo`, `btn-gate-login`, `btn-gate-cadastro`, `check-compromisso`, `btn-confirmar-lider`.
+
+#### Frontend — `excursoes.tsx`
+- `isLider = user?.role === "LIDER" || user?.role === "admin"`.
+- `liderDialogOpen` state controla abertura do dialog.
+- **Hero buttons**: LIDER → link âmbar "/criar-excursao" (data-testid `btn-hero-criar-excursao`); outros → "Quero criar minha excursão" abre dialog (data-testid `btn-hero-quero-criar`).
+- **CTA Section** (`data-testid="cta-lideranca"`): condicional:
+  - **LIDER**: gradiente âmbar, botões Criar + Meus Grupos.
+  - **Não-LIDER**: gradiente indigo, grid 6 benefícios, botão "Quero criar — É grátis!" abre dialog (data-testid `btn-tornar-lider-cta`).
+- `<LiderApplicationDialog>` renderizado no final do componente.
+
+#### Frontend — `criar-excursao.tsx`
+- `isLoading: authLoading` extraído de `useAuth()`.
+- `liderDialogOpen` state para o dialog na tela de gate.
+- **Gate early return**: `if (!authLoading && !isLider)` → tela full-screen com gradiente indigo + grid de benefícios.
+  - Botão "Quero criar minha excursão" (data-testid `btn-gate-quero-criar`) abre `LiderApplicationDialog`.
+  - Botão "Ver excursões disponíveis" (data-testid `btn-gate-voltar`) → `/excursoes`.
+  - `<LiderApplicationDialog>` incluído no JSX do early return.
+
+---
+
+## 12.16 Busca Dinâmica de Excursões por Localização — `/catalogo-excursoes`
+
+### Interface `Excursao` — campos de saída
+```ts
+cidadeSaida: string        // cidade de partida do ônibus
+estadoSaida: string        // UF de partida (2 letras)
+cepSaida: string           // CEP de referência da cidade de saída (formato XXXXX-XXX)
+parceiroRegional?: boolean // flag dinâmica: true quando excursão é fallback do mesmo estado
+```
+
+### 18 excursões mock (EXCURSOES[])
+Cidades de saída variadas: Goiânia (GO), Brasília (DF), Uberlândia (MG), Belo Horizonte (MG), São Paulo (SP), Anápolis (GO), Ribeirão Preto (SP), Campo Grande (MS), Cuiabá (MT).
+
+### Painel "De onde você sai?" — localização
+- 3 abas: CEP, Cidade, Estado (`tabLocalidade` state)
+- **CEP**: input com máscara `formatCEP()`. Auto-busca via `buscarCEP()` quando 8 dígitos são digitados (não precisa clicar botão). Botão "Buscar" também disponível. Resultado preenche `filtros.cidadeSaida` + `filtros.estadoSaida`.
+- **Cidade**: input livre + botão "Filtrar" → filtra por igualdade exata normalizada (NFD, case-insensitive, sem acentos)
+- **Estado**: `<Select>` com 27 UFs do `ESTADOS_BR` → filtra por `estadoSaida === uf`
+- Feedback visual com ✓ e link "Limpar"
+
+### Algoritmo de proximidade/fallback
+Quando filtro por cidade é aplicado:
+1. **Prioridade**: mostra excursões com saída exata na cidade buscada
+2. **Fallback**: se nenhuma excursão sai da cidade exata MAS o estado é conhecido (via CEP ou seleção), mostra excursões do mesmo estado com badge **"Parceiro regional"** (amber)
+3. Se nenhum resultado no estado, mostra empty state com CaldasAI
+
+### Filtros adicionais
+- **Preço**: `input-preco-min` / `input-preco-max` (type=number)
+- **Data de partida**: select por mês (Abril–Julho 2026)
+- Filtros existentes: busca textual, categoria, ordenação
+
+### Chips removíveis
+`ChipFiltro` component: badge com ícone X clicável.
+Tipos: `localidade`, `estado`, `preco-min`, `preco-max`, `mes`, `categoria`, `busca`.
+Botão "Limpar tudo" reseta todos os filtros.
+
+### Empty state — CaldasAI personalizado (`data-testid="catalogo-empty"`)
+Quando 0 resultados: card gradiente com ícone Sparkles, mensagem personalizada com cidade/UF filtrada:
+- Se `filtros.cidadeSaida`: "Não encontramos excursões saindo de {cidade}/{UF}"
+- Se `filtros.estadoSaida`: "Não encontramos excursões saindo de {nomeEstado}"
+- Senão: mensagem genérica sobre filtros
+Botões:
+1. "Falar no WhatsApp" → URL dinâmico `wa.me/5562999999999?text=...saindo de ${cidadeFiltrada}` (`btn-whatsapp-sugestao`)
+2. "Perguntar à CaldasAI" → `/caldas-ai` (`btn-caldas-ai-empty`)
+3. "Limpar filtros" (`btn-limpar-filtros-empty`)
+
+### data-testids novos
+| Elemento | testid |
+|---|---|
+| Seção localidade | `secao-localidade` |
+| Tab CEP | `tab-localidade-cep` |
+| Tab Cidade | `tab-localidade-cidade` |
+| Tab Estado | `tab-localidade-estado` |
+| Input CEP | `input-cep` |
+| Botão buscar CEP | `btn-buscar-cep` |
+| Input cidade | `input-cidade-localidade` |
+| Select estado | `select-estado-localidade` |
+| Chip filtro | `chip-filtro-{tipo}` |
+| Botão limpar chip | `btn-limpar-chip-{tipo}` |
+| Input preço mín | `input-preco-min` |
+| Input preço máx | `input-preco-max` |
+| Select data partida | `select-data-partida` |
+| Empty state container | `catalogo-empty` |
+| Card CaldasAI empty | `card-caldas-ai-empty` |
+| Botão WhatsApp | `btn-whatsapp-sugestao` |
+| Badge parceiro regional | `badge-parceiro-regional-{id}` |
+
+### Utilitário ViaCEP — `client/src/lib/viacep.ts`
+- `buscarCEP(cep: string): Promise<ViaCEPResult>` — GET `https://viacep.com.br/ws/{cep}/json/`
+- `formatCEP(value: string): string` — máscara `XXXXX-XXX`
+- `ESTADOS_BR`: array de `{ uf, nome }` com 27 estados brasileiros
+
+---
+
+## 16. ADMIN QUICK ACTIONS — 5 Sub-páginas Operacionais (commit `0d01097`)
+
+### T008-T002 — Nova Reserva (`/admin/nova-reserva`)
+- `client/src/pages/admin/nova-reserva.tsx`
+- Formulário completo: busca de cliente com autocomplete (nome/CPF), seleção de destino, datas, nº passageiros, valor, método de pagamento, observações
+- Gera código `RSV-{timestamp}` ao submeter
+- `data-testid`: `page-nova-reserva`, `form-nova-reserva`, `input-busca-cliente`, `sugestao-cliente-{id}`, `select-destino`, `button-criar-reserva`
+
+### T008-T002 — Clientes (`/admin/clientes`)
+- `client/src/pages/admin/clientes.tsx`
+- Tabela com busca (nome/CPF/email), filtro por status (ativo/lead/inativo), paginação (6 por página)
+- Modal inline para cadastro de novo cliente
+- Detalhe expandível ao clicar "Ver"
+- `data-testid`: `page-clientes`, `table-clientes`, `input-busca-clientes`, `select-filtro-status`, `button-novo-cliente`, `row-cliente-{id}`, `button-ver-cliente-{id}`
+
+### T008-T002 — CRM Atendimento (`/admin/crm`)
+- `client/src/pages/admin/crm.tsx`
+- Painel split: lista de clientes à esquerda (com busca/filtro), timeline de interações à direita
+- Tipos de interação: Ligação, WhatsApp, E-mail, Reunião (com ícones e cores distintas)
+- Formulário para adicionar nova interação com seleção de tipo
+- `data-testid`: `page-crm`, `input-busca-crm`, `crm-cliente-{id}`, `crm-nome-selecionado`, `input-nova-interacao`, `button-enviar-interacao`, `interacao-{id}`
+
+### T008-T002 — Relatório Mensal (`/admin/relatorio-mensal`)
+- `client/src/pages/admin/relatorio-mensal.tsx`
+- Seletor de mês/ano com dados gerados proceduralmente
+- 4 KPIs: Receita Total, Nº de Reservas, Ticket Médio, Novos Clientes
+- Gráfico recharts (BarChart) de receita por semana
+- Tabela de reservas do período com status badges
+- Export CSV funcional
+- `data-testid`: `page-relatorio-mensal`, `select-mes`, `select-ano`, `kpi-{0-3}`, `table-reservas-relatorio`, `button-exportar-csv`
+
+### T008-T002 — Configurações do Sistema (`/admin/configuracoes-sistema`)
+- `client/src/pages/admin/configuracoes-sistema.tsx`
+- 3 abas: Empresa (razão social, CNPJ, endereço), Pagamento (chave PIX, taxas MDR/ISS, dados bancários split), Notificações (canais de envio com toggles, tipos de alerta)
+- Botão "Salvar Configurações" com loading state
+- `data-testid`: `page-configuracoes-sistema`, `tab-empresa`, `tab-pagamento`, `tab-notificacoes`, `button-salvar-config`, `toggle-canal{Email|WhatsApp|SMS|Push}`
+
+### Dashboard Quick Actions atualizado
+Os 5 quickActions do `admin-dashboard.tsx` apontam para as rotas reais:
+- Nova Reserva → `/admin/nova-reserva`
+- Adicionar Cliente → `/admin/clientes`
+- CRM - Atendimento → `/admin/crm`
+- Relatório Mensal → `/admin/relatorio-mensal`
+- Configurações → `/admin/configuracoes-sistema`
+
+### Sidebar atualizada
+Seção "Operacional": Nova Reserva, Clientes, CRM, Relatório Mensal (novos), + FNRH, Contratos, etc (existentes).
+Seção "Conformidade": Config. Sistema (novo) + Configurações Conta (existente, aponta `/configuracoes`).
+
+---
+
+## Regra específica da página /ingressos
+
+### Princípio
+Ao trabalhar na rota `/ingressos`, preservar integralmente o layout visual existente. Evoluir por extensão funcional, nunca por redesign desnecessário.
+
+### Manter obrigatoriamente
+- hero com gradiente azul
+- identidade RSV360 / Reservei Viagens
+- abas superiores (Todos, Dia Inteiro, Meio Dia, Mais Popular, Maior Desconto)
+- barra de prova social
+- bloco "COMBO IA — SUGESTÃO INTELIGENTE"
+- grid atual de cards
+- badges de desconto
+- badges de match
+- hierarquia atual de preços
+- CTA visual dos cards
+- bloco inferior de recomendação cruzada (CrossSellSection)
+
+### Permissões de evolução
+É permitido:
+- adicionar estado selecionado no card (borda + stepper)
+- adicionar stepper de quantidade (substitui botão sem mudar altura do card)
+- adicionar carrinho sticky/bottom bar
+- adicionar integração com checkout Pix (/ingressos/checkout)
+- adicionar estados de loading, empty e error
+- adicionar analytics (trackEvent)
+- adicionar data-testid
+- adicionar explicabilidade do combo IA
+- melhorar recomendação cruzada sem mudar layout
+
+### Proibições
+Nunca:
+- transformar a página em landing page genérica
+- trocar o grid por lista
+- remover combo IA
+- remover social proof
+- trocar o visual principal de cards
+- misturar lógica de excursão nesta página
+- inserir elementos de ônibus, embarque, poltrona ou organizador
+- refatorar cores base sem necessidade
+- remover badges de desconto/match
+- substituir a arquitetura do front fora do padrão Vite + wouter + TanStack Query v5
+
+### Escopo correto da página /ingressos
+A rota `/ingressos` trata apenas de:
+- catálogo de ingressos
+- seleção de quantidade (stepper por card)
+- carrinho persistente (localStorage via cart-store.ts)
+- checkout Pix (/ingressos/checkout)
+- sucesso da compra (/ingressos/sucesso)
+- ingressos digitais
+- recomendações e ofertas relacionadas
+
+### Escopo incorreto
+Não incluir nesta rota:
+- excursões
+- passageiros
+- repasses
+- painel master
+- painel do organizador
+- voucher de embarque
+- controle de baixa manual
+
+### Arquivos do fluxo de ingressos
+- `client/src/pages/ingressos.tsx` — catálogo + stepper + barra de carrinho; integra QuickDecisionSection (activePick filtra grid), MiniWizard (triggered por "combo" pick), CartStickyBar, useTicketsCart hook
+- `client/src/pages/ingressos-checkout.tsx` — checkout Pix (form + QR + polling)
+- `client/src/pages/ingressos-sucesso.tsx` — confirmação + download + cross-sell
+- `client/src/lib/cart-store.ts` — store de carrinho com localStorage (addToCart com qty opcional, addManyToCart)
+- `client/src/lib/analytics.ts` — trackEvent (RSV analytics local)
+- `client/src/hooks/useTicketsCart.ts` — hook com sincronização multi-aba (StorageEvent)
+- `client/src/components/CartStickyBar.tsx` — barra sticky bottom:0 z-200 com total e CTA
+- `client/src/components/QuickDecisionSection.tsx` — 4 botões de escolha rápida (custo/família/popular/combo)
+- `client/src/components/MiniWizard.tsx` — modal 3 passos: pessoas + duração → prioridade + combo → resumo
+- `client/src/components/TicketsGrid.tsx` — grid componentizado com stepper, badges e AlsoBoughtMini
+- `server/services/ticket-payment.service.ts` — createTicketPix (sem split)
+- Backend rotas: POST /api/payments/tickets/create, GET /api/payments/tickets/:id/status, GET /api/payments/tickets/:id, POST /api/webhooks/tickets
+
+### Pix de ingresso ≠ Pix de excursão
+- Ingresso: `createTicketPix` → sem split, 100% Reservei
+- Excursão: `createSplitPaymentPix` → com split organizador/plataforma
+
+### Documentação técnica
+- Documento completo da página `/ingressos`: `docs/Estrutura-completa-pagina-ingressos.md`
+  - Contém: fluxo, arquivos, catálogo, filtros, estado React, paleta de cores, animações, funções, cart-store, analytics, rotas backend, serviço de pagamento, data-testids, regras de preservação

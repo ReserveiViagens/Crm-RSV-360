@@ -1,0 +1,946 @@
+{
+  "excursaoStore": [
+    {
+      "nome": "Caldas Novas — Grupo Demo",
+      "destino": "Caldas Novas, GO",
+      "dataIda": "2026-07-15",
+      "dataVolta": "2026-07-20",
+      "localSaida": "Goiânia - Terminal Rodoviário",
+      "capacidade": 40,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "id": "mngar102",
+      "wizard": {
+        "roteiroOficial": {
+          "veiculoTipo": "Ônibus",
+          "veiculoAutomatico": true,
+          "manualVehicleOverride": false,
+          "hotelPrincipal": "Di Roma Grand Hotel",
+          "atracoes": [
+            "Mirante do Rio Corumbá",
+            "Feira Noturna de Caldas Novas",
+            "Museu das Culturas"
+          ],
+          "passeios": [
+            "Passeio de Barco — Lago Corumbá",
+            "Quadriciclo nas Trilhas do Cerrado",
+            "Pesca Esportiva Rio Quente"
+          ],
+          "parquesAquaticos": [
+            "Hot Park",
+            "Di Roma Acqua Park",
+            "Lagoa Quente Thermas"
+          ],
+          "hoteis": [
+            {
+              "id": "hotel-di-roma",
+              "titulo": "Di Roma Grand Hotel",
+              "descricaoBreve": "Resort 5 estrelas com piscinas termais, toboáguas e spa completo",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 280,
+              "duracaoHoras": 24,
+              "horarioSaida": "14:00",
+              "diasDisponiveis": [
+                "D1",
+                "D2",
+                "D3",
+                "D4",
+                "D5"
+              ],
+              "badgeTipo": "popular"
+            },
+            {
+              "id": "hotel-laranjais",
+              "titulo": "Resort Thermas dos Laranjais",
+              "descricaoBreve": "Resort familiar com águas termais naturais e área de lazer completa",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 220,
+              "duracaoHoras": 24,
+              "horarioSaida": "14:00",
+              "diasDisponiveis": [
+                "D1",
+                "D2",
+                "D3",
+                "D4",
+                "D5"
+              ],
+              "badgeTipo": "ia"
+            }
+          ],
+          "atracoesCards": [
+            {
+              "id": "atracao-mirante",
+              "titulo": "Mirante do Rio Corumbá",
+              "descricaoBreve": "Vista panorâmica do lago e pôr do sol inesquecível",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 0,
+              "duracaoHoras": 2,
+              "horarioSaida": "16:30",
+              "diasDisponiveis": [
+                "D2",
+                "D3",
+                "D4"
+              ]
+            },
+            {
+              "id": "atracao-feira",
+              "titulo": "Feira Noturna de Caldas Novas",
+              "descricaoBreve": "Artesanato, gastronomia regional e apresentações culturais",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 0,
+              "duracaoHoras": 3,
+              "horarioSaida": "19:00",
+              "diasDisponiveis": [
+                "D1",
+                "D3",
+                "D5"
+              ]
+            },
+            {
+              "id": "atracao-museu",
+              "titulo": "Museu das Culturas",
+              "descricaoBreve": "Exposição interativa sobre a história e cultura do cerrado goiano",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 15,
+              "duracaoHoras": 2,
+              "horarioSaida": "10:00",
+              "diasDisponiveis": [
+                "D2",
+                "D4"
+              ]
+            }
+          ],
+          "passeiosCards": [
+            {
+              "id": "passeio-barco",
+              "titulo": "Passeio de Barco — Lago Corumbá",
+              "descricaoBreve": "Navegação pelo lago com paradas para banho e fotos",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 85,
+              "duracaoHoras": 3,
+              "horarioSaida": "09:00",
+              "diasDisponiveis": [
+                "D2",
+                "D3",
+                "D4"
+              ],
+              "badgeTipo": "popular"
+            },
+            {
+              "id": "passeio-quadri",
+              "titulo": "Quadriciclo nas Trilhas do Cerrado",
+              "descricaoBreve": "Aventura off-road pelas trilhas com guia especializado",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 120,
+              "duracaoHoras": 2,
+              "horarioSaida": "08:00",
+              "diasDisponiveis": [
+                "D3",
+                "D5"
+              ]
+            },
+            {
+              "id": "passeio-pesca",
+              "titulo": "Pesca Esportiva Rio Quente",
+              "descricaoBreve": "Pesca esportiva com todo equipamento incluso e instrutor",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 95,
+              "duracaoHoras": 4,
+              "horarioSaida": "06:00",
+              "diasDisponiveis": [
+                "D2",
+                "D4"
+              ]
+            }
+          ],
+          "parquesAquaticosCards": [
+            {
+              "id": "parque-hotpark",
+              "titulo": "Hot Park",
+              "descricaoBreve": "Maior parque de águas quentes do mundo — toboáguas, rio lento e praia artificial",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 189,
+              "duracaoHoras": 8,
+              "horarioSaida": "09:00",
+              "diasDisponiveis": [
+                "D1",
+                "D2",
+                "D3",
+                "D4"
+              ],
+              "badgeTipo": "ia"
+            },
+            {
+              "id": "parque-diroma",
+              "titulo": "Di Roma Acqua Park",
+              "descricaoBreve": "Piscinas termais, toboáguas radicais e área infantil completa",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 130,
+              "duracaoHoras": 6,
+              "horarioSaida": "10:00",
+              "diasDisponiveis": [
+                "D2",
+                "D3",
+                "D5"
+              ],
+              "badgeTipo": "popular"
+            },
+            {
+              "id": "parque-lagoa",
+              "titulo": "Lagoa Quente Thermas",
+              "descricaoBreve": "Complexo termal com águas naturalmente aquecidas e spa relaxante",
+              "galeriaImagens": [],
+              "galeriaVideos": [],
+              "precoPorPessoa": 75,
+              "duracaoHoras": 5,
+              "horarioSaida": "10:00",
+              "diasDisponiveis": [
+                "D1",
+                "D3",
+                "D4"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "1",
+      "nome": "Caldas Novas Família Total",
+      "dataIda": "2026-04-18",
+      "dataVolta": "2026-04-21",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 48,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 890,
+      "precoInfantil": 445,
+      "categoria": "família",
+      "rating": 4.9,
+      "avaliacoes": 312,
+      "destaque": true,
+      "tag": "Mais vendida",
+      "slug": "caldas-novas-familia-total",
+      "descricao": "4 dias de diversão em família com hotel 4 estrelas, café incluso e guia dedicado.",
+      "inclui": [
+        "Transporte",
+        "Hotel 4★",
+        "Café da manhã",
+        "Guia",
+        "Seguro Viagem"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
+      "vagasOcupadas": 41
+    },
+    {
+      "id": "2",
+      "nome": "Hot Park & Rio Quente Fest",
+      "dataIda": "2026-04-25",
+      "dataVolta": "2026-04-27",
+      "destino": "Rio Quente",
+      "localSaida": "Brasília",
+      "capacidade": 40,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 720,
+      "precoInfantil": 360,
+      "categoria": "aventura",
+      "rating": 4.8,
+      "avaliacoes": 184,
+      "destaque": true,
+      "tag": "Super oferta",
+      "slug": "hot-park-rio-quente-fest",
+      "descricao": "3 dias com ingresso Hot Park incluso, hotel 5 estrelas e jantar especial.",
+      "inclui": [
+        "Transporte",
+        "Hotel 5★",
+        "Ingresso Hot Park",
+        "Jantar",
+        "Guia"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
+      "vagasOcupadas": 29
+    },
+    {
+      "id": "3",
+      "nome": "Semana Santa Caldas Premium",
+      "dataIda": "2026-04-17",
+      "dataVolta": "2026-04-20",
+      "destino": "Caldas Novas",
+      "localSaida": "São Paulo",
+      "capacidade": 52,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 1850,
+      "precoInfantil": 925,
+      "categoria": "premium",
+      "rating": 5,
+      "avaliacoes": 97,
+      "destaque": true,
+      "tag": "Premium",
+      "slug": "semana-santa-caldas-premium",
+      "descricao": "Uma semana completa no melhor resort de Caldas Novas. All inclusive, spa e transporte premium.",
+      "inclui": [
+        "Transporte Premium",
+        "Resort 5★",
+        "All Inclusive",
+        "Spa",
+        "Transfer"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80",
+      "vagasOcupadas": 48
+    },
+    {
+      "id": "4",
+      "nome": "Caldas All Inclusive Deluxe",
+      "dataIda": "2026-05-01",
+      "dataVolta": "2026-05-04",
+      "destino": "Caldas Novas",
+      "localSaida": "Belo Horizonte",
+      "capacidade": 36,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 1680,
+      "precoInfantil": 840,
+      "categoria": "premium",
+      "rating": 5,
+      "avaliacoes": 152,
+      "destaque": true,
+      "tag": "All Inclusive",
+      "slug": "caldas-all-inclusive-deluxe",
+      "descricao": "A experiência mais completa em Caldas Novas. Resort 5 estrelas, 3 parques e spa.",
+      "inclui": [
+        "Transporte",
+        "Resort 5★",
+        "3 Parques",
+        "All Inclusive",
+        "Spa"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+      "vagasOcupadas": 18
+    },
+    {
+      "id": "5",
+      "nome": "Rio Quente & Parque das Fontes",
+      "dataIda": "2026-05-08",
+      "dataVolta": "2026-05-10",
+      "destino": "Rio Quente",
+      "localSaida": "Goiânia",
+      "capacidade": 44,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 650,
+      "precoInfantil": 325,
+      "categoria": "aventura",
+      "rating": 4.7,
+      "avaliacoes": 89,
+      "slug": "rio-quente-parque-fontes",
+      "descricao": "Fim de semana em Rio Quente com Parque das Fontes e águas termais naturais.",
+      "inclui": [
+        "Transporte",
+        "Hotel 4★",
+        "Ingresso Parque",
+        "Café da manhã"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80",
+      "vagasOcupadas": 22
+    },
+    {
+      "id": "6",
+      "nome": "Caldas Novas Casal Romântico",
+      "dataIda": "2026-05-15",
+      "dataVolta": "2026-05-17",
+      "destino": "Caldas Novas",
+      "localSaida": "Brasília",
+      "capacidade": 20,
+      "veiculoTipo": "Van",
+      "status": "aberta",
+      "precoAdulto": 980,
+      "precoInfantil": 490,
+      "categoria": "casal",
+      "rating": 4.9,
+      "avaliacoes": 67,
+      "tag": "Casal",
+      "slug": "caldas-novas-casal-romantico",
+      "descricao": "Escapada romântica com jantar especial, spa a dois e suite exclusiva.",
+      "inclui": [
+        "Transporte",
+        "Suite Luxo",
+        "Jantar Romântico",
+        "Spa",
+        "Champanhe"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80",
+      "vagasOcupadas": 12
+    },
+    {
+      "id": "7",
+      "nome": "DiRoma Acqua Park Total",
+      "dataIda": "2026-05-22",
+      "dataVolta": "2026-05-25",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 60,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 750,
+      "precoInfantil": 375,
+      "categoria": "família",
+      "rating": 4.6,
+      "avaliacoes": 231,
+      "slug": "diroma-acqua-park-total",
+      "descricao": "3 dias no complexo DiRoma com ingresso para todos os parques aquáticos.",
+      "inclui": [
+        "Transporte",
+        "Hotel DiRoma",
+        "Ingressos",
+        "Café da manhã"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&q=80",
+      "vagasOcupadas": 38
+    },
+    {
+      "id": "8",
+      "nome": "Caldas Novas Aventura Jovem",
+      "dataIda": "2026-06-05",
+      "dataVolta": "2026-06-07",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 35,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 490,
+      "precoInfantil": 245,
+      "categoria": "aventura",
+      "rating": 4.5,
+      "avaliacoes": 55,
+      "slug": "caldas-novas-aventura-jovem",
+      "descricao": "Fim de semana radical com esportes aquáticos, trilha e muita diversão.",
+      "inclui": [
+        "Transporte",
+        "Hostel",
+        "Esportes",
+        "Guia"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&q=80",
+      "vagasOcupadas": 10
+    },
+    {
+      "id": "9",
+      "nome": "Rio Quente Resort Experience",
+      "dataIda": "2026-06-12",
+      "dataVolta": "2026-06-15",
+      "destino": "Rio Quente",
+      "localSaida": "São Paulo",
+      "capacidade": 45,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 1250,
+      "precoInfantil": 625,
+      "categoria": "resort",
+      "rating": 4.8,
+      "avaliacoes": 143,
+      "destaque": true,
+      "slug": "rio-quente-resort-experience",
+      "descricao": "4 dias no Rio Quente Resorts com acesso a todos os parques aquáticos e café incluso.",
+      "inclui": [
+        "Aéreo",
+        "Resort 5★",
+        "Todos os Parques",
+        "All Inclusive"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1455587734955-081b22074882?w=600&q=80",
+      "vagasOcupadas": 31
+    },
+    {
+      "id": "10",
+      "nome": "Caldas Novas Feriado Julho",
+      "dataIda": "2026-07-09",
+      "dataVolta": "2026-07-12",
+      "destino": "Caldas Novas",
+      "localSaida": "Uberlândia",
+      "capacidade": 50,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 920,
+      "precoInfantil": 460,
+      "categoria": "família",
+      "rating": 4.7,
+      "avaliacoes": 88,
+      "tag": "Julho",
+      "slug": "caldas-novas-feriado-julho",
+      "descricao": "Aproveite o feriado de julho com a família em Caldas Novas.",
+      "inclui": [
+        "Transporte",
+        "Hotel 4★",
+        "Café da manhã",
+        "Ingressos"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1561361058-c24e021a1f06?w=600&q=80",
+      "vagasOcupadas": 42
+    },
+    {
+      "id": "11",
+      "nome": "Hot Park VIP Experience",
+      "dataIda": "2026-07-18",
+      "dataVolta": "2026-07-20",
+      "destino": "Rio Quente",
+      "localSaida": "Brasília",
+      "capacidade": 30,
+      "veiculoTipo": "Van",
+      "status": "aberta",
+      "precoAdulto": 1100,
+      "precoInfantil": 550,
+      "categoria": "premium",
+      "rating": 4.9,
+      "avaliacoes": 76,
+      "destaque": true,
+      "tag": "VIP",
+      "slug": "hot-park-vip-experience",
+      "descricao": "Acesso VIP ao Hot Park com fast pass, lounge exclusivo e monitor pessoal.",
+      "inclui": [
+        "Transporte",
+        "Hotel 5★",
+        "Ingresso VIP",
+        "Fast Pass",
+        "Lounge"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80",
+      "vagasOcupadas": 17
+    },
+    {
+      "id": "12",
+      "nome": "Caldas Novas Pet Friendly",
+      "dataIda": "2026-08-07",
+      "dataVolta": "2026-08-09",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 25,
+      "veiculoTipo": "Van",
+      "status": "aberta",
+      "precoAdulto": 680,
+      "precoInfantil": 340,
+      "categoria": "família",
+      "rating": 4.6,
+      "avaliacoes": 34,
+      "slug": "caldas-novas-pet-friendly",
+      "descricao": "Viagem especial para famílias com pets. Hotel pet friendly e passeios ao ar livre.",
+      "inclui": [
+        "Transporte",
+        "Hotel Pet",
+        "Passeios",
+        "Guia"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600&q=80",
+      "vagasOcupadas": 8
+    },
+    {
+      "id": "13",
+      "nome": "Rio Quente Mágica de Natal",
+      "dataIda": "2026-12-23",
+      "dataVolta": "2026-12-26",
+      "destino": "Rio Quente",
+      "localSaida": "São Paulo",
+      "capacidade": 55,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 2100,
+      "precoInfantil": 1050,
+      "categoria": "premium",
+      "rating": 5,
+      "avaliacoes": 29,
+      "destaque": true,
+      "tag": "Natal",
+      "slug": "rio-quente-magica-natal",
+      "descricao": "Natal mágico em Rio Quente com decoração temática, shows e ceia especial.",
+      "inclui": [
+        "Aéreo",
+        "Resort 5★",
+        "Ceia de Natal",
+        "Shows",
+        "All Inclusive"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=600&q=80",
+      "vagasOcupadas": 51
+    },
+    {
+      "id": "14",
+      "nome": "Caldas Novas Réveillon Premium",
+      "dataIda": "2026-12-29",
+      "dataVolta": "2027-01-02",
+      "destino": "Caldas Novas",
+      "localSaida": "Brasília",
+      "capacidade": 48,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 2500,
+      "precoInfantil": 1250,
+      "categoria": "premium",
+      "rating": 5,
+      "avaliacoes": 18,
+      "tag": "Réveillon",
+      "slug": "caldas-novas-reveillon-premium",
+      "descricao": "Réveillon inesquecível com show pirotécnico, buffet de luxo e open bar.",
+      "inclui": [
+        "Transporte",
+        "Resort 5★",
+        "Réveillon",
+        "Open Bar",
+        "Show"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1496950866446-3253e1470e8e?w=600&q=80",
+      "vagasOcupadas": 44
+    },
+    {
+      "id": "15",
+      "nome": "Caldas Novas Melhor Idade",
+      "dataIda": "2026-09-10",
+      "dataVolta": "2026-09-13",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 28,
+      "veiculoTipo": "Micro",
+      "status": "aberta",
+      "precoAdulto": 780,
+      "precoInfantil": 390,
+      "categoria": "melhor-idade",
+      "rating": 4.8,
+      "avaliacoes": 112,
+      "tag": "Melhor Idade",
+      "slug": "caldas-novas-melhor-idade",
+      "descricao": "Pacote especial para a melhor idade com fisioterapia aquática e passeios tranquilos.",
+      "inclui": [
+        "Transporte Adaptado",
+        "Hotel 4★",
+        "Fisioterapia",
+        "Passeios",
+        "Monitor"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1504439468489-c8920d796a29?w=600&q=80",
+      "vagasOcupadas": 20
+    },
+    {
+      "id": "16",
+      "nome": "Rio Quente Casal Premium",
+      "dataIda": "2026-10-02",
+      "dataVolta": "2026-10-04",
+      "destino": "Rio Quente",
+      "localSaida": "Belo Horizonte",
+      "capacidade": 18,
+      "veiculoTipo": "Van",
+      "status": "aberta",
+      "precoAdulto": 1380,
+      "precoInfantil": 690,
+      "categoria": "casal",
+      "rating": 4.9,
+      "avaliacoes": 47,
+      "destaque": true,
+      "slug": "rio-quente-casal-premium",
+      "descricao": "Escapada premium para casais com tratamentos spa, jantar romântico e suíte com vista.",
+      "inclui": [
+        "Transporte",
+        "Suite Premium",
+        "Spa",
+        "Jantar",
+        "Champanhe"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80",
+      "vagasOcupadas": 10
+    },
+    {
+      "id": "17",
+      "nome": "Caldas Novas Escolar Educativo",
+      "dataIda": "2026-10-15",
+      "dataVolta": "2026-10-17",
+      "destino": "Caldas Novas",
+      "localSaida": "Goiânia",
+      "capacidade": 120,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 380,
+      "precoInfantil": 190,
+      "categoria": "escolar",
+      "rating": 4.4,
+      "avaliacoes": 78,
+      "slug": "caldas-novas-escolar-educativo",
+      "descricao": "Excursão escolar com programa educativo sobre geotermia e meio ambiente.",
+      "inclui": [
+        "Transporte",
+        "Pousada",
+        "Programa Educativo",
+        "Monitor",
+        "Refeições"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600&q=80",
+      "vagasOcupadas": 67
+    },
+    {
+      "id": "18",
+      "nome": "Caldas Novas Grupo Empresarial",
+      "dataIda": "2026-11-06",
+      "dataVolta": "2026-11-08",
+      "destino": "Caldas Novas",
+      "localSaida": "São Paulo",
+      "capacidade": 80,
+      "veiculoTipo": "Ônibus",
+      "status": "aberta",
+      "precoAdulto": 1150,
+      "precoInfantil": 575,
+      "categoria": "corporativo",
+      "rating": 4.7,
+      "avaliacoes": 24,
+      "slug": "caldas-novas-grupo-empresarial",
+      "descricao": "Team building em Caldas Novas com atividades grupais, sala de eventos e lazer.",
+      "inclui": [
+        "Transporte",
+        "Hotel 4★",
+        "Sala de Eventos",
+        "Team Building",
+        "All Inclusive"
+      ],
+      "imagem": "https://images.unsplash.com/photo-1542744094-24638eff58bb?w=600&q=80",
+      "vagasOcupadas": 55
+    }
+  ],
+  "groupStore": [
+    {
+      "id": "grp-mngar102",
+      "excursaoId": "mngar102",
+      "nome": "Caldas Novas — Grupo Demo",
+      "capacidade": 40,
+      "criadoEm": "2026-04-01T17:05:19.828Z"
+    }
+  ],
+  "membershipStore": [
+    {
+      "id": "mem-8ea9665d-5239-4dbb-980f-4680b7fcba68",
+      "groupId": "grp-mngar102",
+      "userId": "88a68b94-3a8a-4b71-905a-0fb3a8d29882",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:05:19.829Z"
+    },
+    {
+      "id": "mem-be6a8cc3-b1f1-44bf-87f0-89bd9a1a0f7b",
+      "groupId": "grp-mngar102",
+      "userId": "ac556d90-f8f7-4614-a0b4-174a961fba5f",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:06:22.664Z"
+    },
+    {
+      "id": "mem-1bb5d5a7-d96c-4b77-97b6-7ce8c91e318d",
+      "groupId": "grp-mngar102",
+      "userId": "2c21c8b6-206a-44c4-8924-e923439b3beb",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:06:58.165Z"
+    },
+    {
+      "id": "mem-4c1e4d9a-c5da-40db-9133-a3083558a723",
+      "groupId": "grp-mngar102",
+      "userId": "b5bdecbe-5a77-4bdb-9752-ad59d431cbea",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:07:35.462Z"
+    },
+    {
+      "id": "mem-008bf345-b3bf-4918-95d5-1c4c95e76737",
+      "groupId": "grp-mngar102",
+      "userId": "d03a2874-cb74-4b2a-ad39-811823bfdf68",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:08:06.605Z"
+    },
+    {
+      "id": "mem-6c4e7eb3-a8e5-4b75-b75a-15c344d9605b",
+      "groupId": "grp-mngar102",
+      "userId": "69fd3e45-ebbb-4257-8648-c71b74199581",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:40:00.294Z"
+    },
+    {
+      "id": "mem-406c9228-dcec-4e8c-ae49-c7494ee1f94d",
+      "groupId": "grp-mngar102",
+      "userId": "3b5df9eb-848f-48c8-b751-67504a68f021",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T17:48:36.261Z"
+    },
+    {
+      "id": "mem-d99caeb9-037b-4185-87ee-c6805de9e52c",
+      "groupId": "grp-mngar102",
+      "userId": "54e2ce2f-2fee-4321-9800-9b53f1e862e6",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T18:13:57.422Z"
+    },
+    {
+      "id": "mem-f4c746f7-4329-4fab-97e1-e08ccae13e65",
+      "groupId": "grp-mngar102",
+      "userId": "3175b3c9-f8f0-44b0-86ee-186c096fef44",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T18:24:16.617Z"
+    },
+    {
+      "id": "mem-b63e0bae-4d4b-4dde-a952-8e4114b839b7",
+      "groupId": "grp-mngar102",
+      "userId": "10a4a93c-63e0-4d2c-88e1-ccc69fb682e7",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:09:33.860Z"
+    },
+    {
+      "id": "mem-64dab4fa-8825-4469-a2a2-4ad632285bd6",
+      "groupId": "grp-mngar102",
+      "userId": "114a805e-b907-42f6-ba95-2fdcfc5e5d6d",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:29:40.399Z"
+    },
+    {
+      "id": "mem-60b7fd78-d4d1-4cd7-a0bd-ed92874a488d",
+      "groupId": "grp-mngar102",
+      "userId": "e62aaf9f-a9f4-4598-8b08-9af65fb89259",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:36:49.534Z"
+    },
+    {
+      "id": "mem-bf468f4d-56af-4ed9-8dfe-8fb54d284d73",
+      "groupId": "grp-mngar102",
+      "userId": "a73fa2e1-f60b-48d2-a374-c2e4adf4c921",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:38:43.978Z"
+    },
+    {
+      "id": "mem-6609f024-f940-48cd-b690-deb748490422",
+      "groupId": "grp-mngar102",
+      "userId": "ef6f011a-d903-4104-9693-bdaad33c6717",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:40:20.975Z"
+    },
+    {
+      "id": "mem-36c9a38a-4426-4dc2-853d-d02441393981",
+      "groupId": "grp-mngar102",
+      "userId": "d7deb66c-a4e8-4eb3-a3da-677d382f40a0",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:43:07.656Z"
+    },
+    {
+      "id": "mem-68a811f9-f2f9-4bf8-8921-308d9a919c3e",
+      "groupId": "grp-mngar102",
+      "userId": "6a023981-6dc7-49b1-ace8-e4461fe2fdcc",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T22:49:45.567Z"
+    },
+    {
+      "id": "mem-0033e1ef-7ccf-4856-81f7-eca649321aba",
+      "groupId": "grp-mngar102",
+      "userId": "4be9e1c2-8430-4590-96dd-b46e1acd8da4",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-01T23:02:36.218Z"
+    },
+    {
+      "id": "mem-13ad9500-8e24-4a3d-ae87-999ba7747bc9",
+      "groupId": "grp-mngar102",
+      "userId": "3f9e8a86-9cb5-49a0-b050-9e74e982c7b1",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T00:10:03.962Z"
+    },
+    {
+      "id": "mem-dff3b0a9-d40c-401d-a3c6-26b7a8138f29",
+      "groupId": "grp-mngar102",
+      "userId": "aa1ed830-1983-4f6d-bea8-6656948ab364",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T00:19:15.384Z"
+    },
+    {
+      "id": "mem-f1f13ea7-2d02-49a5-983d-3425b3878101",
+      "groupId": "grp-mngar102",
+      "userId": "a0b9a7d3-a37b-4eae-bc01-dcbae9448f2e",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T00:22:27.712Z"
+    },
+    {
+      "id": "mem-24af14a8-156f-4dd9-8b8b-a5241edcf01f",
+      "groupId": "grp-mngar102",
+      "userId": "6433f709-8e23-4bc3-963d-b19b5eafd35f",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T00:31:41.431Z"
+    },
+    {
+      "id": "mem-46860c9e-b0bd-4ba2-8db2-844833d244e6",
+      "groupId": "grp-mngar102",
+      "userId": "d6160dd6-62f4-42cd-bddf-06c5f5efa85f",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T01:16:37.126Z"
+    },
+    {
+      "id": "mem-59628219-91f2-486d-9962-1bf55aaf1c20",
+      "groupId": "grp-mngar102",
+      "userId": "f4bbc623-5d8e-4499-960f-2a8637ae0939",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T02:06:02.010Z"
+    },
+    {
+      "id": "mem-7956d60c-2d7a-47d6-a827-1541a7fd41ff",
+      "groupId": "grp-mngar102",
+      "userId": "5deab268-ae2e-4b1d-b049-c8c6a133256b",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T02:12:32.117Z"
+    },
+    {
+      "id": "mem-5e251b4e-f432-47b9-b47c-3fc708e5ee77",
+      "groupId": "grp-mngar102",
+      "userId": "973e4f35-f1ff-43cb-81a7-588e3bc4edcf",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T02:16:24.073Z"
+    },
+    {
+      "id": "mem-50b1bdab-f6a2-4ccc-a39d-19528479a52b",
+      "groupId": "grp-mngar102",
+      "userId": "8779e55d-81f7-46ef-adb6-4f807fad2693",
+      "nome": "Demo Master",
+      "status": "ADMIN",
+      "criadoEm": "2026-04-02T02:21:10.832Z"
+    }
+  ],
+  "inviteStore": [
+    {
+      "id": "inv-a0df1805-9b65-4160-a6cc-769dd44e2895",
+      "groupId": "grp-mngar102",
+      "code": "INV-R102-6IL2R2",
+      "used": false,
+      "multiUse": true,
+      "criadoEm": "2026-04-01T17:05:20.179Z"
+    }
+  ],
+  "gamificationClaimed": {}
+}

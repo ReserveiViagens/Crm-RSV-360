@@ -1,6 +1,19 @@
+import QRCode from "qrcode";
+
 const GATEWAY_API_URL = process.env.GATEWAY_API_URL;
 const GATEWAY_API_KEY = process.env.GATEWAY_API_KEY;
-const IS_DEMO = !GATEWAY_API_URL || !GATEWAY_API_KEY;
+
+function isGatewayConfigured(value: string | undefined): boolean {
+  const v = (value ?? "").trim();
+  if (!v) return false;
+  if (v.includes("seugateway.com.br")) return false;
+  if (v.includes("seudominio.com.br")) return false;
+  if (v === "sua-chave-de-api") return false;
+  if (v === "segredo-do-webhook") return false;
+  return true;
+}
+
+const IS_DEMO = !isGatewayConfigured(GATEWAY_API_URL) || !isGatewayConfigured(GATEWAY_API_KEY);
 
 export interface SplitRule {
   recipientId: string;
@@ -21,8 +34,9 @@ export interface PixPaymentResult {
   expiresAt: string;
 }
 
-const DEMO_PIX_QR =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vee/73vfe9573vee9773vfe9573vfe9773vfe9573vfe9773vfe9573vfe+573vfe9773vfe9573vfe9773vfe977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977";
+async function toPixQrDataUrl(copyPasteCode: string): Promise<string> {
+  return QRCode.toDataURL(copyPasteCode, { errorCorrectionLevel: "H", margin: 1, width: 360 });
+}
 
 export async function createSplitPaymentPix(
   amount: number,
@@ -34,12 +48,17 @@ export async function createSplitPaymentPix(
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
   if (IS_DEMO) {
+    const pixCopyPaste =
+      `00020126580014br.gov.bcb.pix0136reservei-demo-${orderId}` +
+      `5204000053039865802BR5925${customerName.slice(0, 25)}6009SAO PAULO` +
+      `62070503***6304DEMO`;
+    const pixQrCode = await toPixQrDataUrl(pixCopyPaste);
     return {
       success: true,
       demo: true,
       transactionId: `demo-txn-${orderId}`,
-      pixQrCode: DEMO_PIX_QR,
-      pixCopyPaste: `00020126580014br.gov.bcb.pix0136reservei-demo-${orderId}5204000053039865802BR5925${customerName.slice(0, 25)}6009SAO PAULO62070503***6304DEMO`,
+      pixQrCode,
+      pixCopyPaste,
       status: "waiting_payment",
       platformAmount,
       organizerAmount: organizerCommissionAmount,

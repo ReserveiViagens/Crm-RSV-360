@@ -4,6 +4,17 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+.env
 data/db.json
+data/*.log
 uploads/website/*
 !uploads/website/.gitkeep
+
+attached_assets/
+.codex/
+.local/
+.canvas/
+.venv/
+playwright-report/
+test-results/
+* (2).*

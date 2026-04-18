@@ -11,6 +11,9 @@
 /* ─── Enum const arrays (single source of truth) ────────────────────────── */
 
 export const PAGE_STATUSES = ["draft", "published", "archived"] as const;
+// Page access is used by public website routes to decide what is visible.
+// Keep it optional in DTOs for backward compatibility with older rows/seeds.
+export const PAGE_ACCESSES = ["public", "private"] as const;
 export const PAGE_SECTIONS = [
   "main",
   "hoteis",
@@ -46,6 +49,7 @@ export const AUDIT_ENTITIES = ["page", "settings", "media"] as const;
 /* ─── Enum types (derived from const arrays) ─────────────────────────────── */
 
 export type PageStatus = (typeof PAGE_STATUSES)[number];
+export type PageAccess = (typeof PAGE_ACCESSES)[number];
 export type PageSection = (typeof PAGE_SECTIONS)[number];
 export type MediaType = (typeof MEDIA_TYPES)[number];
 export type MediaPlacement = (typeof MEDIA_PLACEMENTS)[number];
@@ -73,6 +77,7 @@ export interface WebsitePage {
   section: PageSection;
   content: Record<string, unknown>;
   status: PageStatus;
+  access?: PageAccess;
   metaTitle: string | null;
   metaDescription: string | null;
   bannerMediaId: string | null;
@@ -135,6 +140,7 @@ export interface CreatePageRequest {
   slug: string;
   section: PageSection;
   content: Record<string, unknown>;
+  access?: PageAccess;
   metaTitle?: string;
   metaDescription?: string;
   bannerMediaId?: string;
@@ -146,6 +152,7 @@ export interface UpdatePageRequest {
   slug?: string;
   section?: PageSection;
   content?: Record<string, unknown>;
+  access?: PageAccess;
   metaTitle?: string | null;
   metaDescription?: string | null;
   bannerMediaId?: string | null;
@@ -213,6 +220,7 @@ export interface PublicPageResponse {
   slug: string;
   section: PageSection;
   content: Record<string, unknown>;
+  access?: PageAccess;
   metaTitle: string | null;
   metaDescription: string | null;
   bannerUrl: string | null;
@@ -266,6 +274,83 @@ export interface AuditQueryFilter {
   page?: number;
   limit?: number;
 }
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   CMS content types (frontend/admin helpers)
+
+   Some UI modules model website page "content" as a structured CMS document
+   (sections/theme/seo). The database schema stores `content` as JSON, so keep
+   these types permissive and backward compatible with simpler seed payloads.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+export const CMS_SECTION_TYPES = [
+  "hero",
+  "text",
+  "image",
+  "video",
+  "cards",
+  "table",
+  "svg",
+  "html",
+  "divider",
+  "faq",
+  "gallery",
+  "cta",
+] as const;
+
+export type CMSSectionType = (typeof CMS_SECTION_TYPES)[number];
+
+export type CMSSeo = {
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImageUrl?: string;
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  canonicalUrl?: string;
+};
+
+export type CMSTheme = {
+  primaryColor?: string;
+  secondaryColor?: string;
+  backgroundColor?: string;
+  accentColor?: string;
+  textColor?: string;
+};
+
+export type CMSHeroData = {
+  headline?: string;
+  subheadline?: string;
+  cta?: string;
+  bgColor?: string | null;
+  imageUrl?: string | null;
+};
+
+export type CMSSection = {
+  id: string;
+  type: CMSSectionType;
+  order?: number;
+  visible?: boolean;
+  data: Record<string, unknown>;
+};
+
+export type CMSPageContent = Record<string, unknown> & {
+  // Newer CMS shape
+  sections?: CMSSection[];
+  theme?: CMSTheme;
+  seo?: CMSSeo;
+  // Backward-compatible "hero" used by simple seeds/pages
+  hero?: CMSHeroData;
+};
+
+export const LANDING_PAGES = [
+  { slug: "home", label: "Pagina Inicial", path: "/", section: "main" as const },
+  { slug: "sobre", label: "Quem Somos", path: "/quem-somos", section: "main" as const },
+  { slug: "contato", label: "Contato", path: "/contato", section: "main" as const },
+  { slug: "politica-de-privacidade", label: "Privacidade", path: "/politica-de-privacidade", section: "main" as const },
+  { slug: "parques-aquaticos-caldas-novas", label: "Parques Caldas Novas", path: "/parques", section: "parques" as const },
+  { slug: "rio-quente-resorts", label: "Rio Quente Resorts", path: "/hoteis", section: "hoteis" as const },
+] as const;
 
 /* ─── API Response Envelope ──────────────────────────────────────────────── */
 

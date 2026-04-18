@@ -1,0 +1,981 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LIGHT MODE */
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --card-border: 0 0% 94%;
+  --sidebar: 0 0% 96%;
+  --sidebar-foreground: 0 0% 9%;
+  --sidebar-border: 0 0% 92%;
+  --sidebar-primary: 221.2 83.2% 53.3%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 0 0% 90%;
+  --sidebar-accent-foreground: 0 0% 9%;
+  --sidebar-ring: 221.2 83.2% 53.3%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --popover-border: 0 0% 89%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --chart-1: 199 89% 35%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 43 74% 49%;
+  --chart-4: 27 87% 52%;
+  --chart-5: 340 82% 52%;
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: .5rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+/* Fallback for older browsers */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+  --background: 0 0% 7%;
+  --foreground: 0 0% 95%;
+  --border: 0 0% 18%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 95%;
+  --card-border: 0 0% 13%;
+  --sidebar: 0 0% 11%;
+  --sidebar-foreground: 0 0% 95%;
+  --sidebar-border: 0 0% 16%;
+  --sidebar-primary: 199 89% 48%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 0 0% 16%;
+  --sidebar-accent-foreground: 0 0% 95%;
+  --sidebar-ring: 199 89% 48%;
+  --popover: 0 0% 13%;
+  --popover-foreground: 0 0% 95%;
+  --popover-border: 0 0% 18%;
+  --primary: 199 89% 48%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 199 12% 16%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 84% 42%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 0 0% 25%;
+  --ring: 199 89% 48%;
+  --chart-1: 199 89% 65%;
+  --chart-2: 173 58% 65%;
+  --chart-3: 43 74% 70%;
+  --chart-4: 27 87% 68%;
+  --chart-5: 340 82% 68%;
+  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 2px 4px -1px hsl(0 0% 0% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 4px 6px -1px hsl(0 0% 0% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 8px 10px -1px hsl(0 0% 0% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
+
+/* Fallback for older browsers */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/**
+ * Using the elevate system.
+ * Automatic contrast adjustment.
+ *
+ * <element className="hover-elevate" />
+ * <element className="active-elevate-2" />
+ *
+ * // Using the tailwind utility when a data attribute is "on"
+ * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
+ * // Or manually controlling the toggle state
+ * <element className="toggle-elevate toggle-elevated" />
+ *
+ * Elevation systems have to handle many states.
+ * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
+ * - toggled or not
+ * - focused or not (this is not handled with these utilities)
+ *
+ * Even without handling focused or not, this is six possible combinations that
+ * need to be distinguished from eachother visually.
+ */
+@layer utilities {
+
+  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  /* Placeholder styling for contentEditable div */
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
+   * buttons/badges can remove the automatic brightness adjustment on interactions
+   * and program their own. */
+  .no-default-hover-elevate {}
+
+  .no-default-active-elevate {}
+
+
+  /**
+   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
+   * This way they can stack/compound. Both will overlap the parent's borders!
+   * So borders will be automatically adjusted both on toggle, and hover/active,
+   * and they will be compounded.
+   */
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: -1;
+    /* sits behind content but above backdrop */
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  /* Does not work on elements with overflow:hidden! */
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: 999;
+    /* sits in front of content */
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
+@keyframes bounce {
+
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8,0,1,1);
+  }
+
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0,0,0.2,1);
+  }
+}
+
+@keyframes pulse {
+
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-slide-in {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.chat-fade-in {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+.typing-dot {
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+.rsv-page {
+  min-height: 100vh;
+  background: #F9FAFB;
+}
+
+.rsv-header-bar {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563EB 100%);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.rsv-header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+
+.rsv-hero-full {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0D47A1 50%, #2563EB 100%);
+  padding: 0;
+}
+
+.rsv-hero-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.rsv-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 16px 0;
+}
+
+.rsv-main-layout {
+  display: flex;
+  gap: 24px;
+}
+
+.rsv-sidebar {
+  display: none;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.rsv-main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rsv-products-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rsv-products-grid-full {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.rsv-hero-search {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rsv-hero-search-field {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 14px;
+}
+
+.rsv-hero-search-field span {
+  color: rgba(255,255,255,0.7);
+}
+
+.rsv-trust-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.rsv-flash-deals-banner {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.rsv-footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.rsv-footer-grid {
+  display: block;
+  text-align: center;
+}
+
+.rsv-social-notification {
+  display: flex;
+}
+
+.rsv-sidebar-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+@media (min-width: 768px) {
+  .rsv-header-inner {
+    padding: 16px 24px 0;
+  }
+
+  .rsv-hero-inner {
+    padding: 40px 24px;
+  }
+
+  .rsv-container {
+    padding: 24px 24px 0;
+  }
+
+  .rsv-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .rsv-products-grid-full {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .rsv-hero-search {
+    flex-wrap: nowrap;
+  }
+
+  .rsv-trust-grid {
+    gap: 16px;
+  }
+
+  .rsv-footer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    text-align: left;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-header-inner {
+    padding: 16px 32px 0;
+  }
+
+  .rsv-hero-inner {
+    padding: 48px 32px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .rsv-container {
+    padding: 32px 32px 0;
+  }
+
+  .rsv-sidebar {
+    display: block;
+    position: sticky;
+    top: 16px;
+    align-self: flex-start;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .rsv-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rsv-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .rsv-products-grid-full {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .rsv-trust-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .rsv-social-notification {
+    display: flex;
+  }
+}
+
+@media (min-width: 1280px) {
+  .rsv-products-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .rsv-products-grid-full {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.rsv-subpage {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #F9FAFB;
+}
+
+@media (min-width: 768px) {
+  .rsv-subpage {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-subpage {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .rsv-subpage {
+    max-width: 1200px;
+  }
+}
+
+.rsv-subpage-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .rsv-subpage-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-subpage-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+.rsv-hotel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .rsv-hotel-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsv-hotel-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+.rsv-promo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .rsv-promo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+.rsv-leiloes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .rsv-leiloes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .rsv-hero-section { padding-left: 24px !important; padding-right: 24px !important; }
+}
+
+@media (max-width: 640px) {
+  .rsv-filter-bar {
+    padding: 10px 12px !important;
+    gap: 6px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  .rsv-filter-bar button, .rsv-filter-bar a {
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+  }
+  .rsv-hero-ctas { flex-direction: column !important; }
+  .rsv-hero-ctas button, .rsv-hero-ctas a {
+    width: 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  .rsv-card { padding: 12px !important; }
+  .rsv-trust-chip { font-size: 11px !important; padding: 4px 8px !important; }
+}
+
+@keyframes notifSlideIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes notifSlideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100px); opacity: 0; }
+}
+
+.rsv-hotel-detail-body {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.rsv-hotel-detail-sidebar {
+  min-width: 300px;
+  max-width: 340px;
+}
+
+@keyframes panelSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .rsv-hotel-detail-body {
+    flex-direction: column;
+    padding: 16px;
+  }
+  .rsv-hotel-detail-sidebar {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+    border-left: none !important;
+    border-top: 1px solid #E5E7EB;
+  }
+}
+
+/* ============================================================
+   RSV360 Design System v1.0 — Tokens & Layout Families
+   ============================================================ */
+
+:root {
+  /* ── Paleta RSV360 ── */
+  --rsv-deep-blue: #1E3A8A;
+  --rsv-action-blue: #2563EB;
+  --rsv-graphite: #111827;
+  --rsv-slate-50: #F8FAFC;
+  --rsv-white: #FFFFFF;
+
+  /* ── Typography scale ── */
+  --rsv-text-xs: 0.75rem;    /* 12px */
+  --rsv-text-sm: 0.875rem;   /* 14px */
+  --rsv-text-base: 1rem;     /* 16px */
+  --rsv-text-lg: 1.125rem;   /* 18px */
+  --rsv-text-xl: 1.25rem;    /* 20px */
+  --rsv-text-2xl: 1.5rem;    /* 24px */
+  --rsv-text-3xl: 1.875rem;  /* 30px */
+  --rsv-text-4xl: 2.25rem;   /* 36px */
+
+  /* ── Spacing scale ── */
+  --rsv-space-2: 0.5rem;    /* 8px */
+  --rsv-space-3: 0.75rem;   /* 12px */
+  --rsv-space-4: 1rem;      /* 16px */
+  --rsv-space-5: 1.25rem;   /* 20px */
+  --rsv-space-6: 1.5rem;    /* 24px */
+  --rsv-space-8: 2rem;      /* 32px */
+  --rsv-space-10: 2.5rem;   /* 40px */
+  --rsv-space-12: 3rem;     /* 48px */
+  --rsv-space-16: 4rem;     /* 64px */
+
+  /* ── Border radius ── */
+  --rsv-radius-sm: 8px;     /* inputs, badges */
+  --rsv-radius-md: 12px;    /* rounded-xl — controles */
+  --rsv-radius-lg: 16px;    /* rounded-2xl — cards */
+  --rsv-radius-xl: 24px;    /* rounded-3xl — hero cards premium */
+
+  /* ── Shadows ── */
+  --rsv-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --rsv-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --rsv-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --rsv-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+
+  /* ── Page widths ── */
+  --rsv-w-public: 1280px;   /* Família A + B */
+  --rsv-w-admin: 1440px;    /* Família E */
+  --rsv-w-app: 480px;       /* Família D */
+  --rsv-w-auth: 440px;      /* Família C */
+
+  /* ── Page-width tokens (used by layout shells + PageContainer) ── */
+  --page-width-public:  1280px;
+  --page-width-catalog: 1280px;
+  --page-width-admin:   1440px;
+  --page-width-app:     480px;
+  --page-width-auth:    440px;
+
+  /* ── Section-rhythm gap tokens (used by SectionContainer) ── */
+  --section-gap-sm:  32px;
+  --section-gap-md:  48px;
+  --section-gap-lg:  64px;
+  --section-gap-xl:  96px;
+
+  /* ── Surface tokens ── */
+  --rsv-surface-page: #F8FAFC;
+  --rsv-surface-card: #FFFFFF;
+  --rsv-surface-subtle: #F1F5F9;
+  --rsv-border-subtle: #E2E8F0;
+  --rsv-border-default: #CBD5E1;
+
+  /* ── Surface aliases (used by layout shells) ── */
+  --surface-page:    #F8FAFC;
+  --surface-card:    #FFFFFF;
+  --surface-sidebar: #FFFFFF;
+  --surface-subtle:  #F1F5F9;
+  --surface-overlay: rgba(0,0,0,0.5);
+}
+
+/* ─── Família A: Public Shell ──────────────────────────── */
+.rsv-public-shell {
+  --shell-bg: var(--rsv-white);
+  --shell-max-w: var(--rsv-w-public);
+}
+
+/* ─── Família B: Catalog Shell ─────────────────────────── */
+.rsv-catalog-shell {
+  --shell-bg: var(--rsv-surface-page);
+  --shell-max-w: var(--rsv-w-public);
+}
+
+/* ─── Família D: App Shell ──────────────────────────────── */
+.rsv-app-shell {
+  --shell-bg: var(--rsv-surface-page);
+  --shell-max-w: var(--rsv-w-app);
+}
+
+/* ─── Família E: Admin Shell ───────────────────────────── */
+.rsv-admin-shell {
+  --shell-bg: var(--rsv-surface-page);
+  --shell-max-w: var(--rsv-w-admin);
+}
+
+/* ─── Component Tokens ──────────────────────────────────── */
+.rsv-card-v2 {
+  background: var(--rsv-surface-card);
+  border-radius: var(--rsv-radius-lg);
+  border: 1px solid var(--rsv-border-subtle);
+  box-shadow: var(--rsv-shadow-sm);
+  transition: box-shadow 0.15s ease;
+}
+
+.rsv-card-v2:hover {
+  box-shadow: var(--rsv-shadow-md);
+}
+
+.rsv-card-premium {
+  background: var(--rsv-surface-card);
+  border-radius: var(--rsv-radius-xl);
+  border: 1px solid var(--rsv-border-subtle);
+  box-shadow: var(--rsv-shadow-md);
+}
+
+.rsv-btn-primary {
+  background: var(--rsv-action-blue);
+  color: white;
+  border-radius: var(--rsv-radius-md);
+  font-weight: 600;
+  padding: 10px 20px;
+  font-size: var(--rsv-text-sm);
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rsv-btn-primary:hover {
+  background: #1d4ed8;
+  box-shadow: var(--rsv-shadow-md);
+}
+
+.rsv-btn-primary:active {
+  background: #1e40af;
+  transform: translateY(1px);
+}
+
+.rsv-btn-secondary {
+  background: white;
+  color: var(--rsv-graphite);
+  border: 1px solid var(--rsv-border-default);
+  border-radius: var(--rsv-radius-md);
+  font-weight: 600;
+  padding: 10px 20px;
+  font-size: var(--rsv-text-sm);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rsv-btn-secondary:hover {
+  border-color: var(--rsv-action-blue);
+  color: var(--rsv-action-blue);
+  box-shadow: var(--rsv-shadow-sm);
+}
+
+/* ─── Responsive Helpers ────────────────────────────────── */
+@media (min-width: 1024px) {
+  .rsv-admin-shell .rsv-admin-content {
+    margin-left: 240px;
+  }
+}
+
+/* ─── Hotel/Excursão: corrigir espaços em branco ──────── */
+.rsv-section-tight {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.rsv-no-empty-gap + .rsv-no-empty-gap {
+  margin-top: 0;
+}
+
+/* Garantir que seções condicionais vazias não deixem gap */
+.rsv-conditional-section:empty {
+  display: none;
+}
+/* ─── Lightbox slide transitions ─────────────────────────────────────────── */
+@keyframes lightbox-enter-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes lightbox-enter-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes lightbox-exit-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-40px); }
+}
+@keyframes lightbox-exit-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(40px); }
+}

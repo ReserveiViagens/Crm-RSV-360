@@ -1,24 +1,28 @@
 # CHECKPOINT-ATUAL
 
 ## Checkpoint
-- Fase atual: Task 11 — Pipeline CI com check/build/e2e
+- Fase atual: Task 16 — Bootstrap local (env-file + build fix + sessão Redis)
 - Branch atual: main
 - Base branch: main
-- Commit mais recente: 321b692 — Merge pull request #8 from ReserveiViagens/test/orders-e2e-flow
+- Commit mais recente (Git): 321b692 — Merge pull request #8 from ReserveiViagens/test/orders-e2e-flow
+- Status local: alterações não commitadas (bootstrap local + Pix demo + docs/runbook)
 
 ## Última validação
-- npm run check: ✅ OK
-- npm run build: ✅ OK
-- npm run e2e: ✅ 3/3 testes passando
+- npm run check: ✅ OK (2026-04-18)
+- npm run build: ✅ OK (2026-04-18)
+- npm run dev: ✅ OK (2026-04-18)
+- redis-cli ping: ✅ PONG (2026-04-18)
 
 ## O que foi concluído nesta rodada
-- ✅ Task 10: E2E tests para fluxo de pedidos (PENDING→APPROVED, FAILED→retry, EXPIRED→retry)
-- ✅ Task 11: Pipeline CI com check/build/e2e + artefatos Playwright + badge README
-- ✅ Playwright configurado com webServer, cross-env para Windows
-- ✅ 3 cenários E2E validados: carrinho restaurado, prefill buyer data, retry contextual
-- ✅ CI workflow com upload de relatório Playwright (30 dias retenção)
-- ✅ Badge CI no README.md
-- ✅ PR #8 merged com sucesso
+- [~] Removido chunking manual do Vite (corrige `React` undefined → erro `createContext`)
+- [~] Scripts (`dev`/`build`/`start`) carregam `.env` via `--env-file=.env`
+- [~] Sessão persistente via Redis Store quando `REDIS_URL` está definido (client `redis`)
+- [~] Pix demo: QR Code válido + botão "Confirmar pagamento (demo)" na tela `/pedido/:id`
+- [~] Runbook local criado: `docs/implantacao/RUNBOOK-LOCAL.md`
 
 ## Próximo passo exato
-Aguardar definição de próxima task (ex.: Task 12 — Deploy em produção ou Task 12 — Segurança adicional)
+1. Pare o servidor atual (Ctrl+C) e rode `npm run dev`
+2. Abra `http://127.0.0.1:5000/entrar` (evite `localhost` se der `ERR_CONNECTION_REFUSED`)
+3. Logue `demo@reservei.com.br` / `demo123`
+4. Vá em `/ingressos` → adicione item → `/ingressos/checkout` → gerar Pix
+5. Na tela `/pedido/:id`, clique "Confirmar pagamento (demo)" e baixe o voucher PDF

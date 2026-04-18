@@ -67,12 +67,14 @@ import AdminPermissoes from "@/pages/admin/permissoes";
 import Pagamentos from "@/pages/pagamentos";
 import Suporte from "@/pages/suporte";
 import SearchPage from "@/pages/SearchPage";
+import OrderStatusPage from "@/pages/public/order-status";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/busca" component={SearchPage} />
+      <Route path="/pedido/:id" component={OrderStatusPage} />
       <Route path="/pagamentos" component={Pagamentos} />
       <Route path="/suporte" component={Suporte} />
       <Route path="/home" component={Home} />
@@ -156,6 +158,7 @@ const CALDAS_AI_EXCLUDED_ROUTES = [
   "/dashboard",
   "/ingressos/checkout",
   "/ingressos/sucesso",
+  "/pedido",
   "/waas",
   "/live-chat",
   "/super-financeiro",
