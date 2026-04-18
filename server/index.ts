@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { RedisStore } from "connect-redis";
-import Redis from "ioredis";
+import { createClient } from "redis";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -23,15 +23,32 @@ declare module "express-session" {
   }
 }
 
+const redisUrl = (process.env.REDIS_URL ?? "").trim();
+const redisClient =
+  redisUrl.length > 0
+    ? (() => {
+        const client = createClient({ url: redisUrl });
+        client.on("error", (err) => {
+          console.warn("[session] Redis error:", err instanceof Error ? err.message : String(err));
+        });
+        // Best-effort connect. If Redis is down, MemoryStore will be safer for dev,
+        // but we keep the code simple and visible via logs.
+        client.connect().catch((err) => {
+          console.warn("[session] Redis connect failed:", err instanceof Error ? err.message : String(err));
+        });
+        return client;
+      })()
+    : null;
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "rsv360-dev-secret",
     resave: false,
     saveUninitialized: false,
-    ...(process.env.REDIS_URL
+    ...(redisClient
       ? {
           store: new RedisStore({
-            client: new Redis(process.env.REDIS_URL),
+            client: redisClient,
             prefix: process.env.REDIS_SESSION_PREFIX || "rsv360:sess:",
           }),
         }

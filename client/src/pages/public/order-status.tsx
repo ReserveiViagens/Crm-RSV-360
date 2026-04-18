@@ -124,6 +124,7 @@ export default function OrderStatusPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [confirmingDemo, setConfirmingDemo] = useState(false);
 
   async function loadOrder(showLoading = true) {
     if (!orderId) {
@@ -204,6 +205,21 @@ export default function OrderStatusPage() {
       setErrorMsg(message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function confirmDemoPayment() {
+    if (!orderId) return;
+    setConfirmingDemo(true);
+    try {
+      await fetch(`/api/payments/tickets/${encodeURIComponent(orderId)}/demo-confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      await loadOrder(false);
+    } finally {
+      setConfirmingDemo(false);
     }
   }
 
@@ -574,6 +590,38 @@ export default function OrderStatusPage() {
                     }}
                   />
                   Atualizar status
+                </button>
+              )}
+
+              {status === "PENDING" && paymentDetails?.demo && (
+                <button
+                  onClick={confirmDemoPayment}
+                  disabled={confirmingDemo}
+                  style={{
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    background: "#22C55E",
+                    color: "#fff",
+                    fontWeight: 800,
+                    cursor: confirmingDemo ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                  data-testid="button-demo-confirm"
+                >
+                  {confirmingDemo ? (
+                    <>
+                      <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
+                      Confirmando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 style={{ width: 16, height: 16 }} />
+                      Confirmar pagamento (demo)
+                    </>
+                  )}
                 </button>
               )}
             </div>

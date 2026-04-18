@@ -1820,7 +1820,7 @@ export async function registerRoutes(
     if (!excursaoId || !amount || !passengerName) return res.status(400).json({ error: "excursaoId, amount e passengerName são obrigatórios" });
     const sessionUserId = req.session?.userId;
     try {
-      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0, sessionUserId);
+      const result = await createSplitPaymentPix(amount, excursaoId, passengerName, organizerCommission ?? 0);
       return res.json(result);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro interno";

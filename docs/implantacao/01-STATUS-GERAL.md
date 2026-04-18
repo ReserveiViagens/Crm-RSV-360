@@ -1,6 +1,6 @@
 # Status Geral — RSV360
 
-## Última atualização: 2026-04-17
+## Última atualização: 2026-04-18
 
 ## Resumo por Fase
 
@@ -34,7 +34,7 @@
 | 13 | Task 9 — Pré-preencher dados do comprador no retry | ✅ CONCLUÍDA | setCheckoutPrefill/getCheckoutPrefill em cart-store; backend expõe phone/cpf; prefill em checkout; limpeza após pagamento |
 | 14 | Task 10 — E2E tests para fluxo de pedidos | ✅ CONCLUÍDA | Playwright com 3 cenários: PENDING→APPROVED, FAILED→retry, EXPIRED→retry; carrinho restaurado + prefill buyer data |
 | 15 | Task 11 — Pipeline CI com check/build/e2e | ✅ CONCLUÍDA | GitHub Actions com check, build, e2e; upload relatório Playwright; badge CI no README |
-| 16 | Task 16 — Bootstrap local (env-file + build fix + sessão Redis) | [~] PARCIAL | Aguardando validação no browser (erro `createContext`) |
+| 16 | Task 16 — Bootstrap local (env-file + build fix + sessão Redis) | [~] PARCIAL | Dev ok; sessão Redis persistindo; Pix demo gera QR e tela `/pedido/:id`; pendente validação final no browser (confirmar demo e baixar voucher) |
 
 ## Smoke Tests Validados (Task #2)
 

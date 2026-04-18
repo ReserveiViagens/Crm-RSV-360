@@ -1,5 +1,14 @@
 # 03-CHANGELOG-IMPLEMENTACAO
 
+## 2026-04-18
+### Task 16 — Bootstrap local (continuação) + Pix demo no browser
+- Sessão: troca para `connect-redis` + client `redis` (node-redis) e validação de persistência (chaves `rsv360:sess:*`)
+- Gateway placeholder tratado como demo (evita `fetch failed` quando `.env` ainda está com valores de exemplo)
+- Checkout ingressos: rota `/pedido/:id` registrada e tela de acompanhamento ativa
+- Demo Pix: QR Code agora é gerado de verdade (PNG data URL via `qrcode`) e botão "Confirmar pagamento (demo)" na página do pedido
+- Runbook local criado: `docs/implantacao/RUNBOOK-LOCAL.md`
+- Observação: SMTP continua não configurado em dev (esperado), então e-mail pode falhar sem bloquear voucher
+
 ## 2026-04-17
 ### Task 16 — Bootstrap local (env-file + build fix + sessão Redis)
 - Removido `manualChunks` do `vite.config.ts` (havia dependência circular entre chunks; `React` ficava `undefined` e o browser quebrava com `createContext`)

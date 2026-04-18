@@ -37,6 +37,21 @@ export function PageGallery({ images, video, title = "Galeria de Fotos" }: PageG
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [api, setApi] = useState<CarouselApi>()
 
+  const navigateLightbox = useCallback((dir: "prev" | "next") => {
+    setLightboxAnimating((animating) => {
+      if (animating) return animating
+      const newDir = dir === "next" ? "right" : "left"
+      setLightboxDirection(newDir)
+      setTimeout(() => {
+        setLightboxIndex((i) =>
+          dir === "next" ? (i < images.length - 1 ? i + 1 : 0) : (i > 0 ? i - 1 : images.length - 1)
+        )
+        setLightboxAnimating(false)
+      }, 220)
+      return true
+    })
+  }, [images.length])
+
   useEffect(() => {
     if (!api) return
     const update = () => setSelectedIndex(api.selectedScrollSnap())
@@ -73,21 +88,6 @@ export function PageGallery({ images, video, title = "Galeria de Fotos" }: PageG
     setLightboxIndex(idx)
     setLightboxOpen(true)
   }
-
-  const navigateLightbox = useCallback((dir: "prev" | "next") => {
-    setLightboxAnimating((animating) => {
-      if (animating) return animating
-      const newDir = dir === "next" ? "right" : "left"
-      setLightboxDirection(newDir)
-      setTimeout(() => {
-        setLightboxIndex((i) =>
-          dir === "next" ? (i < images.length - 1 ? i + 1 : 0) : (i > 0 ? i - 1 : images.length - 1)
-        )
-        setLightboxAnimating(false)
-      }, 220)
-      return true
-    })
-  }, [images.length])
 
   const currentImage = images[lightboxIndex]
 

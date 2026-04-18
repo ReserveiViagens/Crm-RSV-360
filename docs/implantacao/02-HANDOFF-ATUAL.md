@@ -16,7 +16,7 @@ Task 11 — Pipeline CI com check/build/e2e — 100% concluída e validada (comm
 ## Mudanças implementadas nesta rodada (Task 16)
 - `vite.config.ts`: removido `rollupOptions.output.manualChunks` (estava gerando dependência circular entre chunks e deixando `React` `undefined` no runtime)
 - `package.json`: scripts agora carregam `.env` via `--env-file=.env` (dev/build/start/seed/sync)
-- `server/index.ts`: sessão persistente via Redis Store (`connect-redis` + `ioredis`) quando `REDIS_URL` está definido
+- `server/index.ts`: sessão persistente via Redis Store (`connect-redis` + `redis`) quando `REDIS_URL` está definido
 - `client/src/components/ui/form.tsx`: contexts agora usam default `null` e `useFormField()` valida presença antes de acessar
 
 ## O que ainda falta (próximo passo exato)
@@ -25,3 +25,11 @@ Task 11 — Pipeline CI com check/build/e2e — 100% concluída e validada (comm
 3. Confirmar que o console não mostra mais o erro `createContext`
 4. Testar login `demo@reservei.com.br` / `demo123`
 5. (Opcional) Validar Redis sessions: `redis-cli keys "rsv360:sess:*"`
+
+## Mini checklist local (smoke path recomendado)
+1. Runbook local: `docs/implantacao/RUNBOOK-LOCAL.md`
+2. Subir em dev: `npm run dev`
+3. Healthcheck: abrir `http://127.0.0.1:5000/api/status` e confirmar `ok:true`
+4. Login: abrir `http://127.0.0.1:5000/entrar` e logar `demo@reservei.com.br` / `demo123`
+5. Fluxo ingressos: `/ingressos` -> adicionar item -> `/ingressos/checkout` -> Pix demo -> `/ingressos/sucesso` -> baixar voucher PDF
+6. Nota `ERR_CONNECTION_REFUSED` no `localhost`: tente `http://127.0.0.1:5000` (em algumas máquinas `localhost` resolve para IPv6 `::1`, mas o server está bound em IPv4)

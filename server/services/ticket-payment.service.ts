@@ -1,16 +1,31 @@
 import { calculateCartComboTotal } from "./pricing-engine";
 import { lookupTicketPrice } from "./ticket-catalog";
+import QRCode from "qrcode";
 
 const GATEWAY_API_URL = process.env.GATEWAY_API_URL;
 const GATEWAY_API_KEY = process.env.GATEWAY_API_KEY;
-const IS_DEMO = !GATEWAY_API_URL || !GATEWAY_API_KEY;
+
+function isGatewayConfigured(value: string | undefined): boolean {
+  const v = (value ?? "").trim();
+  if (!v) return false;
+  // Treat common template placeholders as "not configured" to keep local/dev usable by default.
+  if (v.includes("seugateway.com.br")) return false;
+  if (v.includes("seudominio.com.br")) return false;
+  if (v === "sua-chave-de-api") return false;
+  if (v === "segredo-do-webhook") return false;
+  return true;
+}
+
+const IS_DEMO = !isGatewayConfigured(GATEWAY_API_URL) || !isGatewayConfigured(GATEWAY_API_KEY);
 
 const DEMO_CONFIRM_DELAY_MS = process.env.DEMO_CONFIRM_DELAY_MS
   ? parseInt(process.env.DEMO_CONFIRM_DELAY_MS, 10)
   : null;
 
-const DEMO_PIX_QR =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAABlBMVEX///8AAABVwtN+AAAB+klEQVR4nO2ayw7DIAxE6f9/uqcrQQiPweNJpZ6VKmxmjI0BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgc4wxHiml9NznvPe01lprH+e9/17vvfc457z3nPe+5z3nfe9573vfe9573vfe9573vfe9773vfe9573vee/73vfe9573vee977nvfe9573vfe9773vfe9573vfe9773vfe9573vfe977nvfe9573vfe9773vfe9573vfe9773vfe977";
+async function toPixQrDataUrl(copyPasteCode: string): Promise<string> {
+  // Generates a valid PNG data URL so the browser can render the demo QR.
+  return QRCode.toDataURL(copyPasteCode, { errorCorrectionLevel: "H", margin: 1, width: 360 });
+}
 
 export interface TicketLineItem {
   ticketId: string
@@ -89,6 +104,11 @@ export async function createTicketPix(
 
   if (IS_DEMO) {
     const transactionId = `demo-${orderId}`;
+    const copyPasteCode =
+      `00020126580014br.gov.bcb.pix0136reservei-ingressos-${orderId}` +
+      `5204000053039865802BR5925${customer.name.slice(0, 25).toUpperCase()}` +
+      `6009CALDAS NOV62070503***6304ABCD`;
+    const qrCodeBase64 = await toPixQrDataUrl(copyPasteCode);
 
     if (DEMO_CONFIRM_DELAY_MS && DEMO_CONFIRM_DELAY_MS > 0) {
       setTimeout(() => {
@@ -101,8 +121,8 @@ export async function createTicketPix(
       success: true,
       demo: true,
       transactionId,
-      qrCodeBase64: DEMO_PIX_QR,
-      copyPasteCode: `00020126580014br.gov.bcb.pix0136reservei-ingressos-${orderId}5204000053039865802BR5925${customer.name.slice(0, 25).toUpperCase()}6009CALDAS NOV62070503***6304ABCD`,
+      qrCodeBase64,
+      copyPasteCode,
       status: "PENDING",
       totalAmount,
       originalTotal: comboTotals.originalTotal,
