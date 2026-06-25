@@ -4,6 +4,7 @@ import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
+import { fetchLeiloesFromApi, type LeilaoItem } from "@/lib/leiloes-api"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -159,7 +160,9 @@ function getHeatColor(totalBids: number): { color: string; label: string; percen
 }
 
 export default function LeiloesPage() {
-  const [leiloes, setLeiloes] = useState(LEILOES_INITIAL)
+  const [leiloes, setLeiloes] = useState<LeilaoItem[]>(LEILOES_INITIAL)
+  const [isLiveData, setIsLiveData] = useState(false)
+  const [loadingLeiloes, setLoadingLeiloes] = useState(true)
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [toasts, setToasts] = useState<{ id: number; name: string; value: number; leilaoTitle: string }[]>([])
   const [bidModal, setBidModal] = useState<{ leilaoId: number; currentBid: number; title: string } | null>(null)
@@ -177,6 +180,34 @@ export default function LeiloesPage() {
   useEffect(() => {
     const p = getTravelerProfile()
     setProfile(p)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const data = await fetchLeiloesFromApi()
+        if (!cancelled && data.length > 0) {
+          setLeiloes(data)
+          setIsLiveData(true)
+        }
+      } catch {
+        // Mantém mock local como fallback (dev sem backend :3002)
+      } finally {
+        if (!cancelled) setLoadingLeiloes(false)
+      }
+    }
+
+    void load()
+    const poll = setInterval(() => {
+      if (!cancelled) void load()
+    }, 30_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(poll)
+    }
   }, [])
 
   useEffect(() => {
@@ -200,6 +231,8 @@ export default function LeiloesPage() {
   }, [])
 
   useEffect(() => {
+    if (isLiveData) return
+
     const scheduleNext = () => {
       const delay = 8000 + Math.random() * 7000
       return setTimeout(() => {
@@ -239,7 +272,7 @@ export default function LeiloesPage() {
     }
     let timerRef = scheduleNext()
     return () => clearTimeout(timerRef)
-  }, [toastsPaused])
+  }, [toastsPaused, isLiveData])
 
   const handleBid = (leilaoId: number, amount: number) => {
     setLeiloes(prev => prev.map(l => {
