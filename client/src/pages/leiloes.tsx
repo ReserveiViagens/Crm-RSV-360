@@ -5,6 +5,7 @@ import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
 import { fetchLeiloesFromApi, placeLeilaoBid, type LeilaoItem } from "@/lib/leiloes-api"
+import { BidConfirmWizard } from "@/components/leiloes/BidConfirmWizard"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -165,7 +166,7 @@ export default function LeiloesPage() {
   const [loadingLeiloes, setLoadingLeiloes] = useState(true)
   const [activeFilter, setActiveFilter] = useState("Todos")
   const [toasts, setToasts] = useState<{ id: number; name: string; value: number; leilaoTitle: string }[]>([])
-  const [bidModal, setBidModal] = useState<{ leilaoId: number; currentBid: number; title: string } | null>(null)
+  const [bidModal, setBidModal] = useState<{ leilaoId: number; currentBid: number; title: string; hotelKey?: string } | null>(null)
   const [customBidAmount, setCustomBidAmount] = useState(0)
   const [onlineCompetitors, setOnlineCompetitors] = useState(47)
   const [profile, setProfile] = useState<TravelerProfile | null>(null)
@@ -297,14 +298,9 @@ export default function LeiloesPage() {
           ],
         }
       }))
-      setBidModal(null)
-
-      if (!isLiveData) {
-        const whatsappMessage = encodeURIComponent(`Olá! Quero confirmar meu lance de ${formatPrice(amount)} no leilão RSV360!`)
-        window.open(`https://wa.me/5564993197555?text=${whatsappMessage}`, "_blank")
-      }
     } catch (error) {
       setBidError(error instanceof Error ? error.message : "Erro ao registrar lance.")
+      throw error
     } finally {
       setBidSubmitting(false)
     }
@@ -440,7 +436,7 @@ export default function LeiloesPage() {
           </div>
 
           <div style={{ display: "flex", gap: 20, paddingBottom: 20, flexWrap: "wrap", justifyContent: "center" }}>
-            {["🏆 Lances ao vivo", "⚡ Preços abaixo do mercado", "💬 Confirme no WhatsApp"].map(item => (
+            {["🏆 Lances ao vivo", "⚡ Preços abaixo do mercado", "📋 Regras transparentes"].map(item => (
               <span key={item} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{item}</span>
             ))}
           </div>
@@ -480,7 +476,7 @@ export default function LeiloesPage() {
           {[
             { emoji: "🔒", text: "Lances 100% seguros" },
             { emoji: "🏆", text: "Menores preços do mercado" },
-            { emoji: "💬", text: "Confirmação via WhatsApp" },
+            { emoji: "📋", text: "Aceite digital das regras" },
             { emoji: "⚡", text: "Resultado imediato" },
           ].map(item => (
             <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -729,7 +725,13 @@ export default function LeiloesPage() {
                   <button
                     data-testid={`button-bid-${leilao.id}`}
                     onClick={() => {
-                      setBidModal({ leilaoId: leilao.id, currentBid: leilao.currentBid, title: leilao.title })
+                      setBidError(null)
+                      setBidModal({
+                        leilaoId: leilao.id,
+                        currentBid: leilao.currentBid,
+                        title: leilao.title,
+                        hotelKey: leilao.hotelKey,
+                      })
                       setCustomBidAmount(leilao.currentBid + 10)
                     }}
                     style={{
@@ -760,141 +762,20 @@ export default function LeiloesPage() {
       <MobileCTABar />
 
       {bidModal && (
-        <div
-          onClick={() => setBidModal(null)}
-          style={{
-            position: "fixed", inset: 0, zIndex: 9999,
-            background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
-            display: "flex", alignItems: "flex-end", justifyContent: "center",
+        <BidConfirmWizard
+          bidModal={bidModal}
+          customBidAmount={customBidAmount}
+          setCustomBidAmount={setCustomBidAmount}
+          formatPrice={formatPrice}
+          isLiveData={isLiveData}
+          bidSubmitting={bidSubmitting}
+          bidError={bidError}
+          onClose={() => {
+            setBidModal(null)
+            setBidError(null)
           }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: "#1E293B", borderRadius: "20px 20px 0 0",
-              width: "100%", maxWidth: 480, padding: "24px 20px 32px",
-              animation: "fadeInUp 0.3s ease-out",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>
-                  Dar Lance
-                </h3>
-                <p style={{ fontSize: 13, color: "#94A3B8", margin: 0 }}>{bidModal.title}</p>
-              </div>
-              <button
-                data-testid="button-close-bid-modal"
-                onClick={() => setBidModal(null)}
-                style={{
-                  width: 36, height: 36, borderRadius: "50%", border: "none",
-                  background: "rgba(255,255,255,0.1)", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <X style={{ width: 18, height: 18, color: "#94A3B8" }} />
-              </button>
-            </div>
-
-            <div style={{
-              background: "rgba(34,197,94,0.1)", borderRadius: 12, padding: 16,
-              textAlign: "center", marginBottom: 16, border: "1px solid rgba(34,197,94,0.2)",
-            }}>
-              <p style={{ fontSize: 12, color: "#94A3B8", margin: "0 0 4px" }}>Lance atual</p>
-              <span style={{ fontSize: 28, fontWeight: 900, color: "#4ADE80" }}>
-                {formatPrice(bidModal.currentBid)}
-              </span>
-            </div>
-
-            <p style={{ fontSize: 13, fontWeight: 700, color: "#94A3B8", margin: "0 0 10px" }}>
-              Incrementos sugeridos:
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
-              {[10, 25, 50, 100].map(inc => (
-                <button
-                  key={inc}
-                  data-testid={`button-increment-${inc}`}
-                  onClick={() => setCustomBidAmount(bidModal.currentBid + inc)}
-                  style={{
-                    padding: "10px 0", borderRadius: 10,
-                    border: customBidAmount === bidModal.currentBid + inc
-                      ? "2px solid #2563EB"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    background: customBidAmount === bidModal.currentBid + inc
-                      ? "rgba(37,99,235,0.15)"
-                      : "rgba(255,255,255,0.05)",
-                    color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  +R${inc}
-                </button>
-              ))}
-            </div>
-
-            <div style={{
-              display: "flex", alignItems: "center", gap: 12, marginBottom: 20,
-              background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "8px 12px",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}>
-              <button
-                data-testid="button-bid-decrease"
-                onClick={() => setCustomBidAmount(prev => Math.max(bidModal.currentBid + 5, prev - 5))}
-                style={{
-                  width: 36, height: 36, borderRadius: 8, border: "none",
-                  background: "rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <Minus style={{ width: 16, height: 16 }} />
-              </button>
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <span style={{ fontSize: 11, color: "#64748B" }}>Seu lance</span>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#fff" }}>
-                  {formatPrice(customBidAmount)}
-                </div>
-              </div>
-              <button
-                data-testid="button-bid-increase"
-                onClick={() => setCustomBidAmount(prev => prev + 5)}
-                style={{
-                  width: 36, height: 36, borderRadius: 8, border: "none",
-                  background: "rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <Plus style={{ width: 16, height: 16 }} />
-              </button>
-            </div>
-
-            {bidError && (
-              <p data-testid="text-bid-error" style={{ color: "#F87171", fontSize: 13, margin: "0 0 12px" }}>
-                {bidError}
-              </p>
-            )}
-
-            <button
-              data-testid="button-confirm-bid"
-              disabled={bidSubmitting}
-              onClick={() => void handleBid(bidModal.leilaoId, customBidAmount)}
-              style={{
-                width: "100%", padding: "16px 0", borderRadius: 12, border: "none",
-                background: "linear-gradient(135deg, #22C55E, #16A34A)",
-                color: "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                boxShadow: "0 6px 20px rgba(34,197,94,0.4)",
-              }}
-            >
-              <Gavel style={{ width: 20, height: 20 }} />
-              CONFIRMAR LANCE DE {formatPrice(customBidAmount)}
-            </button>
-
-            <p style={{ fontSize: 11, color: "#64748B", textAlign: "center", marginTop: 10 }}>
-              Ao confirmar, você será redirecionado ao WhatsApp para finalizar
-            </p>
-          </div>
-        </div>
+          onConfirm={handleBid}
+        />
       )}
 
       {showProfileModal && (

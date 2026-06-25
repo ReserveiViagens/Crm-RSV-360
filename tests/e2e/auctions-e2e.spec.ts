@@ -66,14 +66,19 @@ test.describe("Fase 5.4 — Leilões E2E (S1 → :3002)", () => {
     await expect(card).toBeVisible({ timeout: 20_000 });
 
     await page.getByTestId(`button-bid-${auction.id}`).click();
-    await expect(page.getByTestId("button-confirm-bid")).toBeVisible();
+    await expect(page.getByTestId("bid-wizard-step-valor")).toBeVisible();
 
     const increments = [10, 25, 50, 100];
     const chosen = increments.find((inc) => inc >= minIncrement) ?? 100;
     await page.getByTestId(`button-increment-${chosen}`).click();
 
+    await page.getByTestId("button-bid-wizard-next").click();
+    await page.getByTestId("button-bid-wizard-next").click();
+    await page.getByTestId("button-bid-wizard-next").click();
+    await page.getByTestId("button-bid-wizard-next").click();
+    await page.getByTestId("checkbox-aceite-leilao").check();
     await page.getByTestId("button-confirm-bid").click();
-    await expect(page.getByTestId("button-confirm-bid")).toBeHidden({ timeout: 15_000 });
+    await expect(page.getByTestId("bid-wizard-success")).toBeVisible({ timeout: 15_000 });
 
     await expect
       .poll(async () => countBids(request, auction.id), {

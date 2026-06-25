@@ -416,8 +416,30 @@ export default function FlashDealsPage() {
           <h1 style={{ fontSize: 30, fontWeight: 900, margin: "0 0 10px", lineHeight: 1.2 }} data-testid="text-page-title">
             ⚡ Flash Deals — Até 70% OFF
           </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 24px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", margin: "0 0 12px", lineHeight: 1.6 }}>
             {FLASH_DEALS.length} deals exclusivos com preços por tempo limitado — garanta antes que acabem!
+          </p>
+          <p
+            data-testid="flash-deals-no-refund-notice"
+            style={{
+              fontSize: 12,
+              color: "#FCA5A5",
+              background: "rgba(239,68,68,0.15)",
+              border: "1px solid rgba(239,68,68,0.35)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              margin: "0 0 24px",
+              lineHeight: 1.5,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            <AlertTriangle style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
+            <span>
+              <strong>Condição especial:</strong> Flash Deals e leilões não possuem reembolso após confirmação do pagamento,
+              por se tratarem de ofertas promocionais limitadas. Consulte as regras completas antes de reservar.
+            </span>
           </p>
           <div style={{
             display: "flex", alignItems: "center", gap: 12,

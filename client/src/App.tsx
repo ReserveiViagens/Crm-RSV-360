@@ -64,6 +64,7 @@ import AdminConfiguracoesSistema from "@/pages/admin/configuracoes-sistema";
 import AdminBranding from "@/pages/admin/branding";
 import AdminMapa from "@/pages/admin/mapa";
 import AdminPermissoes from "@/pages/admin/permissoes";
+import AdminLeiloes from "@/pages/admin/leiloes";
 import Pagamentos from "@/pages/pagamentos";
 import Suporte from "@/pages/suporte";
 import SearchPage from "@/pages/SearchPage";
@@ -128,6 +129,7 @@ function Router() {
       <Route path="/admin/branding">{() => <ProtectedRoute roles={["admin"]}><AdminBranding /></ProtectedRoute>}</Route>
       <Route path="/admin/mapa">{() => <ProtectedRoute roles={["admin"]}><AdminMapa /></ProtectedRoute>}</Route>
       <Route path="/admin/permissoes">{() => <ProtectedRoute roles={["admin"]}><AdminPermissoes /></ProtectedRoute>}</Route>
+      <Route path="/admin/leiloes">{() => <ProtectedRoute roles={["admin"]}><AdminLeiloes /></ProtectedRoute>}</Route>
       <Route path="/admin/excursoes">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/admin/passageiros">{() => <ProtectedRoute roles={["admin"]}><ViagensGrupo /></ProtectedRoute>}</Route>
       <Route path="/dashboard">{() => <ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>}</Route>

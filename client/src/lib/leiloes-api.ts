@@ -20,6 +20,8 @@ export type LeilaoItem = {
   rating: number;
   tags: string[];
   description: string;
+  hotelKey?: string;
+  hotelName?: string;
 };
 
 type LeiloesListResponse = {

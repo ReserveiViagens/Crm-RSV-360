@@ -7,8 +7,11 @@ import {
   placeBidOnRsv360,
 } from "../services/rsv360-auctions.service.js";
 import { logger } from "../lib/logger.js";
+import { registerPublicOfferRulesRoutes } from "./admin-offers.routes.js";
 
 export function registerAuctionsRoutes(app: Express): void {
+  registerPublicOfferRulesRoutes(app);
+
   app.get("/api/leiloes", async (_req: Request, res: Response) => {
     if (!isRsv360AuctionsEnabled()) {
       return res.status(503).json({
