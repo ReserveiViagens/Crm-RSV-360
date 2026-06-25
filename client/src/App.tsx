@@ -68,6 +68,7 @@ import AdminLeiloes from "@/pages/admin/leiloes";
 import Pagamentos from "@/pages/pagamentos";
 import Suporte from "@/pages/suporte";
 import SearchPage from "@/pages/SearchPage";
+import OrderStatusPage from "@/pages/public/order-status";
 
 function Router() {
   return (
@@ -87,6 +88,7 @@ function Router() {
       <Route path="/ingressos" component={Ingressos} />
       <Route path="/ingressos/checkout" component={IngressosCheckout} />
       <Route path="/ingressos/sucesso" component={IngressosSucesso} />
+      <Route path="/pedido/:id" component={OrderStatusPage} />
       <Route path="/parques" component={Parques} />
       <Route path="/combos" component={CombosAcesse} />
       <Route path="/combosacesse" component={CombosAcesse} />
