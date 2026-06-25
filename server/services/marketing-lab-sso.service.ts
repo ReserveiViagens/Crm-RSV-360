@@ -1,6 +1,6 @@
 import { logger } from "../lib/logger.js";
 
-const DEFAULT_BACKEND_URL = "http://localhost:3002";
+const DEFAULT_BACKEND_URL = "http://127.0.0.1:3002";
 
 export function getRsv360BackendUrl(): string {
   return (

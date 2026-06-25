@@ -1,3 +1,14 @@
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+try {
+  process.loadEnvFile(path.resolve(__dirname, "..", ".env"));
+} catch {
+  // .env opcional (CI/produção injeta vars no ambiente)
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
