@@ -38,6 +38,8 @@ export default defineConfig({
       ...process.env,
       NODE_ENV: "development",
       PORT: "5000",
+      /** E2E: servidor sem exigir x-api-key (evita conflito com .env local no CI) */
+      WEBHOOK_SECRET: "",
       RSV360_BACKEND_URL: process.env.RSV360_BACKEND_URL || "http://127.0.0.1:3002",
       USE_RSV360_AUCTIONS: process.env.USE_RSV360_AUCTIONS || "true",
     },

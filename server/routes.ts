@@ -2459,7 +2459,12 @@ export async function registerRoutes(
       totalSavings: txn.totalSavings,
       isCombo: txn.isCombo,
       items: txn.items,
-      customer: { name: txn.customer.name, email: txn.customer.email },
+      customer: {
+        name: txn.customer.name,
+        email: txn.customer.email,
+        phone: txn.customer.phone,
+        cpf: txn.customer.cpf,
+      },
       createdAt: txn.createdAt,
       expirationDate: txn.expirationDate,
       demo: txn.demo,

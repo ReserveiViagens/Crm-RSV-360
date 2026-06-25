@@ -83,7 +83,10 @@ async function setOrderStatus(
     },
   });
 
-  expect(response.ok()).toBeTruthy();
+  if (!response.ok()) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`Webhook tickets ${response.status()}: ${body}`);
+  }
 }
 
 async function openOrderPage(page: Page, orderId: string) {
