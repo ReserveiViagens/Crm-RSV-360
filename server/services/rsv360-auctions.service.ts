@@ -1,5 +1,7 @@
 import { logger } from "../lib/logger.js";
 import { getRsv360BackendUrl } from "./marketing-lab-sso.service.js";
+import { getAuctionOverlay } from "./offers-cms.service.js";
+import type { AuctionCardOverlay } from "@shared/offers-cms-types";
 
 export type BackendAuction = {
   id: number;
@@ -40,6 +42,8 @@ export type LeilaoCard = {
   rating: number;
   tags: string[];
   description: string;
+  hotelKey?: string;
+  hotelName?: string;
 };
 
 const DEFAULT_IMAGE =
@@ -102,15 +106,32 @@ function inferTags(title: string, description?: string): string[] {
   return tags.length ? tags : ["leilão"];
 }
 
+export function applyAuctionCardOverlay(card: LeilaoCard, overlay?: AuctionCardOverlay): LeilaoCard {
+  if (!overlay) return card;
+  return {
+    ...card,
+    title: overlay.title ?? card.title,
+    description: overlay.description ?? card.description,
+    location: overlay.location ?? card.location,
+    category: overlay.category ?? card.category,
+    image: overlay.image ?? card.image,
+    tags: overlay.tags ?? card.tags,
+    rating: overlay.rating ?? card.rating,
+    hotelKey: overlay.hotelKey ?? card.hotelKey,
+    hotelName: overlay.hotelName ?? card.hotelName,
+  };
+}
+
 export function mapAuctionToLeilaoCard(
   auction: BackendAuction,
   bids: BackendBid[] = [],
+  overlay?: AuctionCardOverlay,
 ): LeilaoCard {
   const endMs = new Date(auction.end_date).getTime();
   const timeLeftSeconds = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
   const totalBids = auction.total_bids ?? bids.length ?? 0;
 
-  return {
+  const base: LeilaoCard = {
     id: auction.id,
     title: auction.title,
     location: inferLocation(auction.title, auction.description),
@@ -131,6 +152,8 @@ export function mapAuctionToLeilaoCard(
     tags: inferTags(auction.title, auction.description),
     description: auction.description || auction.title,
   };
+
+  return applyAuctionCardOverlay(base, overlay);
 }
 
 export async function fetchActiveAuctionsFromRsv360(): Promise<LeilaoCard[]> {
@@ -148,10 +171,12 @@ export async function fetchActiveAuctionsFromRsv360(): Promise<LeilaoCard[]> {
         const bids = Array.isArray(bidsRes)
           ? (bidsRes as unknown as BackendBid[])
           : bidsRes.data ?? [];
-        return mapAuctionToLeilaoCard(auction, bids);
+        const overlay = getAuctionOverlay(auction.id);
+        return mapAuctionToLeilaoCard(auction, bids, overlay);
       } catch (error) {
         logger.warn(`[auctions] bids ${auction.id}: ${error instanceof Error ? error.message : "erro"}`);
-        return mapAuctionToLeilaoCard(auction);
+        const overlay = getAuctionOverlay(auction.id);
+        return mapAuctionToLeilaoCard(auction, [], overlay);
       }
     }),
   );
@@ -173,5 +198,71 @@ export async function fetchAuctionDetailFromRsv360(id: number): Promise<LeilaoCa
     bids = [];
   }
 
-  return mapAuctionToLeilaoCard(auction, bids);
+  const overlay = getAuctionOverlay(id);
+  return mapAuctionToLeilaoCard(auction, bids, overlay);
+}
+
+type Rsv360LoginResponse = {
+  success?: boolean;
+  data?: { access_token?: string };
+  error?: string;
+};
+
+type Rsv360BidResponse = {
+  success?: boolean;
+  data?: BackendBid;
+  message?: string;
+};
+
+function bidServiceCredentials(): { email: string; password: string } {
+  return {
+    email: (
+      process.env.RSV360_BID_USER_EMAIL ||
+      process.env.SEED_TEST_USER_EMAIL ||
+      "test@local.dev"
+    ).toLowerCase(),
+    password:
+      process.env.RSV360_BID_USER_PASSWORD ||
+      process.env.SEED_TEST_USER_PASSWORD ||
+      "dev-only-fallback-do-not-use-in-prod",
+  };
+}
+
+export async function obtainRsv360AccessTokenForBids(): Promise<string> {
+  const { email, password } = bidServiceCredentials();
+  const login = await fetchBackendJson<Rsv360LoginResponse>("/api/v1/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const token = login?.data?.access_token;
+  if (!token) {
+    throw new Error(login?.error || "Falha ao autenticar no backend RSV360 para lance.");
+  }
+  return token;
+}
+
+export async function placeBidOnRsv360(
+  auctionId: number,
+  amount: number,
+  accessToken: string,
+): Promise<BackendBid> {
+  const result = await fetchBackendJson<Rsv360BidResponse>(
+    `/api/v1/auctions/${auctionId}/bids`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ amount }),
+    },
+  );
+
+  if (!result?.success || !result.data) {
+    throw new Error(result?.message || "Falha ao registrar lance no RSV360.");
+  }
+  return result.data;
 }

@@ -56,6 +56,7 @@ import {
 } from "./social-commerce";
 import { registerWeatherRoutes } from "./routes/weather-routes.js";
 import { registerAuctionsRoutes } from "./routes/auctions-routes.js";
+import adminOffersRoutes from "./routes/admin-offers.routes.js";
 import adminWebsiteRoutes from "./routes/admin-website.routes.js";
 import { searchItems, suggestItems, filterCatalogExcursoes } from "./search-data";
 import {
@@ -89,6 +90,15 @@ export async function registerRoutes(
     if (!user || user.role !== "admin") return res.status(403).json({ success: false, error: "Acesso restrito a administradores", code: "FORBIDDEN" });
     next();
   }, adminWebsiteRoutes);
+
+  // ─── ADMIN OFFERS CMS (leilões / flash deals / regras) ───────────────────
+  app.use("/api/admin/offers", async (req, res, next) => {
+    const userId = (req.session as { userId?: string })?.userId;
+    if (!userId) return res.status(401).json({ success: false, error: "Não autenticado", code: "UNAUTHORIZED" });
+    const user = await storage.getUser(userId);
+    if (!user || user.role !== "admin") return res.status(403).json({ success: false, error: "Acesso restrito a administradores", code: "FORBIDDEN" });
+    next();
+  }, adminOffersRoutes);
 
   // ─── RATE LIMITERS (Fase 08 — hardening) ─────────────────────────────────
   // voucher: 10 req/min por IP — protege geração de PDF e HMAC token
@@ -2449,7 +2459,12 @@ export async function registerRoutes(
       totalSavings: txn.totalSavings,
       isCombo: txn.isCombo,
       items: txn.items,
-      customer: { name: txn.customer.name, email: txn.customer.email },
+      customer: {
+        name: txn.customer.name,
+        email: txn.customer.email,
+        phone: txn.customer.phone,
+        cpf: txn.customer.cpf,
+      },
       createdAt: txn.createdAt,
       expirationDate: txn.expirationDate,
       demo: txn.demo,
