@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ArrowLeft, User, Star, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays, Mail, Phone, Loader2, Camera, CheckCircle2, Trophy, Plus, BarChart3, Users, FileText, type LucideIcon } from "lucide-react";
+import { ArrowLeft, User, Star, MapPin, Settings, ChevronRight, Shield, Award, Bell, LogOut, Home, Search, CalendarDays, Mail, Phone, Loader2, Camera, CheckCircle2, Trophy, Plus, BarChart3, Users, FileText, FlaskConical, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, useLogout } from "@/hooks/use-auth";
 import { SelfieModal } from "@/components/selfie/SelfieModal";
+import { getMarketingLabHandoffUrl } from "@/lib/marketing-lab";
 
 type Reserva = {
   id: string;
@@ -58,6 +59,7 @@ const MENU_ORGANIZADOR: MenuItem[] = [
 
 const MENU_ADMIN: MenuItem[] = [
   { icon: BarChart3, label: "Painel Admin", href: "/admin/dashboard" },
+  { icon: FlaskConical, label: "Marketing Lab", href: getMarketingLabHandoffUrl("/lab") },
   { icon: FileText, label: "Financeiro", href: "/admin/financeiro" },
   { icon: Users, label: "Passageiros", href: "/admin/passageiros" },
   { icon: Shield, label: "LGPD", href: "/admin/lgpd" },

@@ -32,6 +32,12 @@ export function useLogin() {
     },
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/auth/me"], user);
+      const params = new URLSearchParams(window.location.search);
+      const labReturn = params.get("lab_return");
+      if (labReturn && labReturn.startsWith("/") && !labReturn.startsWith("//")) {
+        window.location.href = `/api/auth/lab-handoff?return=${encodeURIComponent(labReturn)}`;
+        return;
+      }
       setLocation("/perfil");
     },
   });

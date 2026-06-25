@@ -64,6 +64,10 @@ import {
   getConquistas,
   CONQUISTAS_DEFS as CONQUISTAS_DEFS_SERVICE,
 } from "./services/gamification-service";
+import {
+  issueMarketingLabHandoff,
+  normalizeLabReturnPath,
+} from "./services/marketing-lab-sso.service.js";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -347,6 +351,34 @@ export async function registerRoutes(
     const user = await storage.getUser(req.session.userId);
     if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
     return res.json(safeUser(user));
+  });
+
+  /** SSO → Marketing Lab (rsv360 :3000). Requer sessão S1 + backend :3002. */
+  app.get("/api/auth/lab-handoff", async (req: Request, res: Response) => {
+    const returnPath = normalizeLabReturnPath(req.query.return);
+
+    if (!req.session.userId) {
+      const loginUrl = `/entrar?lab_return=${encodeURIComponent(returnPath)}`;
+      return res.redirect(loginUrl);
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user?.email) {
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+
+    const result = await issueMarketingLabHandoff({
+      email: user.email,
+      name: user.nome || user.email,
+      externalUserId: String(user.id),
+      returnPath,
+    });
+
+    if (!result.ok) {
+      return res.status(result.status).json({ message: result.message });
+    }
+
+    return res.redirect(result.callbackUrl);
   });
 
   app.post("/api/auth/selfie", async (req: Request, res: Response) => {
