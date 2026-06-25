@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Zap, Clock, Star, MapPin, ChevronRight, Phone, Eye, ShoppingCart, Sparkles, TrendingDown, TrendingUp, Check, AlertTriangle, LayoutGrid, Wallet } from "lucide-react"
 import { useLocation } from "wouter"
+import { FLASH_DEALS_CATALOG, type FlashDealCatalogItem } from "@shared/flash-deals-catalog"
 import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
@@ -14,105 +16,6 @@ import {
   CrossSellSection,
   TravelerProfile,
 } from "@/components/ai-conversion-elements"
-
-const FLASH_DEALS = [
-  {
-    id: 1,
-    title: "Resort Termas Paradise",
-    location: "Caldas Novas",
-    originalPrice: 1899,
-    price: 569,
-    discount: 70,
-    soldPercent: 92,
-    timeLeft: "02:32:18",
-    roomsLeft: 2,
-    rating: 4.9,
-    reviews: 856,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/termas-paradise-Np6Qr8Ts2Uf4Xv7Zy1Bw3Dc5Eg9Hj.jpg",
-    category: "natureza",
-    tags: ["família", "spa", "piscinas termais"],
-  },
-  {
-    id: 2,
-    title: "Hot Park - Passe Família",
-    location: "Rio Quente",
-    originalPrice: 799,
-    price: 349,
-    discount: 56,
-    soldPercent: 75,
-    timeLeft: "06:45:33",
-    roomsLeft: 5,
-    rating: 4.8,
-    reviews: 2341,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/hot-park-Jm2Xy9K8RfqL3vN5wT1pA6sD4hB7eC.jpg",
-    category: "parques",
-    tags: ["família", "aventura", "parque aquático"],
-  },
-  {
-    id: 3,
-    title: "DiRoma Internacional",
-    location: "Caldas Novas",
-    originalPrice: 1299,
-    price: 649,
-    discount: 50,
-    soldPercent: 62,
-    timeLeft: "12:15:45",
-    roomsLeft: 8,
-    rating: 4.7,
-    reviews: 1654,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/diroma-Kp4Mn7Hs8Qf2Lw6Rv3Jx5Bt1Yd9Gc.jpg",
-    category: "natureza",
-    tags: ["casal", "spa", "resort"],
-  },
-  {
-    id: 4,
-    title: "Lagoa Quente Flat",
-    location: "Caldas Novas",
-    originalPrice: 989,
-    price: 449,
-    discount: 55,
-    soldPercent: 45,
-    timeLeft: "23:00:00",
-    roomsLeft: 12,
-    rating: 4.6,
-    reviews: 987,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/water-park-Lq8Rs2Ut4Wv6Xy9Ab1Cd3Ef5Gh7Ij.jpg",
-    category: "natureza",
-    tags: ["família", "econômico", "flat"],
-  },
-  {
-    id: 5,
-    title: "Pousada do Rio Quente",
-    location: "Rio Quente",
-    originalPrice: 1450,
-    price: 580,
-    discount: 60,
-    soldPercent: 88,
-    timeLeft: "03:20:10",
-    roomsLeft: 3,
-    rating: 4.8,
-    reviews: 1122,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/termas-paradise-Np6Qr8Ts2Uf4Xv7Zy1Bw3Dc5Eg9Hj.jpg",
-    category: "natureza",
-    tags: ["casal", "romântico", "spa"],
-  },
-  {
-    id: 6,
-    title: "Náutico Praia Clube",
-    location: "Caldas Novas",
-    originalPrice: 1199,
-    price: 479,
-    discount: 60,
-    soldPercent: 70,
-    timeLeft: "08:50:25",
-    roomsLeft: 6,
-    rating: 4.5,
-    reviews: 743,
-    image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/hot-park-Jm2Xy9K8RfqL3vN5wT1pA6sD4hB7eC.jpg",
-    category: "parques",
-    tags: ["família", "amigos", "esportes"],
-  },
-]
 
 const FILTERS = ["Todas", "Maior Desconto", "Acabando", "Menor Preço", "IA Recomenda"]
 
@@ -268,6 +171,22 @@ function ReservationFeedback({ dealTitle, visible, onDone }: { dealTitle: string
 
 export default function FlashDealsPage() {
   const [, navigate] = useLocation()
+  const dealsQuery = useQuery({
+    queryKey: ["flash-deals"],
+    queryFn: async (): Promise<FlashDealCatalogItem[]> => {
+      const res = await fetch("/api/flash-deals", { headers: { Accept: "application/json" } })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok || !body.success || !Array.isArray(body.data)) {
+        return FLASH_DEALS_CATALOG
+      }
+      return body.data as FlashDealCatalogItem[]
+    },
+    staleTime: 30_000,
+  })
+  const FLASH_DEALS = useMemo(
+    () => dealsQuery.data ?? FLASH_DEALS_CATALOG,
+    [dealsQuery.data],
+  )
   const [timers, setTimers] = useState<Record<number, number>>({})
   const [globalTimer, setGlobalTimer] = useState(4 * 3600 + 27 * 60 + 33)
   const [activeFilter, setActiveFilter] = useState("Todas")

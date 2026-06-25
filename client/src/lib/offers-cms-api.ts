@@ -1,3 +1,4 @@
+import type { FlashDealCatalogItem } from "@shared/flash-deals-catalog";
 import type {
   AuctionCardOverlay,
   CreateOfferRuleInput,
@@ -81,6 +82,12 @@ export async function saveAdminAuctionOverlay(
     method: "PUT",
     body: JSON.stringify(overlay),
   });
+}
+
+export type AdminFlashDealCard = FlashDealCatalogItem & { overlay: FlashDealCardOverlay | null };
+
+export async function listAdminFlashDealCards(): Promise<AdminFlashDealCard[]> {
+  return adminFetch<AdminFlashDealCard[]>("/api/admin/offers/flash-deals");
 }
 
 export async function saveAdminFlashDealOverlay(

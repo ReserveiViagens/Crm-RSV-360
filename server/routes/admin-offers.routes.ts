@@ -17,6 +17,7 @@ import {
   fetchAuctionDetailFromRsv360,
   isRsv360AuctionsEnabled,
 } from "../services/rsv360-auctions.service.js";
+import { listFlashDealsForAdmin } from "../services/flash-deals.service.js";
 
 const router = Router();
 
@@ -148,6 +149,10 @@ router.put("/auctions/:id/overlay", async (req: Request, res: Response) => {
   }
   const overlay = await upsertAuctionOverlay(id, parsed.data);
   return res.json({ success: true, data: overlay });
+});
+
+router.get("/flash-deals", (_req: Request, res: Response) => {
+  return res.json({ success: true, data: listFlashDealsForAdmin() });
 });
 
 router.get("/flash-deals/overlays", (_req: Request, res: Response) => {
