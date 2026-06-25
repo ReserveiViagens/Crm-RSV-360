@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Gavel, Plus, Pencil, Trash2, Save, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Gavel, Plus, Pencil, Trash2, Save, Loader2, AlertTriangle, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { OfferRule, OfferRuleCategory, OfferRuleScope } from "@shared/offers-cms-types";
 import {
   createAdminOfferRule,
   deleteAdminOfferRule,
   listAdminAuctionCards,
+  listAdminFlashDealCards,
   listAdminOfferRules,
   saveAdminAuctionOverlay,
+  saveAdminFlashDealOverlay,
   updateAdminOfferRule,
   type AdminAuctionCard,
+  type AdminFlashDealCard,
 } from "@/lib/offers-cms-api";
 
-type Tab = "regras" | "cards";
+type Tab = "regras" | "cards" | "flash";
 
 const SCOPE_LABELS: Record<OfferRuleScope, string> = {
   global: "Global",
@@ -58,6 +61,19 @@ export default function AdminLeiloesPage() {
     hotelName: "",
     hotelKey: "",
   });
+  const [selectedFlashDeal, setSelectedFlashDeal] = useState<AdminFlashDealCard | null>(null);
+  const [flashForm, setFlashForm] = useState({
+    title: "",
+    location: "",
+    originalPrice: "",
+    price: "",
+    discount: "",
+    image: "",
+    category: "",
+    tags: "",
+    description: "",
+    hotelKey: "",
+  });
 
   const rulesQuery = useQuery({
     queryKey: ["admin-offer-rules"],
@@ -68,6 +84,12 @@ export default function AdminLeiloesPage() {
     queryKey: ["admin-auction-cards"],
     queryFn: listAdminAuctionCards,
     enabled: tab === "cards",
+  });
+
+  const flashDealsQuery = useQuery({
+    queryKey: ["admin-flash-deal-cards"],
+    queryFn: listAdminFlashDealCards,
+    enabled: tab === "flash",
   });
 
   const saveRuleMutation = useMutation({
@@ -123,6 +145,31 @@ export default function AdminLeiloesPage() {
     onError: (e: Error) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
+  const saveFlashMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedFlashDeal) throw new Error("Selecione um flash deal");
+      return saveAdminFlashDealOverlay(selectedFlashDeal.id, {
+        title: flashForm.title || undefined,
+        location: flashForm.location || undefined,
+        originalPrice: flashForm.originalPrice ? Number(flashForm.originalPrice) : undefined,
+        price: flashForm.price ? Number(flashForm.price) : undefined,
+        discount: flashForm.discount ? Number(flashForm.discount) : undefined,
+        image: flashForm.image || undefined,
+        category: flashForm.category || undefined,
+        tags: flashForm.tags
+          ? flashForm.tags.split(",").map((t) => t.trim()).filter(Boolean)
+          : undefined,
+        description: flashForm.description || undefined,
+        hotelKey: flashForm.hotelKey || undefined,
+      });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["admin-flash-deal-cards"] });
+      toast({ title: "Card do flash deal atualizado" });
+    },
+    onError: (e: Error) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
   const startEditRule = (rule: OfferRule) => {
     setEditingRule(rule);
     setRuleForm({
@@ -152,8 +199,26 @@ export default function AdminLeiloesPage() {
     });
   };
 
+  const selectFlashDeal = (deal: AdminFlashDealCard) => {
+    setSelectedFlashDeal(deal);
+    const o = deal.overlay;
+    setFlashForm({
+      title: o?.title ?? deal.title,
+      location: o?.location ?? deal.location,
+      originalPrice: String(o?.originalPrice ?? deal.originalPrice),
+      price: String(o?.price ?? deal.price),
+      discount: String(o?.discount ?? deal.discount),
+      image: o?.image ?? deal.image,
+      category: o?.category ?? deal.category,
+      tags: (o?.tags ?? deal.tags).join(", "),
+      description: o?.description ?? deal.description ?? "",
+      hotelKey: o?.hotelKey ?? deal.hotelKey ?? "",
+    });
+  };
+
   const rules = rulesQuery.data ?? [];
   const auctions = auctionsQuery.data ?? [];
+  const flashDeals = flashDealsQuery.data ?? [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -184,6 +249,14 @@ export default function AdminLeiloesPage() {
             className={`rounded-lg px-4 py-2 text-sm font-semibold ${tab === "cards" ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300"}`}
           >
             Cards de leilão
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("flash")}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold ${tab === "flash" ? "bg-amber-500 text-white" : "bg-slate-800 text-slate-300"}`}
+          >
+            <Zap className="h-4 w-4" />
+            Flash Deals
           </button>
         </div>
 
@@ -417,6 +490,103 @@ export default function AdminLeiloesPage() {
                     className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2 text-sm font-semibold"
                   >
                     {saveCardMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Salvar card
+                  </button>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {tab === "flash" && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <h2 className="mb-4 font-semibold">Flash Deals (catálogo S1)</h2>
+              {flashDealsQuery.isLoading ? (
+                <p className="text-sm text-slate-500">Carregando…</p>
+              ) : flashDeals.length === 0 ? (
+                <p className="text-sm text-slate-500">Nenhuma oferta no catálogo.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {flashDeals.map((deal) => (
+                    <li key={deal.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectFlashDeal(deal)}
+                        className={`w-full rounded-lg border p-3 text-left text-sm transition ${
+                          selectedFlashDeal?.id === deal.id
+                            ? "border-amber-500 bg-amber-950/30"
+                            : "border-slate-800 hover:border-slate-600"
+                        }`}
+                      >
+                        <span className="font-medium">#{deal.id} — {deal.title}</span>
+                        <p className="text-xs text-slate-500">
+                          {deal.location} · R$ {deal.price} ({deal.discount}% off)
+                        </p>
+                        {deal.overlay && <p className="text-xs text-amber-400">Overlay personalizado</p>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <h2 className="mb-4 font-semibold">Editor do card</h2>
+              {!selectedFlashDeal ? (
+                <p className="text-sm text-slate-500">Selecione um flash deal à esquerda.</p>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-slate-500">
+                    Dados base vêm do catálogo S1. Campos abaixo sobrescrevem a exibição em /flash-deals.
+                  </p>
+                  {(["title", "location", "category", "image", "description", "hotelKey"] as const).map((field) => (
+                    <label key={field} className="block text-xs text-slate-400 capitalize">
+                      {field}
+                      {field === "description" ? (
+                        <textarea
+                          rows={3}
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                          value={flashForm[field]}
+                          onChange={(e) => setFlashForm({ ...flashForm, [field]: e.target.value })}
+                        />
+                      ) : (
+                        <input
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                          value={flashForm[field]}
+                          onChange={(e) => setFlashForm({ ...flashForm, [field]: e.target.value })}
+                        />
+                      )}
+                    </label>
+                  ))}
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["originalPrice", "price", "discount"] as const).map((field) => (
+                      <label key={field} className="text-xs text-slate-400 capitalize">
+                        {field}
+                        <input
+                          type="number"
+                          className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                          value={flashForm[field]}
+                          onChange={(e) => setFlashForm({ ...flashForm, [field]: e.target.value })}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <label className="block text-xs text-slate-400">
+                    Tags (vírgula)
+                    <input
+                      className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                      value={flashForm.tags}
+                      onChange={(e) => setFlashForm({ ...flashForm, tags: e.target.value })}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={saveFlashMutation.isPending}
+                    onClick={() => saveFlashMutation.mutate()}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 py-2 text-sm font-semibold text-slate-950"
+                  >
+                    {saveFlashMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Salvar card
                   </button>
                 </div>

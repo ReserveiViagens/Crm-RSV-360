@@ -56,6 +56,7 @@ import {
 } from "./social-commerce";
 import { registerWeatherRoutes } from "./routes/weather-routes.js";
 import { registerAuctionsRoutes } from "./routes/auctions-routes.js";
+import { registerFlashDealsRoutes } from "./routes/flash-deals-routes.js";
 import adminOffersRoutes from "./routes/admin-offers.routes.js";
 import adminWebsiteRoutes from "./routes/admin-website.routes.js";
 import { searchItems, suggestItems, filterCatalogExcursoes } from "./search-data";
@@ -77,6 +78,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerWeatherRoutes(app);
   registerAuctionsRoutes(app);
+  registerFlashDealsRoutes(app);
 
   // ─── STATIC — Media uploads ───────────────────────────────────────────────
   const uploadsDir = path.resolve(process.cwd(), "uploads", "website");
