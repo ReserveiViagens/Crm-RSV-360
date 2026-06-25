@@ -47,3 +47,34 @@ export async function fetchLeiloesFromApi(): Promise<LeilaoItem[]> {
 
   return body.data;
 }
+
+type PlaceBidResponse = {
+  success: boolean;
+  data?: { id: number; amount: number; auction_id?: number };
+  error?: string;
+};
+
+export async function placeLeilaoBid(auctionId: number, amount: number): Promise<PlaceBidResponse["data"]> {
+  const res = await fetch(`/api/leiloes/${auctionId}/bids`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ amount }),
+  });
+
+  let body: PlaceBidResponse = { success: false };
+  try {
+    body = await res.json();
+  } catch {
+    body = { success: false };
+  }
+
+  if (!res.ok || !body.success || !body.data) {
+    throw new Error(body.error || `Falha ao registrar lance (${res.status})`);
+  }
+
+  return body.data;
+}

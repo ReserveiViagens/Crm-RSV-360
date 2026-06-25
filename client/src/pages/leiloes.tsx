@@ -4,7 +4,7 @@ import { HotelCategoryNav } from "@/components/hotel/HotelCategoryNav"
 import { HomeHeader } from "@/components/home/HomeHeader"
 import { HomeFooter } from "@/components/home/HomeFooter"
 import { MobileCTABar } from "@/components/home/MobileCTABar"
-import { fetchLeiloesFromApi, type LeilaoItem } from "@/lib/leiloes-api"
+import { fetchLeiloesFromApi, placeLeilaoBid, type LeilaoItem } from "@/lib/leiloes-api"
 import {
   SocialProofBanner,
   AIRecommendedBadge,
@@ -172,6 +172,8 @@ export default function LeiloesPage() {
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [toastsPaused, setToastsPaused] = useState(false)
+  const [bidSubmitting, setBidSubmitting] = useState(false)
+  const [bidError, setBidError] = useState<string | null>(null)
   const toastIdRef = useRef(0)
 
   const formatPrice = (p: number) =>
@@ -274,23 +276,38 @@ export default function LeiloesPage() {
     return () => clearTimeout(timerRef)
   }, [toastsPaused, isLiveData])
 
-  const handleBid = (leilaoId: number, amount: number) => {
-    setLeiloes(prev => prev.map(l => {
-      if (l.id !== leilaoId) return l
-      return {
-        ...l,
-        currentBid: amount,
-        totalBids: l.totalBids + 1,
-        lastBids: [
-          { name: "Você", value: amount, timestamp: Date.now() },
-          ...l.lastBids.slice(0, 4),
-        ],
-      }
-    }))
-    setBidModal(null)
+  const handleBid = async (leilaoId: number, amount: number) => {
+    setBidError(null)
+    setBidSubmitting(true)
 
-    const whatsappMessage = encodeURIComponent(`Olá! Quero confirmar meu lance de ${formatPrice(amount)} no leilão RSV360!`)
-    window.open(`https://wa.me/5564993197555?text=${whatsappMessage}`, "_blank")
+    try {
+      if (isLiveData) {
+        await placeLeilaoBid(leilaoId, amount)
+      }
+
+      setLeiloes(prev => prev.map(l => {
+        if (l.id !== leilaoId) return l
+        return {
+          ...l,
+          currentBid: amount,
+          totalBids: l.totalBids + 1,
+          lastBids: [
+            { name: "Você", value: amount, timestamp: Date.now() },
+            ...l.lastBids.slice(0, 4),
+          ],
+        }
+      }))
+      setBidModal(null)
+
+      if (!isLiveData) {
+        const whatsappMessage = encodeURIComponent(`Olá! Quero confirmar meu lance de ${formatPrice(amount)} no leilão RSV360!`)
+        window.open(`https://wa.me/5564993197555?text=${whatsappMessage}`, "_blank")
+      }
+    } catch (error) {
+      setBidError(error instanceof Error ? error.message : "Erro ao registrar lance.")
+    } finally {
+      setBidSubmitting(false)
+    }
   }
 
   const bidKey = leiloes.map(l => `${l.id}:${l.currentBid}:${l.totalBids}`).join(',')
@@ -851,9 +868,16 @@ export default function LeiloesPage() {
               </button>
             </div>
 
+            {bidError && (
+              <p data-testid="text-bid-error" style={{ color: "#F87171", fontSize: 13, margin: "0 0 12px" }}>
+                {bidError}
+              </p>
+            )}
+
             <button
               data-testid="button-confirm-bid"
-              onClick={() => handleBid(bidModal.leilaoId, customBidAmount)}
+              disabled={bidSubmitting}
+              onClick={() => void handleBid(bidModal.leilaoId, customBidAmount)}
               style={{
                 width: "100%", padding: "16px 0", borderRadius: 12, border: "none",
                 background: "linear-gradient(135deg, #22C55E, #16A34A)",

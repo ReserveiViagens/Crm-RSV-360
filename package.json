@@ -12,6 +12,7 @@
     "db:seed": "tsx server/db/seed.ts",
     "catalog:sync": "tsx scripts/sync-catalog.ts",
     "e2e": "playwright test",
+    "e2e:auctions": "playwright test tests/e2e/auctions-e2e.spec.ts",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report"

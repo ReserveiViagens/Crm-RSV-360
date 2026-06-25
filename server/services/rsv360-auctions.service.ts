@@ -175,3 +175,68 @@ export async function fetchAuctionDetailFromRsv360(id: number): Promise<LeilaoCa
 
   return mapAuctionToLeilaoCard(auction, bids);
 }
+
+type Rsv360LoginResponse = {
+  success?: boolean;
+  data?: { access_token?: string };
+  error?: string;
+};
+
+type Rsv360BidResponse = {
+  success?: boolean;
+  data?: BackendBid;
+  message?: string;
+};
+
+function bidServiceCredentials(): { email: string; password: string } {
+  return {
+    email: (
+      process.env.RSV360_BID_USER_EMAIL ||
+      process.env.SEED_TEST_USER_EMAIL ||
+      "test@local.dev"
+    ).toLowerCase(),
+    password:
+      process.env.RSV360_BID_USER_PASSWORD ||
+      process.env.SEED_TEST_USER_PASSWORD ||
+      "dev-only-fallback-do-not-use-in-prod",
+  };
+}
+
+export async function obtainRsv360AccessTokenForBids(): Promise<string> {
+  const { email, password } = bidServiceCredentials();
+  const login = await fetchBackendJson<Rsv360LoginResponse>("/api/v1/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const token = login?.data?.access_token;
+  if (!token) {
+    throw new Error(login?.error || "Falha ao autenticar no backend RSV360 para lance.");
+  }
+  return token;
+}
+
+export async function placeBidOnRsv360(
+  auctionId: number,
+  amount: number,
+  accessToken: string,
+): Promise<BackendBid> {
+  const result = await fetchBackendJson<Rsv360BidResponse>(
+    `/api/v1/auctions/${auctionId}/bids`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ amount }),
+    },
+  );
+
+  if (!result?.success || !result.data) {
+    throw new Error(result?.message || "Falha ao registrar lance no RSV360.");
+  }
+  return result.data;
+}

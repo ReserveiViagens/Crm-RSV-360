@@ -38,6 +38,8 @@ export default defineConfig({
       ...process.env,
       NODE_ENV: "development",
       PORT: "5000",
+      RSV360_BACKEND_URL: process.env.RSV360_BACKEND_URL || "http://127.0.0.1:3002",
+      USE_RSV360_AUCTIONS: process.env.USE_RSV360_AUCTIONS || "true",
     },
   },
 });
