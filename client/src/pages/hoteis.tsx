@@ -26,6 +26,10 @@ import SearchBar from "@/components/search/SearchBar"
 import SearchResultsSummary from "@/components/search/SearchResultsSummary"
 import SearchEmptyState from "@/components/search/SearchEmptyState"
 import { clearPriceRange } from "@/lib/search-query"
+import {
+  buildHoteisCotacaoHref,
+  buildWhatsAppReserveUrl,
+} from "@/lib/hoteis-cotacao-map"
 import type { SearchFilters, SearchItem } from "@/types/search"
 
 interface HotelReview {
@@ -708,17 +712,32 @@ function CompareModal({
               <div key={h.id} style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: "#22C55E", marginBottom: 4 }}>{formatPrice(h.price)}</div>
                 <div style={{ fontSize: 11, color: "#9CA3AF", marginBottom: 8 }}>diaria p/ {h.capacity} pessoa{h.capacity > 1 ? "s" : ""}</div>
-                <button
+                <a
                   data-testid={`button-reserve-compare-${h.id}`}
-                  onClick={() => window.open(`https://wa.me/5564993197555?text=Olá! Quero reservar o ${h.title} com desconto especial!`, "_blank")}
+                  href={buildHoteisCotacaoHref(h.id)}
                   style={{
-                    width: "100%", padding: "12px 0", border: "none", borderRadius: 10, cursor: "pointer",
+                    display: "block", width: "100%", padding: "12px 0", border: "none", borderRadius: 10,
+                    textDecoration: "none", textAlign: "center", boxSizing: "border-box",
                     fontSize: 13, fontWeight: 700, color: "#fff",
                     background: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
                   }}
                 >
                   Reservar
-                </button>
+                </a>
+                <a
+                  data-testid={`button-whatsapp-compare-${h.id}`}
+                  href={buildWhatsAppReserveUrl(h.title)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "block", width: "100%", marginTop: 6, padding: "8px 0", borderRadius: 10,
+                    textDecoration: "none", textAlign: "center", boxSizing: "border-box",
+                    fontSize: 11, fontWeight: 600, color: "#16A34A",
+                    border: "1px solid #86EFAC", background: "#F0FDF4",
+                  }}
+                >
+                  Falar no WhatsApp
+                </a>
               </div>
             ))}
           </div>
@@ -1427,27 +1446,39 @@ export default function HoteisPage() {
             </div>
           </div>
 
-          <button
+          <a
             data-testid={`button-reserve-${hotel.id}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              window.open(
-                `https://wa.me/5564993197555?text=Olá! Quero reservar o ${hotel.title} com desconto especial!`,
-                "_blank",
-              )
-            }}
+            href={buildHoteisCotacaoHref(hotel.id)}
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%", marginTop: 12, padding: "13px 0", border: "none", borderRadius: 12,
-              cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
+              fontSize: 14, fontWeight: 700, color: "#fff", textDecoration: "none",
               background: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
               boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
               transition: "opacity 0.2s, box-shadow 0.2s",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              boxSizing: "border-box",
             }}
           >
-            <Phone style={{ width: 16, height: 16 }} />
             Reservar Agora
-          </button>
+          </a>
+          <a
+            data-testid={`button-whatsapp-${hotel.id}`}
+            href={buildWhatsAppReserveUrl(hotel.title)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", marginTop: 8, padding: "10px 0", borderRadius: 12,
+              fontSize: 13, fontWeight: 600, color: "#16A34A", textDecoration: "none",
+              border: "1.5px solid #86EFAC", background: "#F0FDF4",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              boxSizing: "border-box",
+            }}
+          >
+            <Phone style={{ width: 14, height: 14 }} />
+            Falar no WhatsApp
+          </a>
         </div>
       </div>
     )
