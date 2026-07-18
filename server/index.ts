@@ -15,6 +15,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { setupWebSocket } from "./socket";
+import { formatResponseBodyLogFragment } from "./lib/log-summary";
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,7 +70,7 @@ export function log(message: string, source = "express") {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: unknown = undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -82,7 +83,10 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        logLine += formatResponseBodyLogFragment(capturedJsonResponse, {
+          production: process.env.NODE_ENV === "production",
+          statusCode: res.statusCode,
+        });
       }
 
       log(logLine);
