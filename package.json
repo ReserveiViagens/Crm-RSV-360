@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "dev:heap": "cross-env NODE_ENV=development HEAP_MONITOR=1 NODE_OPTIONS=--max-old-space-size=4096 tsx server/index.ts",
     "build": "tsx script/build.ts",
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",

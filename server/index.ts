@@ -130,4 +130,21 @@ app.use((req, res, next) => {
   httpServer.listen(port, "127.0.0.1", () => {
     log(`serving on port ${port}`);
   });
+
+  // Observação de heap pós-OOM (16/07): só via `npm run dev:heap` (HEAP_MONITOR=1).
+  // Não altera `npm run dev` nem produção. `.unref()` evita manter o processo vivo só pelo timer.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.HEAP_MONITOR === "1"
+  ) {
+    const toMb = (bytes: number) => (bytes / (1024 * 1024)).toFixed(1);
+    setInterval(() => {
+      const m = process.memoryUsage();
+      log(
+        `rss=${toMb(m.rss)}MB heapUsed=${toMb(m.heapUsed)}MB heapTotal=${toMb(m.heapTotal)}MB external=${toMb(m.external)}MB`,
+        "heap",
+      );
+    }, 60_000).unref();
+    log("heap monitor on (every 60s)", "heap");
+  }
 })();
